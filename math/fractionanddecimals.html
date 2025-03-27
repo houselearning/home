@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraction & Decimal Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        #game {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 150px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        #timer {
+            font-size: 20px;
+            color: red;
+        }
+
+        select {
+            padding: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fraction & Decimal Game</h1>
+    <div id="game">
+        <p id="timer">Time Remaining: 60 seconds</p>
+        <p>Choose Difficulty Level: 
+            <select id="difficulty">
+                <option value="1">Easy (1-10)</option>
+                <option value="2">Medium (1-50)</option>
+                <option value="3">Hard (1-100)</option>
+            </select>
+        </p>
+        <p id="question">Question will appear here</p>
+        <input type="text" id="answer" placeholder="Enter your answer" />
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p>Score: <span id="score">0</span></p>
+        <p>Questions Answered: <span id="questionsAnswered">0</span></p>
+    </div>
+    <script>
+        let score = 0;
+        let questionsAnswered = 0;
+        let correctAnswer = 0;
+        let timer = 60;
+        let timerInterval;
+        let difficulty = 1;
+
+        function startTimer() {
+            timerInterval = setInterval(function() {
+                timer--;
+                document.getElementById('timer').innerText = `Time Remaining: ${timer} seconds`;
+                if (timer === 0) {
+                    clearInterval(timerInterval);
+                    alert("Time's up! Final score: " + score);
+                }
+            }, 1000);
+        }
+
+        function generateQuestion() {
+            difficulty = document.getElementById('difficulty').value;
+            let maxNum;
+            if (difficulty == 1) maxNum = 10; // Easy
+            if (difficulty == 2) maxNum = 50; // Medium
+            if (difficulty == 3) maxNum = 100; // Hard
+
+            const randomType = Math.random() < 0.5 ? 'fraction' : 'decimal';
+            let num1 = Math.floor(Math.random() * maxNum) + 1;
+            let num2 = Math.floor(Math.random() * maxNum) + 1;
+
+            if (randomType === 'fraction') {
+                correctAnswer = num1 / num2;
+                document.getElementById('question').innerText = `Convert the fraction ${num1}/${num2} to a decimal.`;
+            } else {
+                num1 = Math.floor(Math.random() * 100) + 1;
+                num2 = Math.floor(Math.random() * 100) + 1;
+                correctAnswer = (num1 / num2).toFixed(2);
+                document.getElementById('question').innerText = `Convert the decimal ${num1} ÷ ${num2} to a fraction.`;
+            }
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(document.getElementById('answer').value);
+
+            if (userAnswer === correctAnswer) {
+                score += 10;
+                questionsAnswered++;
+                document.getElementById('feedback').innerText = "Correct!";
+            } else {
+                questionsAnswered++;
+                document.getElementById('feedback').innerText = `Incorrect. The correct answer is ${correctAnswer}.`;
+            }
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('questionsAnswered').innerText = questionsAnswered;
+            document.getElementById('answer').value = '';
+
+            generateQuestion(); // Generate new question
+        }
+
+        window.onload = function() {
+            startTimer();
+            generateQuestion();
+        };
+    </script>
+</body>
+</html>
