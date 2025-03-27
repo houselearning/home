@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exponents & Roots Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 { color: #4CAF50; }
+        #quiz-container, #intro {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        .options { text-align: left; }
+        .options input { margin-right: 10px; }
+        #score { font-size: 18px; margin-top: 20px; color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>Exponents & Roots</h1>
+    
+    <button onclick="showIntro()">Learn Exponents & Roots</button>
+    <button onclick="startQuiz()">Start Quiz</button>
+
+    <div id="intro">
+        <h2>Understanding Exponents & Roots</h2>
+        <p><b>Exponents</b> are a way to show repeated multiplication. Example:</p>
+        <p>2³ = 2 × 2 × 2 = 8</p>
+        <p><b>Square Roots (√)</b> find a number that, when multiplied by itself, gives another number. Example:</p>
+        <p>√9 = 3 because 3 × 3 = 9</p>
+        <p><b>Cube Roots (³√)</b> find a number that multiplies itself three times to give another number. Example:</p>
+        <p>³√27 = 3 because 3 × 3 × 3 = 27</p>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz-container">
+        <h2 id="question-title"></h2>
+        <div id="question-container"></div>
+        <button onclick="submitAnswer()">Submit Answer</button>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        const questions = [
+            { question: "What is 5²?", options: ["10", "15", "25", "30"], correctAnswer: "25" },
+            { question: "What is 3³?", options: ["9", "12", "27", "18"], correctAnswer: "27" },
+            { question: "What is √49?", options: ["5", "6", "7", "8"], correctAnswer: "7" },
+            { question: "What is 4³?", options: ["12", "16", "64", "48"], correctAnswer: "64" },
+            { question: "What is 2⁴?", options: ["4", "8", "16", "32"], correctAnswer: "16" },
+            { question: "What is ³√8?", options: ["2", "3", "4", "5"], correctAnswer: "2" },
+            { question: "What is √81?", options: ["7", "8", "9", "10"], correctAnswer: "9" },
+            { question: "What is 6²?", options: ["24", "36", "42", "48"], correctAnswer: "36" },
+            { question: "What is √100?", options: ["8", "9", "10", "11"], correctAnswer: "10" },
+            { question: "What is 5³?", options: ["25", "50", "100", "125"], correctAnswer: "125" }
+        ];
+
+        for (let i = 11; i <= 20; i++) {
+            let base = Math.floor(Math.random() * 9) + 2; 
+            let exponent = Math.floor(Math.random() * 3) + 2; 
+            let correctAnswer = Math.pow(base, exponent);
+            questions.push({
+                question: `What is ${base}^${exponent}?`,
+                options: [`${correctAnswer - 5}`, `${correctAnswer}`, `${correctAnswer + 5}`, `${correctAnswer + 10}`],
+                correctAnswer: `${correctAnswer}`
+            });
+
+            let squareNumber = Math.pow(i, 2);
+            questions.push({
+                question: `What is √${squareNumber}?`,
+                options: [`${i - 1}`, `${i}`, `${i + 1}`, `${i + 2}`],
+                correctAnswer: `${i}`
+            });
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showIntro() {
+            document.getElementById("intro").style.display = "block";
+            document.getElementById("quiz-container").style.display = "none";
+        }
+
+        function startQuiz() {
+            document.querySelector("button").style.display = "none";
+            document.getElementById("intro").style.display = "none";
+            document.getElementById("quiz-container").style.display = "block";
+            shuffledQuestions = [...questions];
+            shuffle(shuffledQuestions);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= 20) {
+                document.getElementById("quiz-container").innerHTML = `<h2>Quiz Completed!</h2><p>Your final score is: ${score}</p>`;
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            document.getElementById("question-title").innerText = question.question;
+
+            let optionsHTML = question.options.map(option => 
+                `<label><input type="radio" name="answer" value="${option}">${option}</label><br>`).join('');
+
+            document.getElementById("question-container").innerHTML = optionsHTML;
+        }
+
+        function submitAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) return alert("Please select an answer.");
+            
+            if (selectedAnswer.value === shuffledQuestions[currentQuestionIndex].correctAnswer) score += 10;
+            currentQuestionIndex++;
+            document.getElementById("score").innerText = `Score: ${score}`;
+            showQuestion();
+        }
+    </script>
+
+</body>
+</html>
