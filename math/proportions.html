@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratios & Proportions Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #eef;
+            color: #333;
+        }
+        h1 { color: #4CAF50; }
+        #quiz-container, #intro {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        canvas {
+            margin-top: 10px;
+            border: 1px solid #999;
+            background: white;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        .options { text-align: left; }
+        .options input { margin-right: 10px; }
+        #score { font-size: 18px; margin-top: 20px; color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>Ratios & Proportions</h1>
+    
+    <button onclick="showIntro()">Learn About Ratios & Proportions</button>
+    <button onclick="startQuiz()">Start Quiz</button>
+
+    <div id="intro">
+        <h2>Understanding Ratios & Proportions</h2>
+        <p>A <b>ratio</b> is a comparison between two numbers. Example: 3:2 or 3/2.</p>
+        <p>A <b>proportion</b> states that two ratios are equal. Example: 4/6 = 2/3.</p>
+        <p>Use proportions to solve for missing values in equivalent fractions.</p>
+        <canvas id="ratioCanvas" width="300" height="100"></canvas>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz-container">
+        <h2 id="question-title"></h2>
+        <canvas id="canvas" width="300" height="100"></canvas>
+        <div id="question-container"></div>
+        <button onclick="submitAnswer()">Submit Answer</button>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        const questions = [
+            { question: "What is the ratio of 6 apples to 3 oranges?", options: ["2:1", "3:2", "1:2", "6:3"], correctAnswer: "2:1" },
+            { question: "If 4/6 = x/9, what is x?", options: ["4", "5", "6", "7"], correctAnswer: "6" },
+            { question: "What is 8:4 in simplest form?", options: ["4:2", "2:1", "8:2", "1:2"], correctAnswer: "2:1" },
+            { question: "Solve for x: 3/5 = x/10", options: ["5", "6", "7", "10"], correctAnswer: "6" }
+        ];
+
+        for (let i = 5; i <= 20; i++) {
+            let num1 = Math.floor(Math.random() * 10) + 1;
+            let num2 = Math.floor(Math.random() * 10) + 1;
+            let factor = Math.floor(Math.random() * 5) + 1;
+            let correctAnswer = num1 * factor;
+            questions.push({
+                question: `If ${num1}/${num2} = x/${num2 * factor}, what is x?`,
+                options: [`${correctAnswer - 1}`, `${correctAnswer}`, `${correctAnswer + 1}`, `${correctAnswer + 2}`],
+                correctAnswer: `${correctAnswer}`
+            });
+
+            let apples = Math.floor(Math.random() * 5) + 1;
+            let oranges = Math.floor(Math.random() * 5) + 1;
+            let ratio = apples / oranges;
+            questions.push({
+                question: `What is the ratio of ${apples} apples to ${oranges} oranges?`,
+                options: [`${apples}:${oranges}`, `${oranges}:${apples}`, `${apples + 1}:${oranges}`, `${apples}:${oranges + 1}`],
+                correctAnswer: `${apples}:${oranges}`
+            });
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showIntro() {
+            document.getElementById("intro").style.display = "block";
+            document.getElementById("quiz-container").style.display = "none";
+            drawRatioExample();
+        }
+
+        function startQuiz() {
+            document.getElementById("intro").style.display = "none";
+            document.getElementById("quiz-container").style.display = "block";
+            shuffledQuestions = [...questions];
+            shuffle(shuffledQuestions);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= 20) {
+                document.getElementById("quiz-container").innerHTML = `<h2>Quiz Completed!</h2><p>Your final score is: ${score}</p>`;
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            document.getElementById("question-title").innerText = question.question;
+            let optionsHTML = question.options.map(option => 
+                `<label><input type="radio" name="answer" value="${option}">${option}</label><br>`).join('');
+            document.getElementById("question-container").innerHTML = optionsHTML;
+            drawRatioExample();
+        }
+
+        function submitAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) return alert("Please select an answer.");
+            if (selectedAnswer.value === shuffledQuestions[currentQuestionIndex].correctAnswer) score += 10;
+            currentQuestionIndex++;
+            document.getElementById("score").innerText = `Score: ${score}`;
+            showQuestion();
+        }
+
+        function drawRatioExample() {
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#4CAF50";
+            ctx.fillRect(20, 40, 50, 50);
+            ctx.fillStyle = "#FF5733";
+            ctx.fillRect(100, 40, 50, 50);
+            ctx.fillText("Ratio: 1:1", 170, 60);
+        }
+    </script>
+
+</body>
+</html>
