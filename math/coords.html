@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphing and Coordinates Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        #tutorial {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #quiz {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 150px;
+            font-size: 18px;
+        }
+
+        #score {
+            font-size: 18px;
+        }
+
+        #feedback {
+            font-size: 18px;
+            color: red;
+        }
+
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Graphing and Coordinates Quiz</h1>
+
+    <div id="tutorial">
+        <h2>Tutorial: Learn Graphing & Coordinates</h2>
+        <p><strong>Coordinates</strong> are a way to represent a point on a graph. The graph is divided into four quadrants, and every point is described by two numbers: <b>(x, y)</b>.</p>
+        <ul>
+            <li>The first number, <b>x</b>, tells you how far to move left or right.</li>
+            <li>The second number, <b>y</b>, tells you how far to move up or down.</li>
+        </ul>
+        <p>The point (0, 0) is called the <strong>origin</strong>, and it's where both the x and y axes meet.</p>
+        <p>In this quiz, you'll be asked to plot points on a graph!</p>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz">
+        <h2>Graphing and Coordinates Quiz</h2>
+        <p id="question"></p>
+        <div class="canvas-container" id="canvas-container"></div>
+
+        <input type="text" id="x-coordinate" placeholder="X Coordinate">
+        <input type="text" id="y-coordinate" placeholder="Y Coordinate">
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let questionsAnswered = 0;
+        let correctX = 0;
+        let correctY = 0;
+        const canvasContainer = document.getElementById('canvas-container');
+
+        function startQuiz() {
+            document.getElementById('tutorial').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            generateRandomQuestion();
+        }
+
+        function generateRandomQuestion() {
+            if (questionsAnswered < 10) { // Limit to 10 questions
+                const x = getRandomInt(-10, 10); // Random x-coordinate
+                const y = getRandomInt(-10, 10); // Random y-coordinate
+
+                correctX = x;
+                correctY = y;
+
+                document.getElementById('question').innerText = `Plot the point: (${x}, ${y})`;
+                drawGraph(x, y); // Draw the graph with the given point
+            } else {
+                alert("You've completed the quiz! Your score is: " + score);
+                document.getElementById('quiz').style.display = 'none';
+            }
+        }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function drawGraph(x, y) {
+            canvasContainer.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            canvasContainer.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(200, 0);
+            ctx.lineTo(200, 400);
+            ctx.moveTo(0, 200);
+            ctx.lineTo(400, 200);
+            ctx.stroke();
+
+            // Draw point
+            ctx.beginPath();
+            ctx.arc(200 + x * 20, 200 - y * 20, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+
+            // Label the axes
+            ctx.font = '20px Arial';
+            ctx.fillText("X", 380, 200);
+            ctx.fillText("Y", 200, 20);
+        }
+
+        function checkAnswer() {
+            const userX = parseInt(document.getElementById('x-coordinate').value.trim());
+            const userY = parseInt(document.getElementById('y-coordinate').value.trim());
+
+            if (userX === correctX && userY === correctY) {
+                score += 10;
+                document.getElementById('feedback').innerText = "Correct!";
+            } else {
+                document.getElementById('feedback').innerText = `Incorrect. The correct answer is (${correctX}, ${correctY}).`;
+            }
+
+            questionsAnswered++;
+            document.getElementById('score').innerText = `Score: ${score}`;
+            generateRandomQuestion();
+        }
+    </script>
+</body>
+</html>
