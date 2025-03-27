@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Quiz Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        #tutorial {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #quiz {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 150px;
+            font-size: 18px;
+        }
+
+        #score {
+            font-size: 18px;
+        }
+
+        #feedback {
+            font-size: 18px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Money Quiz Tutorial</h1>
+
+    <div id="tutorial">
+        <h2>Tutorial: Learn Money</h2>
+        <p><strong>Coins</strong>: In the United States, we use coins like pennies (1¢), nickels (5¢), dimes (10¢), and quarters (25¢).</p>
+        <p><strong>Paper Money</strong>: The United States also uses paper money in denominations such as $1, $5, $10, $20, $50, and $100 bills.</p>
+        <p>In this quiz, you will need to identify the total value of coins and bills displayed on the screen. Let's start!</p>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz">
+        <h2>Money Quiz</h2>
+
+        <!-- Coin Canvas -->
+        <div class="canvas-container">
+            <canvas id="coinCanvas" width="400" height="100"></canvas>
+            <p id="coinQuestion"></p>
+        </div>
+
+        <!-- Bill Canvas -->
+        <div class="canvas-container">
+            <canvas id="billCanvas" width="400" height="200"></canvas>
+            <p id="billQuestion"></p>
+        </div>
+
+        <input type="text" id="answer" placeholder="Your answer">
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let questionsAnswered = 0;
+        let correctAnswer = '';
+        const coinCanvas = document.getElementById('coinCanvas');
+        const billCanvas = document.getElementById('billCanvas');
+        const coinCtx = coinCanvas.getContext('2d');
+        const billCtx = billCanvas.getContext('2d');
+
+        const coins = {
+            penny: 0.01,
+            nickel: 0.05,
+            dime: 0.10,
+            quarter: 0.25
+        };
+
+        const bills = {
+            one: 1,
+            five: 5,
+            ten: 10,
+            twenty: 20,
+            fifty: 50,
+            hundred: 100
+        };
+
+        // Generate a random integer between min and max values
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function startQuiz() {
+            document.getElementById('tutorial').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            generateRandomQuestion();
+        }
+
+        function generateRandomQuestion() {
+            if (questionsAnswered < 10) { // Limit to 10 questions
+                const questionType = getRandomInt(0, 1) === 0 ? 'coin' : 'bill';
+                if (questionType === 'coin') {
+                    generateCoinQuestion();
+                } else {
+                    generateBillQuestion();
+                }
+            } else {
+                alert("You've completed the quiz! Your score is: " + score);
+                document.getElementById('quiz').style.display = 'none';
+            }
+        }
+
+        function generateCoinQuestion() {
+            const coinCount = getRandomInt(1, 5); // Random number of coins
+            const selectedCoins = [];
+            let totalValue = 0;
+
+            for (let i = 0; i < coinCount; i++) {
+                const coinTypes = Object.keys(coins);
+                const coinType = coinTypes[getRandomInt(0, coinTypes.length - 1)];
+                selectedCoins.push(coinType);
+                totalValue += coins[coinType];
+            }
+
+            document.getElementById('coinQuestion').innerText = `What is the total value of these coins?`;
+            drawCoins(selectedCoins);
+            correctAnswer = totalValue.toFixed(2); // Format to 2 decimal places
+        }
+
+        function generateBillQuestion() {
+            const billCount = getRandomInt(1, 3); // Random number of bills (1 or 2)
+            const selectedBills = [];
+            let totalValue = 0;
+
+            for (let i = 0; i < billCount; i++) {
+                const billTypes = Object.keys(bills);
+                const billType = billTypes[getRandomInt(0, billTypes.length - 1)];
+                selectedBills.push(billType);
+                totalValue += bills[billType];
+            }
+
+            document.getElementById('billQuestion').innerText = `What is the total value of these bills?`;
+            drawBills(selectedBills);
+            correctAnswer = totalValue.toFixed(2); // Format to 2 decimal places
+        }
+
+        function drawCoins(selectedCoins) {
+            coinCtx.clearRect(0, 0, coinCanvas.width, coinCanvas.height); // Clear previous drawing
+            let xPos = 50;
+            selectedCoins.forEach(coin => {
+                if (coin === 'penny') {
+                    coinCtx.beginPath();
+                    coinCtx.arc(xPos, 50, 20, 0, Math.PI * 2);
+                    coinCtx.fillStyle = '#d39d41'; // Gold color for pennies
+                    coinCtx.fill();
+                    coinCtx.stroke();
+                } else if (coin === 'nickel') {
+                    coinCtx.beginPath();
+                    coinCtx.arc(xPos, 50, 20, 0, Math.PI * 2);
+                    coinCtx.fillStyle = '#b8b8b8'; // Nickel color
+                    coinCtx.fill();
+                    coinCtx.stroke();
+                } else if (coin === 'dime') {
+                    coinCtx.beginPath();
+                    coinCtx.arc(xPos, 50, 15, 0, Math.PI * 2);
+                    coinCtx.fillStyle = '#b8b8b8'; // Dime color
+                    coinCtx.fill();
+                    coinCtx.stroke();
+                } else if (coin === 'quarter') {
+                    coinCtx.beginPath();
+                    coinCtx.arc(xPos, 50, 25, 0, Math.PI * 2);
+                    coinCtx.fillStyle = '#b8b8b8'; // Quarter color
+                    coinCtx.fill();
+                    coinCtx.stroke();
+                }
+                xPos += 50; // Move to the right for the next coin
+            });
+        }
+
+        function drawBills(selectedBills) {
+            billCtx.clearRect(0, 0, billCanvas.width, billCanvas.height); // Clear previous drawing
+            let xPos = 50;
+            selectedBills.forEach(bill => {
+                if (bill === 'one') {
+                    billCtx.fillStyle = '#88b7d5';
+                } else if (bill === 'five') {
+                    billCtx.fillStyle = '#f2a2b8';
+                } else if (bill === 'ten') {
+                    billCtx.fillStyle = '#f8c900';
+                } else if (bill === 'twenty') {
+                    billCtx.fillStyle = '#98f5af';
+                } else if (bill === 'fifty') {
+                    billCtx.fillStyle = '#edb232';
+                } else if (bill === 'hundred') {
+                    billCtx.fillStyle = '#4a90e2';
+                }
+
+                billCtx.fillRect(xPos, 50, 120, 60); // Draw rectangle for each bill
+                xPos += 130;
+            });
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === correctAnswer) {
+                score += 10;
+                document.getElementById('feedback').innerText = "Correct!";
+            } else {
+                document.getElementById('feedback').innerText = `Incorrect. The correct answer is $${correctAnswer}.`;
+            }
+
+            questionsAnswered++;
+            document.getElementById('score').innerText = `Score: ${score}`;
+            generateRandomQuestion();
+        }
+    </script>
+</body>
+</html>
