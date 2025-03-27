@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindergarten Numbers & Counting</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #ffebcd; }
+        .number-card { display: inline-block; margin: 20px; padding: 20px; font-size: 30px; background: lightblue; border-radius: 10px; cursor: pointer; transition: transform 0.3s ease-in-out; }
+        .number-card:hover { transform: scale(1.2); }
+        #counting-area { margin-top: 20px; font-size: 24px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Kindergarten Numbers & Counting | CoolMathTime</h1>
+    <p>Click on a number to hear its name!</p>
+    <div id="numbers"></div>
+    
+    <h2>Counting Practice</h2>
+    <p>Click the button below to count along!</p>
+    <button onclick="startCounting()">Start Counting</button>
+    <p id="counting-area"></p>
+    
+    <h2>Quiz Time!</h2>
+    <p>What number is this?</p>
+    <div id="quiz-number" style="font-size: 50px; margin: 20px;"></div>
+    <input type="number" id="quiz-answer" placeholder="Enter the number">
+    <button onclick="checkAnswer()">Submit</button>
+    <p id="quiz-result"></p>
+    
+    <script>
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const numbersDiv = document.getElementById("numbers");
+        let quizNumber = 0;
+        
+        numbers.forEach(num => {
+            let numElement = document.createElement("div");
+            numElement.classList.add("number-card");
+            numElement.innerText = num;
+            numElement.onclick = () => {
+                let speech = new SpeechSynthesisUtterance(num.toString());
+                speechSynthesis.speak(speech);
+            };
+            numbersDiv.appendChild(numElement);
+        });
+
+        function startCounting() {
+            let count = 1;
+            let interval = setInterval(() => {
+                document.getElementById("counting-area").innerText = count;
+                let speech = new SpeechSynthesisUtterance(count.toString());
+                speechSynthesis.speak(speech);
+                count++;
+                if (count > 10) clearInterval(interval);
+            }, 1500);
+        }
+        
+        function generateQuiz() {
+            quizNumber = numbers[Math.floor(Math.random() * numbers.length)];
+            document.getElementById("quiz-number").innerText = quizNumber;
+        }
+        
+        function checkAnswer() {
+            let userAnswer = parseInt(document.getElementById("quiz-answer").value);
+            let resultText = document.getElementById("quiz-result");
+            
+            if (userAnswer === quizNumber) {
+                resultText.innerText = "Correct! 🎉";
+                resultText.style.color = "green";
+            } else {
+                resultText.innerText = "Try again! ❌";
+                resultText.style.color = "red";
+            }
+            setTimeout(generateQuiz, 2000);
+        }
+        
+        generateQuiz();
+    </script>
+</body>
+</html>
