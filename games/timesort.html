@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Sort - CoolMathTime</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .clock { padding: 10px; background: lightblue; cursor: grab; border: 1px solid #000; }
+        .dropzone { width: 80px; height: 40px; border: 2px dashed #000; display: inline-block; }
+        #timer { font-size: 20px; margin-top: 10px; }
+        #score { font-size: 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Time Sort - CoolMathTime</h1>
+    <p>Drag the times into the squares in order from greatest to least.</p>
+    <p id="timer">Time Left: 60s</p>
+    <p id="score">Score: 0</p>
+    <div class="container" id="times">
+        <div class="clock" draggable="true">12:45 PM</div>
+        <div class="clock" draggable="true">9:30 AM</div>
+        <div class="clock" draggable="true">3:15 PM</div>
+        <div class="clock" draggable="true">7:50 AM</div>
+    </div>
+    <div class="container" id="slots">
+        <div class="dropzone"></div>
+        <div class="dropzone"></div>
+        <div class="dropzone"></div>
+        <div class="dropzone"></div>
+    </div>
+    <script>
+        let draggedItem = null;
+        let score = 0;
+        let timeLeft = 60;
+
+        document.querySelectorAll('.clock').forEach(item => {
+            item.addEventListener('dragstart', (event) => {
+                draggedItem = event.target;
+            });
+        });
+        document.querySelectorAll('.dropzone').forEach(zone => {
+            zone.addEventListener('dragover', (event) => {
+                event.preventDefault();
+            });
+            zone.addEventListener('drop', (event) => {
+                if (!zone.firstChild) {
+                    zone.appendChild(draggedItem);
+                    score += 10;
+                    document.getElementById('score').innerText = "Score: " + score;
+                }
+            });
+        });
+
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                document.getElementById('timer').innerText = "Time Left: " + timeLeft + "s";
+                setTimeout(updateTimer, 1000);
+            } else {
+                alert("Time's up! Your final score is: " + score);
+            }
+        }
+        updateTimer();
+    </script>
+</body>
+</html>
