@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Quiz and Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        #game, #tutorial {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 150px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        #quiz {
+            margin-top: 20px;
+        }
+
+        #tutorial p {
+            font-size: 16px;
+        }
+
+        .quiz-container {
+            display: none;
+        }
+
+        .quiz-container.active {
+            display: block;
+        }
+
+        canvas {
+            margin: 20px 0;
+            border: 1px solid #000;
+            background-color: #f9f9f9;
+        }
+
+        #canvas-container {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Geometry Quiz and Tutorial</h1>
+
+    <div id="tutorial">
+        <h2>Tutorial: Learn Geometry Basics</h2>
+        <p><strong>Shapes</strong>: In geometry, shapes are the fundamental objects that form the basis for all geometry concepts. Examples include squares, circles, and triangles.</p>
+        <p><strong>Area</strong>: The area of a shape is the amount of space it covers. For example, the area of a rectangle is calculated as length × width.</p>
+        <p><strong>Perimeter</strong>: The perimeter is the total length of the boundary of a shape. For example, the perimeter of a square is 4 × side length.</p>
+        <p><strong>Volume</strong>: Volume is the amount of space an object occupies, usually used for 3D shapes like cubes and spheres.</p>
+        <p>Once you're ready, proceed to the quiz below to test your knowledge!</p>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz" class="quiz-container">
+        <h2>Geometry Quiz</h2>
+        <div id="canvas-container">
+            <canvas id="canvas" width="400" height="400"></canvas>
+        </div>
+        <p id="question">Question will appear here</p>
+        <input type="text" id="answer" placeholder="Your answer" />
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p>Score: <span id="score">0</span></p>
+        <p>Questions Answered: <span id="questionsAnswered">0</span></p>
+    </div>
+
+    <script>
+        let score = 0;
+        let questionsAnswered = 0;
+        let correctAnswer = '';
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const questions = [
+            {
+                question: "What is the area of a rectangle with length 5 and width 3?",
+                answer: "15",
+                type: "rectangle",
+                dimensions: { length: 5, width: 3 }
+            },
+            {
+                question: "What is the perimeter of a square with side length 4?",
+                answer: "16",
+                type: "square",
+                dimensions: { side: 4 }
+            },
+            {
+                question: "What is the area of a circle with radius 7? (Use 3.14 for Pi)",
+                answer: "153.94",
+                type: "circle",
+                dimensions: { radius: 7 }
+            },
+            {
+                question: "What is the perimeter of a triangle with sides 3, 4, and 5?",
+                answer: "12",
+                type: "triangle",
+                dimensions: { sides: [3, 4, 5] }
+            },
+            {
+                question: "What is the volume of a cube with side length 3?",
+                answer: "27",
+                type: "cube",
+                dimensions: { side: 3 }
+            },
+            {
+                question: "What is the volume of a sphere with radius 4? (Use 3.14 for Pi)",
+                answer: "268.08",
+                type: "sphere",
+                dimensions: { radius: 4 }
+            }
+        ];
+
+        function startQuiz() {
+            document.getElementById('tutorial').style.display = 'none';
+            document.getElementById('quiz').classList.add('active');
+            generateQuestion();
+        }
+
+        function generateQuestion() {
+            if (questionsAnswered < questions.length) {
+                const currentQuestion = questions[questionsAnswered];
+                document.getElementById('question').innerText = currentQuestion.question;
+                correctAnswer = currentQuestion.answer;
+
+                drawShape(currentQuestion);  // Draw shape for the current question
+            } else {
+                alert("You've completed the quiz! Your score is: " + score);
+                document.getElementById('quiz').style.display = 'none';
+            }
+        }
+
+        function drawShape(question) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear previous shape
+
+            if (question.type === "rectangle") {
+                ctx.beginPath();
+                ctx.rect(50, 100, question.dimensions.length * 30, question.dimensions.width * 30);
+                ctx.fillStyle = 'lightblue';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            } else if (question.type === "square") {
+                ctx.beginPath();
+                ctx.rect(50, 100, question.dimensions.side * 30, question.dimensions.side * 30);
+                ctx.fillStyle = 'lightgreen';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            } else if (question.type === "circle") {
+                ctx.beginPath();
+                ctx.arc(200, 200, question.dimensions.radius * 10, 0, 2 * Math.PI);
+                ctx.fillStyle = 'lightcoral';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            } else if (question.type === "triangle") {
+                ctx.beginPath();
+                ctx.moveTo(200, 100); // Top vertex
+                ctx.lineTo(100, 300); // Bottom-left vertex
+                ctx.lineTo(300, 300); // Bottom-right vertex
+                ctx.closePath();
+                ctx.fillStyle = 'lightyellow';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            } else if (question.type === "cube") {
+                ctx.beginPath();
+                ctx.rect(100, 100, question.dimensions.side * 30, question.dimensions.side * 30);
+                ctx.fillStyle = 'lightblue';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            } else if (question.type === "sphere") {
+                ctx.beginPath();
+                ctx.arc(200, 200, question.dimensions.radius * 10, 0, 2 * Math.PI);
+                ctx.fillStyle = 'lightgoldenrodyellow';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            }
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === correctAnswer) {
+                score += 10;
+                document.getElementById('feedback').innerText = "Correct!";
+            } else {
+                document.getElementById('feedback').innerText = `Incorrect. The correct answer is ${correctAnswer}.`;
+            }
+
+            questionsAnswered++;
+            document.getElementById('score').innerText = score;
+            document.getElementById('questionsAnswered').innerText = questionsAnswered;
+
+            document.getElementById('answer').value = '';
+            generateQuestion();
+        }
+    </script>
+</body>
+</html>
