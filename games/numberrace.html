@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Race</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; transition: background 1s ease; }
+        #question { font-size: 24px; margin-top: 20px; }
+        #answer { font-size: 20px; margin-top: 10px; }
+        #stats { margin-top: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>Number Race - CoolMathTime</h1>
+    <p>Answer 25 math problems as fast as you can!</p>
+    <div id="question"></div>
+    <input type="number" id="answer" placeholder="Enter your answer" autofocus>
+    <p id="stats"></p>
+    <script>
+        let problems = 25;
+        let correctAnswers = 0;
+        let totalTime = 0;
+        let startTime, problemStartTime;
+        let currentAnswer = 0;
+        let colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"];
+        let colorIndex = 0;
+
+        function generateProblem() {
+            let num1 = Math.floor(Math.random() * 20) + 1;
+            let num2 = Math.floor(Math.random() * 20) + 1;
+            let operators = ['+', '-', '*', '/'];
+            let operator = operators[Math.floor(Math.random() * operators.length)];
+            
+            if (operator === '/' && num1 % num2 !== 0) {
+                return generateProblem();
+            }
+            
+            let expression = `${num1} ${operator} ${num2}`;
+            currentAnswer = eval(expression);
+            document.getElementById('question').innerText = expression;
+            problemStartTime = Date.now();
+        }
+        
+        function changeBackgroundColor() {
+            document.body.style.background = colors[colorIndex];
+            colorIndex = (colorIndex + 1) % colors.length;
+        }
+        
+        document.getElementById('answer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                let userAnswer = parseFloat(this.value);
+                if (userAnswer === currentAnswer) {
+                    let timeTaken = (Date.now() - problemStartTime) / 1000;
+                    totalTime += timeTaken;
+                    correctAnswers++;
+                    changeBackgroundColor();
+                }
+                this.value = '';
+                
+                if (correctAnswers < problems) {
+                    generateProblem();
+                } else {
+                    let avgTime = (totalTime / problems).toFixed(2);
+                    document.getElementById('stats').innerText = `Total Time: ${totalTime.toFixed(2)}s | Avg Time: ${avgTime}s per problem`;
+                    document.getElementById('question').innerText = "Game Over!";
+                }
+            }
+        });
+        
+        startTime = Date.now();
+        generateProblem();
+    </script>
+</body>
+</html>
