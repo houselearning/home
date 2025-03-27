@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probability & Statistics Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 { color: #4CAF50; }
+        #tutorial, #quiz {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #45a049; }
+        .options { text-align: left; }
+        .options input { margin-right: 10px; }
+        #feedback { font-size: 18px; color: red; }
+        #final-score { font-size: 18px; margin-top: 20px; color: green; }
+    </style>
+</head>
+<body>
+    <h1>Probability & Statistics Quiz</h1>
+
+    <div id="tutorial">
+        <h2>Tutorial: Learn Probability & Statistics</h2>
+        <p><strong>Probability:</strong> The likelihood of an event happening, between 0 (impossible) and 1 (certain).</p>
+        <p>The probability formula: <strong>P(E) = (Favorable Outcomes) / (Total Outcomes)</strong></p>
+        <p><strong>Statistics:</strong> The study of collecting, analyzing, and interpreting data.</p>
+        <ul>
+            <li><strong>Mean:</strong> The average of a set of numbers.</li>
+            <li><strong>Median:</strong> The middle number in an ordered set.</li>
+            <li><strong>Mode:</strong> The most frequently occurring number.</li>
+        </ul>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz" style="display:none;">
+        <h2>Quiz</h2>
+        <div id="question-container"></div>
+        <button onclick="submitAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <div id="final-score"></div>
+
+    <script>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        const questions = [
+            { question: "What is the probability of rolling a 3 on a fair six-sided die?", options: ["1/6", "1/3", "1/2", "1/12"], correctAnswer: "1/6" },
+            { question: "What is the mean of: 2, 4, 6, 8, 10?", options: ["5", "6", "7", "4"], correctAnswer: "6" },
+            { question: "What is the median of: 1, 2, 3, 4, 5, 6, 7?", options: ["3", "4", "5", "2"], correctAnswer: "4" },
+            { question: "What is the mode of: 3, 3, 5, 7, 7, 7, 9?", options: ["3", "7", "9", "5"], correctAnswer: "7" },
+            { question: "What is the probability of drawing an Ace from a deck of 52 cards?", options: ["4/52", "1/52", "4/13", "1/13"], correctAnswer: "4/52" }
+        ];
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            document.getElementById('tutorial').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+
+            shuffledQuestions = [...questions];
+            shuffle(shuffledQuestions);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= shuffledQuestions.length) {
+                showFinalScore();
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            document.getElementById('question-container').innerHTML = `
+                <p>${question.question}</p>
+                <div class="options">
+                    ${question.options.map(option => `
+                        <label>
+                            <input type="radio" name="answer" value="${option}">
+                            ${option}
+                        </label><br>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function submitAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) {
+                alert("Please select an answer.");
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            const feedback = document.getElementById('feedback');
+
+            if (selectedAnswer.value === question.correctAnswer) {
+                score += 10;
+                feedback.innerText = "Correct!";
+            } else {
+                feedback.innerText = `Incorrect. The correct answer is ${question.correctAnswer}.`;
+            }
+
+            currentQuestionIndex++;
+            document.getElementById('score').innerText = `Score: ${score}`;
+            showQuestion();
+        }
+
+        function showFinalScore() {
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('final-score').innerText = `Quiz Finished! Your final score is: ${score}`;
+        }
+    </script>
+</body>
+</html>
