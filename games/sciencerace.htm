@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Tunnel Racing Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-shadow: 2px 2px 5px black;
+            z-index: 1000;
+            display: none;
+        }
+        #speed {
+            position: absolute;
+            bottom: 40px;
+            left: 10px;
+            font-size: 2rem;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-shadow: 2px 2px 5px black;
+            z-index: 1000;
+        }
+        #position {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 2rem;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-shadow: 2px 2px 5px black;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="countdown"></div>
+    <div id="speed">Speed: 0 MPH</div>
+    <div id="position">Position: 1st</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, clock, deltaTime;
+        let tunnelSegments = [];
+        let cars = [];
+        let controls = { forward: false, left: false, right: false, accelerate: false, moveLeft: false, moveRight: false };
+        let playerCarSpeed = 0, maxSpeed = 0.2, acceleration = 0.001, turnSpeed = 0.05;
+        const carSpeeds = [];
+        const exhausts = [];
+        let gameStarted = false;
+        let cameraPerspective = 'third';  // 'first' or 'third'
+        const carDirections = [];
+        const carAccels = [];
+        const carBrakes = [];
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Create infinite tunnel
+            for (let i = 0; i < 10; i++) {
+                let segment = createTunnelSegment();
+                segment.position.z = -i * 50;
+                tunnelSegments.push(segment);
+                scene.add(segment);
+            }
+
+            // Create rocket ship cars
+            for (let i = 0; i < 5; i++) {
+                let car = createRocketCar(i);
+                cars.push(car);
+                scene.add(car);
+                carSpeeds.push(Math.random() * 0.05 + 0.1);
+                carDirections.push(Math.random() > 0.5 ? 1 : -1);  // Random side-to-side direction for each car
+                carAccels.push(Math.random() * 0.001);  // Random acceleration for each car
+                carBrakes.push(Math.random() * 0.0005);  // Random braking force for each car
+
+                // Create exhaust particles for each rocket car
+                let exhaust = createExhaust();
+                exhausts.push(exhaust);
+                scene.add(exhaust);
+            }
+
+            camera.position.z = 5;
+
+            // Event listeners for controls
+            window.addEventListener('keydown', onKeyDown);
+            window.addEventListener('keyup', onKeyUp);
+
+            startCountdown();
+        }
+
+        function createTunnelSegment() {
+            const tunnelGeometry = new THREE.CylinderGeometry(5, 5, 50, 32, 1, true);
+            const tunnelMaterial = new THREE.MeshBasicMaterial({
+                color: 0xaaaaaa,
+                wireframe: true
+            });
+            const tunnelMesh = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
+            tunnelMesh.rotation.x = Math.PI / 2;
+            return tunnelMesh;
+        }
+
+        function createRocketCar(index) {
+            const carGroup = new THREE.Group();
+
+            // Rocket body
+            const bodyGeometry = new THREE.ConeGeometry(0.5, 2, 8);
+            const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 1;
+            carGroup.add(body);
+
+            // Rocket exhaust
+            const exhaustGeometry = new THREE.CylinderGeometry(0.2, 0.5, 1, 8);
+            const exhaustMaterial = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+            const exhaust = new THREE.Mesh(exhaustGeometry, exhaustMaterial);
+            exhaust.position.y = -1;
+            carGroup.add(exhaust);
+
+            // Rocket top
+            const topGeometry = new THREE.SphereGeometry(0.4, 8, 8);
+            const topMaterial = new THREE.MeshBasicMaterial({ color: 0xff3333 });
+            const top = new THREE.Mesh(topGeometry, topMaterial);
+            top.position.y = 2;
+            carGroup.add(top);
+
+            // Position the rocket ship
+            carGroup.position.set(0, 2 + index * 2, 0);
+
+            return carGroup;
+        }
+
+        function createExhaust() {
+            const particleCount = 100;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const particles = new THREE.Points(geometry, new THREE.PointsMaterial({
+                color: 0xff6600,
+                size: 0.5,
+                blending: THREE.AdditiveBlending,
+                transparent: true
+            }));
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = 0;
+                positions[i * 3 + 1] = 0;
+                positions[i * 3 + 2] = 0;
+
+                colors[i * 3] = Math.random() * 0.5;
+                colors[i * 3 + 1] = Math.random() * 0.5;
+                colors[i * 3 + 2] = 0;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            particles.update = function() {
+                const positions = geometry.attributes.position.array;
+                for (let i = 0; i < particleCount; i++) {
+                    positions[i * 3 + 1] -= 0.1;
+                    if (positions[i * 3 + 1] < -5) {
+                        positions[i * 3 + 1] = 1;
+                        positions[i * 3] = (Math.random() - 0.5) * 0.2;
+                        positions[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+                    }
+                }
+                geometry.attributes.position.needsUpdate = true;
+            };
+
+            return particles;
+        }
+
+        function startCountdown() {
+            const countdownDiv = document.getElementById("countdown");
+            countdownDiv.style.display = "block";
+            let countdownValue = 3;
+
+            const interval = setInterval(() => {
+                countdownDiv.textContent = countdownValue > 0 ? countdownValue : "Go!\nGame made by Alex Manochio";
+                countdownValue--;
+
+                if (countdownValue < -1) {
+                    clearInterval(interval);
+                    countdownDiv.style.display = "none";
+                    gameStarted = true;
+                    animate();
+                }
+            }, 1000);
+        }
+
+        function onKeyDown(event) {
+            switch (event.key) {
+                case 'w': controls.forward = true; break;
+                case 'a': controls.left = true; controls.moveLeft = true; break;  // Move left
+                case 'd': controls.right = true; controls.moveRight = true; break; // Move right
+                case 's': controls.accelerate = true; break;
+                case 'ArrowLeft': controls.left = true; break;
+                case 'ArrowRight': controls.right = true; break;
+            }
+        }
+
+        function onKeyUp(event) {
+            switch (event.key) {
+                case 'w': controls.forward = false; break;
+                case 'a': controls.left = false; controls.moveLeft = false; break;
+                case 'd': controls.right = false; controls.moveRight = false; break;
+                case 's': controls.accelerate = false; break;
+                case 'ArrowLeft': controls.left = false; break;
+                case 'ArrowRight': controls.right = false; break;
+            }
+        }
+
+        function updateCars() {
+            if (!gameStarted) return;
+
+            // Update player car's position
+            if (controls.forward) {
+                playerCarSpeed = Math.min(playerCarSpeed + acceleration, maxSpeed);
+            } else {
+                playerCarSpeed = Math.max(playerCarSpeed - acceleration, 0);
+            }
+
+            if (controls.moveLeft) {
+                cars[0].position.x = Math.max(cars[0].position.x - 0.05, -5);
+            }
+            if (controls.moveRight) {
+                cars[0].position.x = Math.min(cars[0].position.x + 0.05, 5);
+            }
+
+            cars[0].position.z -= playerCarSpeed;
+
+            // Camera movement: Follow the player's car from behind
+            if (cameraPerspective === 'third') {
+                camera.position.x = cars[0].position.x;
+                camera.position.z = cars[0].position.z + 5;
+                camera.position.y = cars[0].position.y + 5;
+                camera.lookAt(cars[0].position);
+            }
+
+            // Update other cars' movement
+            for (let i = 1; i < cars.length; i++) {
+                // Keep cars inside the tunnel
+                cars[i].position.x += carDirections[i] * Math.random() * 0.02;
+                cars[i].position.x = Math.max(Math.min(cars[i].position.x, 5), -5);
+
+                // Random acceleration or braking
+                if (Math.random() > 0.98) {
+                    carSpeeds[i] += carAccels[i] * (Math.random() - 0.5);
+                }
+                if (Math.random() > 0.98) {
+                    carSpeeds[i] -= carBrakes[i];
+                }
+
+                cars[i].position.z -= carSpeeds[i];
+                if (cars[i].position.z < -500) cars[i].position.z = 500;
+            }
+
+            exhausts.forEach(exhaust => exhaust.update());
+
+            // Calculate position
+            const sortedCars = [...cars].sort((a, b) => b.position.z - a.position.z);
+            const playerIndex = sortedCars.indexOf(cars[0]);
+            const playerRank = playerIndex + 1;
+
+            // Update position text
+            document.getElementById('position').textContent = `Position: ${playerRank}st`;
+        }
+
+        function animate() {
+            deltaTime = clock.getDelta();
+            updateCars();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        init();
+    </script>
+</body>
+</html>
