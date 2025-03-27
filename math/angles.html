@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angles & Shapes Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #eef;
+            color: #333;
+        }
+        h1 { color: #4CAF50; }
+        #quiz-container, #intro {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        canvas {
+            margin-top: 10px;
+            border: 1px solid #999;
+            background: white;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        .options { text-align: left; }
+        .options input { margin-right: 10px; }
+        #score { font-size: 18px; margin-top: 20px; color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>Angles & Shapes</h1>
+    
+    <button onclick="showIntro()">Learn About Angles & Shapes</button>
+    <button onclick="startQuiz()">Start Quiz</button>
+
+    <div id="intro">
+        <h2>Understanding Angles & Shapes</h2>
+        <p>An <b>angle</b> is formed by two rays meeting at a common endpoint called the vertex. Types of angles:</p>
+        <ul>
+            <li><b>Acute Angle</b>: Less than 90°</li>
+            <li><b>Right Angle</b>: Exactly 90°</li>
+            <li><b>Obtuse Angle</b>: Greater than 90° but less than 180°</li>
+            <li><b>Reflex Angle</b>: Greater than 180°</li>
+        </ul>
+        <p>Shapes include triangles, quadrilaterals, and circles.</p>
+        <canvas id="angleCanvas" width="300" height="300"></canvas>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz-container">
+        <h2 id="question-title"></h2>
+        <canvas id="canvas" width="300" height="300"></canvas>
+        <div id="question-container"></div>
+        <button onclick="submitAnswer()">Submit Answer</button>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        const questions = [
+            { question: "What is the measure of an acute angle?", options: ["Less than 90°", "Exactly 90°", "Greater than 90°", "Exactly 180°"], correctAnswer: "Less than 90°" },
+            { question: "What is the measure of a right angle?", options: ["Less than 90°", "Exactly 90°", "Greater than 90°", "Exactly 180°"], correctAnswer: "Exactly 90°" },
+            { question: "What is the sum of angles in a triangle?", options: ["180°", "360°", "90°", "270°"], correctAnswer: "180°" },
+            { question: "Which shape has four equal sides and four right angles?", options: ["Square", "Rectangle", "Circle", "Triangle"], correctAnswer: "Square" },
+            { question: "Which angle is greater than 90° but less than 180°?", options: ["Acute", "Right", "Obtuse", "Reflex"], correctAnswer: "Obtuse" }
+        ];
+
+        for (let i = 5; i <= 20; i++) {
+            let randomAngle = Math.floor(Math.random() * 180) + 1;
+            questions.push({
+                question: `What type of angle is ${randomAngle}°?`,
+                options: ["Acute", "Right", "Obtuse", "Reflex"],
+                correctAnswer: randomAngle < 90 ? "Acute" : randomAngle === 90 ? "Right" : randomAngle < 180 ? "Obtuse" : "Reflex"
+            });
+            questions.push({
+                question: `What is the sum of angles in a quadrilateral?`,
+                options: ["360°", "180°", "270°", "90°"],
+                correctAnswer: "360°"
+            });
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showIntro() {
+            document.getElementById("intro").style.display = "block";
+            document.getElementById("quiz-container").style.display = "none";
+            drawAngleExample();
+        }
+
+        function startQuiz() {
+            document.getElementById("intro").style.display = "none";
+            document.getElementById("quiz-container").style.display = "block";
+            shuffledQuestions = [...questions];
+            shuffle(shuffledQuestions);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= 20) {
+                document.getElementById("quiz-container").innerHTML = `<h2>Quiz Completed!</h2><p>Your final score is: ${score}</p>`;
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            document.getElementById("question-title").innerText = question.question;
+            let optionsHTML = question.options.map(option => 
+                `<label><input type="radio" name="answer" value="${option}">${option}</label><br>`).join('');
+            document.getElementById("question-container").innerHTML = optionsHTML;
+            drawAngleExample();
+        }
+
+        function submitAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) return alert("Please select an answer.");
+            if (selectedAnswer.value === shuffledQuestions[currentQuestionIndex].correctAnswer) score += 10;
+            currentQuestionIndex++;
+            document.getElementById("score").innerText = `Score: ${score}`;
+            showQuestion();
+        }
+
+        function drawAngleExample() {
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Example of an acute angle
+            ctx.beginPath();
+            ctx.moveTo(50, 50);
+            ctx.lineTo(150, 50);
+            ctx.lineTo(100, 150);
+            ctx.closePath();
+            ctx.fillStyle = "#FF5733";
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(100, 150);
+            ctx.lineTo(150, 50);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#4CAF50";
+            ctx.stroke();
+
+            ctx.fillStyle = "#333";
+            ctx.font = "18px Arial";
+            ctx.fillText("Acute Angle: < 90°", 160, 50);
+        }
+    </script>
+
+</body>
+</html>
+v
