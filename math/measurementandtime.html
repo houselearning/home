@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measurement & Time Tutorial and Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        #tutorial {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #quiz {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 150px;
+            font-size: 18px;
+        }
+
+        #score {
+            font-size: 18px;
+        }
+
+        #feedback {
+            font-size: 18px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Measurement & Time Tutorial and Quiz</h1>
+
+    <div id="tutorial">
+        <h2>Tutorial: Learn Measurement and Time</h2>
+        <p><strong>Length Measurement</strong>: Length is the measure of how long something is. Common units include inches, centimeters, and meters.</p>
+        <p><strong>Time Measurement</strong>: Time is the progression of events. We use clocks to measure time in hours, minutes, and seconds. A typical clock has a 12-hour cycle.</p>
+        <p><strong>Ruler</strong>: A ruler is a tool used to measure length in units like centimeters or inches.</p>
+        <p><strong>Clock</strong>: A clock is used to measure time. It has an hour hand, minute hand, and second hand.</p>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz">
+        <h2>Measurement & Time Quiz</h2>
+
+        <!-- Ruler Canvas -->
+        <div class="canvas-container">
+            <canvas id="rulerCanvas" width="600" height="100"></canvas>
+            <p id="rulerQuestion"></p>
+        </div>
+
+        <!-- Clock Canvas -->
+        <div class="canvas-container">
+            <canvas id="clockCanvas" width="300" height="300"></canvas>
+            <p id="clockQuestion"></p>
+        </div>
+
+        <input type="text" id="answer" placeholder="Your answer">
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let questionsAnswered = 0;
+        let correctAnswer = '';
+        const rulerCanvas = document.getElementById('rulerCanvas');
+        const clockCanvas = document.getElementById('clockCanvas');
+        const rulerCtx = rulerCanvas.getContext('2d');
+        const clockCtx = clockCanvas.getContext('2d');
+
+        const questionTypes = ["ruler", "clock"];
+        const maxLength = 30; // Maximum length for ruler questions
+        const maxTimeHour = 12; // Maximum hours for clock questions
+        const maxTimeMinute = 60; // Maximum minutes for clock questions
+
+        // Generate a random integer between min and max values
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function startQuiz() {
+            document.getElementById('tutorial').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            generateRandomQuestion();
+        }
+
+        function generateRandomQuestion() {
+            if (questionsAnswered < 10) { // Limit to 10 questions
+                // Randomly choose between ruler or clock question
+                const questionType = questionTypes[getRandomInt(0, questionTypes.length - 1)];
+
+                if (questionType === "ruler") {
+                    const randomLength = getRandomInt(1, maxLength); // Random length between 1 and maxLength
+                    document.getElementById('rulerQuestion').innerText = `What is the length in centimeters of the object on the ruler?`;
+                    drawRuler(randomLength);
+                    correctAnswer = randomLength.toString();
+                } else if (questionType === "clock") {
+                    const randomHour = getRandomInt(1, maxTimeHour); // Random hour between 1 and 12
+                    const randomMinute = getRandomInt(0, maxTimeMinute - 1); // Random minute between 0 and 59
+                    document.getElementById('clockQuestion').innerText = `What is the time shown on the clock?`;
+                    drawClock({ hour: randomHour, minute: randomMinute });
+                    correctAnswer = `${randomHour}:${randomMinute < 10 ? '0' : ''}${randomMinute}`;
+                }
+
+            } else {
+                alert("You've completed the quiz! Your score is: " + score);
+                document.getElementById('quiz').style.display = 'none';
+            }
+        }
+
+        function drawRuler(length) {
+            rulerCtx.clearRect(0, 0, rulerCanvas.width, rulerCanvas.height); // Clear previous drawing
+            rulerCtx.beginPath();
+            rulerCtx.moveTo(50, 50);
+            rulerCtx.lineTo(50 + length * 10, 50); // Adjust length scale for visual clarity
+            rulerCtx.lineWidth = 3;
+            rulerCtx.strokeStyle = 'black';
+            rulerCtx.stroke();
+
+            // Draw ruler marks
+            for (let i = 0; i <= length; i++) {
+                rulerCtx.moveTo(50 + i * 10, 45);
+                rulerCtx.lineTo(50 + i * 10, 55);
+                rulerCtx.stroke();
+            }
+        }
+
+        function drawClock(time) {
+            clockCtx.clearRect(0, 0, clockCanvas.width, clockCanvas.height); // Clear previous clock
+            clockCtx.beginPath();
+            clockCtx.arc(150, 150, 120, 0, 2 * Math.PI);
+            clockCtx.stroke();
+            clockCtx.lineWidth = 5;
+
+            // Draw hour hand
+            clockCtx.save();
+            clockCtx.translate(150, 150);
+            clockCtx.rotate((time.hour % 12) * (Math.PI / 6));
+            clockCtx.moveTo(0, 0);
+            clockCtx.lineTo(0, -50);
+            clockCtx.stroke();
+            clockCtx.restore();
+
+            // Draw minute hand
+            clockCtx.save();
+            clockCtx.translate(150, 150);
+            clockCtx.rotate(time.minute * (Math.PI / 30));
+            clockCtx.moveTo(0, 0);
+            clockCtx.lineTo(0, -70);
+            clockCtx.stroke();
+            clockCtx.restore();
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === correctAnswer) {
+                score += 10;
+                document.getElementById('feedback').innerText = "Correct!";
+            } else {
+                document.getElementById('feedback').innerText = `Incorrect. The correct answer is ${correctAnswer}.`;
+            }
+
+            questionsAnswered++;
+            document.getElementById('score').innerText = `Score: ${score}`;
+            generateRandomQuestion();
+        }
+    </script>
+</body>
+</html>
