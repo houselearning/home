@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patterns & Sequences Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 { color: #4CAF50; }
+        #quiz-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .pattern-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .pattern-shape {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            display: inline-block;
+        }
+        .circle { background-color: red; border-radius: 50%; }
+        .square { background-color: blue; }
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid green;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #45a049; }
+        .options { text-align: left; }
+        .options input { margin-right: 10px; }
+        #score { font-size: 18px; margin-top: 20px; color: green; }
+    </style>
+</head>
+<body>
+    <h1>Patterns & Sequences Quiz</h1>
+
+    <button onclick="startQuiz()">Start Quiz</button>
+
+    <div id="quiz-container">
+        <h2 id="question-title"></h2>
+        <div id="pattern-container"></div>
+        <div id="question-container"></div>
+        <button onclick="submitAnswer()">Submit Answer</button>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        const questions = [
+            { question: "What comes next in the pattern: 2, 4, 6, 8, ?", options: ["9", "10", "11", "12"], correctAnswer: "10" },
+            { question: "What is the missing number in the sequence: 5, 10, __, 20, 25?", options: ["12", "13", "15", "18"], correctAnswer: "15" },
+            { question: "Find the next number: 1, 4, 9, 16, ?", options: ["20", "25", "30", "36"], correctAnswer: "25" },
+            { question: "What comes next: 100, 90, 80, ?", options: ["60", "50", "70", "75"], correctAnswer: "70" },
+            { question: "If a pattern follows 'A, B, C, A, B, ?', what is the missing letter?", options: ["A", "B", "C", "D"], correctAnswer: "C" },
+            { question: "Find the missing number: 2, 3, 5, 8, ?", options: ["10", "12", "13", "15"], correctAnswer: "13" },
+            { question: "Triangle, Square, Triangle, Square, ?", options: ["Circle", "Triangle", "Square", "Rectangle"], correctAnswer: "Triangle", type: "shapes" },
+            { question: "Red, Blue, Red, Blue, ?", options: ["Red", "Green", "Blue", "Yellow"], correctAnswer: "Red", type: "shapes" },
+            { question: "What comes next: 1, 3, 6, 10, ?", options: ["12", "13", "15", "16"], correctAnswer: "15" },
+            { question: "What is the missing number? 81, 64, 49, ?", options: ["30", "36", "25", "20"], correctAnswer: "36" }
+        ];
+
+        for (let i = 11; i <= 40; i++) {
+            questions.push({
+                question: `What comes next in the pattern: ${i}, ${i + 2}, ${i + 4}, ?`,
+                options: [`${i + 6}`, `${i + 8}`, `${i + 10}`, `${i + 12}`],
+                correctAnswer: `${i + 6}`
+            });
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            document.querySelector("button").style.display = "none";
+            document.getElementById("quiz-container").style.display = "block";
+            shuffledQuestions = [...questions];
+            shuffle(shuffledQuestions);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= 40) {
+                document.getElementById("quiz-container").innerHTML = `<h2>Quiz Completed!</h2><p>Your final score is: ${score}</p>`;
+                return;
+            }
+
+            const question = shuffledQuestions[currentQuestionIndex];
+            document.getElementById("question-title").innerText = question.question;
+
+            let optionsHTML = question.options.map(option => 
+                `<label><input type="radio" name="answer" value="${option}">${option}</label><br>`).join('');
+
+            document.getElementById("question-container").innerHTML = optionsHTML;
+            
+            let patternHTML = "";
+            if (question.type === "shapes") {
+                if (question.question.includes("Triangle, Square")) {
+                    patternHTML = `<div class="pattern-box">
+                        <div class="triangle"></div>
+                        <div class="square"></div>
+                        <div class="triangle"></div>
+                        <div class="square"></div>
+                        <div class="pattern-shape">?</div>
+                    </div>`;
+                } else if (question.question.includes("Red, Blue")) {
+                    patternHTML = `<div class="pattern-box">
+                        <div class="pattern-shape circle"></div>
+                        <div class="pattern-shape square"></div>
+                        <div class="pattern-shape circle"></div>
+                        <div class="pattern-shape square"></div>
+                        <div class="pattern-shape">?</div>
+                    </div>`;
+                }
+            }
+            document.getElementById("pattern-container").innerHTML = patternHTML;
+        }
+
+        function submitAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) return alert("Please select an answer.");
+            
+            if (selectedAnswer.value === shuffledQuestions[currentQuestionIndex].correctAnswer) score += 10;
+            currentQuestionIndex++;
+            document.getElementById("score").innerText = `Score: ${score}`;
+            showQuestion();
+        }
+    </script>
+</body>
+</html>
