@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication & Division Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #e0f7fa; }
+        .question { font-size: 24px; margin: 20px; }
+        #answer { font-size: 20px; margin: 10px; }
+        #feedback { font-size: 18px; margin-top: 10px; }
+        button { font-size: 18px; padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Multiplication & Division Game</h1>
+    <p>Answer the questions below!</p>
+    <div class="question" id="question"></div>
+    <input type="number" id="answer" placeholder="Enter your answer">
+    <button onclick="checkAnswer()">Submit</button>
+    <p id="feedback"></p>
+    
+    <script>
+        let num1, num2, correctAnswer, operation;
+
+        function generateQuestion() {
+            operation = Math.random() < 0.5 ? '*' : '/';
+            
+            if (operation === '*') {
+                num1 = Math.floor(Math.random() * 99) + 1;
+                num2 = Math.floor(Math.random() * 99) + 1;
+                correctAnswer = num1 * num2;
+            } else {
+                correctAnswer = Math.floor(Math.random() * 99) + 1;
+                num2 = Math.floor(Math.random() * 99) + 1;
+                num1 = correctAnswer * num2; // Ensures division results in a whole number
+            }
+            
+            document.getElementById("question").innerText = `What is ${num1} ${operation} ${num2}?`;
+            document.getElementById("answer").value = '';
+            document.getElementById("feedback").innerText = '';
+        }
+
+        function checkAnswer() {
+            let userAnswer = parseInt(document.getElementById("answer").value);
+            let feedback = document.getElementById("feedback");
+            
+            if (userAnswer === correctAnswer) {
+                feedback.innerText = "Correct! 🎉";
+                feedback.style.color = "green";
+            } else {
+                feedback.innerText = "Try again! ❌";
+                feedback.style.color = "red";
+            }
+            
+            setTimeout(generateQuestion, 2000);
+        }
+        
+        generateQuestion();
+    </script>
+</body>
+</html>
