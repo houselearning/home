@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebra Basics Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        #tutorial {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #quiz {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 150px;
+            font-size: 18px;
+        }
+
+        #score {
+            font-size: 18px;
+        }
+
+        #feedback {
+            font-size: 18px;
+            color: red;
+        }
+
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Algebra Basics Quiz</h1>
+
+    <div id="tutorial">
+        <h2>Tutorial: Learn Algebra</h2>
+        <p><strong>Algebra</strong> is a branch of mathematics that uses variables (like <i>x</i> or <i>y</i>) to represent numbers in equations. Here's the basic idea:</p>
+        <ul>
+            <li><strong>Variables</strong>: A letter (like <i>x</i>) that stands for a number we don't know yet.</li>
+            <li><strong>Equation</strong>: An expression with an equals sign (e.g., <i>x + 3 = 7</i>). We can solve for <i>x</i> by finding the value that makes the equation true.</li>
+            <li><strong>Solving Equations</strong>: To solve an equation, we need to isolate the variable (get it alone on one side). For example, to solve <i>x + 3 = 7</i>, subtract 3 from both sides to get <i>x = 4</i>.</li>
+        </ul>
+        <p>In this quiz, we will test your ability to solve simple algebraic equations!</p>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz">
+        <h2>Algebra Basics Quiz</h2>
+        <p id="question"></p>
+        <div class="canvas-container" id="canvas-container"></div>
+
+        <input type="text" id="answer" placeholder="Your answer">
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback"></p>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let questionsAnswered = 0;
+        let correctAnswer = '';
+        const canvasContainer = document.getElementById('canvas-container');
+
+        function startQuiz() {
+            document.getElementById('tutorial').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            generateRandomQuestion();
+        }
+
+        function generateRandomQuestion() {
+            if (questionsAnswered < 10) { // Limit to 10 questions
+                const questionType = getRandomInt(0, 1) === 0 ? 'equation' : 'term'; // Randomly choose equation or term question
+                if (questionType === 'equation') {
+                    generateEquationQuestion();
+                } else {
+                    generateTermQuestion();
+                }
+            } else {
+                alert("You've completed the quiz! Your score is: " + score);
+                document.getElementById('quiz').style.display = 'none';
+            }
+        }
+
+        // Random integer function to generate random numbers
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateEquationQuestion() {
+            const a = getRandomInt(1, 10); // Random coefficient for x
+            const b = getRandomInt(1, 10); // Random constant
+            const c = getRandomInt(1, 10); // Random result
+
+            // Create equation: ax + b = c
+            const question = `${a}x + ${b} = ${c}`;
+            correctAnswer = (c - b) / a; // Solve for x
+
+            document.getElementById('question').innerText = `Solve for x: ${question}`;
+            drawEquation(a, b, c); // Draw the equation on canvas
+        }
+
+        function generateTermQuestion() {
+            const terms = ['x', 'y', 'z'];
+            const randomTerm = terms[getRandomInt(0, terms.length - 1)];
+            const coefficient = getRandomInt(1, 10);
+            const constant = getRandomInt(1, 10);
+            const question = `${coefficient}${randomTerm} + ${constant} = ?`;
+
+            correctAnswer = coefficient * getRandomInt(1, 10) + constant; // Randomized for simplicity
+
+            document.getElementById('question').innerText = `Find the value of: ${question}`;
+            drawTerm(randomTerm, coefficient, constant);
+        }
+
+        function drawEquation(a, b, c) {
+            canvasContainer.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 100;
+            canvasContainer.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+
+            // Draw the equation
+            ctx.font = '30px Arial';
+            ctx.fillText(`${a}x + ${b} = ${c}`, 50, 50);
+        }
+
+        function drawTerm(term, coefficient, constant) {
+            canvasContainer.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 100;
+            canvasContainer.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+
+            // Draw term expression
+            ctx.font = '30px Arial';
+            ctx.fillText(`${coefficient}${term} + ${constant} = ?`, 50, 50);
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(document.getElementById('answer').value.trim());
+
+            if (userAnswer === correctAnswer) {
+                score += 10;
+                document.getElementById('feedback').innerText = "Correct!";
+            } else {
+                document.getElementById('feedback').innerText = `Incorrect. The correct answer is ${correctAnswer}.`;
+            }
+
+            questionsAnswered++;
+            document.getElementById('score').innerText = `Score: ${score}`;
+            generateRandomQuestion();
+        }
+    </script>
+</body>
+</html>
