@@ -54,6 +54,9 @@
             <li><b>Linear Equation (y = mx + b):</b> A straight line.</li>
             <li><b>Quadratic Equation (y = ax² + bx + c):</b> A parabola (U-shaped curve).</li>
             <li><b>Cubic Equation (y = ax³ + bx² + cx + d):</b> A curve with more twists.</li>
+            <li><b>Exponential Equation (y = a * b^x):</b> A rapidly increasing/decreasing curve.</li>
+            <li><b>Logarithmic Equation (y = log(x)): </b> A slow increasing curve with a vertical asymptote.</li>
+            <li><b>Absolute Value Equation (y = |x|):</b> A "V" shaped graph.</li>
         </ul>
         <canvas id="graphCanvas" width="400" height="400"></canvas>
         <button onclick="startQuiz()">Start Quiz</button>
@@ -70,37 +73,86 @@
     <script>
         let score = 0;
         let currentQuestionIndex = 0;
-        let shuffledQuestions = [];
 
-        const questions = [
-            {
-                question: "Which equation represents a straight line?",
-                options: ["y = 2x + 3", "y = x² + 2", "y = x³ + 2x", "y = 3x² + 5x + 1"],
-                correctAnswer: "y = 2x + 3"
+        const graphTypes = [
+            { 
+                type: "linear", 
+                equation: "y = mx + b", 
+                generateQuestion: function() {
+                    const m = Math.floor(Math.random() * 10) + 1; 
+                    const b = Math.floor(Math.random() * 10) + 1; 
+                    return {
+                        question: `What is the equation of the line with slope ${m} and y-intercept ${b}?`,
+                        correctAnswer: `y = ${m}x + ${b}`,
+                        graphFunction: (x) => m * x + b
+                    };
+                }
             },
-            {
-                question: "Which equation represents a parabola?",
-                options: ["y = 2x + 3", "y = x² + 2", "y = 3x³ + 5", "y = x + 3"],
-                correctAnswer: "y = x² + 2"
+            { 
+                type: "quadratic", 
+                equation: "y = ax² + bx + c", 
+                generateQuestion: function() {
+                    const a = Math.floor(Math.random() * 5) + 1;
+                    const b = Math.floor(Math.random() * 10) - 5;
+                    const c = Math.floor(Math.random() * 10) - 5;
+                    return {
+                        question: `What is the equation of the quadratic function with a = ${a}, b = ${b}, and c = ${c}?`,
+                        correctAnswer: `y = ${a}x² + ${b}x + ${c}`,
+                        graphFunction: (x) => a * Math.pow(x, 2) + b * x + c
+                    };
+                }
             },
-            {
-                question: "What is the general form of a cubic equation?",
-                options: ["y = ax² + bx + c", "y = ax³ + bx² + cx + d", "y = mx + b", "y = ax² + b"],
-                correctAnswer: "y = ax³ + bx² + cx + d"
+            { 
+                type: "cubic", 
+                equation: "y = ax³ + bx² + cx + d", 
+                generateQuestion: function() {
+                    const a = Math.floor(Math.random() * 5) + 1;
+                    const b = Math.floor(Math.random() * 5) - 2;
+                    const c = Math.floor(Math.random() * 5) - 2;
+                    const d = Math.floor(Math.random() * 5) - 2;
+                    return {
+                        question: `What is the equation of the cubic function with a = ${a}, b = ${b}, c = ${c}, and d = ${d}?`,
+                        correctAnswer: `y = ${a}x³ + ${b}x² + ${c}x + ${d}`,
+                        graphFunction: (x) => a * Math.pow(x, 3) + b * Math.pow(x, 2) + c * x + d
+                    };
+                }
             },
-            {
-                question: "Which of the following is a cubic function?",
-                options: ["y = 2x³ - 3x² + 5x - 7", "y = x² + 4x + 3", "y = 2x + 5", "y = x³ + x² + 2"],
-                correctAnswer: "y = 2x³ - 3x² + 5x - 7"
+            { 
+                type: "exponential", 
+                equation: "y = a * b^x", 
+                generateQuestion: function() {
+                    const a = Math.floor(Math.random() * 5) + 1;
+                    const b = Math.random() * 2 + 1;  // b > 1
+                    return {
+                        question: `What is the equation of the exponential function with a = ${a} and b = ${b.toFixed(2)}?`,
+                        correctAnswer: `y = ${a} * ${b.toFixed(2)}^x`,
+                        graphFunction: (x) => a * Math.pow(b, x)
+                    };
+                }
+            },
+            { 
+                type: "logarithmic", 
+                equation: "y = log(x)", 
+                generateQuestion: function() {
+                    return {
+                        question: `What is the equation of the logarithmic function y = log(x)?`,
+                        correctAnswer: `y = log(x)`,
+                        graphFunction: (x) => Math.log(x)
+                    };
+                }
+            },
+            { 
+                type: "absolute", 
+                equation: "y = |x|", 
+                generateQuestion: function() {
+                    return {
+                        question: `What is the equation of the absolute value function y = |x|?`,
+                        correctAnswer: `y = |x|`,
+                        graphFunction: (x) => Math.abs(x)
+                    };
+                }
             }
         ];
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                let j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
 
         function showIntro() {
             document.getElementById("intro").style.display = "block";
@@ -111,35 +163,32 @@
         function startQuiz() {
             document.getElementById("intro").style.display = "none";
             document.getElementById("quiz-container").style.display = "block";
-            shuffledQuestions = [...questions];
-            shuffle(shuffledQuestions);
             showQuestion();
         }
 
         function showQuestion() {
-            if (currentQuestionIndex >= 4) {
-                document.getElementById("quiz-container").innerHTML = `<h2>Quiz Completed!</h2><p>Your final score is: ${score}</p>`;
-                return;
-            }
-
-            const question = shuffledQuestions[currentQuestionIndex];
-            document.getElementById("question-title").innerText = question.question;
-            let optionsHTML = question.options.map(option => 
-                `<label><input type="radio" name="answer" value="${option}">${option}</label><br>`).join('');
+            let randomGraph = graphTypes[Math.floor(Math.random() * graphTypes.length)];
+            let questionData = randomGraph.generateQuestion();
+            document.getElementById("question-title").innerText = questionData.question;
+            let optionsHTML = `
+                <label><input type="radio" name="answer" value="${questionData.correctAnswer}">${questionData.correctAnswer}</label><br>
+                <label><input type="radio" name="answer" value="None of the above">None of the above</label><br>
+            `;
             document.getElementById("question-container").innerHTML = optionsHTML;
-            drawGraphExample();
+            drawGraph(questionData.graphFunction);
         }
 
         function submitAnswer() {
             const selectedAnswer = document.querySelector('input[name="answer"]:checked');
             if (!selectedAnswer) return alert("Please select an answer.");
-            if (selectedAnswer.value === shuffledQuestions[currentQuestionIndex].correctAnswer) score += 10;
-            currentQuestionIndex++;
+            if (selectedAnswer.value === document.querySelector('input[name="answer"]:checked').value) {
+                score += 10;
+            }
             document.getElementById("score").innerText = `Score: ${score}`;
             showQuestion();
         }
 
-        function drawGraphExample() {
+        function drawGraph(graphFunction) {
             let canvas = document.getElementById("quiz-canvas");
             let ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -154,33 +203,20 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Draw example graph based on current question
-            if (shuffledQuestions[currentQuestionIndex].correctAnswer === "y = 2x + 3") {
-                ctx.beginPath();
-                for (let x = -180; x <= 180; x += 10) {
-                    let y = 2 * (x / 10) + 3;
-                    let canvasX = x + 200;
-                    let canvasY = 200 - y * 10;
-                    if (x === -180) ctx.moveTo(canvasX, canvasY);
-                    else ctx.lineTo(canvasX, canvasY);
-                }
-                ctx.strokeStyle = "#FF5733";
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            } else if (shuffledQuestions[currentQuestionIndex].correctAnswer === "y = x² + 2") {
-                ctx.beginPath();
-                for (let x = -180; x <= 180; x += 10) {
-                    let y = Math.pow(x / 10, 2) + 2;
-                    let canvasX = x + 200;
-                    let canvasY = 200 - y * 10;
-                    if (x === -180) ctx.moveTo(canvasX, canvasY);
-                    else ctx.lineTo(canvasX, canvasY);
-                }
-                ctx.strokeStyle = "#4CAF50";
-                ctx.lineWidth = 3;
-                ctx.stroke();
+            // Draw function graph
+            ctx.beginPath();
+            for (let x = -180; x <= 180; x += 10) {
+                let y = graphFunction(x / 10);
+                let canvasX = x + 200;
+                let canvasY = 200 - y * 10;
+                if (x === -180) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
             }
+            ctx.strokeStyle = "#FF5733";
+            ctx.lineWidth = 3;
+            ctx.stroke();
         }
+
     </script>
 
 </body>
