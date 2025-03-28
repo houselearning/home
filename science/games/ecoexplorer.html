@@ -50,6 +50,23 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        const sound = new Audio("https://houselearning.github.io/home/assets/ecoexplorer/exoexplorer.mp3");
+
+document.addEventListener("keydown", (event) => {
+    if (event.key.toLowerCase() === "h") {
+        if (sound.paused) {
+            sound.currentTime = 0; // Restart sound if needed
+            sound.play();
+        }
+    }
+});
+
+document.addEventListener("keyup", (event) => {
+    if (event.key.toLowerCase() === "h") {
+        sound.pause();
+        sound.currentTime = 0; // Reset sound to start
+    }
+});
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
