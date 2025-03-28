@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System and Space - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+
+        /* Tooltip Style */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: Solar System and Space</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What is the Solar System?</h2>
+        <p>
+            The Solar System consists of the Sun and everything that orbits around it, including planets, moons, comets, asteroids, and more. The eight planets are divided into two groups: the inner planets (Mercury, Venus, Earth, and Mars) and the outer planets (Jupiter, Saturn, Uranus, and Neptune). These planets revolve around the Sun due to its gravitational pull.
+        </p>
+
+        <h2>Planets in the Solar System</h2>
+        <ul>
+            <li><strong>Mercury:</strong> The smallest planet, closest to the Sun.</li>
+            <li><strong>Venus:</strong> Known as Earth's twin due to its similar size, but with a toxic atmosphere.</li>
+            <li><strong>Earth:</strong> Our home, the only known planet to support life.</li>
+            <li><strong>Mars:</strong> Known as the Red Planet, it is home to the tallest volcano and largest canyon in the Solar System.</li>
+            <li><strong>Jupiter:</strong> The largest planet, a gas giant with a Great Red Spot, a massive storm that has been raging for hundreds of years.</li>
+            <li><strong>Saturn:</strong> Famous for its beautiful ring system made of ice and rock particles.</li>
+            <li><strong>Uranus:</strong> A gas giant that rotates on its side.</li>
+            <li><strong>Neptune:</strong> The farthest planet from the Sun, known for its intense blue color and strong winds.</li>
+        </ul>
+
+        <h2>Interactive Demo: Planet Orbits</h2>
+        <p>Click the button below to visualize how planets orbit around the Sun.</p>
+        <div class="canvas-container">
+            <canvas id="solarCanvas" width="600" height="600"></canvas>
+            <br>
+            <button onclick="startOrbit()" title="Click faster to speed up orbits">Start Planet Orbits</button>
+        </div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <div class="question">
+            <p><strong>1. Which planet is known as the "Red Planet"?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Earth</label><br>
+            <label><input type="radio" name="q1" value="correct"> Mars</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Venus</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which planet has the most massive rings?</strong></p>
+            <label><input type="radio" name="q2" value="incorrect"> Uranus</label><br>
+            <label><input type="radio" name="q2" value="correct"> Saturn</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Neptune</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Which planet is closest to the Sun?</strong></p>
+            <label><input type="radio" name="q3" value="correct"> Mercury</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Venus</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Mars</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. Which planet is known for its Great Red Spot?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> Jupiter</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Earth</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Saturn</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What is the furthest planet from the Sun?</strong></p>
+            <label><input type="radio" name="q5" value="incorrect"> Uranus</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Neptune</label><br>
+            <label><input type="radio" name="q5" value="correct"> Neptune</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        const canvas = document.getElementById('solarCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let sunX = canvas.width / 2;
+        let sunY = canvas.height / 2;
+        let planets = [
+            {name: "Mercury", radius: 50, color: "gray", size: 5, angle: 0, speed: 0.02, facts: "The smallest planet, closest to the Sun."}, 
+            {name: "Venus", radius: 80, color: "yellow", size: 8, angle: 0, speed: 0.015, facts: "Known as Earth's twin due to its similar size."}, 
+            {name: "Earth", radius: 120, color: "blue", size: 10, angle: 0, speed: 0.01, facts: "The only known planet to support life."}, 
+            {name: "Mars", radius: 160, color: "red", size: 12, angle: 0, speed: 0.008, facts: "Known as the Red Planet, home to the tallest volcano."}, 
+            {name: "Jupiter", radius: 200, color: "brown", size: 15, angle: 0, speed: 0.005, facts: "The largest planet, a gas giant with a Great Red Spot."}, 
+            {name: "Saturn", radius: 240, color: "lightyellow", size: 18, angle: 0, speed: 0.004, facts: "Famous for its ring system made of ice and rock."}, 
+            {name: "Uranus", radius: 280, color: "lightblue", size: 16, angle: 0, speed: 0.003, facts: "A gas giant that rotates on its side."}, 
+            {name: "Neptune", radius: 320, color: "blue", size: 14, angle: 0, speed: 0.002, facts: "The furthest planet from the Sun, known for its strong winds."}
+        ];
+
+        const tooltip = document.getElementById('tooltip');
+
+        function drawPlanet(planet) {
+            ctx.beginPath();
+            ctx.arc(sunX + planet.radius * Math.cos(planet.angle), sunY + planet.radius * Math.sin(planet.angle), planet.size, 0, Math.PI * 2);
+            ctx.fillStyle = planet.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function startOrbit() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "yellow";
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 20, 0, Math.PI * 2); // Sun
+            ctx.fill();
+            ctx.closePath();
+
+            planets.forEach(planet => {
+                drawPlanet(planet);
+                planet.angle += planet.speed;
+            });
+
+            requestAnimationFrame(startOrbit);
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 5;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+
+        // Add hover effect for displaying planet info
+        canvas.addEventListener('mousemove', function(e) {
+            const x = e.offsetX;
+            const y = e.offsetY;
+            let hoveredPlanet = null;
+            planets.forEach(planet => {
+                const dist = Math.sqrt(Math.pow(x - (sunX + planet.radius * Math.cos(planet.angle)), 2) + Math.pow(y - (sunY + planet.radius * Math.sin(planet.angle)), 2));
+                if (dist < planet.size + 5) {
+                    hoveredPlanet = planet;
+                }
+            });
+
+            if (hoveredPlanet) {
+                tooltip.style.display = 'block';
+                tooltip.textContent = `${hoveredPlanet.name}: ${hoveredPlanet.facts}`;
+                tooltip.style.left = `${x + 10}px`;
+                tooltip.style.top = `${y - 30}px`;
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
