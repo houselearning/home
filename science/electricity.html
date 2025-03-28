@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity and Magnetism - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: Electricity and Magnetism</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What is Electricity?</h2>
+        <p>
+            Electricity is a form of energy caused by the movement of electrons. It can be either static (stationary) or dynamic (flowing).
+            - **Static electricity** occurs when there is an imbalance of electric charges.
+            - **Current electricity** involves the flow of electric charges through a conductor like a wire.
+        </p>
+
+        <h2>What is Magnetism?</h2>
+        <p>
+            Magnetism is a force that acts at a distance, caused by moving electric charges (usually electrons). Magnets have two poles: 
+            - **North** and **South**. Like poles repel each other, while opposite poles attract.
+        </p>
+
+        <h2>Electromagnetism</h2>
+        <p>
+            Electromagnetism is the relationship between electricity and magnetism. An electric current can create a magnetic field, and a changing magnetic field can induce an electric current.
+        </p>
+
+        <h2>Interactive Demo: Electric and Magnetic Fields</h2>
+        <p>Click on the buttons to simulate electric and magnetic fields.</p>
+        <div class="canvas-container">
+            <canvas id="electricMagnetismCanvas" width="500" height="300"></canvas>
+            <br>
+            <button onclick="showElectricField()">Show Electric Field</button>
+            <button onclick="showMagneticField()">Show Magnetic Field</button>
+            <button onclick="showElectromagnetism()">Show Electromagnetism</button>
+        </div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <div class="question">
+            <p><strong>1. What causes electricity?</strong></p>
+            <label><input type="radio" name="q1" value="electricity"> Flow of protons</label><br>
+            <label><input type="radio" name="q1" value="correct"> Flow of electrons</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Flow of neutrons</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What happens when two like magnetic poles are brought close together?</strong></p>
+            <label><input type="radio" name="q2" value="incorrect"> They attract each other</label><br>
+            <label><input type="radio" name="q2" value="correct"> They repel each other</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> They become neutral</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Which of the following materials is commonly used to make electromagnets?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> Wood</label><br>
+            <label><input type="radio" name="q3" value="correct"> Iron</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Plastic</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the relationship between electricity and magnetism?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> An electric current can create a magnetic field.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> A magnetic field can stop the flow of electricity.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Electricity and magnetism are unrelated forces.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What happens when a magnetic field changes near a conductor?</strong></p>
+            <label><input type="radio" name="q5" value="correct"> It induces an electric current in the conductor.</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> It creates a vacuum.</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> It reduces the resistance of the conductor.</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('electricMagnetismCanvas');
+        const ctx = canvas.getContext('2d');
+        let field = '';
+
+        function drawElectricField() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw positive charge
+            ctx.beginPath();
+            ctx.arc(100, 150, 20, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.closePath();
+            ctx.fillText('Positive Charge', 90, 180);
+
+            // Draw electric field lines (outward)
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(100, 150);
+                ctx.lineTo(100 + 60 * Math.cos(i * Math.PI / 4), 150 + 60 * Math.sin(i * Math.PI / 4));
+                ctx.stroke();
+            }
+        }
+
+        function drawMagneticField() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw magnetic field
+            ctx.beginPath();
+            ctx.arc(250, 150, 30, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+            ctx.closePath();
+            ctx.fillText('Magnetic Field', 240, 180);
+
+            // Draw magnetic field lines
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(250, 150);
+                ctx.lineTo(250 + 60 * Math.cos(i * Math.PI / 4), 150 + 60 * Math.sin(i * Math.PI / 4));
+                ctx.stroke();
+            }
+        }
+
+        function drawElectromagnetism() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw electromagnet (solenoid)
+            ctx.fillStyle = 'green';
+            ctx.fillRect(200, 130, 100, 40);
+            ctx.fillText('Electromagnet', 210, 125);
+
+            // Show electric current (lines)
+            for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                ctx.moveTo(200 + i * 10, 130);
+                ctx.lineTo(200 + i * 10, 170);
+                ctx.stroke();
+            }
+            ctx.fillText('Current', 240, 200);
+        }
+
+        function showElectricField() {
+            field = 'electric';
+            drawElectricField();
+        }
+
+        function showMagneticField() {
+            field = 'magnetic';
+            drawMagneticField();
+        }
+
+        function showElectromagnetism() {
+            field = 'electromagnetism';
+            drawElectromagnetism();
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 5;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            // Display result
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
