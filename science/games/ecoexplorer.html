@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Ecosystem Explorer</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #energyBar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 200px;
+            height: 20px;
+            border: 2px solid black;
+        }
+        #energy {
+            width: 100%;
+            height: 100%;
+            background-color: green;
+        }
+        #questionOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+        #questionContainer {
+            background-color: rgba(50, 50, 50, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="energyBar"><div id="energy"></div></div>
+    <div id="questionOverlay">
+        <div id="questionContainer">
+            <p id="questionText"></p>
+            <input type="text" id="answerInput">
+            <button id="submitAnswer">Submit</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        let ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        let directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+
+        const characterGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const characterMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        const character = new THREE.Mesh(characterGeometry, characterMaterial);
+        scene.add(character);
+
+        camera.position.z = 5;
+        camera.position.y = 3;
+        camera.lookAt(character.position);
+
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        const moveSpeed = 0.1;
+
+        let energy = 100;
+        const energyBar = document.getElementById('energy');
+        const energyLoss = 0.1;
+
+        const questionOverlay = document.getElementById('questionOverlay');
+        const questionText = document.getElementById('questionText');
+        const answerInput = document.getElementById('answerInput');
+        const submitAnswer = document.getElementById('submitAnswer');
+
+        const scienceQuestions = [
+            { question: "What is the chemical symbol for water?", answer: "H2O" },
+            { question: "What is the largest planet in our solar system?", answer: "Jupiter" },
+            { question: "What is the process by which plants make their own food?", answer: "Photosynthesis" },
+            { question: "What is the speed of light in a vacuum?", answer: "299792458 m/s" },
+            { question: "What is the powerhouse of the cell?", answer: "Mitochondria" },
+            { question: "What is the scientific name for humans?", answer: "Homo sapiens" },
+            { question: "What force pulls objects towards the Earth?", answer: "Gravity" },
+            { question: "What is the boiling point of water in Celsius?", answer: "100" },
+            { question: "What gas do plants absorb from the atmosphere?", answer: "Carbon dioxide" },
+            { question: "What is the smallest unit of matter?", answer: "Atom" },
+        ];
+
+        let questionsAsked = 0;
+        let correctAnswerCount = 0;
+
+        function askQuestions() {
+            questionOverlay.style.display = 'flex';
+            const selectedQuestions = [];
+            for (let i = 0; i < 3; i++) {
+                selectedQuestions.push(scienceQuestions[Math.floor(Math.random() * scienceQuestions.length)]);
+            }
+            let questionIndex = 0;
+
+            function showQuestion() {
+                if (questionIndex < 3) {
+                    questionText.textContent = selectedQuestions[questionIndex].question;
+                } else {
+                    if (correctAnswerCount >= 2){
+                        energy = 100;
+                    }
+                    questionOverlay.style.display = 'none';
+                    questionsAsked = 0;
+                    correctAnswerCount = 0;
+                }
+            }
+            showQuestion();
+
+            submitAnswer.onclick = function() {
+                if (answerInput.value.toLowerCase() === selectedQuestions[questionIndex].answer.toLowerCase()) {
+                    correctAnswerCount++;
+                }
+                answerInput.value = '';
+                questionIndex++;
+                showQuestion();
+            };
+        }
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    moveForward = true;
+                    break;
+                case 'ArrowDown':
+                    moveBackward = true;
+                    break;
+                case 'ArrowLeft':
+                    moveLeft = true;
+                    break;
+                case 'ArrowRight':
+                    moveRight = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    moveForward = false;
+                    break;
+                case 'ArrowDown':
+                    moveBackward = false;
+                    break;
+                case 'ArrowLeft':
+                    moveLeft = false;
+                    break;
+                case 'ArrowRight':
+                    moveRight = false;
+                    break;
+            }
+        });
+
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const cameraRotationSpeed = 0.002;
+
+        document.addEventListener('mousedown', (event) => {
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: event.clientX - previousMousePosition.x,
+                    y: event.clientY - previousMousePosition.y,
+                };
+
+                camera.rotation.y -= deltaMove.x * cameraRotationSpeed;
+                camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+            }
+        });
+
+        function createTree(x, z) {
+            const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 3, 32);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(x, 1.5, z);
+            scene.add(trunk);
+
+            const leavesGeometry = new THREE.ConeGeometry(2, 4, 32);
+            const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x006400 });
+            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+            leaves.position.set(x, 4, z);
+            scene.add(leaves);
+
+            if(Math.random() > .5){
+              const leaves2Geometry = new THREE.ConeGeometry(1.5, 3, 32);
+              const leaves2Material = new THREE.MeshLambertMaterial({ color: 0x006400 });
+              const leaves2 = new THREE.Mesh(leaves2Geometry, leaves2Material);
+              leaves2.position.set(x, 2.5, z);
+              scene.add(leaves2);
+            }
+        }
+
+        function createRock(x, z) {
+            const rockGeometry = new THREE.SphereGeometry(0.7, 16, 16);
+            const rockMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 });
+            const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+            rock.position.set(x, 0.35, z);
+            scene.add(rock);
+        }
+
+        function createAnimal(x, z) {
+            const animalGeometry = new THREE.BoxGeometry(1, 0.6, 1.5);
+            const animalMaterial = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
+            const animal = new THREE.Mesh(animalGeometry, animalMaterial);
+            animal.position.set(x, 0.3, z);
+            scene.add(animal);
+            animal.animalData = {
+                direction: Math.random() * Math.PI * 2,
+                speed: 0.03,
+                state: 'wandering',
+                target: null,
+                targetDistance: 5,
+            };
+            return animal;
+        }
+
+        function createBird(x, y, z) {
+          const birdGeometry = new THREE.ConeGeometry(0.3, 1.2, 3);
+          const birdMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+          const bird = new THREE.Mesh(birdGeometry, birdMaterial);
+          bird.rotation.x = Math.PI / 2;
+          bird.position.set(x, y, z);
+          scene.add(bird);
+
+          bird.birdData = {
+              direction: Math.random() * Math.PI * 2,
+              speed: 0.05,
+              altitude: y,
+              altitudeVariation: 0.5,
+              altitudeChangeSpeed: 0.01,
+          };
+          return bird;
+        }
+
+        function createGrass(x, z) {
+            const grassGeometry = new THREE.PlaneGeometry(0.2, 0.5);
+            const grassMaterial = new THREE.MeshLambertMaterial({ color: 0x003300, side: THREE.DoubleSide });
+            const grass = new THREE.Mesh(grassGeometry, grassMaterial);
+            grass.rotation.x = -Math.PI / 2;
+            grass.position.set(x, 0.01, z);
+            scene.add(grass);
+        }
+
+        function createFlower(x, z) {
+            const stemGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 32);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.set(x, 0.15, z);
+            scene.add(stem);
+
+            const leafGeometry = new THREE.ConeGeometry(0.1, 0.2, 3);
+            const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x006400 });
+            const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+            leaf.position.set(x, 0.1, z);
+            leaf.rotation.x = Math.PI / 2;
+            scene.add(leaf);
+
+            const flowerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+            const flowerMaterial = new THREE.MeshLambertMaterial({ color: 0xFF0000 });
+            const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+            flower.position.set(x, 0.3, z);
+            scene.add(flower);
+        }
+
+        const animals = [];
+        const birds = [];
+
+        function spawnObjects() {
+            const x = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            const xNear = character.position.x + (Math.random() - 0.5) * 20;
+            const zNear = character.position.z + (Math.random() - 0.5) * 20;
+
+            const rand = Math.random();
+            if (rand > 0.6) {
+                createTree(x, z);
+                createTree(xNear, zNear);
+            } else if (rand > 0.3) {
+                createRock(x, z);
+                createRock(xNear, zNear);
+            } else if (rand > 0.1) {
+                animals.push(createAnimal(x, z));
+                animals.push(createAnimal(xNear, zNear));
+            } else if (rand > 0.05) {
+                createFlower(x, z);
+                createFlower(xNear, zNear);
+            }
+            birds.push(createBird(x, 5 + Math.random() * 3, z));
+            birds.push(createBird(xNear, 5 + Math.random() * 3, zNear));
+            createGrass(x, z);
+            createGrass(xNear, zNear);
+        }
+
+        let lastSpawnTime = 0;
+        const spawnInterval = 100;
+        let isDay = true;
+        let timeOfDayChange = Date.now();
+        const dayNightCycle = 60000;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (moveForward) {
+                character.position.z -= moveSpeed;
+                energy -= energyLoss;
+            }
+            if (moveBackward) {
+                character.position.z += moveSpeed;
+                energy -= energyLoss;
+            }
+            if (moveLeft) {
+                character.position.x -= moveSpeed;
+                energy -= energyLoss;
+            }
+            if (moveRight) {
+                character.position.x += moveSpeed;
+                energy -= energyLoss;
+            }
+
+            if (energy <= 0) {
+                energy = 100;
+                askQuestions();
+            }
+
+            energyBar.style.width = (energy > 0 ? energy : 0) + '%';
+
+            camera.position.x = character.position.x;
+            camera.position.z = character.position.z + 5;
+            camera.lookAt(character.position);
+
+            animals.forEach(animal => {
+                const data = animal.animalData;
+
+                if (data.state === 'wandering') {
+                    animal.position.x += Math.cos(data.direction) * data.speed;
+                    animal.position.z += Math.sin(data.direction) * data.speed;
+
+                    if (Math.random() < 0.01) {
+                        data.direction += (Math.random() - 0.5) * Math.PI;
+                    }
+
+                    if (Math.random() < 0.001) {
+                        let closestRock = null;
+                        let closestDistance = Infinity;
+
+                        scene.children.forEach(obj => {
+                            if (obj !== animal && obj.geometry.type === "SphereGeometry") {
+                                const distance = animal.position.distanceTo(obj.position);
+                                if (distance < closestDistance) {
+                                    closestDistance = distance;
+                                    closestRock = obj;
+                                }
+                            }
+                        });
+                        if (closestRock) {
+                            data.state = 'seeking';
+                            data.target = closestRock;
+                        }
+                    }
+                } else if (data.state === 'seeking') {
+                    if (data.target) {
+                        const targetPosition = data.target.position;
+                        const direction = new THREE.Vector3().subVectors(targetPosition, animal.position).normalize();
+                        animal.position.x += direction.x * data.speed;
+                        animal.position.z += direction.z * data.speed;
+
+                        if (animal.position.distanceTo(targetPosition) < data.targetDistance) {
+                            data.state = 'wandering';
+                            data.target = null;
+                        }
+                    } else {
+                        data.state = 'wandering';
+                    }
+                }
+            });
+
+            birds.forEach(bird => {
+              const data = bird.birdData;
+              bird.position.x += Math.cos(data.direction) * data.speed;
+              bird.position.z += Math.sin(data.direction) * data.speed;
+              bird.position.y = data.altitude + Math.sin(Date.now() * data.altitudeChangeSpeed) * data.altitudeVariation;
+
+              if (Math.random() < 0.01) {
+                  data.direction += (Math.random() - 0.5) * Math.PI;
+              }
+            });
+
+            if (Date.now() - lastSpawnTime > spawnInterval) {
+                spawnObjects();
+                lastSpawnTime = Date.now();
+            }
+
+            if (Date.now() - timeOfDayChange > dayNightCycle){
+              isDay = !isDay;
+              timeOfDayChange = Date.now();
+              if (isDay){
+                ambientLight.color.setHex(0x404040);
+                directionalLight.intensity = 0.5;
+              }else{
+                ambientLight.color.setHex(0x101010);
+                directionalLight.intensity = 0.2;
+              }
+
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
