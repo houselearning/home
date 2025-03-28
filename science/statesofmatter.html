@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>States of Matter - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: States of Matter</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What are the States of Matter?</h2>
+        <p>
+            Matter exists in three primary states: Solid, Liquid, and Gas. The state of matter depends on the arrangement and energy of the particles.
+        </p>
+        
+        <h2>Solid</h2>
+        <p>
+            In a solid, particles are closely packed together and vibrate in place. Solids have a fixed shape and volume because the particles are not free to move around.
+        </p>
+
+        <h2>Liquid</h2>
+        <p>
+            In a liquid, particles are still closely packed, but they are free to move around. Liquids have a fixed volume but no fixed shape; they take the shape of the container they are in.
+        </p>
+
+        <h2>Gas</h2>
+        <p>
+            In a gas, particles are spread far apart and move freely. Gases have neither a fixed shape nor a fixed volume; they expand to fill any container.
+        </p>
+
+        <h2>Interactive Demo: Particles in Different States</h2>
+        <p>Click the button to see how the particles move in a solid, liquid, and gas.</p>
+        <div class="canvas-container">
+            <canvas id="matterCanvas" width="500" height="300"></canvas>
+            <br>
+            <button onclick="showState('solid')">Solid</button>
+            <button onclick="showState('liquid')">Liquid</button>
+            <button onclick="showState('gas')">Gas</button>
+        </div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <div class="question">
+            <p><strong>1. In which state of matter do particles vibrate but do not move freely?</strong></p>
+            <label><input type="radio" name="q1" value="solid"> Solid</label><br>
+            <label><input type="radio" name="q1" value="liquid"> Liquid</label><br>
+            <label><input type="radio" name="q1" value="gas"> Gas</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which state of matter has particles that are spread far apart and move freely?</strong></p>
+            <label><input type="radio" name="q2" value="solid"> Solid</label><br>
+            <label><input type="radio" name="q2" value="liquid"> Liquid</label><br>
+            <label><input type="radio" name="q2" value="gas"> Gas</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. In which state of matter do particles move around but are still close to each other?</strong></p>
+            <label><input type="radio" name="q3" value="solid"> Solid</label><br>
+            <label><input type="radio" name="q3" value="liquid"> Liquid</label><br>
+            <label><input type="radio" name="q3" value="gas"> Gas</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What happens to the particles of a substance when it is heated?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> They move faster and may change state.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> They slow down and become more tightly packed.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> They freeze and stop moving.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Which state of matter has a definite volume but no definite shape?</strong></p>
+            <label><input type="radio" name="q5" value="correct"> Liquid</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Solid</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Gas</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matterCanvas');
+        const ctx = canvas.getContext('2d');
+        let state = 'solid';
+        const particles = [];
+        const numParticles = 50;
+
+        // Create particles for the different states
+        function createParticles() {
+            particles.length = 0;
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: 0,
+                    vy: 0,
+                    size: 5
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'blue';
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        function updateParticles() {
+            particles.forEach(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                // Boundary detection for the gas state
+                if (particle.x < 0 || particle.x > canvas.width) particle.vx = -particle.vx;
+                if (particle.y < 0 || particle.y > canvas.height) particle.vy = -particle.vy;
+            });
+        }
+
+        function showState(newState) {
+            state = newState;
+            createParticles();
+            if (state === 'solid') {
+                particles.forEach(particle => {
+                    particle.vx = 0;
+                    particle.vy = 0;
+                });
+            } else if (state === 'liquid') {
+                particles.forEach(particle => {
+                    particle.vx = (Math.random() - 0.5) * 2;
+                    particle.vy = (Math.random() - 0.5) * 2;
+                });
+            } else if (state === 'gas') {
+                particles.forEach(particle => {
+                    particle.vx = (Math.random() - 0.5) * 4;
+                    particle.vy = (Math.random() - 0.5) * 4;
+                });
+            }
+            animate();
+        }
+
+        function animate() {
+            drawParticles();
+            updateParticles();
+            requestAnimationFrame(animate);
+        }
+
+        // Quiz handling function
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 5;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            // Display result
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+
+        // Initialize particles for default state
+        createParticles();
+        animate();
+    </script>
+</body>
+</html>
