@@ -216,11 +216,11 @@
             scene.add(leaves);
 
             if(Math.random() > .5){
-              const leaves2Geometry = new THREE.ConeGeometry(1.5, 3, 32);
-              const leaves2Material = new THREE.MeshLambertMaterial({ color: 0x006400 });
-              const leaves2 = new THREE.Mesh(leaves2Geometry, leaves2Material);
-              leaves2.position.set(x, 2.5, z);
-              scene.add(leaves2);
+                const leaves2Geometry = new THREE.ConeGeometry(1.5, 3, 32);
+                const leaves2Material = new THREE.MeshLambertMaterial({ color: 0x006400 });
+                const leaves2 = new THREE.Mesh(leaves2Geometry, leaves2Material);
+                leaves2.position.set(x, 2.5, z);
+                scene.add(leaves2);
             }
         }
 
@@ -249,21 +249,21 @@
         }
 
         function createBird(x, y, z) {
-          const birdGeometry = new THREE.ConeGeometry(0.3, 1.2, 3);
-          const birdMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
-          const bird = new THREE.Mesh(birdGeometry, birdMaterial);
-          bird.rotation.x = Math.PI / 2;
-          bird.position.set(x, y, z);
-          scene.add(bird);
+            const birdGeometry = new THREE.ConeGeometry(0.3, 1.2, 3);
+            const birdMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const bird = new THREE.Mesh(birdGeometry, birdMaterial);
+            bird.rotation.x = Math.PI / 2;
+            bird.position.set(x, y, z);
+            scene.add(bird);
 
-          bird.birdData = {
-              direction: Math.random() * Math.PI * 2,
-              speed: 0.05,
-              altitude: y,
-              altitudeVariation: 0.5,
-              altitudeChangeSpeed: 0.01,
-          };
-          return bird;
+            bird.birdData = {
+                direction: Math.random() * Math.PI * 2,
+                speed: 0.05,
+                altitude: y,
+                altitudeVariation: 0.5,
+                altitudeChangeSpeed: 0.01,
+            };
+            return bird;
         }
 
         function createGrass(x, z) {
@@ -296,8 +296,50 @@
             scene.add(flower);
         }
 
+        function createPond(x, z) {
+            const pondGeometry = new THREE.CylinderGeometry(6, 6, 1, 32);
+            const pondMaterial = new THREE.MeshLambertMaterial({ color: 0x0000FF });
+            const pond = new THREE.Mesh(pondGeometry, pondMaterial);
+            pond.position.set(x, 0.5, z);
+            scene.add(pond);
+
+            const fishArray = [];
+            for (let i = 0; i < 10; i++) {
+                const fishX = x + (Math.random() - 0.5) * 8;
+                const fishZ = z + (Math.random() - 0.5) * 8;
+                const fishY = Math.random() * 0.5 + 0.5;
+                fishArray.push(createFish(fishX, fishY, fishZ));
+            }
+
+            // Audio setup
+            const listener = new THREE.AudioListener();
+            camera.add(listener);
+            const sound = new THREE.Audio(listener);
+            const audioLoader = new THREE.AudioLoader();
+            audioLoader.load('https://www.myinstants.com/media/sounds/one-pound-fish_4BV9ITW.mp3', function(buffer) {
+                sound.setBuffer(buffer);
+                sound.setLoop(true);
+                sound.setVolume(0);
+            });
+
+            pond.sound = sound;
+            pond.fishArray = fishArray;
+            return pond;
+        }
+
+        function createFish(x, y, z) {
+            const fishGeometry = new THREE.ConeGeometry(0.2, 0.5, 32);
+            const fishMaterial = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
+            const fish = new THREE.Mesh(fishGeometry, fishMaterial);
+            fish.position.set(x, y, z);
+            fish.rotation.y = Math.random() * Math.PI * 2;
+            scene.add(fish);
+            return fish;
+        }
+
         const animals = [];
         const birds = [];
+        const ponds = [];
 
         function spawnObjects() {
             const x = (Math.random() - 0.5) * 2000;
@@ -306,18 +348,20 @@
             const zNear = character.position.z + (Math.random() - 0.5) * 20;
 
             const rand = Math.random();
-            if (rand > 0.6) {
+            if (rand > 0.65) { // Adjusted pond spawn chance
                 createTree(x, z);
                 createTree(xNear, zNear);
-            } else if (rand > 0.3) {
+            } else if (rand > 0.5) {
                 createRock(x, z);
                 createRock(xNear, zNear);
-            } else if (rand > 0.1) {
+            } else if (rand > 0.35) {
                 animals.push(createAnimal(x, z));
                 animals.push(createAnimal(xNear, zNear));
-            } else if (rand > 0.05) {
+            } else if (rand > 0.2) {
                 createFlower(x, z);
                 createFlower(xNear, zNear);
+            } else if (rand > 0.05) {
+                ponds.push(createPond(x,z));
             }
             birds.push(createBird(x, 5 + Math.random() * 3, z));
             birds.push(createBird(xNear, 5 + Math.random() * 3, zNear));
@@ -409,14 +453,31 @@
             });
 
             birds.forEach(bird => {
-              const data = bird.birdData;
-              bird.position.x += Math.cos(data.direction) * data.speed;
-              bird.position.z += Math.sin(data.direction) * data.speed;
-              bird.position.y = data.altitude + Math.sin(Date.now() * data.altitudeChangeSpeed) * data.altitudeVariation;
+                const data = bird.birdData;
+                bird.position.x += Math.cos(data.direction) * data.speed;
+                bird.position.z += Math.sin(data.direction) * data.speed;
+                bird.position.y = data.altitude + Math.sin(Date.now() * data.altitudeChangeSpeed) * data.altitudeVariation;
 
-              if (Math.random() < 0.01) {
-                  data.direction += (Math.random() - 0.5) * Math.PI;
-              }
+                if (Math.random() < 0.01) {
+                    data.direction += (Math.random() - 0.5) * Math.PI;
+                }
+            });
+
+            ponds.forEach(pond => {
+                const distance = camera.position.distanceTo(pond.position);
+                if (distance < 10) {
+                    pond.sound.setVolume(1 - distance / 10);
+                } else {
+                    pond.sound.setVolume(0);
+                }
+
+                pond.fishArray.forEach(fish => {
+                    fish.position.x += Math.cos(Date.now() * 0.001 + fish.rotation.y) * 0.01;
+                    fish.position.z += Math.sin(Date.now() * 0.001 + fish.rotation.y) * 0.01;
+                    if (fish.position.x > pond.position.x + 4 || fish.position.x < pond.position.x - 4) fish.rotation.y += Math.PI;
+                    if (fish.position.z > pond.position.z + 4 || fish.position.z < pond.position.z - 4) fish.rotation.y += Math.PI;
+                });
+
             });
 
             if (Date.now() - lastSpawnTime > spawnInterval) {
@@ -425,16 +486,15 @@
             }
 
             if (Date.now() - timeOfDayChange > dayNightCycle){
-              isDay = !isDay;
-              timeOfDayChange = Date.now();
-              if (isDay){
-                ambientLight.color.setHex(0x404040);
-                directionalLight.intensity = 0.5;
-              }else{
-                ambientLight.color.setHex(0x101010);
-                directionalLight.intensity = 0.2;
-              }
-
+                isDay = !isDay;
+                timeOfDayChange = Date.now();
+                if (isDay){
+                    ambientLight.color.setHex(0x404040);
+                    directionalLight.intensity = 0.5;
+                }else{
+                    ambientLight.color.setHex(0x101010);
+                    directionalLight.intensity = 0.2;
+                }
             }
 
             renderer.render(scene, camera);
