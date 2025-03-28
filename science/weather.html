@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather and Climate Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Weather and Climate Lesson</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction</h2>
+    <p>
+        Weather refers to the conditions in the atmosphere at a specific time and place, including temperature, humidity, precipitation, wind, and visibility. Climate is the long-term average of weather patterns over a longer period, usually 30 years or more, for a particular region.
+    </p>
+
+    <h2>Key Differences between Weather and Climate</h2>
+    <ul>
+        <li><strong>Weather:</strong> Short-term, localized atmospheric conditions.</li>
+        <li><strong>Climate:</strong> Long-term, regional patterns and averages of weather conditions.</li>
+    </ul>
+
+    <h2>Types of Weather Conditions</h2>
+    <ul>
+        <li><strong>Temperature:</strong> The warmth or coldness of the atmosphere.</li>
+        <li><strong>Precipitation:</strong> Rain, snow, sleet, or hail.</li>
+        <li><strong>Humidity:</strong> The amount of moisture in the air.</li>
+        <li><strong>Wind:</strong> The movement of air caused by differences in air pressure.</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Weather and Climate Diagram</h2>
+    <p>Click on different parts of the diagram below to learn more about different weather conditions.</p>
+    <div class="canvas-container">
+        <canvas id="weatherCanvas" width="500" height="300"></canvas>
+    </div>
+        <div class="result" id="result"></div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. What is the difference between weather and climate?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Weather is the long-term average of atmospheric conditions.</label><br>
+            <label><input type="radio" name="q1" value="correct"> Weather is short-term, while climate is long-term.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which of the following is a weather condition?</strong></p>
+            <label><input type="radio" name="q2" value="incorrect"> Earth's tilt</label><br>
+            <label><input type="radio" name="q2" value="correct"> Temperature</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Seasons</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. What does high humidity usually indicate?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> Dry weather</label><br>
+            <label><input type="radio" name="q3" value="correct"> A higher chance of precipitation</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Cold temperatures</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is precipitation?</strong></p>
+            <label><input type="radio" name="q4" value="incorrect"> The speed of wind</label><br>
+            <label><input type="radio" name="q4" value="correct"> Water falling from the atmosphere (rain, snow, sleet, or hail)</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> The temperature of the air</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Which of these is a type of precipitation?</strong></p>
+            <label><input type="radio" name="q5" value="incorrect"> Wind</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Temperature</label><br>
+            <label><input type="radio" name="q5" value="correct"> Snow</label><br>
+        </div>
+
+        <a href="#result"><button onclick="checkQuiz()">Submit Quiz</button></a>
+
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('weatherCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Draw weather conditions (clouds, sun, rain, snow, etc.)
+    function drawWeatherDiagram() {
+        // Background
+        ctx.fillStyle = '#87CEEB'; // Sky blue
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Sun
+        ctx.beginPath();
+        ctx.arc(80, 80, 40, 0, Math.PI * 2); // Sun
+        ctx.fillStyle = 'yellow';
+        ctx.fill();
+        ctx.closePath();
+
+        // Clouds
+        ctx.beginPath();
+        ctx.arc(200, 70, 30, 0, Math.PI * 2); // Cloud
+        ctx.arc(240, 70, 30, 0, Math.PI * 2);
+        ctx.arc(280, 70, 30, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
+
+        // Rain
+        ctx.beginPath();
+        ctx.moveTo(250, 150); // Rain drops
+        ctx.lineTo(250, 200);
+        ctx.moveTo(270, 150);
+        ctx.lineTo(270, 200);
+        ctx.moveTo(230, 150);
+        ctx.lineTo(230, 200);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+
+        // Snow
+        ctx.beginPath();
+        ctx.moveTo(100, 150); // Snowflakes
+        ctx.lineTo(100, 180);
+        ctx.moveTo(120, 150);
+        ctx.lineTo(120, 180);
+        ctx.moveTo(140, 150);
+        ctx.lineTo(140, 180);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    // Show weather condition description on hover
+    canvas.addEventListener('mousemove', function (e) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+        let found = false;
+
+        // Check if hovering over a specific weather condition (e.g., sun, rain)
+        if (x >= 60 && x <= 100 && y >= 40 && y <= 120) {
+            document.getElementById('result').textContent = 'Sun: Represents clear, sunny weather.';
+            found = true;
+        } else if (x >= 180 && x <= 300 && y >= 50 && y <= 90) {
+            document.getElementById('result').textContent = 'Clouds: Represents overcast weather.';
+            found = true;
+        } else if (x >= 230 && x <= 270 && y >= 150 && y <= 200) {
+            document.getElementById('result').textContent = 'Rain: Represents rainy weather.';
+            found = true;
+        } else if (x >= 100 && x <= 140 && y >= 150 && y <= 180) {
+            document.getElementById('result').textContent = 'Snow: Represents snowy weather.';
+            found = true;
+        }
+
+        if (!found) {
+            document.getElementById('result').textContent = '';
+        }
+    });
+
+    // Start drawing the weather diagram
+    function startLesson() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawWeatherDiagram();
+    }
+
+    // Quiz logic
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+            if (question.length > 0 && question[0].value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+
+    startLesson();
+</script>
+
+</body>
+</html>
