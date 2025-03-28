@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Quest Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+            background-color: #f0f8ff;
+            margin: 0 auto;
+            border: 2px solid #000;
+        }
+        .quiz-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .quiz-popup button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="quizPopup" class="quiz-popup">
+        <p id="question"></p>
+        <button onclick="checkAnswer(0)">A) Solar</button>
+        <button onclick="checkAnswer(1)">B) Coal</button>
+        <button onclick="checkAnswer(2)">C) Oil</button>
+        <button onclick="checkAnswer(3)">D) Wind</button>
+    </div>
+
+    <script>
+    // Game variables
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const playerSize = 30;
+let player = { x: canvas.width / 2, y: canvas.height / 2, width: playerSize, height: playerSize, speed: 5 };
+let energySources = [];
+let quizActive = false;
+let score = 0;
+
+// Energy source object
+function createEnergySource() {
+    let energySource = {
+        x: Math.random() * (canvas.width - 50),
+        y: Math.random() * (canvas.height - 50),
+        width: 20,
+        height: 20
+    };
+    energySources.push(energySource);
+}
+
+// Generate some initial energy sources
+for (let i = 0; i < 5; i++) {
+    createEnergySource();
+}
+
+// Listen for keyboard events (arrow keys)
+document.addEventListener("keydown", function (event) {
+    if (event.key === "ArrowUp") player.y -= player.speed;
+    if (event.key === "ArrowDown") player.y += player.speed;
+    if (event.key === "ArrowLeft") player.x -= player.speed;
+    if (event.key === "ArrowRight") player.x += player.speed;
+});
+
+// Collision detection with energy sources
+function checkEnergyCollection() {
+    energySources.forEach((source, index) => {
+        if (
+            player.x < source.x + source.width &&
+            player.x + player.width > source.x &&
+            player.y < source.y + source.height &&
+            player.y + player.height > source.y
+        ) {
+            // Collect energy
+            energySources.splice(index, 1);
+            score += 10;
+            if (energySources.length === 0) {
+                alert("You've collected all energy sources! Score: " + score);
+                startQuiz();
+            }
+        }
+    });
+}
+
+// Draw the player, energy sources, and the score
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw player
+    ctx.fillStyle = "blue";
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Draw energy sources
+    ctx.fillStyle = "yellow";
+    energySources.forEach((source) => {
+        ctx.fillRect(source.x, source.y, source.width, source.height);
+    });
+
+    // Display score
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("Score: " + score, 10, 30);
+
+    if (!quizActive) {
+        checkEnergyCollection();
+    }
+}
+
+// Start the quiz
+function startQuiz() {
+    quizActive = true;
+    document.getElementById("quizPopup").style.display = "block";
+    document.getElementById("question").textContent = "What is the primary source of renewable energy?";
+}
+
+// Check the answer
+function checkAnswer(selected) {
+    const correctAnswer = 0; // Solar is the correct answer
+    if (selected === correctAnswer) {
+        alert("Correct! Let's keep going!");
+    } else {
+        alert("Oops! That's not correct. Try again!");
+    }
+    quizActive = false;
+    document.getElementById("quizPopup").style.display = "none";
+    energySources = [];
+    for (let i = 0; i < 5; i++) {
+        createEnergySource();
+    }
+}
+
+// Game loop
+function gameLoop() {
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+gameLoop();
+
+    </script>
+</body>
+</html>
