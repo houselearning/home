@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Ecosystem Explorer</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; width: 100vw; height: 100vh; } /* Make canvas fill the entire window */
+        #compass {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            color: black;
+            padding: 10px;
+            border: 1px solid black;
+            z-index: 10;
+        }
+        #fossil-drawing {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border: 1px solid black;
+            display: none;
+            z-index: 10;
+        }
+        #fossil-drawing canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div id="compass"></div>
+    <div id="fossil-drawing">
+        <canvas id="fossil-canvas" width="300" height="200"></canvas>
+        <button id="close-drawing">Close</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+    <script>
+        // Setup scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+        scene.add(ambientLight);
+
+        // Add directional light
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        // Create the ground (plane)
+        const groundGeometry = new THREE.PlaneGeometry(50, 50);
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // Forest green
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2; // Rotate to lie flat
+        scene.add(ground);
+
+        // --- Fossil Variables ---
+        let fossils = [];
+        let foundFossilIndices = [];
+        let nearestFossilIndex = -1;
+        const compass = document.getElementById('compass');
+        const fossilDrawingElement = document.getElementById('fossil-drawing');
+        const fossilCanvas = document.getElementById('fossil-canvas');
+        const closeDrawingButton = document.getElementById('close-drawing');
+        const ctx = fossilCanvas.getContext('2d');
+        let drawingTimeout;  // To clear timeout
+
+        const fossilDrawings = [
+            { // Triceratops
+                points: [
+                    {x: 50, y: 150}, {x: 80, y: 100}, {x: 150, y: 100}, {x: 200, y: 50},
+                    {x: 250, y: 100}, {x: 280, y: 150}, {x: 250, y: 180}, {x: 200, y: 150},
+                    {x: 150, y: 180}, {x: 100, y: 180}, {x: 50, y: 150}
+                ],
+                label: "Triceratops"
+            },
+            { // Tyrannosaurus Rex
+                points: [
+                  {x: 50, y: 50}, {x: 100, y: 20}, {x: 150, y: 50}, {x: 200, y: 20},
+                  {x: 250, y: 50}, {x: 280, y: 100}, {x: 250, y: 150}, {x: 200, y: 120},
+                  {x: 150, y: 150}, {x: 100, y: 120}, {x: 50, y: 100}, {x: 50, y: 50}
+                ],
+                label: "T-Rex"
+            },
+            { // Stegosaurus
+                points: [
+                    {x: 50, y: 100}, {x: 100, y: 80}, {x: 150, y: 120}, {x: 200, y: 100},
+                    {x: 250, y: 150}, {x: 280, y: 180}, {x: 250, y: 180}, {x: 200, y: 150},
+                    {x: 150, y: 180}, {x: 100, y: 150}, {x: 50, y: 180}, {x: 50, y: 100}
+                ],
+                label: "Stegosaurus"
+            },
+            { // Brachiosaurus
+                points: [
+                  {x: 50, y: 180}, {x: 80, y: 150}, {x: 120, y: 120}, {x: 180, y: 100},
+                  {x: 220, y: 120}, {x: 250, y: 150}, {x: 280, y: 180}, {x: 250, y: 180},
+                  {x: 200, y: 150}, {x: 150, y: 180}, {x: 100, y: 180}, {x: 50, y: 180}
+                ],
+                label: "Brachiosaurus"
+            },
+            { // Pterodactyl
+                points: [
+                  {x: 100, y: 50}, {x: 150, y: 20}, {x: 200, y: 50}, {x: 250, y: 80},
+                  {x: 200, y: 120}, {x: 150, y: 100}, {x: 100, y: 120}, {x: 50, y: 80},
+                  {x: 100, y: 50}
+                ],
+                label: "Pterodactyl"
+            },
+            {  // Ankylosaurus
+                points: [
+                    {x: 50, y: 150}, {x: 100, y: 180}, {x: 150, y: 180}, {x: 200, y: 150},
+                    {x: 250, y: 180}, {x: 280, y: 150}, {x: 250, y: 100}, {x: 200, y: 80},
+                    {x: 150, y: 100}, {x: 100, y: 80}, {x: 50, y: 100}, {x: 50, y: 150}
+                  ],
+                  label: "Ankylosaurus"
+            },
+            { // Parasaurolophus
+                points: [
+                  {x: 50, y: 100}, {x: 100, y: 80}, {x: 150, y: 50}, {x: 200, y: 80},
+                  {x: 250, y: 100}, {x: 280, y: 150}, {x: 250, y: 180}, {x: 200, y: 150},
+                  {x: 150, y: 180}, {x: 100, y: 150}, {x: 50, y: 150}, {x: 50, y: 100}
+                ],
+                label: "Parasaurolophus"
+            },
+            { // Velociraptor
+                points: [
+                  {x: 50, y: 120}, {x: 100, y: 100}, {x: 150, y: 80}, {x: 200, y: 100},
+                  {x: 250, y: 120}, {x: 280, y: 150}, {x: 250, y: 180}, {x: 200, y: 180},
+                  {x: 150, y: 150}, {x: 100, y: 180}, {x: 50, y: 180}, {x: 50, y: 120}
+                ],
+                label: "Velociraptor"
+            }
+        ];
+
+        // --- End Fossil Variables ---
+
+        // Create a basic tree function
+        function createTree(x, z) {
+            const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2, 32);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 }); // Brown
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(x, 1, z);
+            scene.add(trunk);
+
+            const leavesGeometry = new THREE.ConeGeometry(1, 2, 32);
+            const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x006400 }); // Dark green
+            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+            leaves.position.set(x, 2.5, z);
+            scene.add(leaves);
+        }
+
+        // Create a basic rock function
+        function createRock(x, z) {
+            const rockGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const rockMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Gray
+            const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+            rock.position.set(x, 0.25, z);
+            scene.add(rock);
+        }
+
+        function createFossil(x, z, id) {
+            const fossilGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+            const fossilMaterial = new THREE.MeshBasicMaterial({ color: 0xA0522D }); // Sienna
+            const fossil = new THREE.Mesh(fossilGeometry, fossilMaterial);
+            fossil.position.set(x, 0.15, z);
+            fossil.name = id; // Important for raycasting
+            scene.add(fossil);
+            fossils.push({ mesh: fossil, x, z, found: false });
+        }
+
+        // Add some trees and rocks randomly
+        for (let i = 0; i < 20; i++) {
+            const x = (Math.random() - 0.5) * 40;
+            const z = (Math.random() - 0.5) * 40;
+            if (Math.random() > 0.5) {
+                createTree(x, z);
+            } else {
+                createRock(x, z);
+            }
+        }
+
+        // Add fossils
+        for (let i = 0; i < 8; i++) {
+            const x = (Math.random() - 0.5) * 40;
+            const z = (Math.random() - 0.5) * 40;
+            createFossil(x, z, `fossil-${i}`);
+        }
+
+        // Camera controls
+        camera.position.z = 10;
+        camera.position.y = 5;
+
+        let cameraRotationY = 0;
+        let cameraRotationX = 0;
+        const cameraRotationSpeed = 0.01;
+        const moveSpeed = 0.1;
+
+        let keys = {};
+
+        document.addEventListener('keydown', (event) => {
+            keys[event.key] = true;
+        });
+
+        document.addEventListener('keyup', (event) => {
+            keys[event.key] = false;
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            cameraRotationY -= event.movementX * cameraRotationSpeed;
+            cameraRotationX -= event.movementY * cameraRotationSpeed;
+            cameraRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraRotationX));
+        });
+
+        // Add a player block
+        const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        scene.add(player);
+
+        function updateCameraPosition() {
+            if (keys['w'] || keys['ArrowUp']) {
+                player.position.x += moveSpeed * Math.sin(cameraRotationY);
+                player.position.z += moveSpeed * Math.cos(cameraRotationY);
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.position.x -= moveSpeed * Math.sin(cameraRotationY);
+                player.position.z -= moveSpeed * Math.cos(cameraRotationY);
+            }
+            if (keys['a'] || keys['ArrowLeft']) {
+                cameraRotationY += 0.02;
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                cameraRotationY -= 0.02;
+            }
+
+            // 2nd person view: Camera follows the player
+            camera.position.x = player.position.x + 3 * Math.sin(cameraRotationY);
+            camera.position.z = player.position.z + 3 * Math.cos(cameraRotationY);
+            camera.position.y = player.position.y + 2; // Slightly above the player
+            camera.lookAt(player.position);
+        }
+
+        function updateCompass() {
+            let nearestFossil = null;
+            let minDistance = Infinity;
+            nearestFossilIndex = -1;
+
+            for (let i = 0; i < fossils.length; i++) {
+                if (!fossils[i].found) {
+                    const distance = Math.sqrt(
+                        Math.pow(player.position.x - fossils[i].x, 2) +  // Use player position
+                        Math.pow(player.position.z - fossils[i].z, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestFossil = fossils[i];
+                        nearestFossilIndex = i;
+                    }
+                }
+            }
+
+            if (nearestFossil) {
+                const angle = Math.atan2(
+                    nearestFossil.x - player.position.x, // Use player position
+                    nearestFossil.z - player.position.z
+                ) * (180 / Math.PI);
+                compass.textContent = `Nearest Fossil: ${Math.round(minDistance)} units, Direction: ${Math.round(angle)}°`;
+            } else {
+                compass.textContent = 'All fossils found!';
+            }
+        }
+
+        function drawFossilShape(index) {
+            if (index >= 0 && index < fossilDrawings.length) {
+                const drawing = fossilDrawings[index];
+                ctx.clearRect(0, 0, fossilCanvas.width, fossilCanvas.height);
+                ctx.beginPath();
+                ctx.moveTo(drawing.points[0].x, drawing.points[0].y);
+                for (let i = 1; i < drawing.points.length; i++) {
+                    ctx.lineTo(drawing.points[i].x, drawing.points[i].y);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.font = '14px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText(drawing.label, 10, 20);
+                fossilDrawingElement.style.display = 'block';
+                // Clear any existing timeout
+                if (drawingTimeout) {
+                  clearTimeout(drawingTimeout);
+                }
+
+                // Set a timeout to hide the drawing after 3 seconds
+                drawingTimeout = setTimeout(() => {
+                    fossilDrawingElement.style.display = 'none';
+                }, 3000);
+
+            }
+        }
+
+        closeDrawingButton.addEventListener('click', () => {
+            fossilDrawingElement.style.display = 'none';
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            updateCameraPosition();
+            updateCompass();
+            renderer.render(scene, camera);
+
+             // Raycasting for fossil interaction
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(fossils.map(fossil => fossil.mesh));
+
+            if (intersects.length > 0) {
+                const intersectedFossilName = intersects[0].object.name;
+                const fossilIndex = fossils.findIndex(fossil => fossil.mesh.name === intersectedFossilName);
+                if (fossilIndex !== -1 && !fossils[fossilIndex].found) {
+                    drawFossilShape(fossilIndex);
+                    fossils[fossilIndex].found = true; // mark as found.
+                    scene.remove(intersects[0].object);  // remove from scene.
+                }
+            }
+
+        }
+
+        animate();
+
+        // Add dat.gui for controls (optional)
+        const gui = new dat.GUI();
+        const cameraFolder = gui.addFolder('Camera');
+        cameraFolder.add(camera.position, 'x', -20, 20);
+        cameraFolder.add(camera.position, 'y', 1, 20);
+        cameraFolder.add(camera.position, 'z', -20, 20);
+        cameraFolder.open();
+
+        // Handle window resize to adjust camera and renderer
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
