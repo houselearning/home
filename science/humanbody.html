@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Body Systems</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Lesson: Human Body Systems</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction</h2>
+    <p>
+        The human body is an amazing system of organs, tissues, and cells working together to keep us alive and functioning.
+        There are several major systems in the human body, including the circulatory system, respiratory system, digestive system, and nervous system.
+    </p>
+
+    <h2>Key Human Body Systems</h2>
+    <ul>
+        <li><strong>Circulatory System:</strong> Transports blood, nutrients, gases, and wastes through the body.</li>
+        <li><strong>Respiratory System:</strong> Responsible for breathing and exchanging oxygen and carbon dioxide.</li>
+        <li><strong>Digestive System:</strong> Breaks down food and absorbs nutrients.</li>
+        <li><strong>Nervous System:</strong> Controls and coordinates the body's response to internal and external stimuli.</li>
+        <li><strong>Skeletal System:</strong> Provides structure, protects organs, and enables movement.</li>
+        <li><strong>Muscular System:</strong> Works with the skeletal system to facilitate movement.</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Human Body Diagram</h2>
+    <p>Click on the human body diagram below to learn more about the systems.</p>
+    <div class="canvas-container">
+        <canvas id="bodyCanvas" width="400" height="600"></canvas>
+    </div>
+    <div class="result" id="result"></div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. Which system is responsible for breathing?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Digestive System</label><br>
+            <label><input type="radio" name="q1" value="correct"> Respiratory System</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Circulatory System</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which system pumps blood throughout the body?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> Circulatory System</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Nervous System</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Skeletal System</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Which system is responsible for breaking down food?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> Muscular System</label><br>
+            <label><input type="radio" name="q3" value="correct"> Digestive System</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Respiratory System</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. Which system controls and coordinates body functions?</strong></p>
+            <label><input type="radio" name="q4" value="incorrect"> Muscular System</label><br>
+            <label><input type="radio" name="q4" value="correct"> Nervous System</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Skeletal System</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Which system provides structure to the body?</strong></p>
+            <label><input type="radio" name="q5" value="incorrect"> Nervous System</label><br>
+            <label><input type="radio" name="q5" value="correct"> Skeletal System</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Respiratory System</label><br>
+        </div>
+
+        <a href="#result"><button onclick="checkQuiz()">Submit Quiz</button></a>
+
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('bodyCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Draw the simple body shape (represented by a human-like figure)
+    function drawHumanBody() {
+        // Body outline
+        ctx.beginPath();
+        ctx.moveTo(200, 100);
+        ctx.lineTo(200, 350); // torso
+        ctx.moveTo(200, 350);
+        ctx.lineTo(150, 450); // left leg
+        ctx.moveTo(200, 350);
+        ctx.lineTo(250, 450); // right leg
+        ctx.moveTo(200, 100);
+        ctx.lineTo(150, 200); // left arm
+        ctx.moveTo(200, 100);
+        ctx.lineTo(250, 200); // right arm
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(200, 75, 25, 0, Math.PI * 2); // head circle
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    // Human body system areas
+    const systems = [
+        { name: 'Respiratory System', area: { x: 180, y: 50, width: 40, height: 30 }, color: 'rgba(255, 0, 0, 0.5)', description: 'Responsible for breathing and oxygen exchange.' },
+        { name: 'Circulatory System', area: { x: 180, y: 170, width: 40, height: 40 }, color: 'rgba(0, 255, 0, 0.5)', description: 'Pumps blood and circulates nutrients and gases.' },
+        { name: 'Digestive System', area: { x: 180, y: 250, width: 40, height: 40 }, color: 'rgba(0, 0, 255, 0.5)', description: 'Breaks down food and absorbs nutrients.' },
+        { name: 'Nervous System', area: { x: 180, y: 90, width: 40, height: 40 }, color: 'rgba(255, 255, 0, 0.5)', description: 'Controls and coordinates body functions.' },
+        { name: 'Skeletal System', area: { x: 180, y: 350, width: 40, height: 40 }, color: 'rgba(0, 255, 255, 0.5)', description: 'Provides structure and protects organs.' }
+    ];
+
+    // Draw the systems
+    function drawSystems() {
+        systems.forEach(system => {
+            ctx.fillStyle = system.color;
+            ctx.fillRect(system.area.x, system.area.y, system.area.width, system.area.height);
+        });
+    }
+
+    // Show system description on hover
+    canvas.addEventListener('mousemove', function (e) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+        let found = false;
+        systems.forEach(system => {
+            if (x >= system.area.x && x <= system.area.x + system.area.width && y >= system.area.y && y <= system.area.y + system.area.height) {
+                document.getElementById('result').textContent = `${system.name}: ${system.description}`;
+                found = true;
+            }
+        });
+        if (!found) {
+            document.getElementById('result').textContent = '';
+        }
+    });
+
+    // Start drawing the body and systems
+    function startLesson() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawHumanBody();
+        drawSystems();
+    }
+
+    // Quiz logic
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+            if (question.length > 0 && question[0].value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+
+    startLesson();
+</script>
+
+</body>
+</html>
