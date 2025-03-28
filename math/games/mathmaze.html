@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Maze</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    .maze {
+      display: grid;
+      grid-template-columns: repeat(20, 30px);
+      grid-template-rows: repeat(20, 30px);
+      border: 2px solid black;
+    }
+    .cell {
+      border: 1px solid lightgray;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+    }
+    .start {
+      background-color: lightgreen;
+      font-weight: bold;
+    }
+    .end {
+      background-color: green;
+      font-weight: bold;
+    }
+    .path {
+      background-color: lightblue;
+    }
+    .checkpoint {
+      background-color: yellow;
+      cursor: pointer;
+    }
+    .player {
+      background-color: purple;
+      border-radius: 50%;
+    }
+    .question {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border: 2px solid black;
+      display: none;
+    }
+    #directions {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .wall {
+      background-color: black;
+    }
+  </style>
+</head>
+<body>
+  <div id="directions">Use W (up), A (left), S (down), D (right) to move.</div>
+  <div class="maze" id="maze"></div>
+  <div class="question" id="question">
+    <p id="mathQuestion"></p>
+    <input type="number" id="answer">
+    <button onclick="checkAnswer()">Submit</button>
+    <p id="result"></p>
+  </div>
+
+  <script>
+    const maze = document.getElementById('maze');
+    const questionDiv = document.getElementById('question');
+    const mathQuestion = document.getElementById('mathQuestion');
+    const answerInput = document.getElementById('answer');
+    const resultDisplay = document.getElementById('result');
+
+    const gridSize = 20;
+    const mazeArray = generateMaze(gridSize, gridSize);
+
+    const start = { x: 1, y: 1 };
+    const end = { x: gridSize - 2, y: gridSize - 2 };
+    let playerPos = { ...start };
+    let previousCheckpoint = { ...start };
+
+    const checkpoints = [
+      { x: 5, y: 3, used: false },
+      { x: 12, y: 7, used: false },
+      { x: 3, y: 15, used: false },
+      { x: 17, y: 12, used: false }
+    ];
+
+    let canMove = true; // Flag to control whether the player can move
+    let currentCheckpoint = null;
+
+    for (let y = 0; y < gridSize; y++) {
+      for (let x = 0; x < gridSize; x++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        if (mazeArray[y][x] === 1) {
+          cell.classList.add('path');
+        } else {
+          cell.classList.add('wall');
+        }
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        maze.appendChild(cell);
+      }
+    }
+
+    function checkCheckpoints() {
+      checkpoints.forEach(checkpoint => {
+        if (playerPos.x === checkpoint.x && playerPos.y === checkpoint.y && !checkpoint.used) {
+          currentCheckpoint = checkpoint;
+          generateQuestion(checkpoint); // Generate question for this specific checkpoint
+          checkpoint.used = true;
+          canMove = false; // Block movement until question is answered correctly
+        }
+      });
+    }
+
+    function checkAnswer() {
+  const userAnswer = parseInt(answerInput.value);
+  if (userAnswer === currentAnswer) {
+    resultDisplay.textContent = 'Nice!!';
+    setTimeout(() => {
+      resultDisplay.textContent = '';
+      questionDiv.style.display = 'none';
+      canMove = true; // Allow movement again after correct answer
+      previousCheckpoint = { ...playerPos }; // Update last checkpoint
+    }, 1000);
+  } else {
+    resultDisplay.textContent = 'Incorrect. Try again!';
+    setTimeout(() => {
+      // Reset player to last checkpoint
+      playerPos = { ...previousCheckpoint };
+      updateMaze();
+      resultDisplay.textContent = ''; // Clear message after some time
+      answerInput.value = ''; // Clear input field
+
+      // Ensure the player can retry answering at the same checkpoint
+      checkpoints.forEach(checkpoint => {
+        if (checkpoint.x === playerPos.x && checkpoint.y === playerPos.y) {
+          checkpoint.used = false; 
+        }
+      });
+
+      // Keep the question screen open
+      questionDiv.style.display = 'block';
+    }, 1000);
+  }
+}
+
+
+    function updateMaze() {
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => cell.classList.remove('player'));
+      document.querySelector(`.cell[data-x="${start.x}"][data-y="${start.y}"]`).classList.add('start');
+      document.querySelector(`.cell[data-x="${end.x}"][data-y="${end.y}"]`).classList.add('end');
+      document.querySelector(`.cell[data-x="${playerPos.x}"][data-y="${playerPos.y}"]`).classList.add('player');
+      document.querySelector(`.cell[data-x="${start.x}"][data-y="${start.y}"]`).textContent = "Start";
+      document.querySelector(`.cell[data-x="${end.x}"][data-y="${end.y}"]`).textContent = "Finish";
+    }
+
+    updateMaze();
+
+    checkpoints.forEach(checkpoint => {
+      document.querySelector(`.cell[data-x="${checkpoint.x}"][data-y="${checkpoint.y}"]`).classList.add('checkpoint');
+    });
+
+    let currentQuestion = null;
+    let currentAnswer = null;
+    let checkpointClicked = false;
+
+    function generateQuestion(checkpoint) {
+      if (!checkpoint) return;
+
+      const num1 = Math.floor(Math.random() * 20) + 1;
+      const num2 = Math.floor(Math.random() * 20) + 1;
+      const operation = Math.random() < 0.5 ? '+' : '-';
+
+      currentQuestion = `${num1} ${operation} ${num2} = ?`;
+      currentAnswer = operation === '+' ? num1 + num2 : num1 - num2;
+
+      mathQuestion.textContent = currentQuestion;
+      answerInput.value = '';
+      resultDisplay.textContent = '';
+      questionDiv.style.display = 'block';
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (!canMove) return; // Don't allow movement if player can't move
+
+      let newX = playerPos.x;
+      let newY = playerPos.y;
+
+      switch (event.key.toLowerCase()) {
+        case 'w': newY--; break;
+        case 'a': newX--; break;
+        case 's': newY++; break;
+        case 'd': newX++; break;
+      }
+
+      // Check if the new position is valid
+      if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && mazeArray[newY][newX] === 1) {
+        playerPos.x = newX;
+        playerPos.y = newY;
+        checkCheckpoints();
+        updateMaze();
+      }
+    });
+
+    function generateMaze(width, height) {
+      const grid = Array(height).fill(null).map(() => Array(width).fill(0));
+      const stack = [{ x: 1, y: 1 }];
+      grid[1][1] = 1;
+
+      function getNeighbors(x, y) {
+        const neighbors = [];
+        if (y - 2 > 0) neighbors.push({ x, y: y - 2 });
+        if (y + 2 < height - 1) neighbors.push({ x, y: y + 2 });
+        if (x - 2 > 0) neighbors.push({ x: x - 2, y });
+        if (x + 2 < width - 1) neighbors.push({ x: x + 2, y });
+        return neighbors.filter(n => grid[n.y][n.x] === 0);
+      }
+
+      while (stack.length) {
+        const current = stack[stack.length - 1];
+        const neighbors = getNeighbors(current.x, current.y);
+
+        if (neighbors.length) {
+          const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+          grid[next.y][next.x] = 1;
+          grid[(current.y + next.y) / 2][(current.x + next.x) / 2] = 1;
+          stack.push(next);
+        } else {
+          stack.pop();
+        }
+      }
+      return grid;
+    }
+  </script>
+</body>
+</html>
