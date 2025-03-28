@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Gravity Jump</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .quiz-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            font-size: 18px;
+            background-color: yellow;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .quiz-box {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .done-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label>Gravity Strength: <input type="range" id="gravitySlider" min="-0.1" max="0.1" step="0.01" value="-0.02"></label>
+    </div>
+    <button class="quiz-button" onclick="startQuiz()">Start Quiz</button>
+    <div class="quiz-box" id="quizBox">
+        <button class="done-button" onclick="closeQuiz()">Done</button>
+        <p id="quizQuestion">What force pulls objects toward the ground?</p>
+        <button onclick="checkAnswer('Gravity')">Gravity</button>
+        <button onclick="checkAnswer('Magnetism')">Magnetism</button>
+        <button onclick="checkAnswer('Friction')">Friction</button>
+        <p id="quizFeedback"></p>
+    </div>
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js';
+
+        // Scene, Camera, Renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Player (Gray Cube Character)
+        const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        scene.add(player);
+        player.position.y = 1;
+
+        // Ground
+        const groundGeometry = new THREE.PlaneGeometry(10, 10);
+        const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+
+        // Ceiling
+        const ceilingGeometry = new THREE.PlaneGeometry(10, 10);
+        const ceilingMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+        const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.y = 5;
+        scene.add(ceiling);
+
+        // Gravity & Physics Variables
+        let velocity = 0;
+        let gravity = parseFloat(document.getElementById('gravitySlider').value);
+        let isGrounded = true;
+        let jumping = false;
+
+        camera.position.z = 5;
+        camera.position.y = 2;
+        camera.lookAt(player.position);
+
+        // Update gravity from slider
+        document.getElementById('gravitySlider').addEventListener('input', (event) => {
+            gravity = parseFloat(event.target.value);
+        });
+
+        // Jump and Change Gravity Function
+        window.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' && isGrounded) {
+                velocity = 0.2; // Jump strength
+                isGrounded = false;
+                jumping = true;
+            }
+        });
+
+        // Game Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (jumping) {
+                velocity += gravity;
+                player.position.y += velocity;
+            }
+
+            // Collision with ceiling
+            if (player.position.y >= 5) {
+                player.position.y = 5;
+                velocity = -Math.abs(gravity); // Start falling down
+            }
+
+            // Collision with ground
+            if (player.position.y <= 1) {
+                player.position.y = 1;
+                velocity = 0;
+                isGrounded = true;
+                jumping = false;
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Quiz Functions
+        window.startQuiz = function() {
+            document.getElementById('quizBox').style.display = 'block';
+        }
+
+        window.closeQuiz = function() {
+            document.getElementById('quizBox').style.display = 'none';
+        }
+
+        window.checkAnswer = function(answer) {
+            if (answer === 'Gravity') {
+                document.getElementById('quizFeedback').textContent = 'Correct! Gravity pulls objects toward the ground.';
+            } else {
+                document.getElementById('quizFeedback').textContent = 'Try again!';
+            }
+        }
+    </script>
+</body>
+</html>
