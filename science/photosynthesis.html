@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plants and Photosynthesis - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: Plants and Photosynthesis</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What is Photosynthesis?</h2>
+        <p>
+            Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose (sugar). This process is essential for life on Earth as it provides energy for almost all living organisms.
+        </p>
+        <p><strong>Photosynthesis Formula:</strong><br>
+            6CO<sub>2</sub> + 6H<sub>2</sub>O + light energy → C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> + 6O<sub>2</sub>
+        </p>
+        
+        <h2>Steps of Photosynthesis</h2>
+        <p>
+            1. **Light Absorption**: Chlorophyll in plant cells absorbs sunlight.
+        </p>
+        <p>
+            2. **Water Splitting**: Water molecules are split into oxygen, protons, and electrons.
+        </p>
+        <p>
+            3. **Energy Conversion**: The energy from sunlight is used to convert carbon dioxide (CO<sub>2</sub>) and water (H<sub>2</sub>O) into glucose (C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>) and oxygen (O<sub>2</sub>).
+        </p>
+        <p>
+            4. **Oxygen Release**: Oxygen is released into the atmosphere as a by-product.
+        </p>
+
+        <h2>Interactive Demo: Photosynthesis Process</h2>
+        <p>Click the button to simulate photosynthesis in a plant cell!</p>
+        <div class="canvas-container">
+            <canvas id="photosynthesisCanvas" width="600" height="400"></canvas>
+            <br>
+            <button onclick="startPhotosynthesis()">Start Photosynthesis Simulation</button>
+        </div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <div class="question">
+            <p><strong>1. What is the main product of photosynthesis?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Oxygen</label><br>
+            <label><input type="radio" name="q1" value="correct"> Glucose</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Water</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What is the role of chlorophyll in photosynthesis?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> It absorbs sunlight.</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> It releases oxygen.</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> It stores glucose.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Which of the following is NOT a product of photosynthesis?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> Oxygen</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Glucose</label><br>
+            <label><input type="radio" name="q3" value="correct"> Nitrogen</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the raw material needed for photosynthesis?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> Carbon dioxide</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Nitrogen</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Oxygen</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Which part of the plant performs photosynthesis?</strong></p>
+            <label><input type="radio" name="q5" value="incorrect"> Roots</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Flowers</label><br>
+            <label><input type="radio" name="q5" value="correct"> Leaves</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('photosynthesisCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function startPhotosynthesis() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw plant cell structure
+            ctx.beginPath();
+            ctx.rect(50, 50, 500, 300);
+            ctx.fillStyle = "#e2f7e1";
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#6c6c6c";
+            ctx.stroke();
+            ctx.closePath();
+
+            // Draw chloroplast
+            ctx.beginPath();
+            ctx.arc(300, 150, 40, 0, Math.PI * 2);
+            ctx.fillStyle = "#a8e085";
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+
+            // Draw water molecules entering the cell
+            ctx.fillStyle = "#00aaff";
+            ctx.beginPath();
+            ctx.arc(100, 250, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('H2O', 85, 270);
+            ctx.closePath();
+
+            // Draw CO2 entering the cell
+            ctx.fillStyle = "#ffcc00";
+            ctx.beginPath();
+            ctx.arc(500, 250, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('CO2', 485, 270);
+            ctx.closePath();
+
+            // Draw glucose (C6H12O6) production
+            ctx.fillStyle = "#ff6f61";
+            ctx.beginPath();
+            ctx.arc(300, 100, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('C6H12O6', 275, 120);
+            ctx.closePath();
+
+            // Draw oxygen (O2) release
+            ctx.fillStyle = "#66cc66";
+            ctx.beginPath();
+            ctx.arc(500, 100, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('O2', 485, 90);
+            ctx.closePath();
+
+            // Add text to explain steps
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#000000";
+            ctx.fillText('Photosynthesis process in action', 200, 380);
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 5;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            // Display result
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
