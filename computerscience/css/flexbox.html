@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Flexbox</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        p {
+            font-size: 18px;
+        }
+        .flexbox-example {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 200px;
+            background-color: lightblue;
+            margin-top: 30px;
+        }
+        .flex-item {
+            width: 50px;
+            height: 50px;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+            font-size: 20px;
+            border-radius: 5px;
+        }
+        .quiz-section {
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 40px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        #quiz-result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .button-box {
+            margin-top: 40px;
+        }
+        .button-box button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .button-box button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CSS Flexbox</h1>
+    </header>
+
+    <div class="container">
+        <h2>What is Flexbox?</h2>
+        <p>Flexbox (Flexible Box) is a layout model in CSS that makes it easier to design flexible and responsive layouts. It allows elements within a container to align and distribute space dynamically. The Flexbox model includes properties for both the container (the parent) and the items (the children) within it.</p>
+        
+        <h3>Flex Container Properties</h3>
+        <ul>
+            <li><strong>display: flex;</strong> - Defines a flex container and enables flexbox layout.</li>
+            <li><strong>flex-direction:</strong> Defines the direction of the flex items (row, column, row-reverse, column-reverse).</li>
+            <li><strong>justify-content:</strong> Aligns the items horizontally (start, center, space-between, space-around, space-evenly).</li>
+            <li><strong>align-items:</strong> Aligns the items vertically (flex-start, center, flex-end, stretch, baseline).</li>
+            <li><strong>align-self:</strong> Allows you to align individual items differently from the rest (auto, flex-start, center, flex-end, baseline, stretch).</li>
+        </ul>
+
+        <h2>Flexbox Example</h2>
+        <p>Below is an example of a flex container with multiple flex items. The flex container has space-between distribution and aligns items in the center.</p>
+
+        <div class="flexbox-example">
+            <div class="flex-item">1</div>
+            <div class="flex-item">2</div>
+            <div class="flex-item">3</div>
+        </div>
+
+        <p>The items in the flex container will be spaced evenly. Modify the code to experiment with different flexbox properties!</p>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+        <p><strong>1. What does the <code>display: flex;</code> property do?</strong></p>
+        <label><input type="radio" name="q1" value="a"> It defines a flex container.</label><br>
+        <label><input type="radio" name="q1" value="b"> It aligns the items vertically.</label><br>
+        <label><input type="radio" name="q1" value="c"> It changes the direction of items.</label><br>
+
+        <p><strong>2. Which of the following values can be used with the <code>justify-content</code> property?</strong></p>
+        <label><input type="radio" name="q2" value="a"> start, center, space-between</label><br>
+        <label><input type="radio" name="q2" value="b"> left, right, center</label><br>
+
+        <p><strong>3. How do you align flex items vertically?</strong></p>
+        <label><input type="radio" name="q3" value="a"> use <code>align-items</code> property</label><br>
+        <label><input type="radio" name="q3" value="b"> use <code>justify-content</code> property</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="quiz-result"></div>
+    </div>
+
+    <script>
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Great job! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Nice work! You got " + score + " out of " + totalQuestions + " correct.";
+            } else {
+                resultText = "Keep practicing! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('quiz-result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
