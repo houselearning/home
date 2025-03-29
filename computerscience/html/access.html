@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Accessibility</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #ff4500;
+        }
+        p, li {
+            font-size: 18px;
+        }
+        .quiz-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #aaa;
+            max-width: 600px;
+            margin: auto;
+        }
+        button {
+            background-color: #ff4500;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff6347;
+        }
+        iframe {
+            width: 80%;
+            height: 300px;
+            border: 2px solid #ff4500;
+        }
+    </style>
+</head>
+<body>
+    <h1>HTML Accessibility 🌍</h1>
+    <h2>What is Accessibility?</h2>
+    <p>Accessibility in HTML ensures that web content is usable by people with disabilities. This includes features that assist visually impaired users, keyboard-only users, and those using screen readers.</p>
+    
+    <h2>Key Accessibility Features:</h2>
+    <ul>
+        <li><b>Use Semantic HTML:</b> Elements like <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, and <code>&lt;footer&gt;</code> provide meaningful structure.</li>
+        <li><b>Provide Alt Text for Images:</b> The <code>alt</code> attribute describes images for screen readers.</li>
+        <li><b>Ensure Keyboard Navigation:</b> Users should be able to navigate using the Tab key.</li>
+        <li><b>Use ARIA Attributes:</b> These help assistive technologies interpret content.</li>
+        <li><b>High Contrast and Readable Fonts:</b> Text should be easy to read.</li>
+    </ul>
+
+    <h2>Try It! Accessible Form</h2>
+    <iframe srcdoc='<!DOCTYPE html>
+        <html>
+        <body>
+            <form>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" aria-label="Enter your name" required><br><br>
+                
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" aria-label="Enter your email" required><br><br>
+                
+                <button type="submit">Submit</button>
+            </form>
+        </body>
+        </html>'>
+    </iframe>
+    
+    <h2>Accessibility Quiz 🎯</h2>
+    <div class="quiz-container">
+        <form id="quizForm">
+            <p>1. What is the purpose of the <code>alt</code> attribute?</p>
+            <input type="radio" name="q1" value="a"> To make images load faster<br>
+            <input type="radio" name="q1" value="b"> To describe the image for screen readers<br>
+            <input type="radio" name="q1" value="c"> To change the image size<br>
+            
+            <p>2. Which element helps with screen reader navigation?</p>
+            <input type="radio" name="q2" value="a"> <code>&lt;div&gt;</code><br>
+            <input type="radio" name="q2" value="b"> <code>&lt;span&gt;</code><br>
+            <input type="radio" name="q2" value="c"> <code>&lt;nav&gt;</code><br>
+            
+            <p>3. How can you ensure keyboard accessibility?</p>
+            <input type="radio" name="q3" value="a"> Use only clickable elements<br>
+            <input type="radio" name="q3" value="b"> Make elements focusable with <code>tabindex</code><br>
+            <input type="radio" name="q3" value="c"> Remove all buttons<br>
+            
+            <p>4. What does ARIA stand for?</p>
+            <input type="radio" name="q4" value="a"> Accessible Rich Internet Applications<br>
+            <input type="radio" name="q4" value="b"> Advanced Responsive Internet Accessibility<br>
+            <input type="radio" name="q4" value="c"> Automated Resource Interactive API<br>
+            
+            <p>5. Why is color contrast important?</p>
+            <input type="radio" name="q5" value="a"> To make a website look cool<br>
+            <input type="radio" name="q5" value="b"> To improve readability for visually impaired users<br>
+            <input type="radio" name="q5" value="c"> To use random colors<br>
+            
+            <br>
+            <button type="button" onclick="checkQuiz()">Submit Answers</button>
+        </form>
+
+        <h2 id="result"></h2>
+    </div>
+    
+    <script>
+        function checkQuiz() {
+            let score = 0;
+            let answers = { q1: "b", q2: "c", q3: "b", q4: "a", q5: "b" };
+            
+            for (let question in answers) {
+                let selected = document.querySelector(`input[name='${question}']:checked`);
+                if (selected && selected.value === answers[question]) {
+                    score++;
+                }
+            }
+            document.getElementById("result").innerText = "Your score: " + score + "/5 🎉";
+        }
+    </script>
+</body>
+</html>
