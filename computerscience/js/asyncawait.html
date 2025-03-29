@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Async/Await Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .content h2 {
+            color: #333;
+        }
+        .quiz-section {
+            margin-top: 40px;
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>JavaScript Async/Await: Tutorial & Quiz</h1>
+    </header>
+
+    <div class="content">
+        <h2>What is `async`/`await`?</h2>
+        <p>
+            `async` and `await` are used in JavaScript to handle asynchronous operations. These keywords allow you to write asynchronous code in a way that looks and behaves like synchronous code.
+        </p>
+
+        <h3>Understanding `async`</h3>
+        <p>
+            An `async` function is a function that always returns a `Promise`. It allows you to use `await` inside the function, which pauses the function execution until the promise is resolved.
+        </p>
+        <pre><code>async function fetchData() { /* fetch data */ }</code></pre>
+
+        <h3>Understanding `await`</h3>
+        <p>
+            The `await` keyword can only be used inside an `async` function. It pauses the execution of the function until the promise is resolved or rejected.
+        </p>
+        <pre><code>let result = await fetch('https://api.example.com/data');</code></pre>
+
+        <h3>Example: Fetching Data from an API</h3>
+        <p>
+            In the example below, we will fetch data from a simulated API using `async`/`await` and display the result.
+        </p>
+        <button onclick="getData()">Get Data</button>
+        <div id="output"></div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+        <p><strong>1. What does the `async` keyword do?</strong></p>
+        <label><input type="radio" name="q1" value="a"> It marks a function as asynchronous, returning a promise.</label><br>
+        <label><input type="radio" name="q1" value="b"> It pauses the function execution.</label><br>
+        <label><input type="radio" name="q1" value="c"> It is used to call asynchronous functions.</label><br>
+        <label><input type="radio" name="q1" value="d"> It does not return anything.</label><br>
+
+        <p><strong>2. Where can you use `await`?</strong></p>
+        <label><input type="radio" name="q2" value="a"> Inside a regular function.</label><br>
+        <label><input type="radio" name="q2" value="b"> Inside an `async` function.</label><br>
+        <label><input type="radio" name="q2" value="c"> It can be used anywhere in the code.</label><br>
+
+        <p><strong>3. What does `await` do in an `async` function?</strong></p>
+        <label><input type="radio" name="q3" value="a"> It waits for a promise to be resolved or rejected.</label><br>
+        <label><input type="radio" name="q3" value="b"> It immediately resolves the promise.</label><br>
+        <label><input type="radio" name="q3" value="c"> It ignores the promise.</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Simulated API request with a delay (using Promise and setTimeout)
+        async function getData() {
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = "Loading data...";
+
+            try {
+                const data = await fakeApiRequest();
+                outputDiv.innerHTML = "Data fetched: " + JSON.stringify(data);
+            } catch (error) {
+                outputDiv.innerHTML = "Error: " + error.message;
+            }
+        }
+
+        // Simulated API function (returns a Promise that resolves after 2 seconds)
+        function fakeApiRequest() {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const success = true; // Change this to false to simulate error
+                    if (success) {
+                        resolve({ message: "Data loaded successfully!" });
+                    } else {
+                        reject(new Error("Failed to fetch data."));
+                    }
+                }, 2000);
+            });
+        }
+
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check the answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Excellent! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
+            } else {
+                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
