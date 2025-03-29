@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound and Waves Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+
+        .frequency-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .frequency-section label {
+            font-size: 18px;
+        }
+
+        .frequency-section input[type="range"] {
+            width: 80%;
+            margin-top: 10px;
+        }
+
+        .frequency-section p {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Sound and Waves Lesson</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction</h2>
+    <p>
+        Sound is a type of wave that travels through a medium (such as air, water, or solids) due to vibrations. It’s created when an object vibrates, causing particles in the surrounding medium to move and transmit the energy. Sound waves are mechanical waves, meaning they need a medium to travel through.
+    </p>
+
+    <h2>Types of Waves</h2>
+    <p>
+        There are two main types of waves: <strong>mechanical waves</strong> and <strong>electromagnetic waves</strong>.
+    </p>
+    <ul>
+        <li><strong>Mechanical Waves:</strong> These require a medium to travel through. Sound waves are mechanical waves. They can be either <strong>longitudinal</strong> (like sound) or <strong>transverse</strong> (like water waves).</li>
+        <li><strong>Electromagnetic Waves:</strong> These do not require a medium and can travel through a vacuum. Examples include light waves, radio waves, and microwaves.</li>
+    </ul>
+
+    <h2>Sound Waves</h2>
+    <p>
+        Sound waves are <strong>longitudinal waves</strong>, where the particles of the medium move in the same direction as the wave. The primary properties of sound waves are:
+    </p>
+    <ul>
+        <li><strong>Frequency:</strong> The number of vibrations per second, which determines the pitch of the sound. Higher frequency = higher pitch.</li>
+        <li><strong>Amplitude:</strong> The height of the wave, which determines the volume (loudness) of the sound. Larger amplitude = louder sound.</li>
+        <li><strong>Wavelength:</strong> The distance between two successive peaks of the wave. It is inversely proportional to frequency.</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Sound Wave Propagation</h2>
+    <p>Click the "Start Wave" button to visualize how sound waves move.</p>
+    <div class="canvas-container">
+        <canvas id="waveCanvas" width="600" height="200"></canvas><br>
+        <button onclick="startWave()">Start Wave</button>
+    </div>
+
+    <h2>Test Sound Wave Frequency</h2>
+    <div class="frequency-section">
+        <label for="frequencyRange">Adjust Frequency:</label><br>
+        <input type="range" id="frequencyRange" min="1" max="50" value="10" step="1" oninput="updateWaveFrequency()">
+        <p>Frequency: <span id="frequencyValue">10</span> Hz</p>
+    </div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. What is the frequency of a sound wave responsible for?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Amplitude</label><br>
+            <label><input type="radio" name="q1" value="correct"> Pitch</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Wavelength</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What type of wave is a sound wave?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> Longitudinal</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Transverse</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. What does the amplitude of a sound wave determine?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> Wavelength</label><br>
+            <label><input type="radio" name="q3" value="correct"> Loudness</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the distance between two consecutive crests or troughs of a wave called?</strong></p>
+            <label><input type="radio" name="q4" value="incorrect"> Frequency</label><br>
+            <label><input type="radio" name="q4" value="correct"> Wavelength</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Sound waves can travel through which mediums?</strong></p>
+            <label><input type="radio" name="q5" value="incorrect"> Vacuum only</label><br>
+            <label><input type="radio" name="q5" value="correct"> Solids, Liquids, and Gases</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    let waveOffset = 0;
+    let frequency = 10; // Default frequency
+
+    // Function to draw the wave on the canvas
+    function drawWave() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height / 2);
+
+        // Draw the sine wave representing sound
+        for (let x = 0; x < canvas.width; x++) {
+            const y = Math.sin((x + waveOffset) * 0.05 * frequency) * 40 + canvas.height / 2;
+            ctx.lineTo(x, y);
+        }
+        
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // Start wave animation
+    function startWave() {
+        waveOffset += 5;
+        drawWave();
+
+        // Loop the wave animation
+        requestAnimationFrame(startWave);
+    }
+
+    // Update the frequency based on the slider
+    function updateWaveFrequency() {
+        frequency = document.getElementById("frequencyRange").value;
+        document.getElementById("frequencyValue").textContent = frequency;
+        drawWave(); // Redraw the wave with the updated frequency
+    }
+
+    // Quiz logic
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+            if (question.length > 0 && question[0].value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+
+    // Start the lesson by drawing the initial wave
+    drawWave();
+</script>
+
+</body>
+</html>
