@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# Loops - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: C# Loops</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What are Loops in C#?</h2>
+        <p>
+            A loop is a fundamental programming concept that repeats a block of code multiple times. In C#, there are several types of loops:
+        </p>
+
+        <h2>1. For Loop</h2>
+        <p>
+            The `for` loop is used when the number of iterations is known beforehand. It consists of three parts: initialization, condition, and increment/decrement.
+        </p>
+        <pre><code>for (int i = 0; i < 5; i++) { Console.WriteLine(i); }</code></pre>
+        <p>This loop will print the numbers from 0 to 4.</p>
+
+        <h2>2. While Loop</h2>
+        <p>
+            The `while` loop is used when you want to continue looping as long as a certain condition is true. The condition is checked before each iteration.
+        </p>
+        <pre><code>int i = 0;
+while (i < 5) {
+    Console.WriteLine(i);
+    i++;
+}</code></pre>
+        <p>This will print numbers from 0 to 4, just like the `for` loop.</p>
+
+        <h2>3. Do-While Loop</h2>
+        <p>
+            The `do-while` loop is similar to the `while` loop, except that the condition is checked after each iteration. This guarantees that the loop will run at least once.
+        </p>
+        <pre><code>int i = 0;
+do {
+    Console.WriteLine(i);
+    i++;
+} while (i < 5);</code></pre>
+        <p>This will also print numbers from 0 to 4.</p>
+
+        <h2>Interactive Example</h2>
+        <p>Use the slider to set the number of iterations for a `for` loop, and see the result below:</p>
+        <input type="range" id="loopSlider" min="1" max="10" value="5">
+        <p>Number of iterations: <span id="sliderValue">5</span></p>
+        <p>Loop Output:</p>
+        <pre><code id="loopOutput"></code></pre>
+
+        <script>
+            const loopSlider = document.getElementById('loopSlider');
+            const sliderValue = document.getElementById('sliderValue');
+            const loopOutput = document.getElementById('loopOutput');
+
+            loopSlider.addEventListener('input', function() {
+                sliderValue.textContent = loopSlider.value;
+                let output = '';
+                for (let i = 0; i < loopSlider.value; i++) {
+                    output += i + '\n';
+                }
+                loopOutput.textContent = output;
+            });
+        </script>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge on C# Loops</h2>
+
+        <div class="question">
+            <p><strong>1. Which loop is best suited when the number of iterations is known beforehand?</strong></p>
+            <label><input type="radio" name="q1" value="correct"> For Loop</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> While Loop</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Do-While Loop</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. In which loop does the condition get checked before the loop starts?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> While Loop</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Do-While Loop</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> For Loop</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Which loop guarantees that the loop will run at least once?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> While Loop</label><br>
+            <label><input type="radio" name="q3" value="correct"> Do-While Loop</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> For Loop</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. Which of these is a valid way to increment the variable in a `for` loop?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> i++</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> ++i</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> i += 2</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What will the following `for` loop output?</strong></p>
+            <pre><code>for (int i = 0; i < 3; i++) { Console.WriteLine(i); }</code></pre>
+            <label><input type="radio" name="q5" value="incorrect"> 1 2 3</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> 1 2</label><br>
+            <label><input type="radio" name="q5" value="correct"> 0 1 2</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="quizResult"></div>
+    </div>
+
+    <script>
+        // Quiz handling function
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 5;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            // Display result
+            const result = document.getElementById('quizResult');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
