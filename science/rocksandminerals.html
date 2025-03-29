@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocks and Minerals Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Rocks and Minerals Lesson</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction</h2>
+    <p>
+        Rocks and minerals are naturally occurring substances that make up the Earth's crust. While rocks are solid aggregates of minerals, minerals are naturally occurring crystalline substances.
+    </p>
+
+    <h2>Types of Rocks</h2>
+    <p>
+        There are three main types of rocks: <strong>igneous, sedimentary, and metamorphic</strong>.
+    </p>
+    <ul>
+        <li><strong>Igneous Rocks:</strong> Formed from cooling and solidification of molten rock (lava or magma). Example: Granite, Basalt.</li>
+        <li><strong>Sedimentary Rocks:</strong> Formed by the accumulation of sediments over time, often in water. Example: Limestone, Sandstone.</li>
+        <li><strong>Metamorphic Rocks:</strong> Formed when existing rocks are altered by high pressure and temperature. Example: Marble, Schist.</li>
+    </ul>
+
+    <h2>Types of Minerals</h2>
+    <p>
+        Minerals are solid, inorganic substances with a specific chemical composition. Some common minerals include quartz, feldspar, and calcite.
+    </p>
+    <p><strong>Characteristics of Minerals:</strong></p>
+    <ul>
+        <li>Hardness: Measured on the Mohs scale (from 1 for talc to 10 for diamond).</li>
+        <li>Color: The appearance of the mineral.</li>
+        <li>Luster: How the mineral reflects light (metallic, glassy, pearly, etc.).</li>
+        <li>Cleavage: How the mineral breaks (into flat sheets or irregular pieces).</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Rock Types Diagram</h2>
+    <p>Click on different rocks in the diagram to learn more about them.</p>
+    <div class="canvas-container">
+        <canvas id="rocksCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. Which rock type forms from cooled magma or lava?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Sedimentary</label><br>
+            <label><input type="radio" name="q1" value="correct"> Igneous</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Metamorphic</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What mineral is the hardest on the Mohs scale?</strong></p>
+            <label><input type="radio" name="q2" value="incorrect"> Calcite</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Quartz</label><br>
+            <label><input type="radio" name="q2" value="correct"> Diamond</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Which of these is a sedimentary rock?</strong></p>
+            <label><input type="radio" name="q3" value="incorrect"> Marble</label><br>
+            <label><input type="radio" name="q3" value="correct"> Sandstone</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Granite</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the definition of mineral luster?</strong></p>
+            <label><input type="radio" name="q4" value="incorrect"> The mineral's color</label><br>
+            <label><input type="radio" name="q4" value="correct"> How the mineral reflects light</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> How the mineral breaks</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What type of rock is formed from existing rocks under pressure and heat?</strong></p>
+            <label><input type="radio" name="q5" value="incorrect"> Sedimentary</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Igneous</label><br>
+            <label><input type="radio" name="q5" value="correct"> Metamorphic</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('rocksCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Draw rock types diagram
+    function drawRocksDiagram() {
+        // Background
+        ctx.fillStyle = '#e1e1e1';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Igneous Rock
+        ctx.fillStyle = 'gray';
+        ctx.fillRect(50, 50, 120, 120);
+        ctx.fillStyle = 'black';
+        ctx.fillText('Igneous Rock', 55, 120);
+
+        // Draw Sedimentary Rock
+        ctx.fillStyle = '#d2b48c'; // Tan for sedimentary
+        ctx.fillRect(200, 50, 120, 120);
+        ctx.fillStyle = 'black';
+        ctx.fillText('Sedimentary Rock', 205, 120);
+
+        // Draw Metamorphic Rock
+        ctx.fillStyle = '#8b0000'; // Dark red for metamorphic
+        ctx.fillRect(350, 50, 120, 120);
+        ctx.fillStyle = 'black';
+        ctx.fillText('Metamorphic Rock', 355, 120);
+    }
+
+    // Show rock type description on hover
+    canvas.addEventListener('mousemove', function (e) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+        let found = false;
+
+        // Check if hovering over a rock
+        if (x >= 50 && x <= 170 && y >= 50 && y <= 170) {
+            document.getElementById('result').textContent = 'Igneous Rock: Formed from cooled magma or lava.';
+            found = true;
+        } else if (x >= 200 && x <= 320 && y >= 50 && y <= 170) {
+            document.getElementById('result').textContent = 'Sedimentary Rock: Formed from compressed layers of sediments.';
+            found = true;
+        } else if (x >= 350 && x <= 470 && y >= 50 && y <= 170) {
+            document.getElementById('result').textContent = 'Metamorphic Rock: Formed by heat and pressure on existing rocks.';
+            found = true;
+        }
+
+        if (!found) {
+            document.getElementById('result').textContent = '';
+        }
+    });
+
+    // Start drawing the rocks diagram
+    function startLesson() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawRocksDiagram();
+    }
+
+    // Quiz logic
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+            if (question.length > 0 && question[0].value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+
+    startLesson();
+</script>
+
+</body>
+</html>
