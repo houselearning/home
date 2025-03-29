@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biomes and Habitats Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .interactive-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .interactive-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .interactive-section button:hover {
+            background-color: #555;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        #biomeInfo {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #333;
+            padding: 10px;
+            display: none;
+            z-index: 10;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Biomes and Habitats Lesson</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction to Biomes and Habitats</h2>
+    <p>
+        A biome is a large geographical biotic unit, a community of plants and animals that have common characteristics for the environment they live in. Biomes are characterized by the climate and the vegetation that thrives in the region. A habitat is the specific environment in which an organism lives, and it is part of a larger biome. There are many different types of biomes, such as deserts, forests, tundra, and grasslands, each with its own unique flora and fauna.
+    </p>
+
+    <h2>Types of Biomes</h2>
+    <ul>
+        <li><strong>Desert:</strong> Dry, arid, with minimal rainfall. Species are adapted to survive extreme conditions.</li>
+        <li><strong>Forest:</strong> Large areas covered with trees, including tropical rainforests, temperate forests, and boreal forests.</li>
+        <li><strong>Tundra:</strong> Cold, treeless, with permafrost, and very little precipitation.</li>
+        <li><strong>Grasslands:</strong> Open areas with grasses and few trees. Grasslands are typically found in regions with moderate rainfall.</li>
+        <li><strong>Wetlands:</strong> Areas saturated with water, either permanently or seasonally, including marshes and swamps.</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Explore Biomes on the Map</h2>
+    <p>Click on different regions of the map to learn about the biomes and their characteristics.</p>
+
+    <div class="interactive-section">
+        <button onclick="startMap()">Start Exploring Biomes</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="biomeCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. Which biome is characterized by low precipitation and extreme temperatures?</strong></p>
+            <label><input type="radio" name="q1" value="correct"> Desert</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Rainforest</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which biome is the coldest and has no trees?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> Tundra</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Grasslands</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. Where would you find the greatest biodiversity of species?</strong></p>
+            <label><input type="radio" name="q3" value="correct"> Rainforest</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Desert</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. Which biome is dominated by trees and has four seasons?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> Temperate Forest</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Wetland</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What type of vegetation is most commonly found in grasslands?</strong></p>
+            <label><input type="radio" name="q5" value="correct"> Grass</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Shrubs</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('biomeCanvas');
+    const ctx = canvas.getContext('2d');
+    const biomeInfo = document.createElement('div');
+    biomeInfo.id = 'biomeInfo';
+    document.body.appendChild(biomeInfo);
+
+    // Biome data (x, y, width, height, name, description)
+    const biomes = [
+        { x: 50, y: 50, width: 150, height: 100, name: 'Desert', description: 'Dry, hot, minimal rainfall. Animals are adapted to extreme conditions.' },
+        { x: 220, y: 50, width: 150, height: 100, name: 'Rainforest', description: 'Warm and wet, with dense vegetation and diverse species.' },
+        { x: 50, y: 200, width: 150, height: 100, name: 'Tundra', description: 'Cold, treeless region, very little precipitation.' },
+        { x: 220, y: 200, width: 150, height: 100, name: 'Temperate Forest', description: 'Four seasons with trees and a variety of animals.' },
+        { x: 150, y: 120, width: 150, height: 100, name: 'Grasslands', description: 'Open fields dominated by grasses and few trees.' }
+    ];
+
+    function startMap() {
+        // Draw biomes
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        biomes.forEach(biome => {
+            ctx.fillStyle = getBiomeColor(biome.name);
+            ctx.fillRect(biome.x, biome.y, biome.width, biome.height);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(biome.x, biome.y, biome.width, biome.height);
+            ctx.fillStyle = 'black';
+            ctx.font = '16px Arial';
+            ctx.fillText(biome.name, biome.x + 10, biome.y + 20);
+        });
+        canvas.addEventListener('mousemove', showBiomeInfo);
+        canvas.addEventListener('click', onBiomeClick);
+    }
+
+    function getBiomeColor(name) {
+        switch (name) {
+            case 'Desert': return 'yellow';
+            case 'Rainforest': return 'green';
+            case 'Tundra': return 'lightblue';
+            case 'Temperate Forest': return 'darkgreen';
+            case 'Grasslands': return 'lightgreen';
+            default: return 'white';
+        }
+    }
+
+    function showBiomeInfo(event) {
+        const mouseX = event.offsetX;
+        const mouseY = event.offsetY;
+        let foundBiome = false;
+
+        biomes.forEach(biome => {
+            if (mouseX >= biome.x && mouseX <= biome.x + biome.width &&
+                mouseY >= biome.y && mouseY <= biome.y + biome.height) {
+                foundBiome = true;
+                biomeInfo.style.left = `${mouseX + 10}px`;
+                biomeInfo.style.top = `${mouseY + 10}px`;
+                biomeInfo.style.display = 'block';
+                biomeInfo.innerHTML = `<strong>${biome.name}</strong><br>${biome.description}`;
+            }
+        });
+
+        if (!foundBiome) {
+            biomeInfo.style.display = 'none';
+        }
+    }
+
+    function onBiomeClick(event) {
+        const mouseX = event.offsetX;
+        const mouseY = event.offsetY;
+
+        biomes.forEach(biome => {
+            if (mouseX >= biome.x && mouseX <= biome.x + biome.width &&
+                mouseY >= biome.y && mouseY <= biome.y + biome.height) {
+                alert(`You clicked on the ${biome.name} biome!`);
+            }
+        });
+    }
+
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelector(`input[name="q${i}"]:checked`);
+            if (question && question.value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+</script>
+
+</body>
+</html>
