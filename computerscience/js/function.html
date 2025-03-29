@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Functions - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: JavaScript Functions</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What are Functions in JavaScript?</h2>
+        <p>
+            Functions are one of the core building blocks of JavaScript. They allow you to group code into reusable chunks. A function can take input (parameters), perform actions, and return output.
+        </p>
+        <p>
+            Functions help you avoid code repetition, and can make your code more readable and maintainable.
+        </p>
+        <p>
+            Here's a simple function example:
+        </p>
+        <pre>
+function greet(name) {
+    return "Hello, " + name + "!";
+}
+
+let greetingMessage = greet("Alice");
+console.log(greetingMessage);  // Output: "Hello, Alice!"
+        </pre>
+
+        <h2>Interactive Demo: Try It Yourself!</h2>
+        <p>Use the "Try It" editor below to experiment with JavaScript functions. Modify the code and click "Run" to see the result.</p>
+
+        <iframe id="tryitIframe" width="100%" height="300px" style="border:1px solid #ccc;"></iframe>
+        <br>
+        <button onclick="loadIframeCode()">Run Code</button>
+        
+        <h2>Quiz: Test Your Knowledge</h2>
+        <div class="quiz-section">
+            <div class="question">
+                <p><strong>1. What is the purpose of a function in JavaScript?</strong></p>
+                <label><input type="radio" name="q1" value="correct"> To group code into reusable blocks</label><br>
+                <label><input type="radio" name="q1" value="incorrect"> To make the page load faster</label><br>
+                <label><input type="radio" name="q1" value="incorrect"> To style the page</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>2. Which keyword is used to define a function in JavaScript?</strong></p>
+                <label><input type="radio" name="q2" value="incorrect"> var</label><br>
+                <label><input type="radio" name="q2" value="correct"> function</label><br>
+                <label><input type="radio" name="q2" value="incorrect"> let</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>3. How do you call a function in JavaScript?</strong></p>
+                <label><input type="radio" name="q3" value="incorrect"> function call()</label><br>
+                <label><input type="radio" name="q3" value="correct"> greet("Alice")</label><br>
+                <label><input type="radio" name="q3" value="incorrect"> call function()</label><br>
+            </div>
+
+            <button onclick="checkQuiz()">Submit Quiz</button>
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function loadIframeCode() {
+            const iframe = document.getElementById('tryitIframe');
+            const iframeDocument = iframe.contentWindow.document;
+            
+            iframeDocument.open();
+            iframeDocument.write(`
+                    <script>
+                        function greet(name) {
+                            return "Hello, " + name + "!";
+                        }
+
+                        let greetingMessage = greet("Alice");
+                        document.body.innerHTML = greetingMessage; // Display result
+                    </` + `script>
+                    <body></body>
+                    `);
+            iframeDocument.close();
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 3;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
