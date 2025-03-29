@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Positioning</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+        }
+        .example-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .box {
+            width: 150px;
+            height: 150px;
+            color: white;
+            text-align: center;
+            line-height: 150px;
+            border-radius: 5px;
+            font-size: 20px;
+        }
+        /* Relative Positioning */
+        .relative-box {
+            position: relative;
+            background-color: #3498db;
+        }
+        .relative-box .child {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #e74c3c;
+            padding: 10px;
+        }
+        /* Absolute Positioning */
+        .absolute-box {
+            position: relative;
+            background-color: #2ecc71;
+        }
+        .absolute-box .child {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f39c12;
+            padding: 10px;
+        }
+        /* Fixed Positioning */
+        .fixed-box {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #9b59b6;
+            color: white;
+            padding: 20px;
+            font-size: 16px;
+        }
+        .quiz-section {
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 40px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        #quiz-result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .button-box {
+            margin-top: 40px;
+        }
+        .button-box button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .button-box button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CSS Positioning: Relative, Absolute, and Fixed</h1>
+    </header>
+
+    <div class="container">
+        <h2>CSS Positioning Overview</h2>
+        <p>CSS Positioning allows you to control the placement of elements on a webpage. There are four main types of positioning in CSS:</p>
+        <ul>
+            <li><strong>Static:</strong> Default positioning, where elements flow into the document naturally.</li>
+            <li><strong>Relative:</strong> Positions an element relative to its normal position.</li>
+            <li><strong>Absolute:</strong> Positions an element relative to the nearest positioned ancestor.</li>
+            <li><strong>Fixed:</strong> Positions an element relative to the viewport and remains fixed as you scroll.</li>
+        </ul>
+
+        <h2>CSS Positioning Examples</h2>
+        <div class="example-container">
+            <!-- Relative Positioning Example -->
+            <div class="box relative-box">
+                Relative Box
+                <div class="child">Relative Child</div>
+            </div>
+            <!-- Absolute Positioning Example -->
+            <div class="box absolute-box">
+                Absolute Box
+                <div class="child">Absolute Child</div>
+            </div>
+        </div>
+
+        <div class="fixed-box">Fixed Box (stays at the top-right of the screen)</div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge on CSS Positioning</h2>
+        <p><strong>1. What does the `position: relative;` property do?</strong></p>
+        <label><input type="radio" name="q1" value="a"> It positions the element relative to its normal position.</label><br>
+        <label><input type="radio" name="q1" value="b"> It positions the element relative to the viewport.</label><br>
+        <label><input type="radio" name="q1" value="c"> It removes the element from the document flow.</label><br>
+
+        <p><strong>2. What does the `position: absolute;` property do?</strong></p>
+        <label><input type="radio" name="q2" value="a"> It positions the element relative to the nearest positioned ancestor.</label><br>
+        <label><input type="radio" name="q2" value="b"> It positions the element relative to the viewport.</label><br>
+
+        <p><strong>3. What does the `position: fixed;` property do?</strong></p>
+        <label><input type="radio" name="q3" value="a"> It positions the element relative to the viewport and keeps it in place when scrolling.</label><br>
+        <label><input type="radio" name="q3" value="b"> It positions the element relative to its parent element.</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="quiz-result"></div>
+    </div>
+
+    <script>
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Great job! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Nice work! You got " + score + " out of " + totalQuestions + " correct.";
+            } else {
+                resultText = "Keep practicing! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('quiz-result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
