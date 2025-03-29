@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Best Practices</title>
+    <style>
+        /* ✅ Use CSS Variables for Easy Theme Changes */
+        :root {
+            --bg-color: white;
+            --text-color: black;
+            --btn-bg: royalblue;
+            --btn-text: white;
+        }
+
+        /* ✅ Follow BEM Naming Convention */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .header {
+            padding: 20px;
+            background-color: lightgray;
+        }
+
+        .header__title {
+            font-size: 24px;
+        }
+
+        .content {
+            margin-top: 20px;
+        }
+
+        .content__text {
+            font-size: 18px;
+        }
+
+        /* ✅ Optimize Performance (Avoid Unnecessary Selectors) */
+        button {
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: darkblue;
+        }
+
+        /* ✅ Implement Dark Mode */
+        .dark-mode {
+            --bg-color: black;
+            --text-color: white;
+            --btn-bg: gray;
+        }
+
+        /* ✅ Quiz Styling */
+        .quiz {
+            margin-top: 20px;
+        }
+
+        .quiz button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header__title">CSS Best Practices</h1>
+    </header>
+
+    <main class="content">
+        <button id="themeToggle">Toggle Dark Mode</button>
+        <p class="content__text">This is an example of well-structured CSS using BEM naming conventions.</p>
+
+        <!-- ✅ Quiz Section -->
+        <div class="quiz">
+            <h2>📌 Quick Quiz</h2>
+            <p>Why should you avoid using <code>!important</code> in CSS?</p>
+            <button onclick="checkAnswer(true)"> It makes debugging harder</button>
+            <button onclick="checkAnswer(false)"> It speeds up CSS execution</button>
+            <button onclick="checkAnswer(false)"> It's required in every CSS file</button>
+            <p id="quizResult"></p>
+        </div>
+    </main>
+
+    <script>
+        const themeToggleButton = document.getElementById("themeToggle");
+
+        // Function to toggle dark mode
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+
+            // Store the preference in local storage
+            if (document.body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        // Load the theme preference
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+
+        // Event listener for button click
+        themeToggleButton.addEventListener("click", toggleTheme);
+
+        // Quiz function
+        function checkAnswer(isCorrect) {
+            const result = document.getElementById("quizResult");
+            if (isCorrect) {
+                result.textContent = "✅ Correct! Avoiding !important makes debugging easier.";
+                result.style.color = "green";
+            } else {
+                result.textContent = "❌ Incorrect! !important can cause specificity issues.";
+                result.style.color = "red";
+            }
+        }
+    </script>
+</body>
+</html>
