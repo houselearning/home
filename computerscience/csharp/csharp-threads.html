@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# Multithreading - Interactive Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: C# Multithreading</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What is Multithreading in C#?</h2>
+        <p>
+            Multithreading allows your program to perform multiple operations simultaneously. In C#, this is accomplished using the <code>Thread</code> class or higher-level constructs like <code>Task</code> and <code>async/await</code>.
+        </p>
+        
+        <h2>Basic Threading Example</h2>
+        <p>
+            Below is an example of a basic multithreaded application that runs two tasks in parallel:
+        </p>
+        <pre>
+using System;
+using System.Threading;
+
+class Program
+{
+    static void Main()
+    {
+        Thread thread1 = new Thread(PrintNumbers);
+        Thread thread2 = new Thread(PrintLetters);
+
+        thread1.Start();
+        thread2.Start();
+    }
+
+    static void PrintNumbers()
+    {
+        for (int i = 1; i <= 5; i++)
+        {
+            Console.WriteLine(i);
+            Thread.Sleep(1000); // Pauses for 1 second
+        }
+    }
+
+    static void PrintLetters()
+    {
+        char letter = 'A';
+        for (int i = 1; i <= 5; i++)
+        {
+            Console.WriteLine(letter);
+            letter++;
+            Thread.Sleep(1500); // Pauses for 1.5 seconds
+        }
+    }
+}
+        </pre>
+
+        <p>
+            This example creates two threads. One prints numbers, and the other prints letters. They run in parallel, and the outputs are interleaved.
+        </p>
+
+        <h2>Thread Synchronization</h2>
+        <p>
+            When multiple threads access shared data, synchronization is essential to avoid conflicts. You can use the <code>lock</code> keyword to ensure that only one thread can access a particular section of code at a time.
+        </p>
+
+        <pre>
+class Program
+{
+    static int count = 0;
+    static readonly object lockObj = new object();
+
+    static void Main()
+    {
+        Thread thread1 = new Thread(IncrementCount);
+        Thread thread2 = new Thread(IncrementCount);
+
+        thread1.Start();
+        thread2.Start();
+    }
+
+    static void IncrementCount()
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            lock (lockObj)
+            {
+                count++;
+            }
+        }
+        Console.WriteLine("Final count: " + count);
+    }
+}
+        </pre>
+
+        <p>
+            In the above code, <code>lock (lockObj)</code> ensures that only one thread can increment the <code>count</code> at a time, preventing race conditions.
+        </p>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <div class="question">
+            <p><strong>1. What is the primary advantage of multithreading?</strong></p>
+            <label><input type="radio" name="q1" value="correct"> It allows the program to perform multiple tasks simultaneously.</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> It reduces the overall execution time by running on a single thread.</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> It simplifies the program's code by avoiding loops.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What happens if two threads try to access the same resource at the same time without synchronization?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> It can lead to a race condition and inconsistent results.</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> The program will throw an error and stop.</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> The threads will automatically synchronize without any issues.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. What is the purpose of the <code>Thread.Sleep()</code> method?</strong></p>
+            <label><input type="radio" name="q3" value="correct"> It pauses the execution of the current thread for a specified time.</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> It terminates the current thread immediately.</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> It pauses all threads in the program.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. How can you ensure that only one thread can access a critical section of code at a time?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> By using the <code>lock</code> keyword.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> By using the <code>Thread.Start()</code> method.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> By calling <code>Thread.Join()</code> on the thread.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. Which method is used to pause the execution of a thread for a specified amount of time?</strong></p>
+            <label><input type="radio" name="q5" value="correct"> <code>Thread.Sleep()</code></label><br>
+            <label><input type="radio" name="q5" value="incorrect"> <code>Thread.Pause()</code></label><br>
+            <label><input type="radio" name="q5" value="incorrect"> <code>Thread.Wait()</code></label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 5;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
