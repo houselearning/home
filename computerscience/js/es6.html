@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript ES6+ Features Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .content h2 {
+            color: #333;
+        }
+        .quiz-section {
+            margin-top: 40px;
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>JavaScript ES6+ Features Tutorial</h1>
+    </header>
+
+    <div class="content">
+        <h2>What is ES6+?</h2>
+        <p>
+            ES6, also known as ECMAScript 2015, introduced many new features to JavaScript. Since then, JavaScript has continued to evolve with many new features in ES7, ES8, and beyond. In this tutorial, we will cover some of the most important ES6+ features.
+        </p>
+
+        <h3>1. Let & Const</h3>
+        <p>ES6 introduced two new ways to declare variables: `let` and `const`. These are block-scoped, unlike `var`, which is function-scoped.</p>
+        <pre><code>
+let name = "John"; // Reassignable
+const age = 25; // Not reassignable
+        </code></pre>
+
+        <h3>2. Arrow Functions</h3>
+        <p>Arrow functions provide a shorter syntax for writing functions. They also inherit the `this` value from the surrounding context.</p>
+        <pre><code>
+const greet = (name) => `Hello, ${name}!`;
+console.log(greet("Alice"));
+        </code></pre>
+
+        <h3>3. Template Literals</h3>
+        <p>Template literals allow for multi-line strings and embedded expressions.</p>
+        <pre><code>
+let name = "Alice";
+let greeting = `Hello, ${name}! Welcome to ES6.`;
+console.log(greeting);
+        </code></pre>
+
+        <h3>4. Destructuring</h3>
+        <p>Destructuring allows you to extract values from arrays and objects into variables.</p>
+        <pre><code>
+let [first, second] = [10, 20]; // Array destructuring
+console.log(first, second); // 10 20
+
+let person = { name: "Alice", age: 25 };
+let { name, age } = person; // Object destructuring
+console.log(name, age); // Alice 25
+        </code></pre>
+
+        <h3>5. Default Parameters</h3>
+        <p>Default parameters allow you to set default values for function arguments.</p>
+        <pre><code>
+function greet(name = "Guest") {
+    return `Hello, ${name}!`;
+}
+console.log(greet()); // Hello, Guest!
+console.log(greet("John")); // Hello, John!
+        </code></pre>
+
+        <h3>6. Spread & Rest Operators</h3>
+        <p>The spread operator (`...`) can be used to expand an array or object. The rest operator (`...`) can collect multiple values into a single array or object.</p>
+        <pre><code>
+// Spread
+let arr = [1, 2, 3];
+let newArr = [...arr, 4, 5];
+console.log(newArr); // [1, 2, 3, 4, 5]
+
+// Rest
+function sum(...numbers) {
+    return numbers.reduce((total, num) => total + num, 0);
+}
+console.log(sum(1, 2, 3)); // 6
+        </code></pre>
+
+        <h3>Interactive Example</h3>
+        <p>Try using ES6+ features directly below:</p>
+        <button onclick="showTemplateLiteral()">Show Greeting</button>
+        <div id="output"></div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+        <p><strong>1. What does the `let` keyword do in ES6?</strong></p>
+        <label><input type="radio" name="q1" value="a"> Declares a variable that can be reassigned and is block-scoped.</label><br>
+        <label><input type="radio" name="q1" value="b"> Declares a variable that is function-scoped.</label><br>
+        <label><input type="radio" name="q1" value="c"> Declares a constant value.</label><br>
+
+        <p><strong>2. What is the purpose of arrow functions in ES6?</strong></p>
+        <label><input type="radio" name="q2" value="a"> To create functions with shorter syntax and maintain the `this` context.</label><br>
+        <label><input type="radio" name="q2" value="b"> To create functions with their own `this` context.</label><br>
+        <label><input type="radio" name="q2" value="c"> To replace traditional functions.</label><br>
+
+        <p><strong>3. What is destructuring used for?</strong></p>
+        <label><input type="radio" name="q3" value="a"> To create classes.</label><br>
+        <label><input type="radio" name="q3" value="b"> To extract values from arrays or objects into variables.</label><br>
+        <label><input type="radio" name="q3" value="c"> To merge arrays and objects.</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Example function using Template Literals
+        function showTemplateLiteral() {
+            const greeting = `Hello, this is an ES6+ feature tutorial!`;
+            document.getElementById("output").innerHTML = greeting;
+        }
+
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check the answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'b') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Excellent! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
+            } else {
+                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
