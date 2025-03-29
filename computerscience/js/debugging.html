@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Error Handling and Debugging</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .content h2 {
+            color: #333;
+        }
+        .quiz-section {
+            margin-top: 40px;
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>JavaScript Error Handling and Debugging</h1>
+    </header>
+
+    <div class="content">
+        <h2>What is Error Handling?</h2>
+        <p>
+            In JavaScript, error handling is done using `try...catch` blocks. Errors can be handled gracefully without stopping the execution of the program. Debugging is the process of identifying and fixing errors in your code.
+        </p>
+
+        <h3>1. Try...Catch</h3>
+        <p>The `try...catch` statement allows you to test a block of code for errors and handle them without stopping the entire program.</p>
+        <pre><code>
+try {
+    let result = riskyFunction();
+} catch (error) {
+    console.error("An error occurred:", error);
+}
+        </code></pre>
+
+        <h3>2. Throwing Errors</h3>
+        <p>You can throw custom errors using the `throw` keyword. This helps in defining your own error messages when something goes wrong in your program.</p>
+        <pre><code>
+function checkAge(age) {
+    if (age < 18) {
+        throw new Error("Age must be 18 or older!");
+    }
+    return "Age is valid.";
+}
+        </code></pre>
+
+        <h3>3. Debugging Tools</h3>
+        <p>Debugging JavaScript code can be done using tools like `console.log()`, `debugger`, or even browser developer tools (DevTools).</p>
+        <p>For example, you can use `console.log()` to print the value of variables to the console to understand the program's behavior.</p>
+        <pre><code>
+let x = 10;
+console.log("The value of x is:", x);
+        </code></pre>
+
+        <h3>Interactive Example</h3>
+        <p>Try throwing an error and catching it:</p>
+        <button onclick="throwAndCatchError()">Try It</button>
+        <div id="output"></div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+        <p><strong>1. What does the `try` block in a `try...catch` statement do?</strong></p>
+        <label><input type="radio" name="q1" value="a"> It defines the block of code to execute.</label><br>
+        <label><input type="radio" name="q1" value="b"> It defines the block of code where errors might occur.</label><br>
+        <label><input type="radio" name="q1" value="c"> It catches errors in the program.</label><br>
+
+        <p><strong>2. What does the `throw` keyword do?</strong></p>
+        <label><input type="radio" name="q2" value="a"> It throws an error and stops the program.</label><br>
+        <label><input type="radio" name="q2" value="b"> It creates a new object in JavaScript.</label><br>
+        <label><input type="radio" name="q2" value="c"> It throws an exception, which can be caught in a `catch` block.</label><br>
+
+        <p><strong>3. What is the purpose of `console.log()`?</strong></p>
+        <label><input type="radio" name="q3" value="a"> To display output in the browser's console for debugging purposes.</label><br>
+        <label><input type="radio" name="q3" value="b"> To stop the execution of the program.</label><br>
+        <label><input type="radio" name="q3" value="c"> To display a pop-up message on the screen.</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Example function for throwing and catching errors
+        function throwAndCatchError() {
+            try {
+                let age = 16;
+                if (age < 18) {
+                    throw new Error("Age must be 18 or older!");
+                }
+                document.getElementById("output").innerHTML = "Age is valid.";
+            } catch (error) {
+                document.getElementById("output").innerHTML = "Error: " + error.message;
+            }
+        }
+
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check the answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'c') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Excellent! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
+            } else {
+                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
