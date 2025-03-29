@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript DOM Manipulation and Event Handling</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .lesson-content {
+            padding: 20px;
+        }
+        .lesson-content h2 {
+            color: #333;
+        }
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
 
+    <header>
+        <h1>Lesson: JavaScript DOM Manipulation and Event Handling</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What is DOM Manipulation?</h2>
+        <p>
+            DOM (Document Object Model) manipulation refers to the ability to change the content, structure, and style of a web page dynamically using JavaScript. It allows you to interact with elements like text, images, buttons, and more on the page.
+        </p>
+        <h2>Example of DOM Manipulation</h2>
+        <p>
+            Below is a simple example where clicking a button changes the content and style of a paragraph:
+        </p>
+        
+        <button id="changeButton">Change Content</button>
+        <p id="content">This is the original content.</p>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <div class="question">
+            <p><strong>1. What does DOM stand for?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> Document Object Model</label><br>
+            <label><input type="radio" name="q1" value="correct"> Document Object Module</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Dynamic Object Model</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which of the following is used to change the content of an HTML element?</strong></p>
+            <label><input type="radio" name="q2" value="incorrect"> document.getElementById()</label><br>
+            <label><input type="radio" name="q2" value="correct"> innerHTML</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> document.querySelector()</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // DOM Manipulation Example
+        const button = document.getElementById('changeButton');
+        const content = document.getElementById('content');
+
+        // Event listener to change the content and style of the paragraph when the button is clicked
+        button.addEventListener('click', function() {
+            content.innerHTML = 'The content has been changed!';
+            content.style.color = 'green';
+        });
+
+        // Quiz Functionality
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 2;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+
+</body>
+</html>
