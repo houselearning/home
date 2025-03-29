@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to JavaScript</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        iframe { width: 100%; height: 200px; border: 1px solid #000; }
+        button { margin-top: 10px; padding: 10px 20px; cursor: pointer; background: #007BFF; color: white; border: none; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Introduction to JavaScript</h1>
+        <p>JavaScript is a programming language that allows you to make web pages interactive.</p>
+        <p>For example, you can use JavaScript to create alerts, change content dynamically, or respond to user actions.</p>
+        
+        <h2>Try It Yourself!</h2>
+        <p>Click the button to display an alert message:</p>
+        <button onclick="runExample()">Run JavaScript</button>
+        
+        <h2>Quiz</h2>
+        <form id="quizForm">
+            <p>1. What is JavaScript primarily used for?</p>
+            <input type="radio" name="q1" value="a"> Styling web pages<br>
+            <input type="radio" name="q1" value="b"> Making web pages interactive<br>
+            <input type="radio" name="q1" value="c"> Storing data permanently<br>
+
+            <p>2. How do you display an alert in JavaScript?</p>
+            <input type="radio" name="q2" value="a"> alert("Hello");<br>
+            <input type="radio" name="q2" value="b"> show("Hello");<br>
+            <input type="radio" name="q2" value="c"> message("Hello");<br>
+
+            <button type="button" onclick="checkAnswers()">Submit Quiz</button>
+        </form>
+        
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function runExample() {
+            let frame = document.getElementById("tryItFrame").contentWindow.document;
+            frame.open();
+            frame.write("<script>alert('Hello! Welcome to JavaScript!');<\/script>");
+            frame.close();
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            if (document.querySelector('input[name="q1"]:checked')?.value === "b") score++;
+            if (document.querySelector('input[name="q2"]:checked')?.value === "a") score++;
+            document.getElementById("result").innerText = "You got " + score + "/2 correct!";
+        }
+    </script>
+</body>
+</html>
