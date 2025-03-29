@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Animation Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+            text-align: center;
+        }
+        .box {
+            width: 150px;
+            height: 150px;
+            background-color: #3498db;
+            margin: 20px auto;
+            color: white;
+            text-align: center;
+            line-height: 150px;
+            font-size: 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease-in-out;
+        }
+        /* CSS Keyframe Animation */
+        @keyframes moveBox {
+            0% {
+                transform: translateX(0);
+                background-color: #3498db;
+            }
+            50% {
+                transform: translateX(200px);
+                background-color: #e74c3c;
+            }
+            100% {
+                transform: translateX(0);
+                background-color: #3498db;
+            }
+        }
+        .animated-box {
+            animation: moveBox 3s ease-in-out infinite;
+        }
+        .quiz-section {
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 40px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        #quiz-result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .button-box {
+            margin-top: 40px;
+        }
+        .button-box button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .button-box button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CSS Animation Tutorial</h1>
+    </header>
+
+    <div class="container">
+        <h2>Understanding CSS Animation</h2>
+        <p>CSS animations allow you to change property values smoothly over a specified duration. Animations can make your webpage more interactive and engaging. The main components of a CSS animation are:</p>
+        <ul>
+            <li><strong>@keyframes:</strong> Defines the steps in the animation.</li>
+            <li><strong>animation:</strong> Specifies the animation properties like duration, timing function, and iteration count.</li>
+        </ul>
+
+        <h3>Animation Example</h3>
+        <div class="box animated-box">Moving Box</div>
+        
+        <p>In the example above, the `.box` is animated using the `moveBox` keyframe animation. The box will move horizontally and change color over 3 seconds and repeat infinitely.</p>
+        
+        <h3>Understanding the Keyframes</h3>
+        <p>The `@keyframes moveBox` defines the animation steps:</p>
+        <ul>
+            <li><strong>0%:</strong> The starting position, where the box is at the left (0% translateX) and has a blue color.</li>
+            <li><strong>50%:</strong> Midway through the animation, the box moves 200px to the right and changes color to red.</li>
+            <li><strong>100%:</strong> The box returns to its original position (0% translateX) and turns back to blue.</li>
+        </ul>
+
+        <div class="quiz-section">
+            <h2>Quiz: Test Your Knowledge on CSS Animations</h2>
+            <p><strong>1. What does the `@keyframes` rule define in CSS animations?</strong></p>
+            <label><input type="radio" name="q1" value="a"> It specifies the starting and ending properties of the animation.</label><br>
+            <label><input type="radio" name="q1" value="b"> It defines the steps the animation takes throughout its cycle.</label><br>
+            <label><input type="radio" name="q1" value="c"> It determines the duration of the animation.</label><br>
+
+            <p><strong>2. What does the `animation: moveBox 3s ease-in-out infinite;` declaration do?</strong></p>
+            <label><input type="radio" name="q2" value="a"> It makes the box move 200px to the right and change color.</label><br>
+            <label><input type="radio" name="q2" value="b"> It defines the timing function and iteration count for the animation.</label><br>
+            <label><input type="radio" name="q2" value="c"> It changes the color of the box from blue to red.</label><br>
+
+            <p><strong>3. What does the `infinite` value do in the animation?</strong></p>
+            <label><input type="radio" name="q3" value="a"> It makes the animation run only once.</label><br>
+            <label><input type="radio" name="q3" value="b"> It causes the animation to repeat indefinitely.</label><br>
+            <label><input type="radio" name="q3" value="c"> It makes the animation slower.</label><br>
+
+            <button onclick="checkQuiz()">Submit Quiz</button>
+
+            <div id="quiz-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'b') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Great job! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Nice work! You got " + score + " out of " + totalQuestions + " correct.";
+            } else {
+                resultText = "Keep practicing! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('quiz-result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
