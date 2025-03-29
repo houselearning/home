@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light and Optics Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+
+        .interactive-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .interactive-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .interactive-section button:hover {
+            background-color: #555;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Light and Optics Lesson</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction to Light and Optics</h2>
+    <p>
+        Light is a type of electromagnetic wave that travels through space. It allows us to see the world around us. Optics is the branch of physics that deals with the behavior of light and its interactions with different materials, such as lenses, mirrors, and prisms.
+    </p>
+
+    <h2>Key Concepts</h2>
+    <ul>
+        <li><strong>Reflection:</strong> The bouncing of light off a surface, such as a mirror.</li>
+        <li><strong>Refraction:</strong> The bending of light as it passes from one material to another (e.g., from air into water).</li>
+        <li><strong>Lens:</strong> A transparent object that bends light rays to focus or disperse them. Convex lenses converge light, while concave lenses diverge light.</li>
+        <li><strong>Prism:</strong> A transparent object that bends light and can split it into its component colors (spectrum).</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Refraction and Reflection</h2>
+    <p>Click the buttons to observe how light behaves when it hits a surface (reflection) or passes through different materials (refraction).</p>
+
+    <div class="interactive-section">
+        <button onclick="showReflection()">Show Reflection</button>
+        <button onclick="showRefraction()">Show Refraction</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="opticsCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. What is the bending of light as it passes through different materials called?</strong></p>
+            <label><input type="radio" name="q1" value="correct"> Refraction</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Reflection</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What happens when light hits a smooth surface?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> It reflects</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> It scatters</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. What type of lens converges light rays to a point?</strong></p>
+            <label><input type="radio" name="q3" value="correct"> Convex Lens</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> Concave Lens</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the effect of a prism on white light?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> It splits it into a spectrum</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> It reflects it</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What is the angle called at which light strikes a surface?</strong></p>
+            <label><input type="radio" name="q5" value="correct"> Angle of incidence</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Angle of refraction</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('opticsCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function drawLightRay(angle, type) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        const startX = 100, startY = canvas.height / 2;
+        const rayLength = 400;
+
+        if (type === 'reflection') {
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(startX + rayLength * Math.cos(angle), startY - rayLength * Math.sin(angle));
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(startX - rayLength * Math.cos(angle), startY - rayLength * Math.sin(angle));
+        } else if (type === 'refraction') {
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(startX + rayLength * Math.cos(angle), startY - rayLength * Math.sin(angle));
+            ctx.moveTo(startX + rayLength * Math.cos(angle), startY - rayLength * Math.sin(angle));
+            ctx.lineTo(startX + rayLength * Math.cos(angle * 0.5), startY - rayLength * Math.sin(angle * 0.5));
+        }
+
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function showReflection() {
+        // Draw a simple reflection of light off a mirror
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'gray';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(300, 0);
+        ctx.lineTo(300, canvas.height);
+        ctx.stroke();
+        drawLightRay(Math.PI / 4, 'reflection');
+    }
+
+    function showRefraction() {
+        // Draw light refracting through a material
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'gray';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(300, 0);
+        ctx.lineTo(300, canvas.height);
+        ctx.stroke();
+        drawLightRay(Math.PI / 4, 'refraction');
+    }
+
+    // Quiz Logic
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+            if (question.length > 0 && question[0].value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+</script>
+
+</body>
+</html>
