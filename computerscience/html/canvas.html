@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Canvas Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .content h2 {
+            color: #333;
+        }
+        .canvas-container {
+            margin-top: 40px;
+        }
+        .quiz-section {
+            margin-top: 40px;
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>HTML Canvas Tutorial</h1>
+    </header>
+
+    <div class="content">
+        <h2>What is the HTML Canvas?</h2>
+        <p>The HTML <code>&lt;canvas&gt;</code> element is used to draw graphics via JavaScript. It can be used for rendering graphs, charts, animations, and even games!</p>
+
+        <h3>1. Drawing on the Canvas</h3>
+        <p>The <code>&lt;canvas&gt;</code> element is essentially a drawing area. You can draw on it using JavaScript by accessing the canvas context (typically 2D). Here's an example:</p>
+
+        <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+
+        <script>
+            // Get the canvas and context
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+
+            // Draw a rectangle
+            ctx.fillStyle = "#FF0000"; // Set the fill color
+            ctx.fillRect(50, 50, 150, 100); // Draw rectangle
+
+            // Draw a circle
+            ctx.beginPath();
+            ctx.arc(250, 250, 50, 0, 2 * Math.PI); // Draw circle
+            ctx.fillStyle = "#0000FF";
+            ctx.fill();
+
+            // Draw a line
+            ctx.moveTo(400, 50);
+            ctx.lineTo(400, 200);
+            ctx.strokeStyle = "#00FF00"; // Set line color
+            ctx.lineWidth = 5;
+            ctx.stroke();
+        </script>
+
+        <h3>2. Handling User Interaction</h3>
+        <p>You can handle user input on the canvas, such as mouse clicks and movements. Here's an example of how to capture mouse clicks on the canvas:</p>
+        <canvas id="clickCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+        <script>
+            let clickCanvas = document.getElementById("clickCanvas");
+            let clickCtx = clickCanvas.getContext("2d");
+
+            clickCanvas.addEventListener("click", function(event) {
+                let x = event.offsetX;
+                let y = event.offsetY;
+
+                // Draw a circle where the user clicked
+                clickCtx.beginPath();
+                clickCtx.arc(x, y, 10, 0, 2 * Math.PI);
+                clickCtx.fillStyle = "green";
+                clickCtx.fill();
+            });
+        </script>
+
+        <h3>3. Animations on the Canvas</h3>
+        <p>Animations on the canvas can be achieved using JavaScript's <code>requestAnimationFrame()</code> method. Here's a simple animation:</p>
+
+        <canvas id="animCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+        <script>
+            let animCanvas = document.getElementById("animCanvas");
+            let animCtx = animCanvas.getContext("2d");
+            let x = 0; // Starting position of the square
+
+            function animate() {
+                animCtx.clearRect(0, 0, animCanvas.width, animCanvas.height); // Clear canvas
+                animCtx.fillStyle = "blue";
+                animCtx.fillRect(x, 100, 50, 50); // Draw the moving square
+                x += 2; // Move the square to the right
+
+                if (x > animCanvas.width) {
+                    x = 0; // Reset to start position
+                }
+
+                requestAnimationFrame(animate); // Call the animate function again
+            }
+
+            animate(); // Start the animation
+        </script>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+        <p><strong>1. What does the <code>&lt;canvas&gt;</code> element do?</strong></p>
+        <label><input type="radio" name="q1" value="a"> It is used to display images.</label><br>
+        <label><input type="radio" name="q1" value="b"> It allows for drawing graphics using JavaScript.</label><br>
+        <label><input type="radio" name="q1" value="c"> It displays text on the page.</label><br>
+
+        <p><strong>2. How do you start drawing on the canvas?</strong></p>
+        <label><input type="radio" name="q2" value="a"> Use the <code>getContext()</code> method to get the drawing context.</label><br>
+        <label><input type="radio" name="q2" value="b"> Use the <code>draw()</code> method.</label><br>
+        <label><input type="radio" name="q2" value="c"> Use the <code>startDrawing()</code> method.</label><br>
+
+        <p><strong>3. How can you animate a shape on the canvas?</strong></p>
+        <label><input type="radio" name="q3" value="a"> Use the <code>setInterval()</code> method.</label><br>
+        <label><input type="radio" name="q3" value="b"> Use the <code>requestAnimationFrame()</code> method.</label><br>
+        <label><input type="radio" name="q3" value="c"> Use the <code>animate()</code> method.</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Quiz checking logic
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check the answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'b') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Excellent! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
+            } else {
+                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
