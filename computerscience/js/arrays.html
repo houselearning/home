@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Arrays Tutorial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .content h2 {
+            color: #333;
+        }
+        .quiz-section {
+            margin-top: 40px;
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>JavaScript Arrays: Tutorial & Quiz</h1>
+    </header>
+
+    <div class="content">
+        <h2>What is an Array?</h2>
+        <p>
+            An array is a special variable in JavaScript that can hold multiple values in a single variable. You can think of an array as a list of values.
+        </p>
+
+        <h3>Creating an Array</h3>
+        <p>
+            You can create an array by enclosing values in square brackets (`[]`), separated by commas.
+        </p>
+        <pre><code>let fruits = ['apple', 'banana', 'cherry'];</code></pre>
+
+        <h3>Accessing Array Elements</h3>
+        <p>
+            You can access the elements in an array by using an index. The index starts from 0.
+        </p>
+        <pre><code>console.log(fruits[0]); // Output: apple</code></pre>
+
+        <h3>Common Array Methods</h3>
+        <ul>
+            <li><strong>push()</strong>: Adds an element to the end of the array.</li>
+            <li><strong>pop()</strong>: Removes the last element from the array.</li>
+            <li><strong>shift()</strong>: Removes the first element from the array.</li>
+            <li><strong>unshift()</strong>: Adds an element to the beginning of the array.</li>
+            <li><strong>forEach()</strong>: Executes a function on each element of the array.</li>
+        </ul>
+
+        <h3>Interactive Example</h3>
+        <p>Click the button to add a fruit to the list:</p>
+        <button onclick="addFruit()">Add a Fruit</button>
+
+        <div id="output"></div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+        <p><strong>1. Which method adds an element to the end of an array?</strong></p>
+        <label><input type="radio" name="q1" value="a"> pop()</label><br>
+        <label><input type="radio" name="q1" value="b"> push()</label><br>
+        <label><input type="radio" name="q1" value="c"> shift()</label><br>
+        <label><input type="radio" name="q1" value="d"> unshift()</label><br>
+
+        <p><strong>2. Which method removes the first element of an array?</strong></p>
+        <label><input type="radio" name="q2" value="a"> pop()</label><br>
+        <label><input type="radio" name="q2" value="b"> push()</label><br>
+        <label><input type="radio" name="q2" value="c"> shift()</label><br>
+        <label><input type="radio" name="q2" value="d"> unshift()</label><br>
+
+        <p><strong>3. How do you access the first element of an array called `fruits`?</strong></p>
+        <label><input type="radio" name="q3" value="a"> fruits[1]</label><br>
+        <label><input type="radio" name="q3" value="b"> fruits[0]</label><br>
+        <label><input type="radio" name="q3" value="c"> fruits[2]</label><br>
+        <label><input type="radio" name="q3" value="d"> fruits[3]</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let fruits = ['apple', 'banana', 'cherry'];
+
+        function addFruit() {
+            let newFruit = prompt("Enter a fruit to add:");
+            if (newFruit) {
+                fruits.push(newFruit);
+                viewFruits();
+            }
+        }
+
+        function viewFruits() {
+            let output = "Current Fruits in the Array:<br>";
+            fruits.forEach(function(fruit) {
+                output += fruit + "<br>";
+            });
+            document.getElementById("output").innerHTML = output;
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            // Check the answers for each question
+            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'c') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'b') {
+                score++;
+            }
+
+            // Display result
+            let resultText = "";
+            if (score === totalQuestions) {
+                resultText = "Excellent! You got all questions right!";
+            } else if (score >= totalQuestions / 2) {
+                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
+            } else {
+                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
+            }
+
+            document.getElementById('result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
