@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Dark Mode Lesson</title>
+    <style>
+        :root {
+            --bg-color: white;
+            --text-color: black;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .dark-mode {
+            --bg-color: black;
+            --text-color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .quiz-section {
+            background: #f4f4f4;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #quiz-result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CSS Dark Mode</h1>
+    <p>Click the button below to switch between Light and Dark Mode.</p>
+    
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <p><strong>1. What is the main purpose of Dark Mode?</strong></p>
+        <label><input type="radio" name="q1" value="a"> To make the website slower.</label><br>
+        <label><input type="radio" name="q1" value="b"> To reduce eye strain and save battery.</label><br>
+        <label><input type="radio" name="q1" value="c"> To remove all colors from a website.</label><br>
+
+        <p><strong>2. Which CSS property helps define dark mode variables?</strong></p>
+        <label><input type="radio" name="q2" value="a"> `--custom-mode`</label><br>
+        <label><input type="radio" name="q2" value="b"> `--bg-color` and `--text-color`</label><br>
+        <label><input type="radio" name="q2" value="c"> `background-dark`</label><br>
+
+        <p><strong>3. How can we store the user's dark mode preference?</strong></p>
+        <label><input type="radio" name="q3" value="a"> Using Local Storage</label><br>
+        <label><input type="radio" name="q3" value="b"> Using a database</label><br>
+        <label><input type="radio" name="q3" value="c"> By asking the user every time</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+        <div id="quiz-result"></div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+
+            // Save preference in local storage
+            if (document.body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        // Load the saved theme preference
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            if (document.querySelector('input[name="q1"]:checked')?.value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked')?.value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked')?.value === 'a') {
+                score++;
+            }
+
+            let resultText = score === totalQuestions
+                ? "🎉 Perfect! You got all questions right!"
+                : `✅ You got ${score} out of ${totalQuestions} correct.`;
+
+            document.getElementById('quiz-result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
