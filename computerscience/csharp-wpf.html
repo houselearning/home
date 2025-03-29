@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# WPF and Windows Forms Controls - Interactive Tutorial and Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .lesson-content pre {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            overflow-x: auto;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>C# WPF and Windows Forms Controls</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>Introduction to WPF and Windows Forms</h2>
+        <p>
+            In C#, there are two main GUI frameworks: **Windows Forms** (WinForms) and **Windows Presentation Foundation** (WPF). Both frameworks allow you to create rich desktop applications, but they have different architectures and approaches to controls, UI rendering, and event handling.
+        </p>
+
+        <h2>Windows Forms (WinForms)</h2>
+        <p>
+            WinForms is a graphical user interface (GUI) toolkit for building Windows desktop applications. It uses a more traditional event-driven approach. The controls are simpler and are easier to work with for basic applications.
+        </p>
+<img src="https://houselearning.github.io/home/computerscience/windowsforms.png" width="320" height="262" style="float:right;" alt="Example WindowsForms App">
+        <h3>Common WinForms Controls</h3>
+        <ul>
+            <li><strong>Button</strong>: A clickable button.</li>
+            <li><strong>Label</strong>: A control used to display text.</li>
+            <li><strong>TextBox</strong>: A box that allows the user to input text.</li>
+            <li><strong>ComboBox</strong>: A dropdown list of items.</li>
+            <li><strong>ListBox</strong>: A box that displays a list of items.</li>
+            <li><strong>CheckBox</strong>: A box that can be checked or unchecked.</li>
+            <li><strong>RadioButton</strong>: A button in a group where only one can be selected.</li>
+            <li><strong>Panel</strong>: A container for other controls.</li>
+        </ul>
+
+        <h3>Example: WinForms Button</h3>
+        <pre><code>using System;
+        using System.Windows.Forms;
+
+        class Program
+        {
+            static void Main()
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MyForm());
+            }
+        }
+
+        class MyForm : Form
+        {
+            public MyForm()
+            {
+                Button button = new Button();
+                button.Text = "Click Me!";
+                button.Click += Button_Click;
+                Controls.Add(button);
+            }
+
+            private void Button_Click(object sender, EventArgs e)
+            {
+                MessageBox.Show("Button clicked!");
+            }
+        }</code></pre>
+
+        <p>
+            In the code above, a simple WinForms application is created where a button displays a message when clicked. The `Click` event is used to trigger the `Button_Click` method.
+        </p>
+<img src="https://oxyplot.readthedocs.io/en/latest/_images/wpf-example2.png" width="320" height="242" style="float:right;" alt="Example WPF App">
+        <h2>Windows Presentation Foundation (WPF)</h2>
+        <p>
+            WPF is a more modern GUI framework that uses vector graphics, data binding, and a rich set of controls. It is based on the .NET Core, and it allows for more complex and flexible UIs than WinForms.
+        </p>
+
+
+        <h3>Common WPF Controls</h3>
+        <ul>
+            <li><strong>Button</strong>: A clickable button (similar to WinForms).</li>
+            <li><strong>TextBox</strong>: A control for text input.</li>
+            <li><strong>Label</strong>: Used to display text (similar to WinForms).</li>
+            <li><strong>ComboBox</strong>: A dropdown list (similar to WinForms).</li>
+            <li><strong>ListBox</strong>: A list box (like in WinForms).</li>
+            <li><strong>CheckBox</strong>: A checkbox (like WinForms).</li>
+            <li><strong>RadioButton</strong>: A radio button (like WinForms).</li>
+            <li><strong>Grid</strong>: A flexible container for layouts.</li>
+            <li><strong>Canvas</strong>: A drawing surface for custom graphics.</li>
+        </ul>
+
+        <h3>Example: WPF Button</h3>
+        <pre><code xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Class="WpfApp.MainWindow"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                mc:Ignorable="d"
+                Title="WPF Button Example" Height="350" Width="525">
+            <Grid>
+                <Button Content="Click Me!" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_Click"/>
+            </Grid>
+        </pre></code>
+
+        <p>
+            In the above XAML code, a simple WPF button is created. The `Click` event handler is associated with the button in the C# code behind.
+        </p>
+
+        <h2>Comparison: WinForms vs. WPF</h2>
+        <p>
+            - **WinForms** is simple and fast to develop but less flexible for complex UI requirements.
+            - **WPF** offers more advanced features like data binding, animation, and 3D graphics but has a steeper learning curve.
+        </p>
+
+        <h2>Interactive Quiz on WPF and WinForms Controls</h2>
+        <p>Test your knowledge on WPF and WinForms controls!</p>
+
+        <div class="quiz-section">
+            <div class="question">
+                <p><strong>1. Which control in WinForms is used to display text to the user?</strong></p>
+                <label><input type="radio" name="q1" value="incorrect"> TextBox</label><br>
+                <label><input type="radio" name="q1" value="correct"> Label</label><br>
+                <label><input type="radio" name="q1" value="incorrect"> Button</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>2. In WPF, what is used to define the layout and positioning of controls?</strong></p>
+                <label><input type="radio" name="q2" value="incorrect"> StackPanel</label><br>
+                <label><input type="radio" name="q2" value="incorrect"> FlowLayoutPanel</label><br>
+                <label><input type="radio" name="q2" value="correct"> Grid</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>3. In WinForms, what method is used to trigger an action when a button is clicked?</strong></p>
+                <label><input type="radio" name="q3" value="incorrect"> OnClick</label><br>
+                <label><input type="radio" name="q3" value="correct"> Click</label><br>
+                <label><input type="radio" name="q3" value="incorrect"> ButtonClick</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>4. What feature does WPF offer that WinForms does not?</strong></p>
+                <label><input type="radio" name="q4" value="incorrect"> Data Binding</label><br>
+                <label><input type="radio" name="q4" value="correct"> Advanced Graphics and Animations</label><br>
+                <label><input type="radio" name="q4" value="incorrect"> Simpler UI Design</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>5. Which of the following is a panel control in WPF?</strong></p>
+                <label><input type="radio" name="q5" value="incorrect"> FlowLayoutPanel</label><br>
+                <label><input type="radio" name="q5" value="correct"> Grid</label><br>
+                <label><input type="radio" name="q5" value="incorrect"> Panel</label><br>
+            </div>
+
+            <button onclick="checkQuiz()">Submit Quiz</button>
+
+            <div class="result" id="quizResult"></div>
+        </div>
+
+        <script>
+            function checkQuiz() {
+                let score = 0;
+                const totalQuestions = 5;
+
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                    if (question.length > 0 && question[0].value === 'correct') {
+                        score++;
+                    }
+                }
+
+                const result = document.getElementById('quizResult');
+                if (score === totalQuestions) {
+                    result.textContent = 'Excellent! You got all questions right.';
+                    result.style.color = 'green';
+                } else if (score >= totalQuestions / 2) {
+                    result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                    result.style.color = 'orange';
+                } else {
+                    result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                    result.style.color = 'red';
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>
