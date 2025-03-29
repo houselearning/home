@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to HTML Forms & Inputs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #ff4500;
+        }
+        p, li {
+            font-size: 18px;
+        }
+        .quiz-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #aaa;
+            max-width: 600px;
+            margin: auto;
+        }
+        button {
+            background-color: #ff4500;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff6347;
+        }
+        iframe {
+            width: 80%;
+            height: 300px;
+            border: 2px solid #ff4500;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to HTML Forms & Inputs! 🎉</h1>
+    <h2>Understanding Forms & Input Elements</h2>
+    <p>HTML forms are used to collect user input. They contain various input elements such as text fields, checkboxes, radio buttons, and buttons.</p>
+    <ul>
+        <li><b>&lt;form&gt;</b> - Defines an HTML form</li>
+        <li><b>&lt;input type="text"&gt;</b> - Creates a text input field</li>
+        <li><b>&lt;input type="radio"&gt;</b> - Creates a radio button</li>
+        <li><b>&lt;input type="checkbox"&gt;</b> - Creates a checkbox</li>
+        <li><b>&lt;button&gt;</b> - Defines a clickable button</li>
+    </ul>
+    
+    <h2>Try It Yourself</h2>
+    <iframe srcdoc='<form> <label for="name">Name:</label> <input type="text" id="name" name="name"> <br> <label for="email">Email:</label> <input type="email" id="email" name="email"> <br> <button type="submit" onclick=alert("Form Complete!!")>Submit</button> </form>'></iframe>
+    
+    <h2>HTML Forms Quiz 🎯</h2>
+    <div class="quiz-container">
+        <form id="quizForm">
+            <p>1. Which tag is used to create a form?</p>
+            <input type="radio" name="q1" value="a"> &lt;input&gt;<br>
+            <input type="radio" name="q1" value="b"> &lt;form&gt;<br>
+            <input type="radio" name="q1" value="c"> &lt;div&gt;<br>
+            
+            <p>2. What type of input is used for a checkbox?</p>
+            <input type="radio" name="q2" value="a"> text<br>
+            <input type="radio" name="q2" value="b"> checkbox<br>
+            <input type="radio" name="q2" value="c"> radio<br>
+            
+            <p>3. Which input type is used for passwords?</p>
+            <input type="radio" name="q3" value="a"> password<br>
+            <input type="radio" name="q3" value="b"> text<br>
+            <input type="radio" name="q3" value="c"> hidden<br>
+            
+            <p>4. How do you submit a form?</p>
+            <input type="radio" name="q4" value="a"> &lt;send&gt;<br>
+            <input type="radio"name="q4" value="b"> &lt;submit&gt;<br>
+            <input type="radio" name="q4" value="c"> &lt;button&gt;<br>
+            
+            <p>5. What attribute is required in an input field to ensure a user fills it?</p>
+            <input type="radio" name="q5" value="a"> checked<br>
+            <input type="radio" name="q5" value="b"> required<br>
+            <input type="radio" name="q5" value="c"> placeholder<br>
+            
+            <br>
+            <button type="button" onclick="checkQuiz()">Submit Answers</button>
+        </form>
+        
+        <h2 id="result"></h2>
+    </div>
+    
+    <script>
+        function checkQuiz() {
+            let score = 0;
+            let answers = { q1: "b", q2: "b", q3: "a", q4: "b", q5: "b" };
+            
+            for (let question in answers) {
+                let selected = document.querySelector(`input[name='${question}']:checked`);
+                if (selected && selected.value === answers[question]) {
+                    score++;
+                }
+            }
+            
+            document.getElementById("result").innerText = "Your score: " + score + "/5 🎉";
+        }
+    </script>
+</body>
+</html>
