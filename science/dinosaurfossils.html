@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fossils and Dinosaurs Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .canvas-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #000;
+        }
+
+        .interactive-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .interactive-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .interactive-section button:hover {
+            background-color: #555;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Fossils and Dinosaurs Lesson</h1>
+</header>
+
+<div class="lesson-content">
+    <h2>Introduction to Fossils and Dinosaurs</h2>
+    <p>
+        Fossils are the preserved remains or traces of ancient organisms, typically from plants, animals, and microorganisms. Fossilization is a rare process, and it often requires special conditions to occur, such as rapid burial or the presence of specific minerals. Fossils help scientists study life on Earth millions of years ago, especially the dinosaurs that once roamed our planet.
+    </p>
+
+    <h2>Types of Fossils</h2>
+    <ul>
+        <li><strong>Body Fossils:</strong> These are the preserved remains of the actual body of an organism, such as bones, teeth, shells, and even soft tissues.</li>
+        <li><strong>Trace Fossils:</strong> These include footprints, burrows, and other marks left behind by an organism that are not part of its body.</li>
+        <li><strong>Amber Fossils:</strong> Fossils preserved in amber (hardened tree resin) often contain insects or small plants.</li>
+    </ul>
+
+    <h2>Interactive Tutorial: Fossilization Process</h2>
+    <p>Click the button to watch a timelapse of a dinosaur fossil being formed over time.</p>
+
+    <div class="interactive-section">
+        <button onclick="startFossilization()">Start Fossilization Process</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="fossilCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <h2>Quiz: Test Your Knowledge</h2>
+    <div class="quiz-section">
+        <div class="question">
+            <p><strong>1. What is the primary material that makes up most dinosaur fossils?</strong></p>
+            <label><input type="radio" name="q1" value="correct"> Bone</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> Wood</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. What type of fossil involves the preserved footprint or track of an organism?</strong></p>
+            <label><input type="radio" name="q2" value="correct"> Trace Fossils</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> Body Fossils</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. How can fossils help scientists?</strong></p>
+            <label><input type="radio" name="q3" value="correct"> They help scientists understand prehistoric life</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> They show how dinosaurs lived today</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the best way to preserve a fossil?</strong></p>
+            <label><input type="radio" name="q4" value="correct"> Rapid burial in sediment</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> Exposure to air for years</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>5. What is an amber fossil?</strong></p>
+            <label><input type="radio" name="q5" value="correct"> Fossils preserved in tree resin</label><br>
+            <label><input type="radio" name="q5" value="incorrect"> Fossils found in volcanic rock</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('fossilCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Variables to track the animation state
+    let layerCount = 0; // Number of sediment layers
+    let fossilY = 150; // Initial position of fossil
+    const maxLayers = 6; // Maximum number of sediment layers
+    let fossilizationInProgress = false; // Flag to control animation
+
+    // Function to draw the fossilization process
+    function startFossilization() {
+        if (fossilizationInProgress) return; // Prevent multiple animations at once
+        fossilizationInProgress = true;
+        layerCount = 0;
+        fossilY = 150;
+        animateFossilization();
+    }
+
+    // Animation loop for fossilization process
+    function animateFossilization() {
+        if (layerCount >= maxLayers) {
+            fossilizationInProgress = false; // Stop the animation when layers are complete
+            return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background (black for the canvas)
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the current sediment layers (gradually more layers added)
+        for (let i = 0; i <= layerCount; i++) {
+            let layerHeight = 130 - (i * 20);
+            let layerColor = `rgb(${(i + 1) * 40}, ${(i + 1) * 30}, ${(i + 1) * 20})`; // Variation in color for each layer
+            ctx.fillStyle = layerColor;
+            ctx.fillRect(0, layerHeight, canvas.width, 20);
+        }
+
+        // Draw the dinosaur fossil (represented by a circle)
+        ctx.beginPath();
+        ctx.arc(300, fossilY, 40, 0, Math.PI * 2, true); // Fossil head
+        ctx.fillStyle = "#D2B48C";
+        ctx.fill();
+
+        // Draw fossil body
+        ctx.beginPath();
+        ctx.arc(350, fossilY + 20, 60, 0, Math.PI * 2, true); // Fossil body
+        ctx.fillStyle = "#D2B48C";
+        ctx.fill();
+
+        // Increase sediment layers and fossil depth
+        layerCount++;
+        fossilY += 20; // Fossil moves deeper into the layers as the animation progresses
+
+        // Continue the animation
+        setTimeout(animateFossilization, 1000); // Continue every second
+    }
+
+    // Quiz Logic
+    function checkQuiz() {
+        let score = 0;
+        const totalQuestions = 5;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+            if (question.length > 0 && question[0].value === 'correct') {
+                score++;
+            }
+        }
+
+        const result = document.getElementById('result');
+        if (score === totalQuestions) {
+            result.textContent = 'Excellent! You got all questions right.';
+            result.style.color = 'green';
+        } else if (score >= totalQuestions / 2) {
+            result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'orange';
+        } else {
+            result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+            result.style.color = 'red';
+        }
+    }
+</script>
+
+</body>
+</html>
