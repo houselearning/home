@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Events and Event Listeners - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: JavaScript Events and Event Listeners</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What are Events in JavaScript?</h2>
+        <p>
+            In JavaScript, events are actions that occur in the browser, such as a user clicking a button, moving the mouse, or pressing a key. These events can be captured and handled using JavaScript to create interactive web pages.
+        </p>
+        <p>
+            An **event listener** is a function that waits for a specific event to occur on an HTML element, and when that event happens, the function is executed.
+        </p>
+        <h2>Example of JavaScript Events:</h2>
+        <p>
+            Here is an example where we listen for a "click" event on a button and change the text of the button when it is clicked:
+        </p>
+        <pre>
+<button id="myButton">Click me!</button>
+
+<script>
+    const button = document.getElementById("myButton");
+
+    button.addEventListener("click", function() {
+        button.textContent = "You clicked me!";
+    });
+</script>
+        </pre>
+
+
+        
+        <h2>Quiz: Test Your Knowledge</h2>
+        <div class="quiz-section">
+            <div class="question">
+                <p><strong>1. What is an event in JavaScript?</strong></p>
+                <label><input type="radio" name="q1" value="correct"> An action that occurs in the browser, like a click or key press.</label><br>
+                <label><input type="radio" name="q1" value="incorrect"> A method that is used to select HTML elements.</label><br>
+                <label><input type="radio" name="q1" value="incorrect"> A variable that stores user data.</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>2. What does an event listener do in JavaScript?</strong></p>
+                <label><input type="radio" name="q2" value="correct"> It waits for a specific event to occur and runs a function when it does.</label><br>
+                <label><input type="radio" name="q2" value="incorrect"> It stores the event in a variable for future use.</label><br>
+                <label><input type="radio" name="q2" value="incorrect"> It listens for network requests.</label><br>
+            </div>
+
+            <div class="question">
+                <p><strong>3. How do you attach an event listener to a button in JavaScript?</strong></p>
+                <label><input type="radio" name="q3" value="incorrect"> button.click("function")</label><br>
+                <label><input type="radio" name="q3" value="correct"> button.addEventListener("click", function)</label><br>
+                <label><input type="radio" name="q3" value="incorrect"> button.onClick(function)</label><br>
+            </div>
+
+            <button onclick="checkQuiz()">Submit Quiz</button>
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function loadIframeCode() {
+            const iframe = document.getElementById('tryitIframe');
+            const iframeDocument = iframe.contentWindow.document;
+            
+            iframeDocument.open();
+            iframeDocument.write(`
+
+            `);
+            iframeDocument.close();
+        }
+
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 3;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            const result = document.getElementById('result');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
