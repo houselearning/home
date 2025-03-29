@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# Conditional Types - Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            padding: 20px;
+        }
+
+        .lesson-content h2 {
+            color: #333;
+        }
+
+        .lesson-content p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .quiz-section button:hover {
+            background-color: #555;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .question {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lesson: C# Conditional Types</h1>
+    </header>
+
+    <div class="lesson-content">
+        <h2>What are Conditional Types in C#?</h2>
+        <p>
+            In C#, conditional types allow you to assign different types based on certain conditions. These types are commonly used in scenarios where you want to make decisions about which type to use based on a condition.
+        </p>
+
+        <h2>Conditional Operator (Ternary Operator)</h2>
+        <p>
+            The ternary operator (`?:`) is the most common example of a conditional type in C#. It works as a shorthand for an `if-else` statement and is used to return one of two values based on a condition. The syntax looks like this:
+        </p>
+        <pre><code>condition ? value_if_true : value_if_false;</code></pre>
+        <p>Example:</p>
+        <pre><code>int age = 20;
+string result = (age >= 18) ? "Adult" : "Minor";</code></pre>
+        <p>In this case, the variable `result` will be set to "Adult" because `age` is 20, which is greater than or equal to 18.</p>
+
+        <h2>Conditional Types in C#</h2>
+        <p>
+            C# also supports the use of conditional types in generic methods or with type inference. You can use `if-else` conditions to determine the type a variable should be or apply specific methods based on conditions.
+        </p>
+
+        <h2>Interactive Example</h2>
+        <p>Try changing the value of the age and see how the result updates based on the condition:</p>
+        <input type="number" id="ageInput" value="20" min="0" max="100">
+        <p>Result: <span id="resultOutput">Adult</span></p>
+
+        <script>
+            const ageInput = document.getElementById('ageInput');
+            const resultOutput = document.getElementById('resultOutput');
+
+            ageInput.addEventListener('input', function() {
+                const age = parseInt(ageInput.value);
+                resultOutput.textContent = (age >= 18) ? "Adult" : "Minor";
+            });
+        </script>
+    </div>
+
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge on Conditional Types</h2>
+
+        <div class="question">
+            <p><strong>1. What is the correct syntax for the ternary operator in C#?</strong></p>
+            <label><input type="radio" name="q1" value="incorrect"> condition ? value_if_true value_if_false;</label><br>
+            <label><input type="radio" name="q1" value="correct"> condition ? value_if_true : value_if_false;</label><br>
+            <label><input type="radio" name="q1" value="incorrect"> condition : value_if_true ? value_if_false;</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>2. Which of the following statements about the ternary operator is true?</strong></p>
+            <label><input type="radio" name="q2" value="incorrect"> It always requires an `else` clause.</label><br>
+            <label><input type="radio" name="q2" value="correct"> It can be used as a shorthand for an `if-else` statement.</label><br>
+            <label><input type="radio" name="q2" value="incorrect"> It cannot handle more than two conditions.</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>3. What will the following code output if age = 16?</strong></p>
+            <pre><code>string result = (age >= 18) ? "Adult" : "Minor";</code></pre>
+            <label><input type="radio" name="q3" value="incorrect"> "Adult"</label><br>
+            <label><input type="radio" name="q3" value="correct"> "Minor"</label><br>
+            <label><input type="radio" name="q3" value="incorrect"> "Error"</label><br>
+        </div>
+
+        <div class="question">
+            <p><strong>4. What is the purpose of conditional types in C#?</strong></p>
+            <label><input type="radio" name="q4" value="incorrect"> To declare variables of any type.</label><br>
+            <label><input type="radio" name="q4" value="correct"> To assign different values or types based on conditions.</label><br>
+            <label><input type="radio" name="q4" value="incorrect"> To create methods that only work with one type of data.</label><br>
+        </div>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+
+        <div class="result" id="quizResult"></div>
+    </div>
+
+    <script>
+        // Quiz handling function
+        function checkQuiz() {
+            let score = 0;
+            const totalQuestions = 4;
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+                if (question.length > 0 && question[0].value === 'correct') {
+                    score++;
+                }
+            }
+
+            // Display result
+            const result = document.getElementById('quizResult');
+            if (score === totalQuestions) {
+                result.textContent = 'Excellent! You got all questions right.';
+                result.style.color = 'green';
+            } else if (score >= totalQuestions / 2) {
+                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'orange';
+            } else {
+                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+                result.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
