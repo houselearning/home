@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Variables & Custom Properties</title>
+    <style>
+        /* Define Variables */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --font-size: 18px;
+            --box-size: 150px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+        }
+
+        .box {
+            width: var(--box-size);
+            height: var(--box-size);
+            background-color: var(--secondary-color);
+            display: inline-block;
+            line-height: var(--box-size);
+            color: white;
+            font-size: var(--font-size);
+            border-radius: 10px;
+            margin: 10px;
+            transition: 0.3s;
+        }
+
+        /* Change values for smaller screens */
+        @media (max-width: 600px) {
+            :root {
+                --box-size: 100px;
+                --font-size: 14px;
+            }
+        }
+
+        /* Quiz Styles */
+        .quiz-section {
+            background: #f4f4f4;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+
+        .quiz-section input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-section button {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #quiz-result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CSS Variables & Custom Properties</h1>
+    
+    <p>CSS Variables allow you to store reusable values like colors and sizes.</p>
+    
+    <h3>Example: Boxes using CSS Variables</h3>
+    <div class="box">Box 1</div>
+    <div class="box">Box 2</div>
+    
+    <p>Resize your browser to see the boxes adjust!</p>
+
+    <!-- Quiz Section -->
+    <div class="quiz-section">
+        <h2>Quiz: Test Your Knowledge</h2>
+
+        <p><strong>1. How do you declare a CSS variable?</strong></p>
+        <label><input type="radio" name="q1" value="a"> `var(--my-variable)`</label><br>
+        <label><input type="radio" name="q1" value="b"> `--my-variable: value;`</label><br>
+        <label><input type="radio" name="q1" value="c"> `let my-variable = value;`</label><br>
+
+        <p><strong>2. Where should global variables be defined?</strong></p>
+        <label><input type="radio" name="q2" value="a"> Inside `:root`</label><br>
+        <label><input type="radio" name="q2" value="b"> Inside `body`</label><br>
+        <label><input type="radio" name="q2" value="c"> Inside `html`</label><br>
+
+        <p><strong>3. How do you use a variable in CSS?</strong></p>
+        <label><input type="radio" name="q3" value="a"> `var(--variable-name);`</label><br>
+        <label><input type="radio" name="q3" value="b"> `--variable-name;`</label><br>
+        <label><input type="radio" name="q3" value="c"> `use(--variable-name);`</label><br>
+
+        <button onclick="checkQuiz()">Submit Quiz</button>
+        <div id="quiz-result"></div>
+    </div>
+
+    <script>
+        function checkQuiz() {
+            let score = 0;
+            let totalQuestions = 3;
+
+            if (document.querySelector('input[name="q1"]:checked')?.value === 'b') {
+                score++;
+            }
+            if (document.querySelector('input[name="q2"]:checked')?.value === 'a') {
+                score++;
+            }
+            if (document.querySelector('input[name="q3"]:checked')?.value === 'a') {
+                score++;
+            }
+
+            let resultText = score === totalQuestions
+                ? "🎉 Perfect! You got all questions right!"
+                : `✅ You got ${score} out of ${totalQuestions} correct.`;
+
+            document.getElementById('quiz-result').innerText = resultText;
+        }
+    </script>
+
+</body>
+</html>
