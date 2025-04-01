@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>3D Ecosystem Explorer</title>
     <style>
-        body { margin: 0; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+
         #energyBar {
             position: absolute;
             top: 10px;
@@ -13,11 +20,13 @@
             height: 20px;
             border: 2px solid black;
         }
+
         #energy {
             width: 100%;
             height: 100%;
             background-color: green;
         }
+
         #questionOverlay {
             position: fixed;
             top: 0;
@@ -31,6 +40,7 @@
             flex-direction: column;
             color: white;
         }
+
         #questionContainer {
             background-color: rgba(50, 50, 50, 0.9);
             padding: 20px;
@@ -39,8 +49,11 @@
         }
     </style>
 </head>
+
 <body>
-    <div id="energyBar"><div id="energy"></div></div>
+    <div id="energyBar">
+        <div id="energy"></div>
+    </div>
     <div id="questionOverlay">
         <div id="questionContainer">
             <p id="questionText"></p>
@@ -52,21 +65,22 @@
     <script>
         const sounds = new Audio("https://houselearning.github.io/home/assets/ecoexplorer/exoexplorer.mp3");
 
-document.addEventListener("keydown", (event) => {
-    if (event.key.toLowerCase() === "h") {
-        if (sounds.paused) {
-            sounds.currentTime = 0; // Restart sound if needed
-            sounds.play();
-        }
-    }
-});
+        document.addEventListener("keydown", (event) => {
+            if (event.key.toLowerCase() === "h") {
+                if (sounds.paused) {
+                    sounds.currentTime = 0; // Restart sound if needed
+                    sounds.play();
+                }
+            }
+        });
 
-document.addEventListener("keyup", (event) => {
-    if (event.key.toLowerCase() === "h") {
-        sounds.pause();
-        sounds.currentTime = 0; // Reset sound to start
-    }
-});
+        document.addEventListener("keyup", (event) => {
+            if (event.key.toLowerCase() === "h") {
+                sounds.pause();
+                sounds.currentTime = 0; // Reset sound to start
+            }
+        });
+
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
@@ -81,13 +95,17 @@ document.addEventListener("keyup", (event) => {
         scene.add(directionalLight);
 
         const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
-        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+        const groundMaterial = new THREE.MeshLambertMaterial({
+            color: 0x228B22
+        });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
         scene.add(ground);
 
         const characterGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const characterMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        const characterMaterial = new THREE.MeshLambertMaterial({
+            color: 0xff0000
+        });
         const character = new THREE.Mesh(characterGeometry, characterMaterial);
         scene.add(character);
 
@@ -110,17 +128,46 @@ document.addEventListener("keyup", (event) => {
         const answerInput = document.getElementById('answerInput');
         const submitAnswer = document.getElementById('submitAnswer');
 
-        const scienceQuestions = [
-            { question: "What is the chemical symbol for water?", answer: "H2O" },
-            { question: "What is the largest planet in our solar system?", answer: "Jupiter" },
-            { question: "What is the process by which plants make their own food?", answer: "Photosynthesis" },
-            { question: "What is the speed of light in a vacuum?", answer: "299792458 m/s" },
-            { question: "What is the powerhouse of the cell?", answer: "Mitochondria" },
-            { question: "What is the scientific name for humans?", answer: "Homo sapiens" },
-            { question: "What force pulls objects towards the Earth?", answer: "Gravity" },
-            { question: "What is the boiling point of water in Celsius?", answer: "100" },
-            { question: "What gas do plants absorb from the atmosphere?", answer: "Carbon dioxide" },
-            { question: "What is the smallest unit of matter?", answer: "Atom" },
+        const scienceQuestions = [{
+                question: "What is the chemical symbol for water?",
+                answer: "H2O"
+            },
+            {
+                question: "What is the largest planet in our solar system?",
+                answer: "Jupiter"
+            },
+            {
+                question: "What is the process by which plants make their own food?",
+                answer: "Photosynthesis"
+            },
+            {
+                question: "What is the speed of light in a vacuum?",
+                answer: "299792458 m/s"
+            },
+            {
+                question: "What is the powerhouse of the cell?",
+                answer: "Mitochondria"
+            },
+            {
+                question: "What is the scientific name for humans?",
+                answer: "Homo sapiens"
+            },
+            {
+                question: "What force pulls objects towards the Earth?",
+                answer: "Gravity"
+            },
+            {
+                question: "What is the boiling point of water in Celsius?",
+                answer: "100"
+            },
+            {
+                question: "What gas do plants absorb from the atmosphere?",
+                answer: "Carbon dioxide"
+            },
+            {
+                question: "What is the smallest unit of matter?",
+                answer: "Atom"
+            },
         ];
 
         let questionsAsked = 0;
@@ -138,7 +185,7 @@ document.addEventListener("keyup", (event) => {
                 if (questionIndex < 3) {
                     questionText.textContent = selectedQuestions[questionIndex].question;
                 } else {
-                    if (correctAnswerCount >= 2){
+                    if (correctAnswerCount >= 2) {
                         energy = 100;
                     }
                     questionOverlay.style.display = 'none';
@@ -148,7 +195,7 @@ document.addEventListener("keyup", (event) => {
             }
             showQuestion();
 
-            submitAnswer.onclick = function() {
+            submitAnswer.onclick = function () {
                 if (answerInput.value.toLowerCase() === selectedQuestions[questionIndex].answer.toLowerCase()) {
                     correctAnswerCount++;
                 }
@@ -193,12 +240,18 @@ document.addEventListener("keyup", (event) => {
         });
 
         let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
+        let previousMousePosition = {
+            x: 0,
+            y: 0
+        };
         const cameraRotationSpeed = 0.002;
 
         document.addEventListener('mousedown', (event) => {
             isDragging = true;
-            previousMousePosition = { x: event.clientX, y: event.clientY };
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
         });
 
         document.addEventListener('mouseup', () => {
@@ -212,29 +265,37 @@ document.addEventListener("keyup", (event) => {
                     y: event.clientY - previousMousePosition.y,
                 };
 
-                camera.rotation.y -= deltaMove.x * cameraRotationSpeed;
-                camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
+camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
                 camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-                previousMousePosition = { x: event.clientX, y: event.clientY };
+                previousMousePosition = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
             }
         });
 
         function createTree(x, z) {
             const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 3, 32);
-            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const trunkMaterial = new THREE.MeshLambertMaterial({
+                color: 0x8B4513
+            });
             const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
             trunk.position.set(x, 1.5, z);
             scene.add(trunk);
 
             const leavesGeometry = new THREE.ConeGeometry(2, 4, 32);
-            const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x006400 });
+            const leavesMaterial = new THREE.MeshLambertMaterial({
+                color: 0x006400
+            });
             const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
             leaves.position.set(x, 4, z);
             scene.add(leaves);
 
-            if(Math.random() > .5){
+            if (Math.random() > .5) {
                 const leaves2Geometry = new THREE.ConeGeometry(1.5, 3, 32);
-                const leaves2Material = new THREE.MeshLambertMaterial({ color: 0x006400 });
+                const leaves2Material = new THREE.MeshLambertMaterial({
+                    color: 0x006400
+                });
                 const leaves2 = new THREE.Mesh(leaves2Geometry, leaves2Material);
                 leaves2.position.set(x, 2.5, z);
                 scene.add(leaves2);
@@ -243,18 +304,105 @@ document.addEventListener("keyup", (event) => {
 
         function createRock(x, z) {
             const rockGeometry = new THREE.SphereGeometry(0.7, 16, 16);
-            const rockMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 });
+            const rockMaterial = new THREE.MeshLambertMaterial({
+                color: 0x808080
+            });
             const rock = new THREE.Mesh(rockGeometry, rockMaterial);
             rock.position.set(x, 0.35, z);
             scene.add(rock);
         }
 
         function createAnimal(x, z) {
-            const animalGeometry = new THREE.BoxGeometry(1, 0.6, 1.5);
-            const animalMaterial = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
-            const animal = new THREE.Mesh(animalGeometry, animalMaterial);
+            const animalType = Math.random() < 0.5 ? 'cow' : 'pig';
+            const animal = new THREE.Group();
+
+            let headColor, bodyColor, legColor, smileColor = 'black';
+            if (animalType === 'cow') {
+                headColor = 0x8B4513; // brown
+                bodyColor = 0x8B4513;
+                legColor = 0x8B4513;
+                smileColor = 'white';
+            } else {
+                headColor = 0xFFB6C1; // pink
+                bodyColor = 0xFFB6C1;
+                legColor = 0xFFB6C1;
+            }
+
+            const headGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const headMaterial = new THREE.MeshLambertMaterial({
+                color: headColor
+            });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.set(0, 0.5, 0);
+            animal.add(head);
+
+            const bodyGeometry = new THREE.BoxGeometry(1, 0.6, 1.5);
+            const bodyMaterial = new THREE.MeshLambertMaterial({
+                color: bodyColor
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            animal.add(body);
+
+            const legGeometry = new THREE.BoxGeometry(0.2, 0.4, 0.2);
+            const legMaterial = new THREE.MeshLambertMaterial({
+                color: legColor
+            });
+            const frontLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            frontLeftLeg.position.set(-0.4, -0.5, 0.5);
+            animal.add(frontLeftLeg);
+            const frontRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            frontRightLeg.position.set(0.4, -0.5, 0.5);
+            animal.add(frontRightLeg);
+            const backLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            backLeftLeg.position.set(-0.4, -0.5, -0.5);
+            animal.add(backLeftLeg);
+            const backRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            backRightLeg.position.set(0.4, -0.5, -0.5);
+            animal.add(backRightLeg);
+
+            if (animalType === 'cow') {
+                const spotGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+                const spotMaterial = new THREE.MeshLambertMaterial({
+                    color: 'white'
+                });
+                const spot1 = new THREE.Mesh(spotGeometry, spotMaterial);
+                spot1.position.set(0.3, 0.2, 0.3);
+                animal.add(spot1);
+                const spot2 = new THREE.Mesh(spotGeometry, spotMaterial);
+                spot2.position.set(-0.3, 0.1, -0.3);
+                animal.add(spot2);
+            } else {
+                const tailGeometry = new THREE.TorusGeometry(0.2, 0.1, 16, 100);
+                const tailMaterial = new THREE.MeshLambertMaterial({
+                    color: 0xFFB6C1
+                });
+                const tail = new THREE.Mesh(tailGeometry, tailMaterial);
+                tail.position.set(0, 0.2, -1);
+                tail.rotation.x = Math.PI / 2;
+                animal.add(tail);
+            }
+
+            const smileCanvas = document.createElement('canvas');
+            const smileContext = smileCanvas.getContext('2d');
+            smileCanvas.width = 64;
+            smileCanvas.height = 32;
+            smileContext.beginPath();
+            smileContext.arc(32, 20, 10, 0, Math.PI, false);
+            smileContext.strokeStyle = smileColor;
+            smileContext.lineWidth = 2;
+            smileContext.stroke();
+
+            const smileTexture = new THREE.CanvasTexture(smileCanvas);
+            const smileMaterial = new THREE.MeshBasicMaterial({
+                map: smileTexture,
+                transparent: true
+            });
+            const smileGeometry = new THREE.PlaneGeometry(0.5, 0.25);
+            const smileMesh = new THREE.Mesh(smileGeometry, smileMaterial);
+            smileMesh.position.set(0, 0.6, 0.6);
+            animal.add(smileMesh);
+
             animal.position.set(x, 0.3, z);
-            scene.add(animal);
             animal.animalData = {
                 direction: Math.random() * Math.PI * 2,
                 speed: 0.03,
@@ -262,12 +410,15 @@ document.addEventListener("keyup", (event) => {
                 target: null,
                 targetDistance: 5,
             };
+            scene.add(animal);
             return animal;
         }
 
         function createBird(x, y, z) {
             const birdGeometry = new THREE.ConeGeometry(0.3, 1.2, 3);
-            const birdMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const birdMaterial = new THREE.MeshLambertMaterial({
+                color: 0xFFFF00
+            });
             const bird = new THREE.Mesh(birdGeometry, birdMaterial);
             bird.rotation.x = Math.PI / 2;
             bird.position.set(x, y, z);
@@ -285,7 +436,10 @@ document.addEventListener("keyup", (event) => {
 
         function createGrass(x, z) {
             const grassGeometry = new THREE.PlaneGeometry(0.2, 0.5);
-            const grassMaterial = new THREE.MeshLambertMaterial({ color: 0x003300, side: THREE.DoubleSide });
+            const grassMaterial = new THREE.MeshLambertMaterial({
+                color: 0x003300,
+                side: THREE.DoubleSide
+            });
             const grass = new THREE.Mesh(grassGeometry, grassMaterial);
             grass.rotation.x = -Math.PI / 2;
             grass.position.set(x, 0.01, z);
@@ -294,28 +448,38 @@ document.addEventListener("keyup", (event) => {
 
         function createFlower(x, z) {
             const stemGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 32);
-            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const stemMaterial = new THREE.MeshLambertMaterial({
+                color: 0xFFFF00
+            });
             const stem = new THREE.Mesh(stemGeometry, stemMaterial);
             stem.position.set(x, 0.15, z);
             scene.add(stem);
 
             const leafGeometry = new THREE.ConeGeometry(0.1, 0.2, 3);
-            const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x006400 });
+            const leafMaterial = new THREE.MeshLambertMaterial({
+                color: 0x006400
+            });
             const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
             leaf.position.set(x, 0.1, z);
             leaf.rotation.x = Math.PI / 2;
             scene.add(leaf);
 
             const flowerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-            const flowerMaterial = new THREE.MeshLambertMaterial({ color: 0xFF0000 });
+            const flowerMaterial = new THREE.MeshLambertMaterial({
+                color: 0xFF0000
+            });
             const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
             flower.position.set(x, 0.3, z);
             scene.add(flower);
+            flower.isFlower = true;
+            return flower;
         }
 
         function createPond(x, z) {
             const pondGeometry = new THREE.CylinderGeometry(6, 6, 1, 32);
-            const pondMaterial = new THREE.MeshLambertMaterial({ color: 0x0000FF });
+            const pondMaterial = new THREE.MeshLambertMaterial({
+                color: 0x0000FF
+            });
             const pond = new THREE.Mesh(pondGeometry, pondMaterial);
             pond.position.set(x, 0.5, z);
             scene.add(pond);
@@ -333,7 +497,7 @@ document.addEventListener("keyup", (event) => {
             camera.add(listener);
             const sound = new THREE.Audio(listener);
             const audioLoader = new THREE.AudioLoader();
-            audioLoader.load('https://houselearning.github.io/home/assets/ecoexplorer/one-pound-fish.mp3', function(buffer) {
+            audioLoader.load('https://houselearning.github.io/home/assets/ecoexplorer/one-pound-fish.mp3', function (buffer) {
                 sound.setBuffer(buffer);
                 sound.setLoop(true);
                 sound.setVolume(0);
@@ -346,7 +510,9 @@ document.addEventListener("keyup", (event) => {
 
         function createFish(x, y, z) {
             const fishGeometry = new THREE.ConeGeometry(0.2, 0.5, 32);
-            const fishMaterial = new THREE.MeshLambertMaterial({ color: 0xFFA500 });
+            const fishMaterial = new THREE.MeshLambertMaterial({
+                color: 0xFFA500
+            });
             const fish = new THREE.Mesh(fishGeometry, fishMaterial);
             fish.position.set(x, y, z);
             fish.rotation.y = Math.random() * Math.PI * 2;
@@ -354,9 +520,93 @@ document.addEventListener("keyup", (event) => {
             return fish;
         }
 
+        function createBear(x, z) {
+            const bear = new THREE.Group();
+
+            const headGeometry = new THREE.SphereGeometry(0.6, 16, 16);
+            const headMaterial = new THREE.MeshLambertMaterial({
+                color: 0x8B4513
+            });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.set(0, 1.1, 0);
+            bear.add(head);
+
+            const earGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const earMaterial = new THREE.MeshLambertMaterial({
+                color: 0xFF0000
+            });
+            const leftEar = new THREE.Mesh(earGeometry, earMaterial);
+            leftEar.position.set(-0.5, 1.7, 0);
+            bear.add(leftEar);
+            const rightEar = new THREE.Mesh(earGeometry, earMaterial);
+            rightEar.position.set(0.5, 1.7, 0);
+            bear.add(rightEar);
+
+            const bodyGeometry = new THREE.BoxGeometry(1, 1.2, 1);
+            const bodyMaterial = new THREE.MeshLambertMaterial({
+                color: 0x8B4513
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.set(0, 0, 0);
+            bear.add(body);
+
+            const legGeometry = new THREE.BoxGeometry(0.3, 0.5, 0.3);
+            const legMaterial = new THREE.MeshLambertMaterial({
+                color: 0x8B4513
+            });
+            const frontLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            frontLeftLeg.position.set(-0.35, -0.85, 0.3);
+            bear.add(frontLeftLeg);
+            const frontRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            frontRightLeg.position.set(0.35, -0.85, 0.3);
+            bear.add(frontRightLeg);
+            const backLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            backLeftLeg.position.set(-0.35, -0.85, -0.3);
+            bear.add(backLeftLeg);
+            const backRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            backRightLeg.position.set(0.35, -0.85, -0.3);
+            bear.add(backRightLeg);
+
+            bear.position.set(x, 0.6, z);
+
+            bear.bearData = {
+                direction: Math.random() * Math.PI * 2,
+                speed: 0.02,
+                state: 'wandering',
+                target: null,
+                targetDistance: 2,
+                eating: false,
+                eatingTimer: 0,
+            };
+
+            scene.add(bear);
+            return bear;
+        }
+
+        function createHuman(x, z) {
+            const human = new THREE.Group();
+            const textureLoader = new THREE.TextureLoader();
+            const textureFile = Math.random() < 0.5 ? 'https://www.addedvaluation.co.nz/wp-content/uploads/2015/10/Jo-Full-Body-transparent.png' : 'https://png.pngtree.com/png-vector/20230905/ourmid/pngtree-regular-guy-full-body-shot-good-guy-png-image_9939317.png';
+            textureLoader.load(textureFile, (texture) => {
+                const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+                const geometry = new THREE.PlaneGeometry(1, 2);
+                const mesh = new THREE.Mesh(geometry, material);
+                human.add(mesh);
+            });
+            human.position.set(x, 1, z);
+            human.humanData = {
+                direction: Math.random() * Math.PI * 2,
+                speed: 0.04,
+            };
+            scene.add(human);
+            return human;
+        }
+
         const animals = [];
         const birds = [];
         const ponds = [];
+        const bears = [];
+        const humans = [];
 
         function spawnObjects() {
             const x = (Math.random() - 0.5) * 2000;
@@ -365,7 +615,9 @@ document.addEventListener("keyup", (event) => {
             const zNear = character.position.z + (Math.random() - 0.5) * 20;
 
             const rand = Math.random();
-            if (rand > 0.65) { // Adjusted pond spawn chance
+            if (rand > 0.8) {
+                humans.push(createHuman(x, z));
+            } else if (rand > 0.65) {
                 createTree(x, z);
                 createTree(xNear, zNear);
             } else if (rand > 0.5) {
@@ -379,6 +631,9 @@ document.addEventListener("keyup", (event) => {
                 createFlower(xNear, zNear);
             } else if (rand > 0.05) {
                 ponds.push(createPond(x,z));
+            } else if (rand <= 0.4) {
+                bears.push(createBear(x, z));
+                bears.push(createBear(xNear, zNear));
             }
             birds.push(createBird(x, 5 + Math.random() * 3, z));
             birds.push(createBird(xNear, 5 + Math.random() * 3, zNear));
@@ -387,7 +642,7 @@ document.addEventListener("keyup", (event) => {
         }
 
         let lastSpawnTime = 0;
-        const spawnInterval = 100;
+        const spawnInterval = 50;
         let isDay = true;
         let timeOfDayChange = Date.now();
         const dayNightCycle = 60000;
@@ -469,6 +724,65 @@ document.addEventListener("keyup", (event) => {
                 }
             });
 
+            bears.forEach(bear => {
+                const data = bear.bearData;
+
+                if (data.eating) {
+                    data.eatingTimer += 16;
+                    if (data.eatingTimer > 5000) {
+                        data.eating = false;
+                        data.eatingTimer = 0;
+                        if (data.target) {
+                            scene.remove(data.target);
+                            data.target = null;
+                        }
+                    }
+                    return;
+                }
+
+                if (data.state === 'wandering') {
+                    bear.position.x += Math.cos(data.direction) * data.speed;
+                    bear.position.z += Math.sin(data.direction) * data.speed;
+
+                    if (Math.random() < 0.01) {
+                        data.direction += (Math.random() - 0.5) * Math.PI;
+                    }
+
+                    if (Math.random() < 0.001) {
+                        let closestFlower = null;
+                        let closestDistance = Infinity;
+
+                        scene.children.forEach(obj => {
+                            if (obj.isFlower) {
+                                const distance = bear.position.distanceTo(obj.position);
+                                if (distance < closestDistance) {
+                                    closestDistance = distance;
+                                    closestFlower = obj;
+                                }
+                            }
+                        });
+                        if (closestFlower) {
+                            data.state = 'seeking';
+                            data.target = closestFlower;
+                        }
+                    }
+                } else if (data.state === 'seeking') {
+                    if (data.target) {
+                        const targetPosition = data.target.position;
+                        const direction = new THREE.Vector3().subVectors(targetPosition, bear.position).normalize();
+                        bear.position.x += direction.x * data.speed;
+                        bear.position.z += direction.z * data.speed;
+
+                        if (bear.position.distanceTo(targetPosition) < data.targetDistance) {
+                            data.state = 'wandering';
+                            data.eating = true;
+                        }
+                    } else {
+                        data.state = 'wandering';
+                    }
+                }
+            });
+
             birds.forEach(bird => {
                 const data = bird.birdData;
                 bird.position.x += Math.cos(data.direction) * data.speed;
@@ -497,6 +811,16 @@ document.addEventListener("keyup", (event) => {
 
             });
 
+            humans.forEach(human => {
+                const data = human.humanData;
+                human.position.x += Math.cos(data.direction) * data.speed;
+                human.position.z += Math.sin(data.direction) * data.speed;
+
+                if (Math.random() < 0.01) {
+                    data.direction += (Math.random() - 0.5) * Math.PI;
+                }
+            });
+
             if (Date.now() - lastSpawnTime > spawnInterval) {
                 spawnObjects();
                 lastSpawnTime = Date.now();
@@ -520,4 +844,5 @@ document.addEventListener("keyup", (event) => {
         animate();
     </script>
 </body>
+
 </html>
