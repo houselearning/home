@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Shape Sorting Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .basket {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 2px dashed #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        #basket1 {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        #basket2 {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #basket3 {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .shape-svg {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            cursor: grab;
+        }
+
+        #timer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="basket1" class="basket">Cubes</div>
+        <div id="basket2" class="basket">Spheres</div>
+        <div id="basket3" class="basket">Cones</div>
+        <div id="timer">Time: 60</div>
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+    <div id="overlay">
+        <h2>Game Over!</h2>
+        <p id="score-display">Your score: 0</p>
+        <button id="restart-button">Play Again</button>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const basket1 = document.getElementById('basket1');
+        const basket2 = document.getElementById('basket2');
+        const basket3 = document.getElementById('basket3');
+        const timerDisplay = document.getElementById('timer');
+        const overlay = document.getElementById('overlay');
+        const scoreDisplay = document.getElementById('score-display');
+        const restartButton = document.getElementById('restart-button');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiContext = confettiCanvas.getContext('2d');
+
+        let score = 0;
+        let timeLeft = 60;
+        let svgs = [];
+        let gameRunning = true;
+        let dragObject = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        const shapeTypes = ['cube', 'sphere', 'cone'];
+
+        function createSVG(type) {
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "80");
+            svg.setAttribute("height", "80");
+            svg.classList.add("shape-svg");
+            svg.type = type;
+
+            let shape;
+            if (type === 'cube') {
+                shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                shape.setAttribute("width", "60");
+                shape.setAttribute("height", "60");
+                shape.setAttribute("x", "10");
+                shape.setAttribute("y", "10");
+                shape.setAttribute("fill", `hsl(${Math.random() * 360}, 100%, 50%)`);
+            } else if (type === 'sphere') {
+                shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                shape.setAttribute("cx", "40");
+                shape.setAttribute("cy", "40");
+                shape.setAttribute("r", "30");
+                shape.setAttribute("fill", `hsl(${Math.random() * 360}, 100%, 50%)`);
+            } else if (type === 'cone') {
+                shape = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                shape.setAttribute("points", "40,10 10,70 70,70");
+                shape.setAttribute("fill", `hsl(${Math.random() * 360}, 100%, 50%)`);
+            }
+
+            svg.appendChild(shape);
+            svg.style.left = `${Math.random() * (window.innerWidth - 80)}px`;
+            svg.style.top = `${Math.random() * (window.innerHeight - 200) + 50}px`;
+            svgs.push(svg);
+            gameContainer.appendChild(svg);
+        }
+
+        function spawnSVGs() {
+            for (let i = 0; i < 16; i++) {
+                createSVG(shapeTypes[Math.floor(Math.random() * 3)]);
+            }
+        }
+
+        function checkCollision(svg, basket) {
+            const svgRect = svg.getBoundingClientRect();
+            const basketRect = basket.getBoundingClientRect();
+
+            return (svgRect.left < basketRect.right && svgRect.right > basketRect.left &&
+                    svgRect.top < basketRect.bottom && svgRect.bottom > basketRect.top);
+        }
+
+        function onMouseDown(event) {
+            if (event.target.closest('.shape-svg')) {
+                dragObject = event.target.closest('.shape-svg');
+                dragOffsetX = event.clientX - dragObject.getBoundingClientRect().left;
+                dragOffsetY = event.clientY - dragObject.getBoundingClientRect().top;
+            }
+        }
+
+        function onMouseMove(event) {
+            if (dragObject) {
+                dragObject.style.left = `${event.clientX - dragOffsetX}px`;
+                dragObject.style.top = `${event.clientY - dragOffsetY}px`;
+            }
+        }
+
+        function onMouseUp() {
+            if (dragObject) {
+                if (checkCollision(dragObject, basket1) && dragObject.type === 'cube') {
+                    score++;
+                    gameContainer.removeChild(dragObject);
+                    svgs = svgs.filter(svg => svg !== dragObject);
+                } else if (checkCollision(dragObject, basket2) && dragObject.type === 'sphere') {
+                    score++;
+                    gameContainer.removeChild(dragObject);
+                    svgs = svgs.filter(svg => svg !== dragObject);
+                } else if (checkCollision(dragObject, basket3) && dragObject.type === 'cone') {
+                    score++;
+                    gameContainer.removeChild(dragObject);
+                    svgs = svgs.filter(svg => svg !== dragObject);
+                }
+                dragObject = null;
+            }
+        }
+
+        function updateTimer() {
+            timerDisplay.textContent = `Time: ${timeLeft}`;
+        }
+
+        function endGame() {
+            gameRunning = false;
+            scoreDisplay.textContent = `Your score: ${score}`;
+            overlay.style.display = "block";
+            startConfetti();
+        }
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            timeLeft = 60;
+            overlay.style.display = "none";
+            stopConfetti();
+            svgs.forEach(svg => gameContainer.removeChild(svg));
+            svgs = [];
+            spawnSVGs();
+            countdown();
+        }
+
+        function countdown() {
+            updateTimer();
+            const timer = setInterval(() => {
+                if (!gameRunning) {
+                    clearInterval(timer);
+                    return;
+                }
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startConfetti() {
+            confettiCanvas.style.display = "block";
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+
+            function drawConfetti() {
+                if (!gameRunning) return;
+                confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                for (let i = 0; i < 150; i++) {
+                    confettiContext.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    confettiContext.beginPath();
+                    confettiContext.arc(Math.random() * confettiCanvas.width, Math.random() * confettiCanvas.height, Math.random() * 5, 0, Math.PI * 2);
+                    confettiContext.fill();
+                }
+                requestAnimationFrame(drawConfetti);
+            }
+            drawConfetti();
+        }
+
+        function stopConfetti() {
+            confettiCanvas.style.display = "none";
+        }
+
+        restartButton.addEventListener('click', startGame);
+
+        spawnSVGs();
+        countdown();
+
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+
+        window.addEventListener('resize', () => {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
