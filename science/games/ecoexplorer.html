@@ -6,6 +6,7 @@
     <style>
         body {
             margin: 0;
+            overflow: hidden; /* Prevent scrollbars */
         }
 
         canvas {
@@ -19,6 +20,7 @@
             width: 200px;
             height: 20px;
             border: 2px solid black;
+            z-index: 1000; /* Ensure it's above other elements */
         }
 
         #energy {
@@ -26,7 +28,24 @@
             height: 100%;
             background-color: green;
         }
+        #schoolToolbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(200, 200, 200, 0.8);
+            padding: 10px;
+            text-align: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
 
+        #schoolToolbar button {
+            padding: 8px 16px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
         #questionOverlay {
             position: fixed;
             top: 0;
@@ -39,6 +58,7 @@
             align-items: center;
             flex-direction: column;
             color: white;
+            z-index: 1001; /* Sit on top of everything */
         }
 
         #questionContainer {
@@ -46,41 +66,340 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            max-width: 80%;
         }
+
+        #homeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(200, 200, 200, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1002;
+        }
+
+        #homeScreen button {
+            padding: 12px 24px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        #homeScreen button:hover {
+            background-color: #45a049;
+        }
+
+        #classCodeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(200, 200, 200, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1003;
+        }
+
+        #classCodeScreen input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+            width: 200px;
+        }
+
+        #classCodeScreen button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+        }
+
+        #classCodeScreen button:hover {
+            background-color: #007ba7;
+        }
+
+        #classCodeScreen a {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #008CBA;
+            text-decoration: none;
+        }
+
+        #inventory {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(220, 220, 220, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        #inventory button {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .blockButton {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 1000;
+        }
+
+        .blockButton button {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
     </style>
 </head>
 
-<body>
-    <div id="energyBar">
+<body>  
+    <!--sKIN-->
+    <div id="skinMenu" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(220, 220, 220, 0.7); padding: 20px; border-radius: 5px; display: none; flex-direction: column; align-items: center; z-index: 1001;">
+    <p>Select a Skin Color:</p>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button data-color="red" style="background-color: red; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+        <button data-color="green" style="background-color: green; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+        <button data-color="blue" style="background-color: blue; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+        <button data-color="black" style="background-color: black; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+        <button data-color="white" style="background-color: white; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+        <button data-color="purple" style="background-color: purple; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+        <button data-color="pink" style="background-color: pink; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; border: none;"></button>
+    </div>
+    <button id="takePictureButton" style="padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer;">Take a Picture</button>
+    <button id="closeSkinMenu" style="padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer;">Close</button>
+    <button id="chooseImageSource" style="padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer;">Choose Image Source</button>
+    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+    <video id="cameraView" width="320" height="240" autoplay style="display: none;"></video>
+    <button id="captureButton" style="padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; display: none;">Capture</button>
+    <canvas id="capturedImage" width="320" height="240" style="display: none;"></canvas></div>
+<script>
+    const chooseImageSource = document.getElementById('chooseImageSource');
+const cameraView = document.getElementById('cameraView');
+const captureButton = document.getElementById('captureButton');
+const capturedImageCanvas = document.getElementById('capturedImage');
+const capturedImageContext = capturedImageCanvas.getContext('2d');
+let stream;
+chooseImageSource.addEventListener('click', () => {
+        const source = prompt("Choose image source: 'file' or 'camera'");
+        if (source === 'file') {
+            imageUpload.click();
+        } else if (source === 'camera') {
+            startCamera();
+        }
+    });
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            });
+            cameraView.srcObject = stream;
+            cameraView.style.display = 'block';
+            captureButton.style.display = 'block';
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+        }
+    }
+
+    captureButton.addEventListener('click', () => {
+        capturedImageContext.drawImage(cameraView, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
+        stopCamera();
+        const texture = new THREE.Texture(capturedImageCanvas);
+        texture.needsUpdate = true;
+        character.material = new THREE.MeshBasicMaterial({
+            map: texture
+        });
+        character.material.needsUpdate = true;
+    });
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            cameraView.srcObject = null;
+            cameraView.style.display = 'none';
+            captureButton.style.display = 'none';
+        }
+    }
+    const skinMenu = document.getElementById('skinMenu');
+    const takePictureButton = document.getElementById('takePictureButton');
+    const imageUpload = document.getElementById('imageUpload');
+    const closeSkinMenu = document.getElementById('closeSkinMenu');
+    let originalCharacterMaterial;
+    let skinMenuOpen = false;
+
+    document.addEventListener('keydown', (event) => {
+        console.log("Key pressed:", event.key); // Check which key is pressed
+        switch (event.key) {
+            case 'ArrowUp':
+                moveForward = true;
+                break;
+            case 'ArrowDown':
+                moveBackward = true;
+                break;
+            case 'ArrowLeft':
+                moveLeft = true;
+                break;
+            case 'ArrowRight':
+                moveRight = true;
+                break;
+            case 's':
+                console.log("S key pressed - Toggling skin menu");
+                toggleSkinMenu();
+                break;
+        }
+    });
+
+    function toggleSkinMenu() {
+        skinMenuOpen = !skinMenuOpen;
+        console.log("Skin menu open:", skinMenuOpen);
+        skinMenu.style.display = skinMenuOpen ? 'flex' : 'none';
+        if (skinMenuOpen) {
+            console.log("Storing original material");
+            originalCharacterMaterial = character.material;
+        } else {
+            console.log("Restoring original material");
+            character.material = originalCharacterMaterial;
+            character.material.needsUpdate = true;
+        }
+    }
+
+    skinMenu.addEventListener('click', (event) => {
+        if (event.target.tagName === 'BUTTON' && event.target.dataset.color) {
+            const color = event.target.dataset.color;
+            console.log("Color button clicked:", color);
+            character.material = new THREE.MeshLambertMaterial({
+                color: color
+            });
+            character.material.needsUpdate = true; // Important!
+        }
+    });
+
+    takePictureButton.addEventListener('click', () => {
+        console.log("Take picture button clicked");
+        imageUpload.click();
+    });
+
+    imageUpload.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                console.log("Image loaded");
+                const texture = new THREE.TextureLoader().load(e.target.result);
+                character.material = new THREE.MeshBasicMaterial({
+                    map: texture
+                });
+                character.material.needsUpdate = true;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    closeSkinMenu.addEventListener('click', () => {
+        console.log("Close skin menu clicked");
+        toggleSkinMenu(false); // Pass false to indicate closing without reset
+    });
+
+    function toggleSkinMenu(reset = true) {
+        skinMenuOpen = !skinMenuOpen;
+        console.log("Skin menu open:", skinMenuOpen);
+        skinMenu.style.display = skinMenuOpen ? 'flex' : 'none';
+        if (skinMenuOpen) {
+            console.log("Storing original material");
+            originalCharacterMaterial = character.material.clone(); // Clone the material
+        } else {
+            console.log("Restoring original material");
+            if (reset) {
+                character.material = originalCharacterMaterial;
+                character.material.needsUpdate = true;
+            }
+        }
+    }
+</script>
+<!--sKIN-->
+    <div id="schoolToolbar">
+        <button id="classmatesButton">Classmates</button>
+        <button id="logoutButton">Log Out</button>
+        <button id="messageClassButton">Message Class</button>
+    </div>
+    <div id="energyBar" class="disabled">
         <div id="energy"></div>
     </div>
-    <div id="questionOverlay">
+    <div id="questionOverlay" class="disabled">
         <div id="questionContainer">
             <p id="questionText"></p>
             <input type="text" id="answerInput">
             <button id="submitAnswer">Submit</button>
         </div>
     </div>
+    <div id="homeScreen">
+        <button id="schoolButton">School</button>
+        <button id="homeButton">Home</button>
+    </div>
+    <div id="classCodeScreen" style="display: none;">
+        <input type="text" id="classCodeInput" placeholder="Enter Class Code">
+        <button id="classCodeSubmit">Submit</button>
+        <a href="#" id="noClassCode">No class code</a>
+    </div>
+    <div id="inventory" style="display: none;">
+        <button style="background-color: red;" data-color="red"></button>
+        <button style="background-color: green;" data-color="green"></button>
+        <button style="background-color: blue;" data-color="blue"></button>
+        <button style="background-color: yellow;" data-color="yellow"></button>
+        <button style="background-color: purple;" data-color="purple"></button>
+        <button style="background-color: orange;" data-color="orange"></button>
+    </div>
+    <div class="blockButton" style="display: none;">
+        <button id="treeButton">Tree</button>
+        <button id="rockButton">Rock</button>
+        <button id="animalButton">Animal</button>
+        <button id="pondButton">Pond</button>
+        <button id="bearButton">Bear</button>
+        <button id="humanButton">Human</button>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        const sounds = new Audio("https://houselearning.github.io/home/assets/ecoexplorer/exoexplorer.mp3");
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key.toLowerCase() === "h") {
-                if (sounds.paused) {
-                    sounds.currentTime = 0; // Restart sound if needed
-                    sounds.play();
-                }
-            }
-        });
-
-        document.addEventListener("keyup", (event) => {
-            if (event.key.toLowerCase() === "h") {
-                sounds.pause();
-                sounds.currentTime = 0; // Reset sound to start
-            }
-        });
-
+        const schoolToolbar = document.getElementById('schoolToolbar');
+        const classmatesButton = document.getElementById('classmatesButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const messageClassButton = document.getElementById('messageClassButton');
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
@@ -101,6 +420,51 @@
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
         scene.add(ground);
+
+        let selectedColor = 'red';
+        let buildMode = false;
+
+        const inventory = document.getElementById('inventory');
+        inventory.addEventListener('click', (event) => {
+            if (event.target.tagName === 'BUTTON') {
+                selectedColor = event.target.dataset.color;
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+    if (event.button === 0 && buildMode) {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(blocks);
+        if (intersects.length > 0) {
+            const point = intersects[0].point;
+            const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const blockMaterial = new THREE.MeshLambertMaterial({
+                color: selectedColor
+            });
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+            block.position.set(point.x, intersects[0].object.position.y + 1, point.z);
+            scene.add(block);
+            blocks.push(block); // Add this line
+        } else {
+            const intersectsGround = raycaster.intersectObjects([ground]);
+            if (intersectsGround.length > 0) {
+                const point = intersectsGround[0].point;
+                const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+                const blockMaterial = new THREE.MeshLambertMaterial({
+                    color: selectedColor
+                });
+                const block = new THREE.Mesh(blockGeometry, blockMaterial);
+                block.position.set(point.x, 0.5, point.z);
+                scene.add(block);
+                blocks.push(block); // Add this line
+            }
+        }
+    }
+});
 
         const characterGeometry = new THREE.BoxGeometry(1, 1, 1);
         const characterMaterial = new THREE.MeshLambertMaterial({
@@ -175,6 +539,7 @@
 
         function askQuestions() {
             questionOverlay.style.display = 'flex';
+            questionOverlay.classList.remove('disabled');
             const selectedQuestions = [];
             for (let i = 0; i < 3; i++) {
                 selectedQuestions.push(scienceQuestions[Math.floor(Math.random() * scienceQuestions.length)]);
@@ -184,11 +549,13 @@
             function showQuestion() {
                 if (questionIndex < 3) {
                     questionText.textContent = selectedQuestions[questionIndex].question;
+                    answerInput.value = '';
                 } else {
                     if (correctAnswerCount >= 2) {
                         energy = 100;
                     }
                     questionOverlay.style.display = 'none';
+                    questionOverlay.classList.add('disabled');
                     questionsAsked = 0;
                     correctAnswerCount = 0;
                 }
@@ -199,7 +566,6 @@
                 if (answerInput.value.toLowerCase() === selectedQuestions[questionIndex].answer.toLowerCase()) {
                     correctAnswerCount++;
                 }
-                answerInput.value = '';
                 questionIndex++;
                 showQuestion();
             };
@@ -265,7 +631,7 @@
                     y: event.clientY - previousMousePosition.y,
                 };
 
-camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
+                camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
                 camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
                 previousMousePosition = {
                     x: event.clientX,
@@ -300,6 +666,7 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
                 leaves2.position.set(x, 2.5, z);
                 scene.add(leaves2);
             }
+            return trunk;
         }
 
         function createRock(x, z) {
@@ -310,6 +677,7 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
             const rock = new THREE.Mesh(rockGeometry, rockMaterial);
             rock.position.set(x, 0.35, z);
             scene.add(rock);
+            return rock;
         }
 
         function createAnimal(x, z) {
@@ -444,6 +812,7 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
             grass.rotation.x = -Math.PI / 2;
             grass.position.set(x, 0.01, z);
             scene.add(grass);
+            return grass;
         }
 
         function createFlower(x, z) {
@@ -607,6 +976,19 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
         const ponds = [];
         const bears = [];
         const humans = [];
+        let createdObjects = [];
+
+        function clearObjects(){
+            createdObjects.forEach(obj => {
+                scene.remove(obj);
+            });
+            animals.length = 0;
+            birds.length = 0;
+            ponds.length = 0;
+            bears.length = 0;
+            humans.length = 0;
+            createdObjects = [];
+        }
 
         function spawnObjects() {
             const x = (Math.random() - 0.5) * 2000;
@@ -615,30 +997,52 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
             const zNear = character.position.z + (Math.random() - 0.5) * 20;
 
             const rand = Math.random();
+            let newObject;
             if (rand > 0.8) {
-                humans.push(createHuman(x, z));
+                newObject = createHuman(x, z);
+                humans.push(newObject);
             } else if (rand > 0.65) {
-                createTree(x, z);
-                createTree(xNear, zNear);
+                newObject = createTree(x, z);
+                createdObjects.push(newObject);
+                newObject = createTree(xNear, zNear);
+                createdObjects.push(newObject);
             } else if (rand > 0.5) {
-                createRock(x, z);
-                createRock(xNear, zNear);
+                newObject = createRock(x, z);
+                createdObjects.push(newObject);
+                newObject = createRock(xNear, zNear);
+                createdObjects.push(newObject);
             } else if (rand > 0.35) {
-                animals.push(createAnimal(x, z));
-                animals.push(createAnimal(xNear, zNear));
+                newObject = createAnimal(x, z);
+                animals.push(newObject);
+                newObject = createAnimal(xNear, zNear);
+                animals.push(newObject);
             } else if (rand > 0.2) {
-                createFlower(x, z);
-                createFlower(xNear, zNear);
+                newObject = createFlower(x, z);
+                createdObjects.push(newObject);
+                newObject = createFlower(xNear, zNear);
+                createdObjects.push(newObject);
             } else if (rand > 0.05) {
-                ponds.push(createPond(x,z));
+                newObject = createPond(x,z);
+                ponds.push(newObject);
             } else if (rand <= 0.4) {
-                bears.push(createBear(x, z));
-                bears.push(createBear(xNear, zNear));
+                newObject = createBear(x, z);
+                bears.push(newObject);
+                newObject = createBear(xNear, zNear);
+                bears.push(newObject);
             }
-            birds.push(createBird(x, 5 + Math.random() * 3, z));
-            birds.push(createBird(xNear, 5 + Math.random() * 3, zNear));
-            createGrass(x, z);
-            createGrass(xNear, zNear);
+            if (rand <= 0.8) {
+                newObject = createBird(x, 5 + Math.random() * 3, z);
+                birds.push(newObject);
+                newObject = createBird(xNear, 5 + Math.random() * 3, zNear);
+                birds.push(newObject);
+                newObject = createGrass(x, z);
+                createdObjects.push(newObject);
+                newObject = createGrass(xNear, zNear);
+                createdObjects.push(newObject);
+            }
+            if (newObject){
+                createdObjects.push(newObject);
+            }
         }
 
         let lastSpawnTime = 0;
@@ -647,9 +1051,128 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
         let timeOfDayChange = Date.now();
         const dayNightCycle = 60000;
 
+        const homeScreen = document.getElementById('homeScreen');
+        const schoolButton = document.getElementById('schoolButton');
+        const homeButton = document.getElementById('homeButton');
+        const classCodeScreen = document.getElementById('classCodeScreen');
+        const classCodeInput = document.getElementById('classCodeInput');
+        const classCodeSubmit = document.getElementById('classCodeSubmit');
+        const noClassCodeLink = document.getElementById('noClassCode');
+        const energyBarElement = document.getElementById('energyBar');
+        const inventoryElement = document.getElementById('inventory');
+        const blockButtonsElement = document.querySelector('.blockButton');
+
+        schoolButton.addEventListener('click', () => {
+            homeScreen.style.display = 'none';
+            classCodeScreen.style.display = 'flex';
+        });
+
+        homeButton.addEventListener('click', () => {
+            startGame(false);
+        });
+
+        classCodeSubmit.addEventListener('click', () => {
+            const classCode = classCodeInput.value;
+            if (classCode.trim() !== '') {
+                alert(`Joining class with code: ${classCode}`);
+                startGame(true);
+            } else {
+                alert('Please enter a class code.');
+            }
+        });
+
+        noClassCodeLink.addEventListener('click', () => {
+    startGame(false);
+});
+classmatesButton.addEventListener('click', () => {
+            alert('Only you are in the class');
+        });
+
+        logoutButton.addEventListener('click', () => {
+            alert('Logging out');
+            // Add code to reset the game state or redirect to a login page
+        });
+
+        messageClassButton.addEventListener('click', () => {
+            const message = prompt('Enter your message:');
+            if (message) {
+                alert(`Sending message: ${message} to the class!`);
+                // Add code to send the message to other players in the class
+            }
+        });
+        let blocks = []; // Add this line at the top of your script, with other variable declarations
+        function startGame(isSchoolMode) {
+            classCodeScreen.style.display = 'none';
+            homeScreen.style.display = 'none';
+            energyBarElement.classList.remove('disabled');
+            if (!isSchoolMode) {
+                schoolToolbar.style.display = 'block'; // Show toolbar
+        inventoryElement.style.display = 'flex';
+        blockButtonsElement.style.display = 'flex';
+        buildMode = true; // Set buildMode to true for home mode
+    } else {
+        schoolToolbar.style.display = 'none'; // Hide toolbar
+        questionOverlay.classList.remove('disabled');
+        buildMode = false; // Ensure buildMode is false for school mode
+    }
+            document.body.style.backgroundColor = '#87CEEB';
+            spawnObjects();
+            animate();
+        }
+
+        document.getElementById('treeButton').addEventListener('click', () => {
+            const x = character.position.x + (Math.random() - 0.5) * 5;
+            const z = character.position.z + (Math.random() - 0.5) * 5;
+            const tree = createTree(x, z);
+            scene.add(tree);
+            createdObjects.push(tree);
+        });
+        document.getElementById('rockButton').addEventListener('click', () => {
+            const x = character.position.x + (Math.random() - 0.5) * 5;
+            const z = character.position.z + (Math.random() - 0.5) * 5;
+            const rock = createRock(x, z);
+            scene.add(rock);
+            createdObjects.push(rock);
+        });
+        document.getElementById('animalButton').addEventListener('click', () => {
+            const x = character.position.x + (Math.random() - 0.5) * 5;
+            const z = character.position.z + (Math.random() - 0.5) * 5;
+            const animal = createAnimal(x, z);
+            animals.push(animal);
+            scene.add(animal);
+            createdObjects.push(animal);
+        });
+        document.getElementById('pondButton').addEventListener('click', () => {
+            const x = character.position.x + (Math.random() - 0.5) * 10;
+            const z = character.position.z + (Math.random() - 0.5) * 10;
+            const pond = createPond(x, z);
+            ponds.push(pond);
+            scene.add(pond);
+            createdObjects.push(pond);
+        });
+
+        document.getElementById('bearButton').addEventListener('click', () => {
+            const x = character.position.x + (Math.random() - 0.5) * 5;
+            const z = character.position.z + (Math.random() - 0.5) * 5;
+            const bear = createBear(x, z);
+            bears.push(bear);
+            scene.add(bear);
+            createdObjects.push(bear);
+        });
+
+        document.getElementById('humanButton').addEventListener('click', () => {
+            const x = character.position.x + (Math.random() - 0.5) * 5;
+            const z = character.position.z + (Math.random() - 0.5) * 5;
+            const human = createHuman(x, z);
+            humans.push(human);
+            scene.add(human);
+            createdObjects.push(human);
+        });
+
         function animate() {
             requestAnimationFrame(animate);
-
+            handleBlockBreaking(); // Add this line
+            handleJumping(); // Add this line
             if (moveForward) {
                 character.position.z -= moveSpeed;
                 energy -= energyLoss;
@@ -694,7 +1217,7 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
                         let closestDistance = Infinity;
 
                         scene.children.forEach(obj => {
-                            if (obj !== animal && obj.geometry.type === "SphereGeometry") {
+                            if (obj !== animal && obj.geometry && obj.geometry.type === "SphereGeometry") {
                                 const distance = animal.position.distanceTo(obj.position);
                                 if (distance < closestDistance) {
                                     closestDistance = distance;
@@ -826,13 +1349,13 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
                 lastSpawnTime = Date.now();
             }
 
-            if (Date.now() - timeOfDayChange > dayNightCycle){
+            if (Date.now() - timeOfDayChange > dayNightCycle) {
                 isDay = !isDay;
                 timeOfDayChange = Date.now();
-                if (isDay){
+                if (isDay) {
                     ambientLight.color.setHex(0x404040);
                     directionalLight.intensity = 0.5;
-                }else{
+                } else {
                     ambientLight.color.setHex(0x101010);
                     directionalLight.intensity = 0.2;
                 }
@@ -840,8 +1363,112 @@ camera.rotation.x -= deltaMove.y * cameraRotationSpeed;
 
             renderer.render(scene, camera);
         }
+        // Terrain layers
+    const terrainLayers = [];
+    const terrainHeight = 10; // Total height of terrain
+    const groundSize = 2000;
 
-        animate();
+    function createTerrain() {
+        for (let y = 0; y < terrainHeight; y++) {
+            const layerGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+            let layerMaterial;
+
+            if (y === 0) {
+                layerMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // Green (top layer)
+            } else if (y < terrainHeight - 1) {
+                layerMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Stone (middle layers)
+            } else {
+                layerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 }); // Black (unbreakable bottom layer)
+            }
+
+            const layer = new THREE.Mesh(layerGeometry, layerMaterial);
+            layer.rotation.x = -Math.PI / 2;
+            layer.position.y = y * -1; // Stack layers downward
+            scene.add(layer);
+            terrainLayers.push(layer);
+        }
+    }
+
+    createTerrain();
+
+    // Block breaking
+    let isBreaking = false;
+    let breakProgress = 0;
+    const breakSpeed = 0.05; // Speed of breaking animation
+    let targetBlock = null;
+
+    document.addEventListener('mousedown', (event) => {
+    if (buildMode && event.button === 0) { // Check buildMode here
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+
+        const intersects = raycaster.intersectObjects(blocks); // Raycast against blocks
+        if (intersects.length > 0) {
+            targetBlock = intersects[0].object;
+            scene.remove(targetBlock); // Remove from scene
+            blocks = blocks.filter(block => block !== targetBlock); // Remove from blocks array
+            targetBlock = null;
+        }
+    }
+});
+
+    document.addEventListener('mouseup', () => {
+        isBreaking = false;
+        breakProgress = 0;
+        if (targetBlock) {
+            targetBlock.material.opacity = 1; // Reset opacity if breaking is interrupted
+            targetBlock.material.transparent = false;
+        }
+        targetBlock = null;
+    });
+
+    function handleBlockBreaking() {
+        if (isBreaking && targetBlock) {
+            breakProgress += breakSpeed;
+            targetBlock.material.transparent = true;
+            targetBlock.material.opacity = 1 - breakProgress;
+
+            if (breakProgress >= 1) {
+                scene.remove(targetBlock);
+                terrainLayers.splice(terrainLayers.indexOf(targetBlock), 1);
+                isBreaking = false;
+                breakProgress = 0;
+                targetBlock = null;
+            }
+        }
+    }
+
+     // Player jumping
+     let isJumping = false;
+    let jumpVelocity = 0;
+    const gravity = 0.01;
+    const jumpStrength = 0.2;
+    const groundLevel = 0.5; // Define the ground level
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === ' ' && !isJumping) {
+            isJumping = true;
+            jumpVelocity = jumpStrength;
+        }
+    });
+
+    function handleJumping() {
+        if (isJumping) {
+            character.position.y += jumpVelocity;
+            jumpVelocity -= gravity;
+
+            if (character.position.y <= groundLevel) { // Ground level check
+                character.position.y = groundLevel;
+                isJumping = false;
+                jumpVelocity = 0; // Reset jump velocity
+            }
+        }
+    }
+
+    
     </script>
 </body>
 
