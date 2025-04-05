@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraction Balloon Train</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #E6E6FA); /* Sky gradient */
+            font-family: 'Arial', sans-serif;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative; /* For absolute positioning of train */
+        }
+
+        #train {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px; /* Adjust size as needed */
+            height: 150px; /* Adjust size as needed */
+            background-color: #A0522D; /* Train color */
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 100px; /* Adjust size as needed */
+            height: 150px; /* Adjust size as needed */
+            background: linear-gradient(to bottom, #FFB6C1, #FFF0F5); /* Balloon colors */
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; /* Balloon shape */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-size: 18px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .stripe {
+            width: 100%;
+            height: 20px;
+            background-color: #D2691E; /* Stripe color */
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="train">
+            <span id="train-text">I have 1/2 of a pie, and I eat 1/4. How much is left?</span>
+        </div>
+    </div>
+
+    <script>
+    const gameContainer = document.getElementById('game-container');
+const trainText = document.getElementById('train-text');
+
+function createBalloon(question, answer, x, y) {
+    const balloon = document.createElement('div');
+    balloon.classList.add('balloon');
+    balloon.innerHTML = `
+        <span>${question}</span>
+        <div class="stripe"></div>
+    `;
+    balloon.style.left = `${x}px`;
+    balloon.style.top = `${y}px`;
+    balloon.addEventListener('click', () => {
+        const userAnswer = parseFloat(prompt("Enter your answer:"));
+        if (Math.abs(userAnswer - answer) < 0.001) {
+            alert("Correct!");
+            // Update train text or game state here
+        } else {
+            alert("Wrong!");
+        }
+    });
+    gameContainer.appendChild(balloon);
+}
+
+function generateFractionQuestion() {
+    const num1 = Math.floor(Math.random() * 4) + 1;
+    const den1 = Math.floor(Math.random() * 4) + 2;
+    const num2 = Math.floor(Math.random() * 4) + 1;
+    const den2 = Math.floor(Math.random() * 4) + 2;
+    const question = `${num1}/${den1} - ${num2}/${den2}`; // Example: subtraction
+    const answer = (num1 / den1) - (num2 / den2);
+    return { question, answer };
+}
+
+// Create initial balloons
+for (let i = 0; i < 5; i++) {
+    const fractionData = generateFractionQuestion();
+    const x = Math.random() * (window.innerWidth - 100); 
+    const y = Math.random() * (window.innerHeight - 300); // Leave space for train
+    createBalloon(fractionData.question, fractionData.answer, x, y);
+}
+    </script> 
+</body>
+</html>
