@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Memory Game</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #score-display {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .flipped {
+            background-color: #fff;
+            font-weight: bold;
+        }
+
+        #message {
+            margin-top:20px;
+            text-align: center;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score-display">Score: 0</div>
+    <div id="game-board"></div>
+    <div id="message"></div>
+
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        const messageDisplay = document.getElementById('message');
+        const scoreDisplay = document.getElementById('score-display');
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let attempts = 0;
+        let score = 0;
+
+        function generateMathPairs() {
+            const pairs = [];
+            for (let i = 1; i <= 8; i++) {
+                pairs.push({ value: i, display: i });
+                pairs.push({ value: i, display: i });
+            }
+            return pairs.sort(() => Math.random() - 0.5);
+        }
+
+        function createCard(pair) {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.dataset.value = pair.value;
+            card.textContent = '';
+
+            card.addEventListener('click', () => {
+                if (flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                    card.classList.add('flipped');
+                    card.textContent = pair.display;
+                    flippedCards.push(card);
+
+                    if (flippedCards.length === 2) {
+                        attempts++;
+                        setTimeout(checkMatch, 1000);
+                    }
+                }
+            });
+            return card;
+        }
+
+        function checkMatch() {
+            const card1 = flippedCards[0];
+            const card2 = flippedCards[1];
+
+            if (card1.dataset.value === card2.dataset.value) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                score += 100;
+                scoreDisplay.textContent = `Score: ${score}`;
+
+                if (matchedPairs === 8) {
+                    messageDisplay.textContent = `You won in ${attempts} attempts! Final Score: ${score}`;
+                }
+            } else {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1.textContent = '';
+                card2.textContent = '';
+                score -= 10;
+                scoreDisplay.textContent = `Score: ${score}`;
+                if (score < 0) {
+                    score = 0;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                }
+            }
+
+            flippedCards = [];
+        }
+
+        function startGame() {
+            cards = generateMathPairs();
+            cards.forEach(pair => {
+                const card = createCard(pair);
+                gameBoard.appendChild(card);
+            });
+            messageDisplay.textContent = 'Match the pairs!';
+            score = 0;
+            attempts = 0;
+            matchedPairs = 0;
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
