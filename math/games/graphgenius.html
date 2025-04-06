@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Graph Genius</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #222; color: #eee; }
+        #gameCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            cursor: pointer;
+        }
+        #instructions {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            z-index: 1;
+            font-size: 0.8em;
+            color: #ddd;
+        }
+        #guesses {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            z-index: 1;
+            font-size: 0.9em;
+            color: #fff;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        #guesses button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        #guesses button:hover {
+            background-color: #45a049;
+        }
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-size: 1.2em;
+            border-radius: 8px;
+            display: none;
+            z-index: 2;
+            text-align: center;
+        }
+        #message button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #message button:hover {
+            background-color: #45a049;
+        }
+        #inputWrapper {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 3;
+            width: 300px;
+            max-width: 90%;
+        }
+        #guessInput {
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #333;
+            color: #eee;
+            font-size: 0.9em;
+            flex: 1;
+            box-sizing: border-box;
+        }
+        #guessButton {
+            padding: 10px 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        #guessButton:hover {
+            background-color: #45a049;
+        }
+        #guessInput:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        #explainButton {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            z-index: 3;
+        }
+        #explainButton:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="instructions">
+        Rotate the 3D graph to understand its shape.  Enter your guess for the function.
+    </div>
+    <div id="guesses">
+        Your Guesses:
+    </div>
+    <div id="message">
+        <p id="messageText"></p>
+        <button id="messageButton">OK</button>
+    </div>
+    <div id="inputWrapper">
+        <input type="text" id="guessInput" placeholder="Enter your function (e.g., x*x+y*y)">
+        <button id="guessButton">Guess</button>
+    </div>
+    <button id="explainButton">Explain It</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+       const canvas = document.getElementById('gameCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        const guessesElement = document.getElementById('guesses');
+        const messageElement = document.getElementById('message');
+        const messageTextElement = document.getElementById('messageText');
+        const messageButton = document.getElementById('messageButton');
+        const guessInput = document.getElementById('guessInput');
+        const guessButton = document.getElementById('guessButton');
+        const explainButton = document.getElementById('explainButton'); // Get the explain button
+
+        function resizeCanvas() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        }
+        resizeCanvas();
+
+        let graphFunction;
+        let points;
+        let geometry;
+        let material;
+        let graph;
+        let correctGuess;
+        let guessCount = 0;
+        let gameWon = false;
+
+
+        function createGraph() {
+            const functions = [
+              { func: (x, y) => Math.sin(x) + Math.cos(y), display: "sin(x) + cos(y)" },
+              { func: (x, y) => x * x + y * y, display: "x^2 + y^2" },
+              { func: (x, y) => x * y, display: "x * y" },
+              { func: (x, y) => Math.sqrt(x * x + y * y), display: "sqrt(x^2 + y^2)" },
+              { func: (x, y) => Math.pow(x, 3) - y, display: "x^3 - y" },
+              { func: (x, y) => Math.exp(- (x*x + y*y) / 5), display: "exp(-(x^2 + y^2)/5)" },
+              {func: (x,y) => x*y*Math.sin(x+y), display: "x*y*sin(x+y)"},
+              {func: (x,y) => Math.cos(x)*Math.sin(y), display: "cos(x)*sin(y)"}
+            ];
+            const selectedFunction = functions[Math.floor(Math.random() * functions.length)];
+            graphFunction = selectedFunction.func;
+            correctGuess = selectedFunction.display;
+
+            const resolution = 50;
+            const range = 3;
+            points = [];
+
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    const x = (i / (resolution - 1)) * 2 * range - range;
+                    const y = (j / (resolution - 1)) * 2 * range - range;
+                    const z = graphFunction(x, y);
+                    points.push(new THREE.Vector3(x, y, z));
+                }
+            }
+
+            geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(points.length * 3);
+            for (let i = 0; i < points.length; i++) {
+                positions[i * 3] = points[i].x;
+                positions[i * 3 + 1] = points[i].y;
+                positions[i * 3 + 2] = points[i].z;
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const indices = [];
+            for (let i = 0; i < resolution - 1; i++) {
+                for (let j = 0; j < resolution - 1; j++) {
+                    const a = i * resolution + j;
+                    const b = i * resolution + j + 1;
+                    const c = (i + 1) * resolution + j + 1;
+                    const d = (i + 1) * resolution + j;
+                    indices.push(a, b, d);
+                    indices.push(b, c, d);
+                }
+            }
+            geometry.setIndex(indices);
+
+            material = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+            graph = new THREE.LineSegments(geometry, material);
+            scene.add(graph);
+        }
+
+        createGraph();
+
+        let previousGuesses = [];
+        function checkGuess() {
+            if (gameWon) return;
+            const guess = guessInput.value.trim();
+            if (guess === "") {
+                messageTextElement.textContent = "Please enter a function.";
+                messageElement.style.display = 'block';
+                messageButton.onclick = () => { messageElement.style.display = 'none'; };
+                return;
+            }
+
+            guessCount++;
+            guessesElement.innerHTML += `<button onclick="displayFunction('${guess}')">${guessCount}. ${guess}</button>`;
+            previousGuesses.push(guess);
+            guessInput.value = '';
+
+            if (guess.toLowerCase() === correctGuess.toLowerCase()) {
+                gameWon = true;
+                messageTextElement.textContent = "Correct! You are a graph genius!";
+                messageElement.style.display = 'block';
+                messageButton.onclick = () => {
+                    messageElement.style.display = 'none';
+                    resetGame();
+                };
+            } else {
+                messageTextElement.textContent = "Incorrect. Try again.";
+                messageElement.style.display = 'block';
+                messageButton.onclick = () => { messageElement.style.display = 'none'; };
+            }
+        }
+
+        guessButton.addEventListener('click', checkGuess);
+        guessInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                checkGuess();
+            }
+        });
+
+        function displayFunction(func) {
+            alert(`Selected Function: ${func}`);
+        }
+
+        // Function to display explanation (you can customize this)
+        function explainGraphing() {
+            messageTextElement.textContent = "Graphing a function involves plotting its output (z-value) for given inputs (x and y values). The 3D graph shows how the function's output changes as x and y vary.  Try rotating the graph to see how the function changes.  For example, x^2 + y^2 will create a paraboloid.";
+            messageElement.style.display = 'block';
+            messageButton.onclick = () => { messageElement.style.display = 'none'; };
+        }
+
+        explainButton.addEventListener('click', explainGraphing); // Attach the event listener to the button
+
+
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const sensitivity = 0.01;
+
+        function handleMouseDown(event) {
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+            canvas.style.cursor = 'grabbing';
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+            canvas.style.cursor = 'pointer';
+        }
+
+        function handleMouseMove(event) {
+            if (isDragging) {
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+
+                graph.rotation.y += deltaX * sensitivity;
+                graph.rotation.x += deltaY * sensitivity;
+
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+            }
+        }
+
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('wheel', (event) => {
+            const zoomSpeed = 0.05;
+            camera.position.z += event.deltaY * zoomSpeed;
+            camera.position.z = Math.max(2, Math.min(camera.position.z, 10));
+            camera.updateProjectionMatrix();
+        });
+
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
