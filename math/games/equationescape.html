@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equation Escape Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <h1>Equation Escape Game</h1>
+    <div id="equation"></div>
+    <input type="number" id="answer" placeholder="Your Answer">
+    <button id="submit-answer">Submit</button>
+    <p id="timer">Time left: <span id="time-left">30</span>s</p>
+    <div id="feedback"></div>
+    <div id="level">Level: <span id="level-number">1</span></div>
+    <div id="hints">Hints remaining: <span id="hints-left">3</span></div>
+
+    <!-- Canvas for Mud Brick Wall -->
+    <canvas id="wall-canvas" width="400" height="200"></canvas>
+  </div>
+
+  <style>
+    /* style.css */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #1e1e1e;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    #game-container {
+      width: 100%;
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #333;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+    }
+
+    h1 {
+      color: #ff5733;
+      font-size: 36px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 18px;
+      width: 100%;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #ff5733;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e04e2c;
+    }
+
+    #feedback {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #timer, #level, #hints {
+      margin-top: 10px;
+    }
+
+    canvas {
+      margin-top: 20px;
+      background-color: #3e3e3e;
+      border: 2px solid #333;
+    }
+  </style>
+
+  <script>
+    // script.js
+
+    // Variables
+    let level = 1;
+    let hintsLeft = 3;
+    let timeLeft = 30;
+    let timer;
+    let brokenPieces = 0; // Track the amount of the wall that's broken
+    const totalPieces = 25; // Number of pieces that need to break to escape (5x5 grid)
+
+    // Starting the game
+    function startGame() {
+      generateEquation();
+      startTimer();
+      drawWall();
+      document.getElementById('submit-answer').addEventListener('click', checkAnswer);
+    }
+
+    // Generate random equation based on level
+    function generateEquation() {
+      const equationDiv = document.getElementById('equation');
+      const levelMultiplier = level * 5;
+
+      const num1 = Math.floor(Math.random() * (levelMultiplier) + 1);
+      const num2 = Math.floor(Math.random() * (levelMultiplier) + 1);
+      const correctAnswer = num1 + num2;
+
+      // Display the equation
+      equationDiv.textContent = `${num1} + ${num2} = ?`;
+      equationDiv.dataset.correctAnswer = correctAnswer;
+    }
+
+    // Check user's answer
+    function checkAnswer() {
+      const answer = parseInt(document.getElementById('answer').value);
+      const correctAnswer = parseInt(document.getElementById('equation').dataset.correctAnswer);
+      const feedbackDiv = document.getElementById('feedback');
+
+      if (answer === correctAnswer) {
+        feedbackDiv.textContent = 'Correct! Moving to the next level...';
+        levelUp();
+        breakWall(); // Wall breaks a little bit
+      } else {
+        feedbackDiv.textContent = 'Incorrect! Try again.';
+        fixWall(); // Wall fixes a little bit
+        timeLeft -= 5; // Penalize 5 seconds
+        document.getElementById('time-left').textContent = timeLeft;
+      }
+
+      document.getElementById('answer').value = ''; // Clear input
+    }
+
+    // Level up and reset for next question
+    function levelUp() {
+      level++;
+      document.getElementById('level-number').textContent = level;
+      generateEquation(); // Generate a new equation for the next level
+    }
+
+    // Start the countdown timer
+    function startTimer() {
+      timer = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          document.getElementById('time-left').textContent = timeLeft;
+        } else {
+          clearInterval(timer);
+          alert('Game over! Time\'s up!');
+        }
+      }, 1000);
+    }
+
+    // Draw the initial wall (canvas setup)
+    function drawWall() {
+      const canvas = document.getElementById('wall-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const pieceWidth = canvas.width / 5;
+      const pieceHeight = canvas.height / 5;
+
+      // Draw a simple wall made of bricks
+      ctx.fillStyle = '#8B4513'; // Mud brick color
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+          ctx.fillRect(j * pieceWidth, i * pieceHeight, pieceWidth, pieceHeight);
+          ctx.strokeStyle = '#5A2A1E'; // Line color for bricks
+          ctx.lineWidth = 2; // Border width
+          ctx.strokeRect(j * pieceWidth, i * pieceHeight, pieceWidth, pieceHeight);
+        }
+      }
+
+      // Draw the blue light behind the wall
+      ctx.fillStyle = '#1E90FF'; // Blue light
+      ctx.globalAlpha = 0.5; // Set opacity for the light
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1; // Reset opacity
+    }
+
+    // Break a portion of the wall (right answer)
+    function breakWall() {
+      if (brokenPieces < totalPieces) {
+        brokenPieces++;
+        const canvas = document.getElementById('wall-canvas');
+        const ctx = canvas.getContext('2d');
+        const pieceWidth = canvas.width / 5;
+        const pieceHeight = canvas.height / 5;
+
+        // Randomly break a piece of the wall
+        const row = Math.floor(brokenPieces / 5);
+        const col = brokenPieces % 5;
+
+        ctx.clearRect(col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight);
+
+        // Check if the player has broken the entire wall
+        if (brokenPieces === totalPieces) {
+          setTimeout(() => {
+            alert('You escaped!');
+          }, 200);
+        }
+      }
+    }
+
+    // Fix a portion of the wall (wrong answer)
+    function fixWall() {
+      if (brokenPieces > 0) {
+        brokenPieces--;
+        const canvas = document.getElementById('wall-canvas');
+        const ctx = canvas.getContext('2d');
+        const pieceWidth = canvas.width / 5;
+        const pieceHeight = canvas.height / 5;
+
+        // Re-draw a piece of the wall
+        const row = Math.floor(brokenPieces / 5);
+        const col = brokenPieces % 5;
+
+        ctx.fillStyle = '#8B4513'; // Mud brick color
+        ctx.fillRect(col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight);
+
+        // Redraw the border lines
+        ctx.strokeStyle = '#5A2A1E'; // Line color for bricks
+        ctx.lineWidth = 2; // Border width
+        ctx.strokeRect(col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight);
+      }
+    }
+
+    // Initialize game
+    startGame();
+  </script>
+</body>
+</html>
