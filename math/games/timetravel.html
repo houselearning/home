@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Time Traveler: Educational Adventure</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: sans-serif;
+            z-index: 10;
+        }
+        #question {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            z-index: 11;
+        }
+        #choices button {
+            margin: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        #time-machine {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        #time-machine.shaking {
+            animation: shake 2s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-50%) rotate(-5deg); }
+            20%, 40%, 60%, 80% { transform: translateX(-50%) rotate(5deg); }
+        }
+        #background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+        #background-image.show {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="background-image"></div>
+    <div id="info">
+        Time: <span id="time">Present</span><br>
+        Score: <span id="score">0</span>
+    </div>
+    <div id="question">
+        <h2 id="question-text"></h2>
+        <div id="choices"></div>
+    </div>
+    <img id="time-machine" src="https://houselearning.github.io/home/assets/timetraveler/time_machine.png" alt="Time Machine">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const info = document.getElementById('info');
+        const timeDisplay = document.getElementById('time');
+        const scoreDisplay = document.getElementById('score');
+        const questionDiv = document.getElementById('question');
+        const questionText = document.getElementById('question-text');
+        const choicesDiv = document.getElementById('choices');
+        const timeMachine = document.getElementById('time-machine');
+        const backgroundImage = document.getElementById('background-image');
+
+        let score = 0;
+        let currentTime = 'Present';
+        let currentEvent = null;
+        let askedQuestions = [];
+
+        camera.position.z = 5;
+
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        const light = new THREE.AmbientLight(0x404040);
+        scene.add(light);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        const events = {
+            'Ancient Egypt': {
+                question: 'What was the name of the Egyptian sun god?',
+                choices: ['Ra', 'Zeus', 'Odin'],
+                correctAnswer: 'Ra',
+                background: 'egypt.jpg'
+            },
+            'Renaissance Italy': {
+                question: 'Who painted the Mona Lisa?',
+                choices: ['Michelangelo', 'Leonardo da Vinci', 'Raphael'],
+                correctAnswer: 'Leonardo da Vinci',
+                background: 'renaissance.jpg'
+            },
+            'Industrial Revolution': {
+                question: 'Who invented the light bulb?',
+                choices: ['Nikola Tesla', 'Thomas Edison', 'Alexander Graham Bell'],
+                correctAnswer: 'Thomas Edison',
+                background: 'industrial.jpg'
+            }
+        };
+
+        function askQuestion(eventKey) {
+    const event = events[eventKey];
+    currentEvent = event;
+    questionText.textContent = event.question;
+    choicesDiv.innerHTML = '';
+    event.choices.forEach(choice => {
+        const button = document.createElement('button');
+        button.textContent = choice;
+        button.addEventListener('click', () => {
+            if (choice === event.correctAnswer) {
+                score += 10;
+                timeDisplay.textContent = eventKey;
+                currentTime = eventKey;
+                // Fade out the current background
+                backgroundImage.style.opacity = '0';
+                setTimeout(() => {
+                    backgroundImage.style.backgroundImage = `url('https://houselearning.github.io/home/assets/timetraveler/${event.background}')`;
+                    // Fade in the new background
+                    backgroundImage.style.opacity = '1';
+                }, 1000); // Match the timeout to the CSS transition duration
+            } else {
+                score -= 5;
+            }
+            scoreDisplay.textContent = score;
+            questionDiv.style.display = 'none';
+            askedQuestions.push(eventKey);
+        });
+        choicesDiv.appendChild(button);
+    });
+    questionDiv.style.display = 'block';
+}
+
+        function getRandomEventKey() {
+            const keys = Object.keys(events);
+            const available = keys.filter(k => !askedQuestions.includes(k));
+            if (available.length === 0) {
+                askedQuestions = [];
+                return keys[Math.floor(Math.random() * keys.length)];
+            }
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        timeMachine.addEventListener('click', () => {
+            if (timeMachine.classList.contains('shaking')) return;
+            timeMachine.classList.add('shaking');
+            setTimeout(() => {
+                timeMachine.classList.remove('shaking');
+                const eventKey = getRandomEventKey();
+                askQuestion(eventKey);
+            }, 2000);
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
