@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Madness</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars */
+            background-color: #f0f0f0; /* Light background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: sans-serif;
+        }
+
+        #gameCanvas {
+            border: 2px solid #333;
+            background-color: #e0f7fa; /* Light blue game area */
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #333;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        Score: <span id="score">0</span>$
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+
+        // Game dimensions (you can adjust these)
+        const canvasWidth = 600;
+        const canvasHeight = 400;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        // Player properties
+        const playerSize = 20;
+        let playerX = canvasWidth / 2 - playerSize / 2;
+        let playerY = canvasHeight - playerSize - 10;
+        const playerSpeed = 5;
+
+        // Money properties
+        const moneySize = 15;
+        const money = []; // Array to hold money objects
+        const moneySpawnInterval = 100; // Spawn a new money item every 100 frames (adjust as needed)
+        let frameCount = 0;
+
+        let score = 0;
+
+        // Keyboard input tracking
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Function to create a new money item
+        function createMoney() {
+            const x = Math.random() * (canvasWidth - moneySize);
+            const y = -moneySize;
+            const speed = Math.random() * 2 + 1; // Random falling speed
+            money.push({ x, y, speed });
+        }
+
+        // Function to update the game state
+        function updateGame() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Handle player movement
+            if (keys['ArrowLeft'] || keys['a']) {
+                playerX -= playerSpeed;
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                playerX += playerSpeed;
+            }
+
+            // Keep player within bounds
+            if (playerX < 0) playerX = 0;
+            if (playerX > canvasWidth - playerSize) playerX = canvasWidth - playerSize;
+
+            // Draw the player
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(playerX, playerY, playerSize, playerSize);
+
+            // Spawn new money
+            frameCount++;
+            if (frameCount % moneySpawnInterval === 0) {
+                createMoney();
+                frameCount = 0;
+            }
+
+            // Update and draw money
+            for (let i = money.length - 1; i >= 0; i--) {
+                const m = money[i];
+                m.y += m.speed;
+                ctx.fillStyle = 'gold';
+                ctx.fillRect(m.x, m.y, moneySize, moneySize);
+
+                // Collision detection
+                if (
+                    playerX < m.x + moneySize &&
+                    playerX + playerSize > m.x &&
+                    playerY < m.y + moneySize &&
+                    playerY + playerSize > m.y
+                ) {
+                    score++;
+                    scoreDisplay.textContent = score;
+                    money.splice(i, 1); // Remove collected money
+                } else if (m.y > canvasHeight) {
+                    money.splice(i, 1); // Remove money that went off-screen (you could implement game over here)
+                }
+            }
+
+            // Request the next frame for smooth animation
+            requestAnimationFrame(updateGame);
+        }
+
+        // Start the game loop
+        updateGame();
+    </script>
+</body>
+</html>
