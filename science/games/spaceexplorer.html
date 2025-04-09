@@ -278,7 +278,7 @@
         let moveLeft = false;
         let moveRight = false;
         const movementSpeed = 0.5;
-        let rocketSpeed = 0.2;  // Increased rocket speed
+        let rocketSpeed = 0.75;  // Increased rocket speedd
         const cameraFollowSpeed = 0.05;
         let distanceTravelled = 0;
         const ringDistance = 800;
@@ -376,6 +376,23 @@
             const planet = new THREE.Mesh(geometry, material);
             planet.position.set(x, 0, z);
             planet.name = name;
+
+            // Add rings for Saturn and Uranus
+            if (name === 'Saturn') {
+                const ringGeometry = new THREE.RingGeometry(radius + 1.5, radius + 3, 64);
+                const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.x = Math.PI / 2; // Horizontal ring
+                ring.name = "Saturn's Rings"; // Name the ring for interaction
+                planet.add(ring);
+            } else if (name === 'Uranus') {
+                const ringGeometry = new THREE.RingGeometry(radius + 0.5, radius + 1, 64);
+                const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.z = Math.PI / 2; // Vertical ring
+                ring.name = "Uranus's Rings"; // Name the ring for interaction
+                planet.add(ring);
+            }
 
             // Add alien sprite to the planet (exclude Earth)
             if (name !== 'Earth') {
@@ -520,12 +537,36 @@
                     if (intersects.length > 0) {
                         const clickedObject = intersects[0].object;
 
-                        if (clickedObject instanceof THREE.Sprite && clickedObject.material.map.image.src.includes('alien.png')) {
+                        if (clickedObject.name === "Saturn's Rings") {
+                            // Saturn's Rings clicked
+                            planetNameDisplay.textContent = "Saturn's Rings";
+                            planetImageDisplay.style.display = 'none'; // Hide the image
+                            planetDescriptionDisplay.textContent = "A ring made of space rocks revolving around planet Saturn.";
+                            planetInfo.style.display = 'block';
+
+                            // Add spectate functionality for Saturn's Rings
+                            const spectateButton = document.getElementById('spectateButton');
+                            spectateButton.onclick = () => renderSaturnCanvas();
+                        } else if (clickedObject.name === "Uranus's Rings") {
+                            // Uranus's Rings clicked
+                            planetNameDisplay.textContent = "Uranus's Rings";
+                            planetImageDisplay.style.display = 'none'; // Hide the image
+                            planetDescriptionDisplay.textContent = "A vertical ring system made of ice and rock orbiting Uranus.";
+                            planetInfo.style.display = 'block';
+
+                            // Add spectate functionality for Uranus's Rings
+                            const spectateButton = document.getElementById('spectateButton');
+                            spectateButton.onclick = () => renderUranusCanvas();
+                        } else if (clickedObject instanceof THREE.Sprite && clickedObject.material.map.image.src.includes('alien.png')) {
                             // Alien clicked
                             planetNameDisplay.textContent = "Alien";
                             planetImageDisplay.src = "https://houselearning.github.io/home/assets/spaceadventure/alien.png";
                             planetDescriptionDisplay.textContent = "A design. Currently does not exist on any of the eight planets.";
                             planetInfo.style.display = 'block';
+
+                            // Add spectate functionality for alien
+                            const spectateButton = document.getElementById('spectateButton');
+                            spectateButton.onclick = () => playPlanetVideoPopup('alien');
                         } else if (clickedObject instanceof THREE.Mesh && clickedObject.geometry instanceof THREE.SphereGeometry) {
                             // Planet clicked
                             displayPlanetInfo(clickedObject);
@@ -707,9 +748,9 @@
                     if (distanceTravelled > ringDistance && !beyondRing) {
                         beyondRing = true;
                         showMessage("You have passed the ring!  Entering uncharted space...");
-                        for (let i = 0; i < 20; i++) {
-                            const x = (Math.random() - 0.5) * 1000 + targetPosition.x;
-                            const z = (Math.random() - 0.5) * 1000 + targetPosition.z;
+                        for (let i = 0; i < 50; i++) { // Generate more random planets
+                            const x = (Math.random() - 0.5) * 2000 + targetPosition.x;
+                            const z = (Math.random() - 0.5) * 2000 + targetPosition.z;
                             const newPlanet = createRandomPlanet(x, z);
                             randomPlanets.push(newPlanet);
                             scene.add(newPlanet);
@@ -763,26 +804,49 @@
             planetNameDisplay.textContent = planet.name;
             planetInfo.style.display = 'block';
 
-            if (planetImages[planet.name]) {
+            if (planet.name === "Saturn's Rings") {
+                planetImageDisplay.style.display = 'none'; // Hide the image for Saturn's Rings
+                planetDescriptionDisplay.textContent = "A ring made of space rocks revolving around planet Saturn.";
+            } else if (planet.name === "Uranus's Rings") {
+                planetImageDisplay.style.display = 'none'; // Hide the image for Uranus's Rings
+                planetDescriptionDisplay.textContent = "A vertical ring system made of ice and rock orbiting Uranus.";
+            } else if (planet.isRandom) {
+                planetImageDisplay.style.display = 'block';
+                planetImageDisplay.src = "https://houselearning.github.io/home/assets/spaceadventure/randomplanet.png";
+                planetDescriptionDisplay.textContent = "This is a randomly generated planet, does not exist in real space.";
+            } else if (planetImages[planet.name]) {
+                planetImageDisplay.style.display = 'block';
                 planetImageDisplay.src = planetImages[planet.name];
-            } else {
-                planetImageDisplay.src = '';
-            }
-
-            if (planetDescriptions[planet.name]) {
                 planetDescriptionDisplay.textContent = planetDescriptions[planet.name];
             } else {
-                planetDescriptionDisplay.textContent = 'This is a randomly generated planet.';
+                planetImageDisplay.style.display = 'none';
+                planetDescriptionDisplay.textContent = 'This is a randomly generated planet, does not exist in real space.';
             }
 
             // Add spectate functionality
             const spectateButton = document.getElementById('spectateButton');
-            spectateButton.onclick = () => playPlanetVideoPopup(planet.name);
+            spectateButton.onclick = () => {
+                if (planet.name === "Saturn's Rings") {
+                    renderSaturnCanvas(); // Render canvas for Saturn's Rings
+                } else if (planet.name === "Uranus's Rings") {
+                    renderUranusCanvas(); // Render canvas for Uranus's Rings
+                } else {
+                    const videoName = planet.isRandom ? 'randomplanet' : planet.name.toLowerCase();
+                    playPlanetVideoPopup(videoName);
+                }
+            };
         }
 
-        function playPlanetVideoPopup(planetName) {
+        function playPlanetVideoPopup(videoName) {
+            // Remove any existing popup to allow multiple clicks
+            const existingPopup = document.querySelector('.video-popup');
+            if (existingPopup) {
+                document.body.removeChild(existingPopup);
+            }
+
             // Create popup container
             const popupContainer = document.createElement('div');
+            popupContainer.className = 'video-popup';
             popupContainer.style.position = 'fixed';
             popupContainer.style.top = '0';
             popupContainer.style.left = '0';
@@ -796,7 +860,7 @@
 
             // Create video element
             const videoElement = document.createElement('video');
-            videoElement.src = `https://houselearning.github.io/home/assets/spaceadventure/${planetName.toLowerCase()}.mp4`; // Video file named after the planet
+            videoElement.src = `https://houselearning.github.io/home/assets/spaceadventure/${videoName}.mp4`; // Video file
             videoElement.style.width = '80%';
             videoElement.style.borderRadius = '10px';
             videoElement.autoplay = true;
@@ -819,6 +883,116 @@
 
             // Append video and close button to popup container
             popupContainer.appendChild(videoElement);
+            popupContainer.appendChild(closeButton);
+
+            // Append popup container to body
+            document.body.appendChild(popupContainer);
+        }
+
+        function renderSaturnCanvas() {
+            // Create popup container
+            const popupContainer = document.createElement('div');
+            popupContainer.className = 'canvas-popup';
+            popupContainer.style.position = 'fixed';
+            popupContainer.style.top = '0';
+            popupContainer.style.left = '0';
+            popupContainer.style.width = '100%';
+            popupContainer.style.height = '100%';
+            popupContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            popupContainer.style.display = 'flex';
+            popupContainer.style.justifyContent = 'center';
+            popupContainer.style.alignItems = 'center';
+            popupContainer.style.zIndex = '5';
+
+            // Create canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+
+            // Draw Saturn and its rings
+            ctx.fillStyle = '#f4a460'; // Saturn color
+            ctx.beginPath();
+            ctx.arc(200, 200, 80, 0, Math.PI * 2); // Saturn body
+            ctx.fill();
+
+            ctx.strokeStyle = '#cccccc'; // Ring color
+            ctx.lineWidth = 20;
+            ctx.beginPath();
+            ctx.arc(200, 200, 110, 0, Math.PI * 2); // Saturn ring
+            ctx.stroke();
+
+            // Create close button
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'X';
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '10px';
+            closeButton.style.padding = '10px';
+            closeButton.style.backgroundColor = '#ff0000';
+            closeButton.style.color = '#fff';
+            closeButton.style.border = 'none';
+            closeButton.style.borderRadius = '5px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.onclick = () => document.body.removeChild(popupContainer);
+
+            // Append canvas and close button to popup container
+            popupContainer.appendChild(canvas);
+            popupContainer.appendChild(closeButton);
+
+            // Append popup container to body
+            document.body.appendChild(popupContainer);
+        }
+
+        function renderUranusCanvas() {
+            // Create popup container
+            const popupContainer = document.createElement('div');
+            popupContainer.className = 'canvas-popup';
+            popupContainer.style.position = 'fixed';
+            popupContainer.style.top = '0';
+            popupContainer.style.left = '0';
+            popupContainer.style.width = '100%';
+            popupContainer.style.height = '100%';
+            popupContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            popupContainer.style.display = 'flex';
+            popupContainer.style.justifyContent = 'center';
+            popupContainer.style.alignItems = 'center';
+            popupContainer.style.zIndex = '5';
+
+            // Create canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+
+            // Draw Uranus and its rings
+            ctx.fillStyle = '#afeeee'; // Uranus color
+            ctx.beginPath();
+            ctx.arc(200, 200, 80, 0, Math.PI * 2); // Uranus body
+            ctx.fill();
+
+            ctx.strokeStyle = '#aaaaaa'; // Ring color
+            ctx.lineWidth = 20;
+            ctx.beginPath();
+            ctx.ellipse(200, 200, 110, 40, Math.PI / 2, 0, Math.PI * 2); // Uranus vertical ring
+            ctx.stroke();
+
+            // Create close button
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'X';
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '10px';
+            closeButton.style.padding = '10px';
+            closeButton.style.backgroundColor = '#ff0000';
+            closeButton.style.color = '#fff';
+            closeButton.style.border = 'none';
+            closeButton.style.borderRadius = '5px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.onclick = () => document.body.removeChild(popupContainer);
+
+            // Append canvas and close button to popup container
+            popupContainer.appendChild(canvas);
             popupContainer.appendChild(closeButton);
 
             // Append popup container to body
