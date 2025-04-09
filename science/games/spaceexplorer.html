@@ -236,6 +236,7 @@
         <h2 id="planetName"></h2>
         <img id="planetImage" src="" alt="Planet Image" style="max-width: 100px; max-height: 100px;">
         <p id="planetDescription"></p>
+        <button id="spectateButton" style="margin-top: 10px; padding: 8px 15px; background-color: #00B8D4; color: #fff; border: none; border-radius: 5px; cursor: pointer;">Spectate Planet</button>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -266,8 +267,8 @@
         let controls;
         let cameraTarget = new THREE.Vector3(0, 0, -5);
         let introTimeout;
-        let planetNames = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
-        let planetColors = [0xA9A9A9, 0xFFD700, 0xFF4500, 0xFF8C00, 0xF4A460, 0xAFEEEE4, 0x4169E1];
+        let planetNames = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
+        let planetColors = [0xA9A9A9, 0xFFD700, 0x00BFFF, 0xFF4500, 0xFF8C00, 0xF4A460, 0xAFEEEE, 0x4169E1];
         let ring;
         let randomPlanets = [];
         let beyondRing = false;
@@ -281,6 +282,28 @@
         const cameraFollowSpeed = 0.05;
         let distanceTravelled = 0;
         const ringDistance = 800;
+
+        let planetImages = {
+            'Mercury': 'https://houselearning.github.io/home/assets/spaceadventure/mercury.png',
+            'Venus': 'https://houselearning.github.io/home/assets/spaceadventure/venus.png',
+            'Earth': 'https://houselearning.github.io/home/assets/spaceadventure/earth.png',
+            'Mars': 'https://houselearning.github.io/home/assets/spaceadventure/mars.png',
+            'Jupiter': 'https://houselearning.github.io/home/assets/spaceadventure/jupiter.png',
+            'Saturn': 'https://houselearning.github.io/home/assets/spaceadventure/saturn.png',
+            'Uranus': 'https://houselearning.github.io/home/assets/spaceadventure/uranus.png',
+            'Neptune': 'https://houselearning.github.io/home/assets/spaceadventure/neptune.png'
+        };
+
+        let planetDescriptions = {
+            'Mercury': 'Mercury is the smallest planet in our solar system and closest to the Sun.',
+            'Venus': 'Venus is the second planet from the Sun and has a thick, toxic atmosphere.',
+            'Earth': 'Earth is the third planet from the Sun and the only known planet to support life.',
+            'Mars': 'Mars is the fourth planet from the Sun and is known as the Red Planet.',
+            'Jupiter': 'Jupiter is the largest planet in our solar system and has a Great Red Spot.',
+            'Saturn': 'Saturn is the sixth planet from the Sun and is famous for its stunning ring system.',
+            'Uranus': 'Uranus is the seventh planet from the Sun and has a unique sideways rotation.',
+            'Neptune': 'Neptune is the eighth planet from the Sun and is known for its deep blue color.'
+        };
 
         // Screen resize
         function resizeRendererToDisplaySize(renderer) {
@@ -353,6 +376,19 @@
             const planet = new THREE.Mesh(geometry, material);
             planet.position.set(x, 0, z);
             planet.name = name;
+
+            // Add alien sprite to the planet (exclude Earth)
+            if (name !== 'Earth') {
+                const alienTexture = new THREE.TextureLoader().load('https://houselearning.github.io/home/assets/spaceadventure/alien.png');
+                const alienMaterial = new THREE.SpriteMaterial({ map: alienTexture });
+                const alienSprite = new THREE.Sprite(alienMaterial);
+                alienSprite.scale.set(2, 2, 1); // Make the alien smaller
+                alienSprite.position.set(0, radius + 1, 0); // Position above the planet
+                alienSprite.userData = { angle: 0, radius: radius + 1 }; // Store movement data
+                planet.add(alienSprite);
+            }
+
+            planet.visited = false; // Track if the planet has been visited
             return planet;
         }
 
@@ -479,12 +515,19 @@
                     const raycaster = new THREE.Raycaster();
                     raycaster.setFromCamera(mouse, camera);
 
-                    const intersects = raycaster.intersectObjects(scene.children, false);
+                    const intersects = raycaster.intersectObjects(scene.children, true); // Include child objects
 
                     if (intersects.length > 0) {
                         const clickedObject = intersects[0].object;
 
-                        if (clickedObject instanceof THREE.Mesh && clickedObject.geometry instanceof THREE.SphereGeometry) {
+                        if (clickedObject instanceof THREE.Sprite && clickedObject.material.map.image.src.includes('alien.png')) {
+                            // Alien clicked
+                            planetNameDisplay.textContent = "Alien";
+                            planetImageDisplay.src = "https://houselearning.github.io/home/assets/spaceadventure/alien.png";
+                            planetDescriptionDisplay.textContent = "A design. Currently does not exist on any of the eight planets.";
+                            planetInfo.style.display = 'block';
+                        } else if (clickedObject instanceof THREE.Mesh && clickedObject.geometry instanceof THREE.SphereGeometry) {
+                            // Planet clicked
                             displayPlanetInfo(clickedObject);
                         }
                     }
@@ -649,9 +692,12 @@
                     }
 
                     if (closestPlanet && minDistance < 15) {
-                        showMessage(`Arrived at ${closestPlanet.name}!`);
-                        if (fuel < 100) {
-                            showQuestion();
+                        if (!closestPlanet.visited) {
+                            showMessage(`Arrived at ${closestPlanet.name}!`);
+                            closestPlanet.visited = true; // Mark the planet as visited
+                            if (fuel < 100) {
+                                showQuestion();
+                            }
                         }
                     }
 
@@ -673,14 +719,17 @@
                         for (let i = 0; i < randomPlanets.length; i++) {
                             const planet = randomPlanets[i];
                             const distance = rocket.position.distanceTo(planet.position);
-                            if (distance < 15) {
+                            if (distance < 15 && !planet.visited) {
                                 showMessage(`Arrived at ${planet.name}!`);
+                                planet.visited = true; // Mark the random planet as visited
                                 if (fuel < 100) {
                                     showQuestion();
                                 }
                             }
                         }
                     }
+
+                    animateAliens(); // Call the alien animation function
                 }
                 const cameraOffset = new THREE.Vector3(0, 1, -3); // Adjust these values to change the camera's position
                 cameraOffset.applyQuaternion(rocket.quaternion);
@@ -697,17 +746,85 @@
             }
         }
 
+        function animateAliens() {
+            planets.forEach(planet => {
+                planet.children.forEach(child => {
+                    if (child instanceof THREE.Sprite && child.userData) {
+                        // Animate the alien to move around the planet
+                        child.userData.angle += 0.02; // Adjust speed of movement
+                        child.position.x = Math.cos(child.userData.angle) * child.userData.radius;
+                        child.position.z = Math.sin(child.userData.angle) * child.userData.radius;
+                    }
+                });
+            });
+        }
+
         function displayPlanetInfo(planet) {
             planetNameDisplay.textContent = planet.name;
             planetInfo.style.display = 'block';
-            if (planet.isRandom) {
-                planetImageDisplay.src = '';
-                planetDescriptionDisplay.textContent = 'This is a randomly generated planet.';
+
+            if (planetImages[planet.name]) {
+                planetImageDisplay.src = planetImages[planet.name];
             } else {
-                planetImageDisplay.src = 'planet.jpg';
-                planetDescriptionDisplay.textContent = 'This is a planet.';
+                planetImageDisplay.src = '';
             }
+
+            if (planetDescriptions[planet.name]) {
+                planetDescriptionDisplay.textContent = planetDescriptions[planet.name];
+            } else {
+                planetDescriptionDisplay.textContent = 'This is a randomly generated planet.';
+            }
+
+            // Add spectate functionality
+            const spectateButton = document.getElementById('spectateButton');
+            spectateButton.onclick = () => playPlanetVideoPopup(planet.name);
         }
+
+        function playPlanetVideoPopup(planetName) {
+            // Create popup container
+            const popupContainer = document.createElement('div');
+            popupContainer.style.position = 'fixed';
+            popupContainer.style.top = '0';
+            popupContainer.style.left = '0';
+            popupContainer.style.width = '100%';
+            popupContainer.style.height = '100%';
+            popupContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            popupContainer.style.display = 'flex';
+            popupContainer.style.justifyContent = 'center';
+            popupContainer.style.alignItems = 'center';
+            popupContainer.style.zIndex = '5';
+
+            // Create video element
+            const videoElement = document.createElement('video');
+            videoElement.src = `https://houselearning.github.io/home/assets/spaceadventure/${planetName.toLowerCase()}.mp4`; // Video file named after the planet
+            videoElement.style.width = '80%';
+            videoElement.style.borderRadius = '10px';
+            videoElement.autoplay = true;
+            videoElement.loop = true;
+            videoElement.muted = true;
+
+            // Create close button
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'X';
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '10px';
+            closeButton.style.padding = '10px';
+            closeButton.style.backgroundColor = '#ff0000';
+            closeButton.style.color = '#fff';
+            closeButton.style.border = 'none';
+            closeButton.style.borderRadius = '5px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.onclick = () => document.body.removeChild(popupContainer);
+
+            // Append video and close button to popup container
+            popupContainer.appendChild(videoElement);
+            popupContainer.appendChild(closeButton);
+
+            // Append popup container to body
+            document.body.appendChild(popupContainer);
+        }
+
         init();
     </script>
 </body>
