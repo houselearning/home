@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Wizard Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        #gameCanvas {
+            border: 2px solid #ddd;
+            background-color: #1e1e1e;
+            display: block;
+            width: 80%; /* Start with a percentage, will adjust with JS */
+            height: auto; /* Keep aspect ratio, adjust height in JS */
+            max-width: 800px; /* Max width for the canvas */
+            max-height: 600px;
+            aspect-ratio: 4 / 3;
+        }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10; /* Ensure controls are above the canvas */
+        }
+
+        .gameButton {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #4a148c, #1a237e);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .gameButton:hover {
+            background: linear-gradient(135deg, #6a1b9a, #283593);
+            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+            transform: translateY(-2px);
+        }
+
+        .gameButton:active {
+            background: linear-gradient(135deg, #4a148c, #1a237e);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            transform: translateY(0);
+        }
+
+        #message {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 10;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* So it doesn't interfere with controls */
+        }
+
+        #message.show {
+            opacity: 1;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 11;
+            text-align: center;
+            max-width: 80%;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            border: 2px solid #ddd;
+        }
+
+        #instructions h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #instructions ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+
+        #instructions li {
+            margin-bottom: 5px;
+        }
+
+        #instructions button {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #4a148c, #1a237e);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        #instructions button:hover {
+            background: linear-gradient(135deg, #6a1b9a, #283593);
+            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.7);
+            transform: translateY(-2px);
+        }
+
+        #instructions button:active {
+            background: linear-gradient(135deg, #4a148c, #1a237e);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            transform: translateY(0);
+        }
+        @media (min-width: 1200px) {
+            #gameCanvas {
+                width: 640px;  /* Keep original pixel size for larger screens */
+                height: 480px;
+            }
+        }
+
+        #toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            z-index: 12;
+        }
+
+        #toolbar span {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="controls">
+        <button id="rainButton" class="gameButton">Rain</button>
+        <button id="snowButton" class="gameButton">Snow</button>
+        <button id="thunderButton" class="gameButton">Thunder</button>
+        <button id="windButton" class="gameButton">Wind</button>
+        <button id="resetButton" class="gameButton">Reset</button>
+    </div>
+    <div id="message"></div>
+    <div id="instructions">
+      <h2>How to Play</h2>
+      <ul>
+        <li>Use the buttons to control the weather.</li>
+        <li><strong>Rain:</strong> Creates a rainy scene.</li>
+        <li><strong>Snow:</strong> Creates a snowy scene.</li>
+        <li><strong>Thunder:</strong> Creates a thunderstorm.</li>
+        <li><strong>Wind:</strong> Creates a windy scene.</li>
+        <li><strong>Reset:</strong> Resets the scene to the default.</li>
+      </ul>
+      <p>Enjoy the weather magic!</p>
+      <button id="closeInstructions">Got it!</button>
+    </div>
+    <div id="toolbar">
+        <span id="seasonDisplay">Season: Default</span>
+        <span id="windSpeedDisplay">Wind: 0 mph</span>
+        <button id="toggle3DButton" class="gameButton">Toggle 3D</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        document.getElementById('toggle3DButton').style.display = 'none'; // Show instructions on load
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const rainButton = document.getElementById('rainButton');
+        const snowButton = document.getElementById('snowButton');
+        const thunderButton = document.getElementById('thunderButton');
+        const windButton = document.getElementById('windButton');
+        const resetButton = document.getElementById('resetButton');
+        const messageElement = document.getElementById('message');
+        const instructionsElement = document.getElementById('instructions');
+        const closeInstructionsButton = document.getElementById('closeInstructions');
+        const toolbar = document.getElementById('toolbar');
+        const seasonDisplay = document.getElementById('seasonDisplay');
+        const windSpeedDisplay = document.getElementById('windSpeedDisplay');
+        const toggle3DButton = document.getElementById('toggle3DButton');
+
+        let is3DMode = false;
+        let threeScene, threeCamera, threeRenderer, cube; // Added cube
+
+        function init3DScene() {
+            if (!isWebGLAvailable()) {
+                showMessage('WebGL is not supported in your browser.');
+                return;
+            }
+
+            threeScene = new THREE.Scene();
+            threeCamera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 1000);
+            threeRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true }); // Enable transparency
+            threeRenderer.setSize(canvasWidth, canvasHeight);
+            threeRenderer.setClearColor(0x000000, 0); // Transparent background
+            // Ensure the renderer's DOM element is initially hidden
+            threeRenderer.domElement.style.display = 'none';
+            canvas.parentNode.insertBefore(threeRenderer.domElement, canvas); // Insert before the 2D canvas
+
+            // Add a basic cube to the scene
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            cube = new THREE.Mesh(geometry, material);
+            threeScene.add(cube);
+
+            threeCamera.position.z = 5;
+
+            function animate3D() {
+                if (!is3DMode) return; // Stop rendering if 3D mode is disabled
+                requestAnimationFrame(animate3D);
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+                threeRenderer.render(threeScene, threeCamera);
+            }
+
+            animate3D();
+        }
+
+        function isWebGLAvailable() {
+            try {
+                const canvas = document.createElement('canvas');
+                return !!(window.WebGLRenderingContext && (
+                    canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        toggle3DButton.addEventListener('click', () => {
+            is3DMode = !is3DMode;
+            if (is3DMode) {
+                init3DScene();
+                // Hide 2D canvas and show 3D canvas
+                ctx.canvas.style.display = 'none';
+                if (threeRenderer && threeRenderer.domElement) {
+                    threeRenderer.domElement.style.display = 'block';
+                }
+                showMessage('3D Mode Enabled');
+            } else {
+                // Hide 3D canvas and show 2D canvas
+                ctx.canvas.style.display = 'block';
+                 if (threeRenderer && threeRenderer.domElement) {
+                    threeRenderer.domElement.style.display = 'none';
+                }
+                resetScene(); // Clear the canvas for 2D mode
+                showMessage('3D Mode Disabled');
+            }
+        });
+
+        let canvasWidth = 0;
+        let canvasHeight = 0;
+
+        function resizeCanvas() {
+            const containerWidth = document.querySelector('body').offsetWidth;
+            const aspectRatio = 4 / 3; // Maintain 4:3 aspect ratio
+
+            let width = containerWidth * 0.8; // 80% of container width
+            let height = width / aspectRatio;
+
+             // Max width and height constraints.
+            width = Math.min(width, 800);  // Max width of 800
+            height = Math.min(height, 600); // Max height of 600
+
+            canvasWidth = width;
+            canvasHeight = height;
+
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+			if (threeRenderer) {
+                threeRenderer.setSize(canvasWidth, canvasHeight);
+                threeCamera.aspect = canvasWidth / canvasHeight;
+                threeCamera.updateProjectionMatrix();
+            }
+        }
+
+        resizeCanvas(); // Initial resize
+        window.addEventListener('resize', resizeCanvas); // Resize on window resize
+
+        let scene = 'default';
+        let particles = [];
+        let lightningBolts = [];
+        let windLines = [];
+        let leafParticles = []; // For wind
+
+        // --- Scene Management ---
+        function resetScene() {
+            scene = 'default';
+            particles = [];
+            lightningBolts = [];
+            windLines = [];
+            leafParticles = [];
+            ctx.fillStyle = '#1e1e1e'; // Default background
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+			if (threeScene) {
+                // Dispose of Three.js resources
+                if (cube) {
+                    threeScene.remove(cube);
+                    cube.geometry.dispose();
+                    cube.material.dispose();
+                    cube = null;
+                }
+
+                // Dispose of renderer
+                if (threeRenderer) {
+                    threeRenderer.dispose();
+                    threeRenderer = null;
+                }
+                threeScene = null;
+                threeCamera = null;
+            }
+        }
+
+        function showMessage(text, duration = 3000) {
+            messageElement.textContent = text;
+            messageElement.classList.add('show');
+            setTimeout(() => {
+                messageElement.classList.remove('show');
+            }, duration);
+        }
+
+        // --- Drawing functions ---
+        function drawPlatform() {
+            ctx.fillStyle = '#6b4226'; // Brown color for the platform
+            ctx.fillRect(0, canvasHeight - 50, canvasWidth, 50);
+        }
+
+        function drawOakTree() {
+            // Trunk
+            ctx.fillStyle = '#8B4513'; // Dark brown
+            ctx.fillRect(canvasWidth / 2 - 25, canvasHeight - 200, 50, 150);
+
+            // Crown
+            ctx.fillStyle = '#006400'; // Dark green
+            ctx.beginPath();
+            ctx.arc(canvasWidth / 2, canvasHeight - 200, 75, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // --- Icicles for snow scene ---
+        function drawIcicle(x, y, length) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - 5, y + length);
+            ctx.lineTo(x + 5, y + length);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.7)';
+            ctx.fill();
+        }
+
+        // --- Puddle for rain and thunder ---
+        function drawPuddle(x, y, width, offset) {
+            ctx.fillStyle = 'rgba(0, 50, 100, 0.5)';
+            ctx.beginPath();
+            ctx.ellipse(x + offset, y, width, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // --- Snow ground for snow scene ---
+        function drawSnowGround() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight - 50); // Start from the platform level
+            ctx.lineTo(0, canvasHeight - 40); // Go up a bit
+            for (let i = 0; i < canvasWidth; i += 5) {
+                let offset = Math.sin(i * 0.1) * 5; // Wavy effect
+                ctx.lineTo(i, canvasHeight - 40 + offset);
+            }
+            ctx.lineTo(canvasWidth, canvasHeight - 50); // Back to the platform level
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // --- Particle creation and drawing ---
+        function createRaindrop() {
+            return {
+                x: Math.random() * canvasWidth,
+                y: 0,
+                length: Math.random() * 10 + 10,
+                velocity: Math.random() * 8 + 6,
+                windFactor: Math.random() * 0.5 - 0.25, // Wind effect variation
+            };
+        }
+
+        function createSnowflake() {
+            return {
+                x: Math.random() * canvasWidth,
+                y: 0,
+                radius: Math.random() * 4 + 2,
+                velocity: Math.random() * 2 + 1,
+                windFactor: Math.random() * 0.5 - 0.25, // Wind effect variation
+                color: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.5})`, // Varying opacity
+            };
+        }
+
+        function drawRaindrop(drop) {
+            ctx.beginPath();
+            ctx.moveTo(drop.x, drop.y);
+            ctx.lineTo(drop.x + drop.windFactor * windSpeed, drop.y + drop.length); // Apply wind effect
+            ctx.strokeStyle = 'rgba(0, 100, 200, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round'; // Nicer rounded ends
+            ctx.stroke();
+        }
+
+        function drawSnowflake(flake) {
+            ctx.beginPath();
+            ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+             // Apply wind effect using flake.windFactor
+            ctx.fillStyle = flake.color;
+            ctx.fill();
+        }
+
+        // --- Lightning ---
+        function createLightningBolt(x) {
+            const bolt = {
+                x: x,
+                y: -50,
+                segments: [],
+                maxLength: Math.random() * 50 + 50,
+                intensity: Math.random() * 0.8 + 0.6, // Intensity for color
+            };
+            let currentY = bolt.y;
+            while (currentY < canvasHeight) {
+                const segmentLength = Math.random() * 20 + 10;
+                currentY += segmentLength;
+                const xOffset = Math.random() * 40 - 20;
+                bolt.segments.push({ x: bolt.x + xOffset, y: currentY });
+            }
+            return bolt;
+        }
+
+        function drawLightningBolt(bolt) {
+            ctx.beginPath();
+            ctx.moveTo(bolt.x, bolt.y);
+            const lightningColor = `rgba(255, 255, 255, ${bolt.intensity})`;
+            ctx.strokeStyle = lightningColor;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'bevel'; // Nicer joins
+            bolt.segments.forEach(segment => {
+                ctx.lineTo(segment.x, segment.y);
+            });
+            ctx.stroke();
+
+            // Add a flash effect - subtle
+            ctx.fillStyle = `rgba(255, 255, 255, ${bolt.intensity * 0.2})`; // Dim flash
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        }
+
+        // --- Wind Lines ---
+        let windSpeed = 0; // Global wind speed
+        function createWindLine() {
+            return {
+                x: Math.random() * canvasWidth - 70,
+                y: canvasHeight * Math.random(),
+                length: Math.random() * 70 + 20,
+                alpha: 0,
+                speed: Math.random() * 2 + 1,
+            };
+        }
+
+        function drawWindLine(line) {
+            ctx.strokeStyle = `rgba(128, 128, 128, ${line.alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(line.x, line.y);
+            ctx.lineTo(line.x + line.length, line.y);
+            ctx.stroke();
+        }
+
+        // --- Leaf particle ---
+        function createLeafParticle(x, windDirection) {
+          const rotationDir = Math.random() < 0.3 ? -1 : 1;
+            return {
+                x: x,
+                y: canvasHeight * Math.random() / 2,
+                size: Math.random() * 8 + 5,
+                color: `rgba(${100 + Math.random() * 80}, ${50 + Math.random() * 50}, 0, ${Math.random() * 0.6 + 0.4})`, // Brownish
+                windSpeed: windDirection * (Math.random() * 2 + 1), // Use the wind direction
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() * 0.02 + 0.01) ,
+                rotationDirection: rotationDir
+            };
+        }
+
+        function drawLeafParticle(leaf) {
+            ctx.save();
+            ctx.translate(leaf.x, leaf.y);
+            ctx.rotate(leaf.rotation);
+
+            ctx.fillStyle = leaf.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, leaf.size, leaf.size * 0.6, 0, 0, Math.PI * 2); // Leaf shape
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // --- Event Listeners ---
+        rainButton.addEventListener('click', () => {
+            scene = 'rain';
+            particles = [];
+            lightningBolts = [];
+            windLines = [];
+            leafParticles = [];
+            showMessage('Raining...');
+        });
+
+        snowButton.addEventListener('click', () => {
+            scene = 'snow';
+            particles = [];
+            lightningBolts = [];
+            windLines = [];
+            leafParticles = [];
+            showMessage('Snowing...');
+        });
+
+        thunderButton.addEventListener('click', () => {
+            scene = 'thunder';
+            particles = [];
+            lightningBolts = [];
+            windLines = [];
+            leafParticles = [];
+            showMessage('Thunderstorm!');
+        });
+
+        windButton.addEventListener('click', () => {
+            scene = 'wind';
+            particles = [];
+            lightningBolts = [];
+            windLines = [];
+            leafParticles = [];
+            showMessage('Windy...');
+        });
+
+        resetButton.addEventListener('click', () => {
+            resetScene();
+            showMessage('Scene Reset.');
+        });
+
+        closeInstructionsButton.addEventListener('click', () => {
+          instructionsElement.style.display = 'none';
+        });
+
+        function updateToolbar() {
+            seasonDisplay.textContent = `Season: ${scene.charAt(0).toUpperCase() + scene.slice(1)}`;
+            windSpeedDisplay.textContent = `Wind: ${Math.abs(windSpeed).toFixed(1)} mph`;
+        }
+
+        // --- Main animation loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (is3DMode) {
+                if (threeRenderer && threeScene && threeCamera) {
+                    cube.rotation.x += 0.01;
+                    cube.rotation.y += 0.01;
+                    threeRenderer.render(threeScene, threeCamera);
+                }
+            } else {
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+                switch (scene) {
+                    case 'rain':
+                        drawOakTree();
+                        drawPlatform();
+                        if (particles.length < 200) particles.push(createRaindrop());
+                        particles.forEach(drop => {
+                            drop.y += drop.velocity;
+                            drop.x += drop.windFactor * windSpeed; // Apply wind
+                            if (drop.y > canvasHeight) {
+                                drop.y = 0;
+                                drop.x = Math.random() * canvasWidth;
+                            }
+                            drawRaindrop(drop);
+                        });
+
+                        // Draw puddles
+                        drawPuddle(canvasWidth / 4, canvasHeight - 50, 30, 5);
+                        drawPuddle(canvasWidth / 2, canvasHeight - 50, 40, -5);
+                        drawPuddle(canvasWidth * 3 / 4, canvasHeight - 50, 35, 0);
+                        break;
+                    case 'snow':
+                        drawOakTree();
+                        drawPlatform();
+                        drawSnowGround(); // Snow on the ground
+
+                        // Draw icicles
+                        drawIcicle(canvasWidth / 2 - 20, canvasHeight - 200, 20);
+                        drawIcicle(canvasWidth / 2 + 20, canvasHeight - 200, 15);
+                        drawIcicle(canvasWidth / 2, canvasHeight - 150, 25);
+
+                        if (particles.length < 200) particles.push(createSnowflake());
+                        particles.forEach(flake => {
+                            flake.y += flake.velocity;
+                            flake.x += flake.windFactor * windSpeed; // Apply wind
+                            if (flake.y > canvasHeight) {
+                                flake.y = 0;
+                                flake.x = Math.random() * canvasWidth;
+                            }
+                            drawSnowflake(flake);
+                        });
+                        break;
+                    case 'thunder':
+                        drawOakTree();
+                        drawPlatform();
+                        ctx.fillStyle = 'rgba(0, 0, 50, 0.8)'; // Darker background
+                        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                        if (particles.length < 50) particles.push(createRaindrop()); // Add some rain
+                        particles.forEach(drop => {
+                            drop.y += drop.velocity * 1.5; // Make rain faster
+                            drop.x += drop.windFactor * windSpeed;
+                            if (drop.y > canvasHeight) {
+                                drop.y = 0;
+                                drop.x = Math.random() * canvasWidth;
+                            }
+                            drawRaindrop(drop);
+                        });
+                        // Draw puddles
+                        drawPuddle(canvasWidth / 4, canvasHeight - 50, 30, 5);
+                        drawPuddle(canvasWidth / 2, canvasHeight - 50, 40, -5);
+                        drawPuddle(canvasWidth * 3 / 4, canvasHeight - 50, 35, 0);
+                        if (Math.random() < 0.05) { // Lightning frequency
+                            const lightningX = Math.random() * canvasWidth / 2 - 50 + Math.random() * 100;
+                            lightningBolts.push(createLightningBolt(lightningX));
+                        }
+                        lightningBolts.forEach((bolt, index) => {
+                            drawLightningBolt(bolt);
+                            // Remove bolt after it reaches the bottom
+                            if (bolt.segments[bolt.segments.length - 1].y > canvasHeight) {
+                                lightningBolts.splice(index, 1);
+                            }
+                        });
+                        break;
+                    case 'wind':
+                        drawOakTree();
+                        drawPlatform();
+                        // Wind speed varies
+                        windSpeed = Math.sin(Date.now() / 500) * 5 + 2; // Oscillate between -3 and 7
+                        ctx.fillStyle = 'rgba(240, 240, 240, 0.2)'; // Light grey background
+                        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                        if (windLines.length < 15) windLines.push(createWindLine()); // More lines
+                        windLines.forEach((line, index) => {
+                            line.x += line.speed;
+                            line.alpha += 0.02;
+                            if (line.x > canvasWidth) {
+                                windLines.splice(index, 1);
+                            }
+                            drawWindLine(line);
+                        });
+                        // Create and draw leaves
+                        if (leafParticles.length < 10) { // Max 10 leaves
+                          const windDirection = Math.sign(windSpeed);
+                          leafParticles.push(createLeafParticle(Math.random() * canvasWidth/2, windDirection));
+                        }
+
+                        leafParticles.forEach((leaf, index) => {
+                            leaf.x += windSpeed + leaf.windSpeed; // 風の影響を受ける
+                            leaf.y += 0.5; // Gravity
+                            leaf.rotation += leaf.rotationSpeed * leaf.rotationDirection + windSpeed * 0.005; // Rotate with wind
+                            if (leaf.x > canvasWidth + 10 || leaf.y > canvasHeight + 10) {
+                                leafParticles.splice(index, 1);
+                            }
+                            drawLeafParticle(leaf);
+                        });
+                        break;
+                    default:
+                        ctx.fillStyle = '#1e1e1e';
+                        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                }
+
+                updateToolbar();
+            }
+        }
+
+        animate(); // Start the animation loop
+    </script>
+</body>
+</html>
