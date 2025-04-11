@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Intro to VB.NET (Interactive)</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #007acc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #d1ecf1;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #0c5460;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>💻 Intro to VB.NET (Interactive Mode)</h1>
+  <p>This is a lightweight VB.NET tutorial. You can type code and "run" it below. (Note: real VB.NET execution isn't supported in-browser, so we simulate output based on known snippets.)</p>
+
+  <h2>🧪 Try Some Code</h2>
+  <textarea id="vbCode">
+// Try this:
+Module Program
+    Sub Main()
+        Console.WriteLine("Hello, World!")
+    End Sub
+End Module
+  </textarea>
+  <button onclick="simulateVBRun()">▶️ Run Code</button>
+
+  <div class="output" id="outputConsole">Console output will appear here...</div>
+
+  <script>
+    function simulateVBRun() {
+      const code = document.getElementById("vbCode").value;
+      const output = document.getElementById("outputConsole");
+
+      // Simple hardcoded simulations
+      if (code.includes('Console.WriteLine("Hello, World!")')) {
+        output.innerText = "Hello, World!";
+      } else if (code.includes("For") && code.includes("To")) {
+        let result = "";
+        for (let i = 1; i <= 5; i++) {
+          result += "Count: " + i + "\n";
+        }
+        output.innerText = result;
+      } else if (code.includes("If age >= 18")) {
+        output.innerText = "You're an adult.";
+      } else {
+        output.innerText = "[Simulated Output] Code recognized but no simulation available.";
+      }
+    }
+  </script>
+</body>
+</html>
