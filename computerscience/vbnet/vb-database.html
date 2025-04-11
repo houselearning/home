@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VB.NET Database Interaction</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #4caf50;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e8f5e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📂 VB.NET Database Interaction</h1>
+  <p>Learn how to connect to a database, run queries, and perform CRUD operations with VB.NET. You’ll work with **SQL Server** (or SQLite) to manipulate data. This tutorial includes safe querying with parameterized queries to prevent SQL injection attacks!</p>
+
+  <h2>📚 Example Code: Connecting to a SQL Server Database</h2>
+  <textarea id="vbDatabaseCode">
+// Make sure you have the correct connection string!
+Dim connectionString As String = "Data Source=localhost;Initial Catalog=YourDatabase;Integrated Security=True"
+Dim connection As New System.Data.SqlClient.SqlConnection(connectionString)
+
+Try
+    connection.Open()
+    Console.WriteLine("Connection successful!")
+
+    ' Execute queries or commands here...
+
+Catch ex As Exception
+    Console.WriteLine("Error: " & ex.Message)
+Finally
+    connection.Close()
+    Console.WriteLine("Connection closed.")
+End Try
+  </textarea>
+  <button onclick="simulateVBDbConnection()">▶️ Run</button>
+
+  <div class="output" id="dbConnectionOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateVBDbConnection() {
+      const code = document.getElementById("vbDatabaseCode").value;
+      const output = document.getElementById("dbConnectionOutput");
+
+      let result = "[Simulated Output] Code not recognized.";
+
+      if (code.includes("connection.Open()")) {
+        result = "Connection successful!\nConnection closed.";
+      }
+
+      output.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    <strong>🔑 Pro Tip:</strong> Always close your database connections using <code>connection.Close()</code> in the <code>Finally</code> block to ensure it's closed even if an error occurs.
+  </div>
+
+  <h2>🔧 How This Code Works</h2>
+  <ul>
+    <li><code>SqlConnection</code> creates a connection to the database</li>
+    <li><code>Open()</code> establishes the connection to SQL Server</li>
+    <li><code>Catch</code> handles exceptions, like connection failures</li>
+    <li><code>Finally</code> ensures the connection is closed after usage</li>
+  </ul>
+
+  <h2>🧠 CRUD Operations</h2>
+  <ul>
+    <li><strong>Create (Insert)</strong> — Insert data into the database</li>
+    <li><strong>Read (Select)</strong> — Retrieve data from the database</li>
+    <li><strong>Update</strong> — Modify existing data</li>
+    <li><strong>Delete</strong> — Remove data from the database</li>
+  </ul>
+
+  <h2>📂 Example Code: Performing CRUD Operations</h2>
+  <textarea id="vbCrudCode">
+// Example: Insert Data
+Dim insertQuery As String = "INSERT INTO Users (Name, Age) VALUES (@Name, @Age)"
+Dim insertCommand As New System.Data.SqlClient.SqlCommand(insertQuery, connection)
+insertCommand.Parameters.AddWithValue("@Name", "John Doe")
+insertCommand.Parameters.AddWithValue("@Age", 30)
+
+Try
+    connection.Open()
+    insertCommand.ExecuteNonQuery()
+    Console.WriteLine("Data inserted successfully!")
+Catch ex As Exception
+    Console.WriteLine("Error: " & ex.Message)
+Finally
+    connection.Close()
+End Try
+  </textarea>
+  <button onclick="simulateVBCrud()">▶️ Run CRUD</button>
+
+  <div class="output" id="crudOutput">CRUD output will appear here...</div>
+
+  <script>
+    function simulateVBCrud() {
+      const code = document.getElementById("vbCrudCode").value;
+      const output = document.getElementById("crudOutput");
+
+      let result = "[Simulated Output] Code not recognized.";
+
+      if (code.includes("ExecuteNonQuery()")) {
+        result = "Data inserted successfully!";
+      }
+
+      output.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    💡 <code>ExecuteNonQuery()</code> is used for commands that don't return data (like INSERT, UPDATE, DELETE). For SELECT queries, use <code>ExecuteReader()</code>.
+  </div>
+
+  <h2>🔐 Prevent SQL Injection</h2>
+  <p>Use <code>Parameters.AddWithValue()</code> to safely insert user input into SQL queries. This avoids SQL injection, where malicious users inject harmful SQL commands.</p>
+
+  <h2>📂 Example Code: Safe SELECT Query with Parameters</h2>
+  <textarea id="vbSelectCode">
+// Example: Select Data (Parameterized Query)
+Dim selectQuery As String = "SELECT * FROM Users WHERE Name = @Name"
+Dim selectCommand As New System.Data.SqlClient.SqlCommand(selectQuery, connection)
+selectCommand.Parameters.AddWithValue("@Name", "John Doe")
+
+Try
+    connection.Open()
+    Dim reader As System.Data.SqlClient.SqlDataReader = selectCommand.ExecuteReader()
+    While reader.Read()
+        Console.WriteLine("User: " & reader("Name") & ", Age: " & reader("Age"))
+    End While
+Catch ex As Exception
+    Console.WriteLine("Error: " & ex.Message)
+Finally
+    connection.Close()
+End Try
+  </textarea>
+  <button onclick="simulateVBSelect()">▶️ Run Select</button>
+
+  <div class="output" id="selectOutput">Select output will appear here...</div>
+
+  <script>
+    function simulateVBSelect() {
+      const code = document.getElementById("vbSelectCode").value;
+      const output = document.getElementById("selectOutput");
+
+      let result = "[Simulated Output] Code not recognized.";
+
+      if (code.includes("ExecuteReader()")) {
+        result = "User: John Doe, Age: 30";
+      }
+
+      output.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    ⚠️ Always use parameterized queries to prevent **SQL Injection** attacks — never concatenate user input directly into queries.
+  </div>
+
+  <h2>🧰 Handling Database Errors</h2>
+  <ul>
+    <li><strong>Connection Issues</strong> — Make sure the connection string is correct and the database is running.</li>
+    <li><strong>SQL Errors</strong> — Handle SQL-related errors like syntax issues with <code>Catch ex As SqlException</code>.</li>
+    <li><strong>Timeouts</strong> — Handle connection timeouts with <code>SqlCommand.CommandTimeout</code>.</li>
+  </ul>
+</body>
+</html>
