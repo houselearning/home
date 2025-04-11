@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VB.NET File I/O (Input/Output)</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #009688;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #009688;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00796b;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e0f2f1;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #009688;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📂 VB.NET File I/O (Input/Output)</h1>
+  <p>File I/O allows your application to read from and write to files. You'll learn how to work with text files and even more complex formats like XML and CSV.</p>
+
+  <h2>📚 Example Code: Reading & Writing Text Files</h2>
+  <textarea id="vbFileIOCode">
+// Writing to a text file
+Dim filePath As String = "testfile.txt"
+Dim textToWrite As String = "Hello, this is a test file!"
+
+' Write text to file
+System.IO.File.WriteAllText(filePath, textToWrite)
+
+' Reading from a text file
+Dim textRead As String = System.IO.File.ReadAllText(filePath)
+Console.WriteLine(textRead)
+  </textarea>
+  <button onclick="simulateVBFileIO()">▶️ Run</button>
+
+  <div class="output" id="fileIOOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateVBFileIO() {
+      const code = document.getElementById("vbFileIOCode").value;
+      const output = document.getElementById("fileIOOutput");
+
+      let result = "[Simulated Output] Code not recognized.";
+
+      if (code.includes("File.WriteAllText")) {
+        result = "Hello, this is a test file!";
+      }
+
+      output.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    <strong>🔐 Pro Tip:</strong> Always handle exceptions when dealing with files, especially for non-existent files or read/write permissions.
+  </div>
+
+  <h2>🔧 How This Code Works</h2>
+  <ul>
+    <li><code>System.IO.File.WriteAllText()</code> writes text to a file</li>
+    <li><code>System.IO.File.ReadAllText()</code> reads all text from a file</li>
+    <li><code>filePath</code> specifies the file location</li>
+  </ul>
+
+  <h2>🧠 Working with Other File Formats</h2>
+  <ul>
+    <li><strong>CSV Files</strong> — Store data in a comma-separated format (use <code>StreamReader</code> and <code>StreamWriter</code>)</li>
+    <li><strong>XML Files</strong> — Structured file format for data (use <code>XmlDocument</code>)</li>
+    <li><strong>JSON Files</strong> — Use <code>Newtonsoft.Json</code> to read/write JSON</li>
+  </ul>
+
+  <div class="tip">
+    💡 <code>StreamReader</code> and <code>StreamWriter</code> are great for line-by-line file processing, especially for large files.
+  </div>
+
+  <h2>📂 Example Code: File Error Handling</h2>
+  <textarea id="vbFileErrorHandlingCode">
+// Example: Handling File Not Found Exception
+Try
+    Dim filePath As String = "nonexistentfile.txt"
+    Dim fileContents As String = System.IO.File.ReadAllText(filePath)
+    Console.WriteLine(fileContents)
+Catch ex As System.IO.FileNotFoundException
+    Console.WriteLine("Error: File not found.")
+Finally
+    Console.WriteLine("File operation complete.")
+End Try
+  </textarea>
+  <button onclick="simulateFileErrorHandling()">▶️ Run Error Handling</button>
+
+  <div class="output" id="fileErrorHandlingOutput">Error handling output will appear here...</div>
+
+  <script>
+    function simulateFileErrorHandling() {
+      const code = document.getElementById("vbFileErrorHandlingCode").value;
+      const output = document.getElementById("fileErrorHandlingOutput");
+
+      let result = "[Simulated Output] Code not recognized.";
+
+      if (code.includes("FileNotFoundException")) {
+        result = "Error: File not found.\nFile operation complete.";
+      }
+
+      output.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    ⚠️ Always handle exceptions when dealing with file I/O — it’s possible that the file you’re working with may not exist or have the proper permissions.
+  </div>
+</body>
+</html>
