@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VB.NET Exception Handling</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #f44336;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d32f2f;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #fbe9e7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f44336;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f1f1f1;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚨 VB.NET Exception Handling</h1>
+  <p>Exceptions are errors that happen during runtime. They can crash your app if you don't handle them properly. Here’s how you avoid that disaster:</p>
+
+  <h2>📚 Example Code</h2>
+  <textarea id="vbExceptionCode">
+// Handling Division by Zero Exception
+Try
+    Dim num1 As Integer = 10
+    Dim num2 As Integer = 0
+    Dim result As Integer = num1 / num2
+    Console.WriteLine(result)
+Catch ex As DivideByZeroException
+    Console.WriteLine("Error: Cannot divide by zero.")
+Finally
+    Console.WriteLine("This block runs regardless of an error.")
+End Try
+  </textarea>
+  <button onclick="simulateVBException()">▶️ Run</button>
+
+  <div class="output" id="exceptionOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateVBException() {
+      const code = document.getElementById("vbExceptionCode").value;
+      const output = document.getElementById("exceptionOutput");
+
+      let result = "[Simulated Output] Code not recognized.";
+
+      if (code.includes("DivideByZeroException")) {
+        result = "Error: Cannot divide by zero.\nThis block runs regardless of an error.";
+      }
+
+      output.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    <strong>⚠️ Pro Tip:</strong> The <code>Finally</code> block always runs, no matter what — even if no exception is thrown.
+  </div>
+
+  <h2>🔧 How This Code Works</h2>
+  <ul>
+    <li><code>Try</code> - Run the code that might throw an exception</li>
+    <li><code>Catch</code> - Handle the exception when it occurs (e.g., divide by zero)</li>
+    <li><code>Finally</code> - Code that always runs, regardless of an exception</li>
+  </ul>
+
+  <div class="tip">
+    💡 <code>Catch ex As Exception</code> catches all exceptions, but it’s best to catch specific ones to handle them properly!
+  </div>
+
+  <h2>🧠 Other Useful Exception Types</h2>
+  <ul>
+    <li><code>FileNotFoundException</code> — when a file isn't found</li>
+    <li><code>NullReferenceException</code> — when you're trying to use an object that is null</li>
+    <li><code>IndexOutOfRangeException</code> — when you try to access an invalid index in an array</li>
+  </ul>
+</body>
+</html>
