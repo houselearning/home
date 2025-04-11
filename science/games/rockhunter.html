@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fossil Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/examples/js/controls/PointerLockControls.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"/>
+    <style>
+        body {
+            font-family: 'Press Start 2P', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Sky Blue */
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            cursor: grab;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        #gameCanvas:active {
+            cursor: grabbing;
+        }
+        #scoreDisplay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+             transform: translateX(-50%);
+            color: #fff;
+            font-size: 2em;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 0.8em;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        .game-button {
+            position: absolute;
+            z-index: 1;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            top: 20px;
+        }
+        .game-button:hover {
+            background-color: #45a049;
+        }
+        #resetButton {
+            left: 20px;
+        }
+        #toggleMusicButton {
+            right: 20px;
+        }
+        #toggleSensitivityButton {
+            right: 140px; /* Adjust as necessary to position */
+        }
+
+
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scoreDisplay">Score: 0</div>
+    <div id="instructions">
+        Collect fossils and build with arrow keys.  Click on the rocks! <br>
+        <br>
+        Controls: <br>
+        Arrow Keys / W, S: Move forward and backward. <br>
+        Arrow Keys / A, D: Move left and right. <br>
+        Spacebar: Place a block. <br>
+        Click: Collect Rocks and Fossils.
+    </div>
+
+    <button id="resetButton" class="game-button">Reset</button>
+    <button id="toggleMusicButton" class="game-button">Toggle Music</button>
+    <button id="toggleSensitivityButton" class="game-button">Toggle Sensitivity</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const resetButton = document.getElementById('resetButton');
+        const toggleMusicButton = document.getElementById('toggleMusicButton');
+        const toggleSensitivityButton = document.getElementById('toggleSensitivityButton');
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x87CEEB); // Sky Blue
+
+        let score = 0;
+        let fossils = [];
+        let rocks = [];
+        let trees = [];
+        let blocks = [];
+        let blockGeometry;
+        let blockMaterial;
+        let controls;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraTarget = new THREE.Vector3(0, 5, 0); // Initial target
+        let smoothFactor = 0.1; // Adjust for smoothing
+        let gameStarted = false;
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let mouseSensitivity = 0.2; // Default sensitivity
+        let isHighSensitivity = false; // State variable
+        let forwardSpeed = 0.4;  // Increased speed for forward/backward
+        let sideSpeed = 0.1;    // Slower speed for left/right - changed to 0.1
+
+
+        // --- Music Setup (Tone.js) ---
+        const musicSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        musicSynth.set({
+            oscillator: {
+                type: "sine"
+            }
+        });
+        const musicNotes = [
+          "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"
+        ];
+        let noteIndex = 0;
+        let musicLoop;
+        let isMusicPlaying = false;
+
+        function playMusic() {
+            if (!isMusicPlaying) return;
+
+            const now = Tone.now();
+            musicSynth.triggerAttackRelease(musicNotes[noteIndex], "8n", now);
+            noteIndex = (noteIndex + 1) % musicNotes.length;
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                clearInterval(musicLoop);
+                isMusicPlaying = false;
+                toggleMusicButton.textContent = "Play Music";
+            } else {
+                Tone.start();
+                musicLoop = setInterval(playMusic, 200);
+                isMusicPlaying = true;
+                toggleMusicButton.textContent = "Pause Music";
+            }
+        }
+        toggleMusicButton.addEventListener('click', toggleMusic);
+
+
+        // --- Game Object Creation ---
+        function createPlatform() {
+            const geometry = new THREE.PlaneGeometry(100, 100);
+            const material = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // Forest Green
+            const platform = new THREE.Mesh(geometry, material);
+            platform.rotation.x = -Math.PI / 2;
+            platform.receiveShadow = true;
+            return platform;
+        }
+
+        function createFossil(position) {
+            const geometry = new THREE.SphereGeometry(0.5, 8, 8);
+            const material = new THREE.MeshLambertMaterial({ color: 0xB8860B }); // Dark Goldenrod
+            const fossil = new THREE.Mesh(geometry, material);
+            fossil.position.copy(position);
+            fossil.castShadow = true;
+            fossil.name = "fossil";
+            return fossil;
+        }
+
+        function createRock(position) {
+            const geometry = new THREE.IcosahedronGeometry(0.7, 1);
+            const material = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Gray
+            const rock = new THREE.Mesh(geometry, material);
+            rock.position.copy(position);
+            rock.castShadow = true;
+            rock.name = "rock";
+            return rock;
+        }
+
+        function createTree(position) {
+            const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 }); // Saddle Brown
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(position.x, position.y + 1, position.z);
+            trunk.castShadow = true;
+
+            const crownGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const crownMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // Forest Green
+            const crown = new THREE.Mesh(crownGeometry, crownMaterial);
+            crown.position.set(position.x, position.y + 2.5, position.z);
+            crown.castShadow = true;
+
+            const tree = new THREE.Group();
+            tree.add(trunk);
+            tree.add(crown);
+            tree.name = "tree";
+            return tree;
+        }
+
+        function createBlock(position, color = 0x00FFFF) { // Default to Cyan
+            if (!blockGeometry) {
+                blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+            }
+            if (!blockMaterial) {
+                blockMaterial = new THREE.MeshLambertMaterial({ color: color });
+            }
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+            block.position.copy(position);
+            block.castShadow = true;
+            block.name = "block";
+            return block;
+        }
+
+        // --- Initial World Setup ---
+        const platform = createPlatform();
+        scene.add(platform);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(10, 20, 0);
+        light.castShadow = true;
+        light.shadow.mapSize.width = 2048;
+        light.shadow.mapSize.height = 2048;
+        light.shadow.camera.near = 0.5;
+        light.shadow.camera.far = 50;
+        scene.add(light);
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+
+        for (let i = 0; i < 10; i++) {
+            const x = Math.random() * 80 - 40;
+            const z = Math.random() * 80 - 40;
+            const y = 0.5;
+            fossils.push(createFossil({x, y, z}));
+        }
+        fossils.forEach(fossil => scene.add(fossil));
+
+        for (let i = 0; i < 15; i++) {
+            const x = Math.random() * 80 - 40;
+            const z = Math.random() * 80 - 40;
+            const y = 0.7;
+            rocks.push(createRock({x, y, z}));
+        }
+        rocks.forEach(rock => scene.add(rock));
+
+        for (let i = 0; i < 5; i++) {
+            const x = Math.random() * 80 - 40;
+            const z = Math.random() * 80 - 40;
+            const y = 0;
+            trees.push(createTree({x, y, z}));
+        }
+        trees.forEach(tree => scene.add(tree));
+
+        camera.position.set(0, 5, 15);
+        camera.lookAt(0, 0, 0);
+        controls = new THREE.PointerLockControls(camera, renderer.domElement);
+        // Disable pointer lock, use manual control
+        controls.enabled = false;
+
+
+        function resetGame() {
+            score = 0;
+            scoreDisplay.textContent = `Score: ${score}`;
+
+            // Remove existing objects (except platform and lights)
+            fossils.forEach(fossil => scene.remove(fossil));
+            rocks.forEach(rock => scene.remove(rock));
+            trees.forEach(tree => scene.remove(tree));
+            blocks.forEach(block => scene.remove(block));
+
+            fossils = [];
+            rocks = [];
+            trees = [];
+            blocks = [];
+
+            // Re-create initial objects
+            for (let i = 0; i < 10; i++) {
+                const x = Math.random() * 80 - 40;
+                const z = Math.random() * 80 - 40;
+                const y = 0.5;
+                fossils.push(createFossil({x, y, z}));
+            }
+            fossils.forEach(fossil => scene.add(fossil));
+
+            for (let i = 0; i < 15; i++) {
+                const x = Math.random() * 80 - 40;
+                const z = Math.random() * 80 - 40;
+                const y = 0.7;
+                rocks.push(createRock({x, y, z}));
+            }
+            rocks.forEach(rock => scene.add(rock));
+
+            for (let i = 0; i < 5; i++) {
+                const x = Math.random() * 80 - 40;
+                const z = Math.random() * 80 - 40;
+                const y = 0;
+                trees.push(createTree({x, y, z}));
+            }
+            trees.forEach(tree => scene.add(tree));
+
+            // Reset camera and controls
+            camera.position.set(0, 5, 15);
+            camera.lookAt(0, 0, 0);
+            controls.reset();
+            gameStarted = false;
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
+            if (isMusicPlaying) {
+              clearInterval(musicLoop);
+              noteIndex = 0;
+              musicLoop = setInterval(playMusic, 200);
+            }
+        }
+
+        resetButton.addEventListener('click', resetGame);
+
+
+        // --- Event Listeners ---
+
+        document.addEventListener('keydown', (event) => {
+            if (!gameStarted) return;
+            switch (event.key) {
+                case 'ArrowUp':
+                case 'w':
+                    moveForward = true;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    moveBackward = true;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    moveLeft = true;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    moveRight = true;
+                    break;
+                case ' ': // Spacebar to place block
+                    let newBlockPosition;
+                    newBlockPosition = { x: camera.position.x, y: camera.position.y - 0.5, z: camera.position.z };
+
+                     // Check for collision with existing blocks
+                    const isColliding = blocks.some(block =>
+                        Math.abs(block.position.x - newBlockPosition.x) < 0.5 &&
+                        Math.abs(block.position.y - newBlockPosition.y) < 0.5 &&
+                        Math.abs(block.position.z - newBlockPosition.z) < 0.5
+                    );
+
+                    if (!isColliding) {
+                        const newBlock = createBlock(newBlockPosition);
+                        blocks.push(newBlock);
+                        scene.add(newBlock);
+                    }
+                    break;
+                default:
+                    return;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (!gameStarted) return;
+            switch (event.key) {
+                case 'ArrowUp':
+                case 'w':
+                    moveForward = false;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    moveBackward = false;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    moveLeft = false;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    moveRight = false;
+                    break;
+                default:
+                    return;
+            }
+        });
+
+
+        renderer.domElement.addEventListener('mousedown', () => {
+            if (!gameStarted) {
+                //  controls.lock();  <-- REMOVED THIS LINE
+                gameStarted = true;
+                if (isMusicPlaying) {
+                  clearInterval(musicLoop);
+                  noteIndex = 0;
+                  musicLoop = setInterval(playMusic, 200);
+                }
+            }
+
+        });
+
+        renderer.domElement.addEventListener('mouseup', () => {
+            isDragging = false;
+            renderer.domElement.style.cursor = 'grab';
+        });
+
+
+
+        renderer.domElement.addEventListener('click', (event) => {
+            if (!gameStarted) return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            intersects.forEach(intersect => {
+                if (intersect.object.name === 'rock') {
+                    score += 10;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    scene.remove(intersect.object);
+                    rocks = rocks.filter(r => r !== intersect.object);
+                }
+                if (intersect.object.name === 'fossil') {
+                    score += 10;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    scene.remove(intersect.object);
+                    fossils = fossils.filter(f => f !== intersect.object);
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- Game Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (gameStarted) {
+                // Keyboard controls
+                const speed = 0.2;
+                velocity.x = 0;
+                velocity.z = 0;
+
+                if (moveForward) {
+                    velocity.z -= forwardSpeed; // Use forwardSpeed
+                }
+                if (moveBackward) {
+                    velocity.z += forwardSpeed; // Use forwardSpeed
+                }
+                if (moveLeft) {
+                    velocity.x -= sideSpeed;   // Use sideSpeed
+                }
+                if (moveRight) {
+                    velocity.x += sideSpeed;   // Use sideSpeed
+                }
+
+                // Get the direction the camera is facing
+                camera.getWorldDirection(direction);
+
+                // Combine the direction with the velocity
+                const movement = new THREE.Vector3();
+                movement.addScaledVector(direction, velocity.z);
+                movement.crossVectors(camera.up, direction).multiplyScalar(velocity.x); // Strafe
+                camera.position.add(movement);
+
+
+                // Smoothly move camera towards target
+                camera.position.x += (cameraTarget.x - camera.position.x) * smoothFactor;
+                camera.position.y += (cameraTarget.y - camera.position.y) * smoothFactor;
+                camera.position.z += (cameraTarget.z - camera.position.z) * smoothFactor;
+                camera.lookAt(cameraTarget);
+            }
+
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        toggleSensitivityButton.addEventListener('click', () => {
+            isHighSensitivity = !isHighSensitivity; // Toggle the state
+            if (isHighSensitivity) {
+                mouseSensitivity = 0.4; // Set to high sensitivity
+                toggleSensitivityButton.textContent = "Low Sensitivity";
+            } else {
+                mouseSensitivity = 0.2; // Set to low sensitivity
+                toggleSensitivityButton.textContent = "High Sensitivity";
+            }
+        });
+    </script>
+</body>
+</html>
