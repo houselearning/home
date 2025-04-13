@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Block Turtle v2</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #ffffff);
+      text-align: center;
+    }
+    h1 {
+      margin-top: 20px;
+      font-size: 2em;
+    }
+    #blocks-container, #workspace {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      padding: 10px;
+    }
+    #blocks-container {
+      border: 2px solid #03a9f4;
+      background: #e1f5fe;
+      min-height: 100px;
+      border-radius: 10px;
+    }
+    #workspace {
+      border: 2px dashed #0288d1;
+      background: #f1f8ff;
+      min-height: 150px;
+      margin: 10px;
+      border-radius: 10px;
+    }
+    .block {
+      padding: 10px 16px;
+      background: #0288d1;
+      color: white;
+      border-radius: 8px;
+      cursor: grab;
+      user-select: none;
+      font-size: 0.9em;
+    }
+    canvas {
+      border: 3px solid #0288d1;
+      background: #fff;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+    #start-btn {
+      margin: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #26c6da;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .sprite {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background-color: orange;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .speech-bubble {
+      position: absolute;
+      background: #fff;
+      border: 1px solid #aaa;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      transform: translate(-50%, -100%);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐢 Block Turtle v2 + Sprites!</h1>
+  <div id="blocks-container"></div>
+  <div id="workspace" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+  <button id="start-btn">▶️ Start Drawing</button>
+  <div style="position:relative; display:inline-block">
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <div id="sprite" class="sprite" style="top: 100px; left: 100px;"></div>
+  </div>
+
+  <script>
+    const blocksList = [
+      "Pen Down", "Pen Up", "Move Forward", "Turn Left", "Turn Right",
+      "Set Color Red", "Set Color Blue", "Set Color Green", "Set Color Black",
+      "Say Hello", "When Sprite Clicked",
+      "Repeat 4 Times", "Set Color Yellow", "Move Backward", "Turn Around",
+      "Set Variable X to 100", "Change X by 10", "Say Bye", "Clear Canvas",
+      "If X > 50", "Say Variable X"
+    ];
+
+    const blocksContainer = document.getElementById("blocks-container");
+    const workspace = document.getElementById("workspace");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const sprite = document.getElementById("sprite");
+
+    let turtle = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      angle: 0,
+      penDown: true,
+      color: "black"
+    };
+
+    let variables = {
+      X: 0
+    };
+
+    function drawTurtle() {
+      ctx.beginPath();
+      ctx.arc(turtle.x, turtle.y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "red";
+      ctx.fill();
+    }
+
+    function renderBlocks() {
+      blocksContainer.innerHTML = '';
+      blocksList.forEach(name => {
+        const div = document.createElement("div");
+        div.className = "block";
+        div.draggable = true;
+        div.textContent = name;
+        div.dataset.cmd = name;
+        div.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", name);
+        });
+        blocksContainer.appendChild(div);
+      });
+    }
+
+    function allowDrop(e) {
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      e.preventDefault();
+      const cmd = e.dataTransfer.getData("text/plain");
+      const block = document.createElement("div");
+      block.className = "block";
+      block.textContent = cmd;
+      block.dataset.cmd = cmd;
+      workspace.appendChild(block);
+    }
+
+    function sayMessage(msg, x, y) {
+      const bubble = document.createElement("div");
+      bubble.className = "speech-bubble";
+      bubble.textContent = msg;
+      bubble.style.left = x + "px";
+      bubble.style.top = y + "px";
+      canvas.parentElement.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 2000);
+    }
+
+    function executeBlocks() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      turtle.x = canvas.width / 2;
+      turtle.y = canvas.height / 2;
+      turtle.angle = 0;
+      turtle.penDown = true;
+      turtle.color = "black";
+      variables.X = 0;
+      drawTurtle();
+
+      const blocks = Array.from(workspace.querySelectorAll(".block"));
+      let i = 0;
+      while (i < blocks.length) {
+        const cmd = blocks[i].dataset.cmd;
+        switch (cmd) {
+          case "Pen Down": turtle.penDown = true; break;
+          case "Pen Up": turtle.penDown = false; break;
+          case "Move Forward": move(50); break;
+          case "Move Backward": move(-50); break;
+          case "Turn Left": turtle.angle -= 90; break;
+          case "Turn Right": turtle.angle += 90; break;
+          case "Turn Around": turtle.angle += 180; break;
+          case "Set Color Red": turtle.color = "red"; break;
+          case "Set Color Blue": turtle.color = "blue"; break;
+          case "Set Color Green": turtle.color = "green"; break;
+          case "Set Color Black": turtle.color = "black"; break;
+          case "Set Color Yellow": turtle.color = "yellow"; break;
+          case "Set Variable X to 100": variables.X = 100; break;
+          case "Change X by 10": variables.X += 10; break;
+          case "Say Hello": sayMessage("Hello!", turtle.x, turtle.y); break;
+          case "Say Bye": sayMessage("Bye!", turtle.x, turtle.y); break;
+          case "Say Variable X": sayMessage("X: " + variables.X, turtle.x, turtle.y); break;
+          case "Clear Canvas": ctx.clearRect(0, 0, canvas.width, canvas.height); break;
+          case "Repeat 4 Times":
+            const repeated = blocks.slice(i + 1, i + 5).map(b => b.dataset.cmd);
+            for (let r = 0; r < 4; r++) {
+              repeated.forEach(cmd => blocks.splice(i + 1, 0, { dataset: { cmd } }));
+            }
+            i += 4;
+            break;
+          case "If X > 50":
+            if (!(variables.X > 50)) {
+              i++;
+            }
+            break;
+        }
+        i++;
+      }
+      drawTurtle();
+    }
+
+    function move(dist) {
+      let rad = turtle.angle * Math.PI / 180;
+      let newX = turtle.x + dist * Math.cos(rad);
+      let newY = turtle.y + dist * Math.sin(rad);
+      if (turtle.penDown) {
+        ctx.beginPath();
+        ctx.moveTo(turtle.x, turtle.y);
+        ctx.lineTo(newX, newY);
+        ctx.strokeStyle = turtle.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      turtle.x = newX;
+      turtle.y = newY;
+    }
+
+    document.getElementById("start-btn").addEventListener("click", executeBlocks);
+
+    sprite.addEventListener("click", () => {
+      const clickedBlocks = Array.from(workspace.querySelectorAll(".block"));
+      let startIndex = clickedBlocks.findIndex(b => b.dataset.cmd === "When Sprite Clicked");
+      if (startIndex === -1) return;
+
+      for (let i = startIndex + 1; i < clickedBlocks.length; i++) {
+        const cmd = clickedBlocks[i].dataset.cmd;
+        if (blocksList.includes(cmd)) {
+          switch (cmd) {
+            case "Say Hello": sayMessage("Hello!", parseInt(sprite.style.left), parseInt(sprite.style.top)); break;
+            case "Say Bye": sayMessage("Bye!", parseInt(sprite.style.left), parseInt(sprite.style.top)); break;
+            case "Say Variable X": sayMessage("X: " + variables.X, parseInt(sprite.style.left), parseInt(sprite.style.top)); break;
+            default: return;
+          }
+        }
+      }
+    });
+
+    renderBlocks();
+  </script>
+</body>
+</html>
