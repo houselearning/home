@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Submit Your Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1, h2 {
+      margin-bottom: 10px;
+    }
+    .rules {
+      background-color: #f9f9f9;
+      border-left: 5px solid #007bff;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+    }
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    input[type="file"], input[type="text"] {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .draft-controls {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Submit Your Website</h1>
+  <div class="rules">
+    <strong>Rules for Uploading Websites:</strong>
+    <ul>
+      <li>No malicious code or scripts.</li>
+      <li>HTML files only. No server-side languages.</li>
+      <li>Max file size: 1MB</li>
+      <li>Do not include any external scripts or links.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Website Title</h2>
+    <input type="text" id="siteTitle" placeholder="Enter your site title here..." />
+  </div>
+
+  <div class="section">
+    <h2>Select Input Method</h2>
+    <label><input type="radio" name="inputMethod" value="code" checked> Paste HTML Code</label>
+    <label><input type="radio" name="inputMethod" value="upload"> Upload HTML File</label>
+  </div>
+
+  <div class="section" id="codeSection">
+    <h2>Paste Your HTML Code</h2>
+    <textarea id="htmlCode" placeholder="Paste your HTML code here..."></textarea>
+    <div class="draft-controls">
+      <button onclick="previewCode()">Preview Code</button>
+      <button onclick="clearDraft()" style="background-color:#dc3545;">Clear Draft</button>
+    </div>
+    <h3>Preview:</h3>
+    <iframe id="codePreview"></iframe>
+  </div>
+
+  <div class="section" id="uploadSection" style="display: none;">
+    <h2>Upload an HTML File</h2>
+    <input type="file" id="htmlFile" accept=".html" />
+    <button onclick="previewUpload()">Preview Uploaded File</button>
+    <h3>Preview:</h3>
+    <iframe id="uploadPreview"></iframe>
+  </div>
+
+  <button onclick="submitSite()">Submit Website</button>
+
+  <script>
+    let uploadedHTML = ""; // store uploaded content
+    let pastedHTML = "";   // store pasted content
+
+    const titleInput = document.getElementById("siteTitle");
+    const htmlCodeInput = document.getElementById("htmlCode");
+
+    // Restore draft if available
+    window.onload = () => {
+      if (localStorage.getItem("draft_html")) {
+        htmlCodeInput.value = localStorage.getItem("draft_html");
+        pastedHTML = htmlCodeInput.value;
+        previewCode();
+      }
+      if (localStorage.getItem("draft_title")) {
+        titleInput.value = localStorage.getItem("draft_title");
+      }
+    };
+
+    // Save draft every 2 seconds
+    setInterval(() => {
+      if (document.querySelector('input[name="inputMethod"]:checked').value === "code") {
+        localStorage.setItem("draft_html", htmlCodeInput.value);
+        localStorage.setItem("draft_title", titleInput.value);
+      }
+    }, 2000);
+
+    // Clear draft
+    function clearDraft() {
+      localStorage.removeItem("draft_html");
+      localStorage.removeItem("draft_title");
+      htmlCodeInput.value = "";
+      titleInput.value = "";
+      document.getElementById('codePreview').srcdoc = "";
+      pastedHTML = "";
+      alert("Draft cleared.");
+    }
+
+    // Input method switching
+    document.querySelectorAll('input[name="inputMethod"]').forEach(input => {
+      input.addEventListener('change', () => {
+        const method = document.querySelector('input[name="inputMethod"]:checked').value;
+        document.getElementById('codeSection').style.display = (method === 'code') ? 'block' : 'none';
+        document.getElementById('uploadSection').style.display = (method === 'upload') ? 'block' : 'none';
+      });
+    });
+
+    function previewCode() {
+      pastedHTML = htmlCodeInput.value;
+      document.getElementById('codePreview').srcdoc = pastedHTML;
+    }
+
+    function previewUpload() {
+      const fileInput = document.getElementById('htmlFile');
+      const file = fileInput.files[0];
+      if (!file) return alert("No file selected.");
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        uploadedHTML = e.target.result;
+        document.getElementById('uploadPreview').srcdoc = uploadedHTML;
+      };
+      reader.readAsText(file);
+    }
+
+function submitSite() {
+  const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
+  const title = titleInput.value || "Untitled Submission";
+
+  let finalHTML = selectedMethod === "code" ? pastedHTML : uploadedHTML;
+
+  if (!finalHTML.trim()) {
+    alert("You haven't submitted any HTML content.");
+    return;
+  }
+
+  // Clean up local storage if needed
+  if (selectedMethod === "code") {
+    localStorage.removeItem("draft_html");
+    localStorage.removeItem("draft_title");
+  }
+
+  // Encode finalHTML for data URL safely
+  const blob = new Blob([finalHTML], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+
+  // Escape for iframe srcdoc
+  const safeSrcdoc = finalHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  document.write(`
+    <style>
+      body { font-family: Arial, sans-serif; padding: 30px; text-align: center; }
+      iframe { width: 100%; height: 500px; border: 1px solid #ccc; margin-top: 20px; }
+      a.view-link {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #007bff;
+        text-decoration: none;
+      }
+      a.view-link:hover {
+        text-decoration: underline;
+      }
+    </style>
+    <h1>✅ Submission Complete!</h1>
+    <p><strong>${title}</strong> has been submitted. We'll review it in 2–3 business days.</p>
+    <h2>Final Preview</h2>
+    <iframe srcdoc="${finalHTML.replace(/"/g, '&quot;')}"></iframe><br>
+    <a class="view-link" href="${url}" target="_blank">🔗 View in Browser</a>
+  `);
+}
+
+  </script>
+
+</body>
+</html>
