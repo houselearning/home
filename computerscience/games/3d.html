@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Object Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            cursor: grab;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        #canvas:active {
+            cursor: grabbing;
+        }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            z-index: 1;
+        }
+
+        .control-button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .control-button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-button:active {
+            background-color: #d0d0d0;
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        #message-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            z-index: 1;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .show-message {
+            opacity: 1;
+        }
+
+        #export-glb {
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+        }
+
+        #export-glb:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        #export-glb:active {
+            background-color: #388E3C;
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        #color-picker {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #color-picker.show {
+            opacity: 1;
+        }
+
+        #custom-shape-form {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+            display: none;
+            width: 250px;
+        }
+
+        #custom-shape-form.show {
+            display: block;
+        }
+
+        #custom-shape-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        #custom-shape-form input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #custom-shape-form button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        #custom-shape-form button:hover {
+            background-color: #0056b3;
+        }
+
+        #object-properties {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+            display: none;
+            width: 200px;
+        }
+
+        #object-properties.show {
+            display: block;
+        }
+
+        #object-properties label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        #object-properties input {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        #object-properties h2 {
+            margin-top: 0;
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #007bff;
+            cursor: pointer;
+            z-index: 3;
+            border: 1px solid white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .resize-handle:hover {
+            background-color: #0056b3;
+        }
+
+        #export-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            text-align: center;
+            display: none;
+            width: 300px;
+        }
+
+        #export-dialog.show {
+            display: block;
+        }
+
+        #export-dialog h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        #export-dialog p {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        #export-dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #export-dialog-buttons button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+        }
+
+        #export-dialog-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        #export-dialog-cancel:hover {
+            background-color: #d0d0d0;
+        }
+
+        #export-dialog-download {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #export-dialog-download:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100">
+    <canvas id="canvas"></canvas>
+    <div id="controls">
+        <button class="control-button" id="create-sphere">Sphere</button>
+        <button class="control-button" id="create-cube">Cube</button>
+        <button class="control-button" id="create-cone">Cone</button>
+        <button class="control-button" id="create-cylinder">Cylinder</button>
+        <button class="control-button" id="create-torus">Torus</button>
+        <button class="control-button" id="create-plane">Plane</button>
+        <button class="control-button" id="create-dodecahedron">Dodecahedron</button>
+        <button class="control-button" id="create-icosahedron">Icosahedron</button>
+        <button class="control-button" id="create-octahedron">Octahedron</button>
+        <button class="control-button" id="create-tetrahedron">Tetrahedron</button>
+        <button class="control-button" id="create-ring">Ring</button>
+        <button class="control-button" id="create-circle">Circle</button>
+        <button class="control-button" id="create-custom">Custom Shape</button>
+        <button class="control-button" id="toggle-color-picker">Paint</button>
+        <button class="control-button" id="reset-scene">Reset</button>
+    </div>
+    <button id="export-glb">Export GLB</button>
+    <div id="message-box"></div>
+    <input type="color" id="color-picker" value="#ff0000">
+    <div id="custom-shape-form">
+        <label for="equation-x">Equation for X (t):</label>
+        <input type="text" id="equation-x" value="cos(t)">
+        <label for="equation-y">Equation for Y (t):</label>
+        <input type="text" id="equation-y" value="sin(t)">
+        <label for="equation-z">Equation for Z (t):</label>
+        <input type="text" id="equation-z" value="0">
+        <label for="t-start">Start Value for t:</label>
+        <input type="number" id="t-start" value="0">
+        <label for="t-end">End Value for t:</label>
+        <input type="number" id="t-end" value="6.28">
+        <label for="segments">Number of Segments:</label>
+        <input type="number" id="segments" value="64">
+        <button id="create-custom-shape">Create Shape</button>
+    </div>
+
+    <div id="object-properties">
+        <h2>Object Properties</h2>
+        <label for="position-x">Position X:</label>
+        <input type="number" id="position-x" value="0">
+        <label for="position-y">Position Y:</label>
+        <input type="number" id="position-y" value="0">
+        <label for="position-z">Position Z:</label>
+        <input type="number" id="position-z" value="0">
+        <label for="scale-x">Scale X:</label>
+        <input type="number" id="scale-x" value="1">
+        <label for="scale-y">Scale Y:</label>
+        <input type="number" id="scale-y" value="1">
+        <label for="scale-z">Scale Z:</label>
+        <input type="number" id="scale-z" value="1">
+        <label for="color-value">Color:</label>
+        <input type="color" id="color-value" value="#ff0000">
+    </div>
+
+    <div id="export-dialog">
+        <h2>Export Scene</h2>
+        <p>Item name: <span id="export-file-name">scene</span>.glb</p>
+        <div id="export-dialog-buttons">
+            <button id="export-dialog-cancel">Cancel</button>
+            <button id="export-dialog-download">Download</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.js"></script>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setClearColor(0xaaaaaa);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 15);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.1;
+        controls.rotateSpeed = 0.5;
+
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+
+        let selectedObject = null;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let objectOffset = { x: 0, y: 0, z: 0 };
+        let painting = false;
+        let currentPaintColor = '#ff0000';
+        let selectionBox = null;
+        let resizeHandles = [];
+        let isResizing = false;
+        let resizingHandle = null;
+        let exportFileName = 'scene';
+
+        const colorPicker = document.getElementById('color-picker');
+        const customShapeForm = document.getElementById('custom-shape-form');
+        const equationXInput = document.getElementById('equation-x');
+        const equationYInput = document.getElementById('equation-y');
+        const equationZInput = document.getElementById('equation-z');
+        const tStartInput = document.getElementById('t-start');
+        const tEndInput = document.getElementById('t-end');
+        const segmentsInput = document.getElementById('segments');
+        const createCustomShapeButton = document.getElementById('create-custom-shape');
+        const toggleColorPickerButton = document.getElementById('toggle-color-picker');
+        const objectPropertiesDiv = document.getElementById('object-properties');
+        const positionXInput = document.getElementById('position-x');
+        const positionYInput = document.getElementById('position-y');
+        const positionZInput = document.getElementById('position-z');
+        const scaleXInput = document.getElementById('scale-x');
+        const scaleYInput = document.getElementById('scale-y');
+        const scaleZInput = document.getElementById('scale-z');
+        const colorValueInput = document.getElementById('color-value');
+        const exportDialog = document.getElementById('export-dialog');
+        const exportFileNameDisplay = document.getElementById('export-file-name');
+        const exportDialogCancelButton = document.getElementById('export-dialog-cancel');
+        const exportDialogDownloadButton = document.getElementById('export-dialog-download');
+
+        colorPicker.addEventListener('change', (event) => {
+            currentPaintColor = event.target.value;
+            if (selectedObject && painting) {
+                selectedObject.material.color.set(currentPaintColor);
+                updateObjectProperties(selectedObject);
+            }
+        });
+
+        toggleColorPickerButton.addEventListener('click', () => {
+            painting = !painting;
+            colorPicker.classList.toggle('show', painting);
+            if (painting) {
+                showMessage('Painting mode enabled! Select an object and choose a color.');
+            } else {
+                showMessage('Painting mode disabled!');
+            }
+        });
+
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.classList.add('show-message');
+            setTimeout(() => {
+                messageBox.classList.remove('show-message');
+            }, 3000);
+        }
+
+        function createSphere() {
+            const geometry = new THREE.SphereGeometry(2, 32, 32);
+            const material = new THREE.MeshStandardMaterial({ color: 0x00ff00, roughness: 0.5, metalness: 0.2 });
+            const sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
+            addObjectToScene(sphere);
+            showMessage('Sphere created!');
+        }
+
+        function createCube() {
+            const geometry = new THREE.BoxGeometry(3, 3, 3);
+            const material = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.7, metalness: 0.1 });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            addObjectToScene(cube);
+            showMessage('Cube created!');
+        }
+
+        function createCone() {
+            const geometry = new THREE.ConeGeometry(2, 5, 32);
+            const material = new THREE.MeshStandardMaterial({ color: 0x0000ff, roughness: 0.3, metalness: 0.8 });
+            const cone = new THREE.Mesh(geometry, material);
+            scene.add(cone);
+            addObjectToScene(cone);
+            showMessage('Cone created!');
+        }
+
+        function createCylinder() {
+            const geometry = new THREE.CylinderGeometry(2, 2, 5, 32);
+            const material = new THREE.MeshStandardMaterial({ color: 0xffff00, roughness: 0.4, metalness: 0.1 });
+            const cylinder = new THREE.Mesh(geometry, material);
+            scene.add(cylinder);
+            addObjectToScene(cylinder);
+            showMessage('Cylinder created!');
+        }
+
+        function createTorus() {
+            const geometry = new THREE.TorusGeometry(3, 1, 16, 100);
+            const material = new THREE.MeshStandardMaterial({ color: 0xffa500, roughness: 0.6, metalness: 0.5 });
+            const torus = new THREE.Mesh(geometry, material);
+            scene.add(torus);
+            addObjectToScene(torus);
+            showMessage('Torus created!');
+        }
+
+        function createPlane() {
+            const geometry = new THREE.PlaneGeometry(10, 10);
+            const material = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.9, metalness: 0.2 });
+            const plane = new THREE.Mesh(geometry, material);
+            plane.rotation.x = -Math.PI / 2;
+            scene.add(plane);
+            addObjectToScene(plane);
+            showMessage('Plane created!');
+        }
+
+        function createDodecahedron() {
+            const geometry = new THREE.DodecahedronGeometry(3);
+            const material = new THREE.MeshStandardMaterial({ color: 0x800080, roughness: 0.7, metalness: 0.1 });
+            const dodecahedron = new THREE.Mesh(geometry, material);
+            scene.add(dodecahedron);
+            addObjectToScene(dodecahedron);
+            showMessage('Dodecahedron created!');
+        }
+
+        function createIcosahedron() {
+            const geometry = new THREE.IcosahedronGeometry(3);
+            const material = new THREE.MeshStandardMaterial({ color: 0x00ffff, roughness: 0.3, metalness: 0.8 });
+            const icosahedron = new THREE.Mesh(geometry, material);
+            scene.add(icosahedron);
+            addObjectToScene(icosahedron);
+            showMessage('Icosahedron created!');
+        }
+
+        function createOctahedron() {
+            const geometry = new THREE.OctahedronGeometry(3);
+            const material = new THREE.MeshStandardMaterial({ color: 0xff6347, roughness: 0.5, metalness: 0.2 });
+            const octahedron = new THREE.Mesh(geometry, material);
+            scene.add(octahedron);
+            addObjectToScene(octahedron);
+            showMessage('Octahedron created!');
+        }
+
+        function createTetrahedron() {
+            const geometry = new THREE.TetrahedronGeometry(3);
+            const material = new THREE.MeshStandardMaterial({ color: 0x7fff00, roughness: 0.4, metalness: 0.1 });
+            const tetrahedron = new THREE.Mesh(geometry, material);
+            scene.add(tetrahedron);
+            addObjectToScene(tetrahedron);
+            showMessage('Tetrahedron created!');
+        }
+
+        function createRing() {
+            const geometry = new THREE.RingGeometry(1, 5, 32);
+            const material = new THREE.MeshStandardMaterial({ color: 0xf4a460, roughness: 0.6, metalness: 0.5 });
+            const ring = new THREE.Mesh(geometry, material);
+            scene.add(ring);
+            addObjectToScene(ring);
+            showMessage('Ring created!');
+        }
+
+        function createCircle() {
+            const geometry = new THREE.CircleGeometry(3, 32);
+            const material = new THREE.MeshStandardMaterial({ color: 0xdda0dd, roughness: 0.7, metalness: 0.1 });
+            const circle = new THREE.Mesh(geometry, material);
+            scene.add(circle);
+            addObjectToScene(circle);
+            showMessage('Circle created!');
+        }
+
+        function resetScene() {
+            scene.children.filter(obj => obj.type === 'Mesh').forEach(obj => {
+                scene.remove(obj);
+                obj.geometry.dispose();
+                if (obj.material.dispose) obj.material.dispose();
+            });
+            selectedObject = null;
+            objectPropertiesDiv.classList.remove('show');
+            removeSelectionBox();
+            showMessage('Scene reset!');
+        }
+
+        function addObjectToScene(obj) {
+            obj.userData = { resizable: true, draggable: true };
+            obj.addEventListener('click', () => {
+                selectedObject = obj;
+                updateObjectProperties(selectedObject);
+                objectPropertiesDiv.classList.add('show');
+                showSelectionBox(selectedObject);
+            });
+        }
+
+        function handleObjectClick(event) {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);const intersects = raycaster.intersectObjects(scene.children);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                if (clickedObject.userData && clickedObject.userData.draggable) {
+                    selectedObject = clickedObject;
+                    isDragging = true;
+                    objectOffset.x = intersects[0].point.x - clickedObject.position.x;
+                    objectOffset.y = intersects[0].point.y - clickedObject.position.y;
+                    objectOffset.z = intersects[0].point.z - clickedObject.position.z;
+                    previousMousePosition = { x: event.clientX, y: event.clientY };
+                    controls.enabled = false;
+                    if (painting) {
+                        clickedObject.material.color.set(currentPaintColor);
+                        updateObjectProperties(clickedObject);
+                        showMessage('Painted object!');
+                    }
+                    showSelectionBox(clickedObject);
+                } else if (intersects[0].object.isResizeHandle) {
+                    isResizing = true;
+                    resizingHandle = intersects[0].object;
+                    selectedObject = resizingHandle.parent;
+                    previousMousePosition = { x: event.clientX, y: event.clientY };
+                    controls.enabled = false;
+                } else {
+                    selectedObject = null;
+                    removeSelectionBox();
+                    objectPropertiesDiv.classList.remove('show');
+                }
+            } else {
+                selectedObject = null;
+                removeSelectionBox();
+                objectPropertiesDiv.classList.remove('show');
+            }
+        }
+
+        function handleMouseMove(event) {
+            if (isDragging && selectedObject) {
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                const intersectPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(plane, intersectPoint);
+
+                selectedObject.position.set(
+                    intersectPoint.x - objectOffset.x,
+                    intersectPoint.y - objectOffset.y,
+                    selectedObject.position.z
+                );
+                updateObjectProperties(selectedObject);
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+                updateSelectionBox(selectedObject);
+            } else if (isResizing && selectedObject && resizingHandle) {
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+
+                let scaleFactorX = 1 + deltaX * 0.005;
+                let scaleFactorY = 1 + deltaY * 0.005;
+                let scaleFactorZ = 1;
+
+                if (resizingHandle.name === 'handle-top-left') {
+                    selectedObject.scale.x *= scaleFactorX;
+                    selectedObject.scale.y *= scaleFactorY;
+                } else if (resizingHandle.name === 'handle-top-right') {
+                    selectedObject.scale.x *= scaleFactorX;
+                    selectedObject.scale.y *= scaleFactorY;
+                } else if (resizingHandle.name === 'handle-bottom-left') {
+                    selectedObject.scale.x *= scaleFactorX;
+                    selectedObject.scale.y *= scaleFactorY;
+                } else if (resizingHandle.name === 'handle-bottom-right') {
+                    selectedObject.scale.x *= scaleFactorX;
+                    selectedObject.scale.y *= scaleFactorY;
+                } else if (resizingHandle.name === 'handle-left') {
+                    selectedObject.scale.x *= scaleFactorX;
+                } else if (resizingHandle.name === 'handle-right') {
+                    selectedObject.scale.x *= scaleFactorX;
+                } else if (resizingHandle.name === 'handle-top') {
+                    selectedObject.scale.y *= scaleFactorY;
+                } else if (resizingHandle.name === 'handle-bottom') {
+                    selectedObject.scale.y *= scaleFactorY;
+                }
+
+                 else if (resizingHandle.name === 'handle-front') {
+                    selectedObject.scale.z *= scaleFactorZ;
+                } else if (resizingHandle.name === 'handle-back') {
+                    selectedObject.scale.z *= scaleFactorZ;
+                }
+
+                selectedObject.scale.x = Math.max(0.1, selectedObject.scale.x);
+                selectedObject.scale.y = Math.max(0.1, selectedObject.scale.y);
+                selectedObject.scale.z = Math.max(0.1, selectedObject.scale.z);
+                updateObjectProperties(selectedObject);
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+                updateSelectionBox(selectedObject);
+            }
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+            isResizing = false;
+            resizingHandle = null;
+            controls.enabled = true;
+            if (selectedObject) {
+                showMessage('Object dropped!');
+            }
+        }
+
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+            return needResize;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            resizeRendererToDisplaySize(renderer);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function createCustomShape() {
+            const equationX = equationXInput.value;
+            const equationY = equationYInput.value;
+            const equationZ = equationZInput.value;
+            const tStart = parseFloat(tStartInput.value);
+            const tEnd = parseFloat(tEndInput.value);
+            const segments = parseInt(segmentsInput.value);
+
+            const points = [];
+            const tValues = [];
+            for (let i = 0; i <= segments; i++) {
+                const t = tStart + (i / segments) * (tEnd - tStart);
+                tValues.push(t);
+            }
+
+            try {
+                tValues.forEach(t => {
+                    const x= math.evaluate(equationX, { t: t });
+                    const y = math.evaluate(equationY, { t: t });
+                    const z = math.evaluate(equationZ, { t: t });
+                    points.push(new THREE.Vector3(x, y, z));
+                });
+            } catch (error) {
+                showMessage('Error in equation: ' + error.message);
+                return;
+            }
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.6, metalness: 0.3 });
+            const customShape = new THREE.Mesh(geometry, material);
+            scene.add(customShape);
+            addObjectToScene(customShape);
+            showMessage('Custom shape created!');
+            customShapeForm.classList.remove('show');
+        }
+
+        function exportGLB() {
+            exportFileNameDisplay.textContent = exportFileName + '.glb';
+            exportDialog.classList.add('show');
+        }
+
+        exportDialogCancelButton.addEventListener('click', () => {
+            exportDialog.classList.remove('show');
+        });
+
+        exportDialogDownloadButton.addEventListener('click', () => {
+            const exporter = new THREE.GLTFExporter();
+            exporter.parse(
+                scene,
+                function (gltf) {
+                    try {
+                        const output = JSON.stringify(gltf, null, 2);
+                        const blob = new Blob([output], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = exportFileName + '.glb';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        showMessage('Scene exported as GLB!');
+                        exportDialog.classList.remove('show');
+                    } catch (e) {
+                        console.error("Error during download:", e);
+                        showMessage('Error during download: ' + e.message);
+                        exportDialog.classList.remove('show');
+                    }
+                },
+                function (error) {
+                    console.error('An error happened during parsing:', error);
+                    showMessage('Error exporting scene: ' + error.message);
+                    exportDialog.classList.remove('show');
+                },
+                { binary: false }
+            );
+        });
+
+        function updateObjectProperties(obj) {
+            positionXInput.value = obj.position.x.toFixed(2);
+            positionYInput.value = obj.position.y.toFixed(2);
+            positionZInput.value = obj.position.z.toFixed(2);
+            scaleXInput.value = obj.scale.x.toFixed(2);
+            scaleYInput.value = obj.scale.y.toFixed(2);
+            scaleZInput.value = obj.scale.z.toFixed(2);
+            colorValueInput.value = '#' + obj.material.color.getHexString();
+            selectedObject = obj;
+        }
+
+        positionXInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.position.x = parseFloat(positionXInput.value);
+                updateSelectionBox(selectedObject);
+            }
+        });
+
+        positionYInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.position.y = parseFloat(positionYInput.value);
+                updateSelectionBox(selectedObject);
+            }
+        });
+
+        positionZInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.position.z = parseFloat(positionZInput.value);
+                updateSelectionBox(selectedObject);
+            }
+        });
+
+        scaleXInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.scale.x = parseFloat(scaleXInput.value);
+                updateSelectionBox(selectedObject);
+            }
+        });
+
+        scaleYInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.scale.y = parseFloat(scaleYInput.value);
+                updateSelectionBox(selectedObject);
+            }
+        });
+
+        scaleZInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.scale.z = parseFloat(scaleZInput.value);
+                updateSelectionBox(selectedObject);
+            }
+        });
+
+        colorValueInput.addEventListener('change', () => {
+            if (selectedObject) {
+                selectedObject.material.color.set(colorValueInput.value);
+            }
+        });
+
+        document.getElementById('create-sphere').addEventListener('click', createSphere);
+        document.getElementById('create-cube').addEventListener('click', createCube);
+        document.getElementById('create-cone').addEventListener('click', createCone);
+        document.getElementById('create-cylinder').addEventListener('click', createCylinder);
+        document.getElementById('create-torus').addEventListener('click', createTorus);
+        document.getElementById('create-plane').addEventListener('click', createPlane);
+        document.getElementById('create-dodecahedron').addEventListener('click', createDodecahedron);
+        document.getElementById('create-icosahedron').addEventListener('click', createIcosahedron);
+        document.getElementById('create-octahedron').addEventListener('click', createOctahedron);
+        document.getElementById('create-tetrahedron').addEventListener('click', createTetrahedron);
+        document.getElementById('create-ring').addEventListener('click', createRing);
+        document.getElementById('create-circle').addEventListener('click', createCircle);
+        document.getElementById('create-custom').addEventListener('click', () => {
+            customShapeForm.classList.toggle('show');
+        });
+        document.getElementById('reset-scene').addEventListener('click', resetScene);
+        document.getElementById('export-glb').addEventListener('click', exportGLB);
+        createCustomShapeButton.addEventListener('click', createCustomShape);
+
+        canvas.addEventListener('mousedown', handleObjectClick);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('resize', () => {
+            resizeRendererToDisplaySize(renderer);
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Delete' && selectedObject) {
+                scene.remove(selectedObject);
+                selectedObject.geometry.dispose();
+                if (selectedObject.material.dispose) selectedObject.material.dispose();
+                selectedObject = null;
+                removeSelectionBox();
+                objectPropertiesDiv.classList.remove('show');
+                showMessage('Object deleted!');
+            }
+        });
+
+        function showSelectionBox(obj) {
+            removeSelectionBox();
+
+            const boundingBox = new THREE.Box3().setFromObject(obj);
+            const width = boundingBox.max.x - boundingBox.min.x;
+            const height = boundingBox.max.y - boundingBox.min.y;
+            const depth = boundingBox.max.z - boundingBox.min.z;
+            const center = new THREE.Vector3();
+            boundingBox.getCenter(center);
+
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.LineDashedMaterial({
+                color: 0x007bff,
+                linewidth: 2,
+                dashSize: 0.2,
+                gapSize: 0.2,
+                transparent: true,
+                opacity: 0.8,
+            });
+            selectionBox = new THREE.LineSegments(geometry, material);
+            selectionBox.position.set(center.x, center.y, center.z);
+            scene.add(selectionBox);
+
+            createResizeHandles(obj);
+        }
+
+        function updateSelectionBox(obj) {
+            if (!selectionBox) return;
+
+            const boundingBox = new THREE.Box3().setFromObject(obj);
+            const width = boundingBox.max.x - boundingBox.min.x;
+            const height = boundingBox.max.y - boundingBox.min.y;
+            const depth = boundingBox.max.z - boundingBox.min.z;
+            const center = new THREE.Vector3();
+            boundingBox.getCenter(center);
+
+            selectionBox.geometry.dispose();
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            selectionBox.geometry = geometry;
+            selectionBox.position.set(center.x, center.y, center.z);
+
+            updateResizeHandles(obj);
+        }
+
+        function removeSelectionBox() {
+            if (selectionBox) {
+                scene.remove(selectionBox);
+                selectionBox.geometry.dispose();
+                if (selectionBox.material.dispose) selectionBox.material.dispose();
+                selectionBox = null;
+            }
+            removeResizeHandles();
+        }
+
+        function createResizeHandles(obj) {
+            const boundingBox = new THREE.Box3().setFromObject(obj);
+            const min = boundingBox.min;
+            const max = boundingBox.max;
+
+            const handlePositions = [
+                { name: 'handle-top-left', x: min.x, y: max.y, z: center.z },
+                { name: 'handle-top-right', x: max.x, y: max.y, z: center.z },
+                { name: 'handle-bottom-left', x: min.x, y: min.y, z: center.z },
+                { name: 'handle-bottom-right', x: max.x, y: min.y, z: center.z },
+                { name: 'handle-left', x: min.x, y: center.y, z: center.z },
+                { name: 'handle-right', x: max.x, y: center.y, z: center.z },
+                { name: 'handle-top', x: center.x, y: max.y, z: center.z },
+                { name: 'handle-bottom', x: center.x, y: min.y, z: center.z },
+                { name: 'handle-front', x: center.x, y: center.y, z: max.z },
+                { name: 'handle-back', x: center.x, y: center.y, z: min.z }
+            ];
+
+            handlePositions.forEach(pos => {
+                const handleGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+                const handleMaterial = new THREE.MeshBasicMaterial({ color: 0x007bff });
+                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+                handle.position.set(pos.x, pos.y, pos.z);
+                handle.name = pos.name;
+                handle.isResizeHandle = true;
+                handle.parent = obj;
+                scene.add(handle);
+                resizeHandles.push(handle);
+            });
+        }
+
+        function updateResizeHandles(obj) {
+            if (resizeHandles.length === 0) return;
+
+            const boundingBox = new THREE.Box3().setFromObject(obj);
+            const min = boundingBox.min;
+            const max = boundingBox.max;
+            const center = new THREE.Vector3();
+            boundingBox.getCenter(center);
+
+             const handlePositions = [
+                { name: 'handle-top-left', x: min.x, y: max.y, z: center.z },
+                { name: 'handle-top-right', x: max.x, y: max.y, z: center.z },
+                { name: 'handle-bottom-left', x: min.x, y: min.y, z: center.z },
+                { name: 'handle-bottom-right', x: max.x, y: min.y, z: center.z },
+                { name: 'handle-left', x: min.x, y: center.y, z: center.z },
+                { name: 'handle-right', x: max.x, y: center.y, z: center.z },
+                { name: 'handle-top', x: center.x, y: max.y, z: center.z },
+                { name: 'handle-bottom', x: center.x, y: min.y, z: center.z },
+                { name: 'handle-front', x: center.x, y: center.y, z: max.z },
+                { name: 'handle-back', x: center.x, y: center.y, z: min.z }
+            ];
+
+            resizeHandles.forEach((handle, index) => {
+                handle.position.set(
+                    handlePositions[index].x,
+                    handlePositions[index].y,
+                    handlePositions[index].z
+                );
+            });
+        }
+
+        function removeResizeHandles() {
+            resizeHandles.forEach(handle => {
+                scene.remove(handle);
+            });
+            resizeHandles = [];
+        }
+
+        resizeRendererToDisplaySize(renderer);
+        animate();
+    </script>
+</body>
+</html>
