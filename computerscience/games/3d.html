@@ -585,8 +585,7 @@ window.addEventListener('load', function() {
             showMessage('Scene reset!');
         }
 
-        function addObjectToScene(obj) {
-            obj.userData = { resizable: true, draggable: true };
+        function addObjectToScene(obj) {obj.userData = { resizable: true, draggable: true };
             obj.addEventListener('click', () => {
                 selectedObject = obj;
                 updateObjectProperties(selectedObject);
@@ -766,7 +765,7 @@ window.addEventListener('load', function() {
             customShapeForm.classList.remove('show');
         }
 
-        function exportGLB() {
+       function exportGLB() {
             exportFileNameDisplay.textContent = exportFileName + '.glb';
             exportDialog.classList.add('show');
         }
@@ -780,31 +779,24 @@ window.addEventListener('load', function() {
             exporter.parse(
                 scene,
                 function (gltf) {
-                    try {
-                        const output = JSON.stringify(gltf, null, 2);
-                        const blob = new Blob([output], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = exportFileName + '.glb';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-                        showMessage('Scene exported as GLB!');
-                        exportDialog.classList.remove('show');
-                    } catch (e) {
-                        console.error("Error during download:", e);
-                        showMessage('Error during download: ' + e.message);
-                        exportDialog.classList.remove('show');
-                    }
+                    const blob = new Blob([gltf], { type: 'model/gltf-binary' }); // Changed to 'model/gltf-binary'
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = exportFileName + '.glb';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showMessage('Scene exported as GLB!');
+                    exportDialog.classList.remove('show');
                 },
                 function (error) {
                     console.error('An error happened during parsing:', error);
                     showMessage('Error exporting scene: ' + error.message);
                     exportDialog.classList.remove('show');
                 },
-                { binary: false }
+                { binary: true } //tell it to export as binary.
             );
         });
 
