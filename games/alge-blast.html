@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alge-Blast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        #gameCanvas {
+            background: radial-gradient(circle, #000046, #000000); /* Dark gradient background */
+            border: 4px solid #3b82f6; /* Tailwind's blue-500 */
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); /* blue-500 */
+            border-radius: 16px; /* Rounded corners */
+            width: 95%; /* Responsive width */
+            max-width: 800px; /* Maximum width */
+            height: auto;
+            max-height: 600px; /* Max height */
+            aspect-ratio: 4 / 3;
+        }
+        #controls {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .game-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6; /* Tailwind's blue-500 */
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-size: 0.7rem;
+        }
+        .game-button:hover {
+            background-color: #2563eb; /* Tailwind's blue-700 */
+            transform: translateY(-2px);
+        }
+        .game-button:active {
+            background-color: #1e40af; /* Tailwind's blue-800 */
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        #message {
+            position: absolute;
+            color: #fff;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1rem;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid #3b82f6;
+            display: none;
+            z-index: 10;
+        }
+        #message h2 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #ffdb58;
+        }
+        #message p {
+            margin-bottom: 0.5rem;
+        }
+        #message button {
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.375rem;
+            background-color: #3b82f6;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            border: none;
+            font-size: 0.6rem;
+        }
+        #message button:hover {
+            background-color: #2563eb;
+        }
+        .hidden {
+            display: none;
+        }
+        #gameScore {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            color: #fff;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+        @media (max-width: 640px) {
+            #gameCanvas {
+                width: 98%;
+                height: auto;
+                max-height: 400px;
+            }
+            .game-button {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.7rem;
+            }
+            #message {
+                font-size: 0.7rem;
+                padding: 0.75rem;
+            }
+            #message h2 {
+                font-size: 1rem;
+            }
+            #gameScore {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="controls">
+        <button id="startBtn" class="game-button">Start</button>
+        <button id="pauseBtn" class="game-button">Pause</button>
+        <button id="muteBtn" class="game-button">Mute</button>
+    </div>
+    <div id="message" class="hidden">
+        <h2 id="messageTitle"></h2>
+        <p id="messageText"></p>
+        <button id="messageButton">OK</button>
+    </div>
+    <div id="gameScore">Score: 0</div>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const messageBox = document.getElementById('message');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        const messageButton = document.getElementById('messageButton');
+        const gameScoreDisplay = document.getElementById('gameScore');
+
+        let dimensions = { width: 0, height: 0 };
+        const updateDimensions = () => {
+            const container = document.querySelector('body'); // Or any other parent
+            const width = Math.min(container.clientWidth * 0.95, 800); // 95% of parent, max 800
+            const height = width * 0.75; // Maintain aspect ratio
+            dimensions = { width, height };
+
+            canvas.width = dimensions.width;
+            canvas.height = dimensions.height;
+        };
+
+        updateDimensions();
+        const resizeObserver = new ResizeObserver(updateDimensions);
+        resizeObserver.observe(document.querySelector('body'));
+        window.addEventListener('resize', updateDimensions);
+
+
+        let player;
+        let enemies = [];
+        let projectiles = [];
+        let score = 0;
+        let gameRunning = false;
+        let animationId;
+        let muted = false;
+        let gameAnimationFrame; // Store the animation frame ID
+        let previousTimestamp = 0; // For controlling enemy spawn rate
+
+
+        // --- Sound Effects (Tone.js) ---
+        const shooterSound = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }
+        }).toDestination();
+
+        const explosionSound = new Tone.Synth({ // Changed to Tone.Synth
+            oscillator: { type: 'square' },       // Using square wave
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 } // Short envelope
+        }).toDestination();
+
+        const gameOverSound = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 10,
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: 'exponential' }
+        }).toDestination();
+
+
+        // --- Helper Functions ---
+
+        function random(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Check for collision between two rectangles
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // --- Game Object Creation ---
+
+        function createPlayer() {
+            return {
+                x: dimensions.width / 2 - 25,
+                y: dimensions.height - 60,
+                width: 50,
+                height: 40,
+                speed: 5, // Increased player speed
+                color: '#3b82f6' // Tailwind's blue-500
+            };
+        }
+
+        function createEnemy(x, y, type = 'basic') {
+          let width, height, color;
+            switch (type) {
+              case 'basic':
+              default:
+                width = 30;
+                height = 20;
+                color = '#84cc16'; // Tailwind's lime-500
+                break;
+
+              case 'fast':
+                width = 20;
+                height = 15;
+                color = '#f43f5e';  // Tailwind's rose-500
+                break;
+
+              case 'tough':
+                  width = 40;
+                  height = 30;
+                  color: '#a855f7';  // Tailwind's purple-500
+                  break;
+          }
+            return {
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                speed: type === 'fast' ? 3 : 1, // Increased enemy speed for 'fast' type
+                color: color, // Tailwind's lime-500
+                type: type
+            };
+        }
+
+        function createProjectile(x, y, isPlayer = true) {
+            return {
+                x: x,
+                y: y,
+                width: 8, // Increased projectile width
+                height: 15,
+                speed: isPlayer? -7: 4, // Negative speed for upwards, positive for downwards
+                color: isPlayer? '#f59e0b': '#ef4444', // Tailwind's amber-500 and red-500
+                isPlayer: isPlayer, //track origin
+            };
+        }
+
+        // --- Game Object Drawing ---
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            // Spaceship shape (simple, can be improved)
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2, player.y);
+            ctx.lineTo(player.x, player.y + player.height);
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawEnemy(enemy) {
+            ctx.fillStyle = enemy.color;
+            ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        }
+
+        function drawProjectile(projectile) {
+            ctx.fillStyle = projectile.color;
+            ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+        }
+
+        // --- Game Logic Functions ---
+        function movePlayer() {
+            if (keys['ArrowLeft'] && player.x > 0) {
+                player.x -= player.speed;
+            }
+            if (keys['ArrowRight'] && player.x + player.width < dimensions.width) {
+                player.x += player.speed;
+            }
+            if (keys['ArrowUp'] && player.y > dimensions.height / 2) {
+                player.y -= player.speed;
+            }
+            if (keys['ArrowDown'] && player.y + player.height < dimensions.height) {
+                player.y += player.speed;
+            }
+        }
+
+        function moveEnemies() {
+            enemies.forEach(enemy => {
+                enemy.y += enemy.speed / 2; // Slow down enemy movement a bit
+                // Game over if any enemy reaches the player
+                if (enemy.y + enemy.height >= dimensions.height) {
+                    endGame();
+                }
+            });
+            // Remove enemies that have gone off-screen
+            enemies = enemies.filter(enemy => enemy.y < dimensions.height);
+        }
+
+        function moveProjectiles() {
+            projectiles.forEach(projectile => {
+                projectile.y += projectile.speed / 2; // Projectiles are now 50% slower
+            });
+            projectiles = projectiles.filter(projectile => projectile.y + projectile.height > 0 && projectile.y < dimensions.height);
+        }
+
+        function handleCollisions() {
+          for (let i = projectiles.length - 1; i >= 0; i--) {
+            const projectile = projectiles[i];
+            if(projectile.isPlayer){ // Only player projectiles can hurt enemies.
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                  const enemy = enemies[j];
+                  if (checkCollision(projectile, enemy)) {
+                    projectiles.splice(i, 1);
+                     if (enemy.type === 'tough') {
+                        // 'Tough' enemies become 'basic' when hit
+                         enemies[j] = createEnemy(enemy.x, enemy.y, 'basic');
+                     } else {
+                        enemies.splice(j, 1);
+                        score += (enemy.type === 'fast') ? 20: 10; // fast enemy gives more points
+                        gameScoreDisplay.textContent = `Score: ${score}`;
+                        if (!muted) explosionSound.triggerAttackRelease('C4', '0.05'); // EXPLOSION SOUND RE-ENABLED
+                     }
+                    break; // Important: Break after handling collision
+                  }
+                }
+            }
+            else{ // Check collision with player
+                if(checkCollision(projectile, player)){
+                    endGame();
+                }
+
+            }
+          }
+        }
+
+        // --- Input Handling ---
+
+        let keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space' && gameRunning) {
+                projectiles.push(createProjectile(player.x + player.width / 2 - 4, player.y)); // Adjusted x for wider projectile
+                if (!muted) shooterSound.triggerAttackRelease('C4', '0.05');
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        // --- Game Loop ---
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            const deltaTime = currentTime - previousTimestamp;
+            previousTimestamp = currentTime;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+
+            // Update game elements
+            movePlayer();
+            moveEnemies();
+            moveProjectiles();
+            handleCollisions(); //check collisions
+
+            // Draw everything
+            drawPlayer();
+            enemies.forEach(drawEnemy);
+            projectiles.forEach(drawProjectile);
+
+             // Spawn enemies, but less frequently
+             if (Math.random() < 0.02 * (deltaTime / 16.66)) {  //adjusted spawn rate based on deltaTime
+                let type = 'basic';
+                const rand = Math.random();
+                if (rand < 0.2) { // 20% chance
+                    type = 'fast';
+                } else if (rand < 0.4) { // another 20% chance (cumulative 40%)
+                    type = 'tough';
+                }
+                const enemyX = random(0, dimensions.width - 30);
+                enemies.push(createEnemy(enemyX, -20, type));
+            }
+
+            gameAnimationFrame = requestAnimationFrame(gameLoop); // Store the RAF ID
+        }
+
+        // --- Game Start/End ---
+
+        function startGame() {
+            if(gameRunning) return;
+            // Reset game state
+            player = createPlayer();
+            enemies = [];
+            projectiles = [];
+            score = 0;
+            gameScoreDisplay.textContent = `Score: ${score}`;
+            gameRunning = true;
+            messageBox.classList.add('hidden');
+            startBtn.textContent = 'Restart'; // Change button text
+            previousTimestamp = performance.now();
+            gameLoop(previousTimestamp); // Start the game loop, pass initial time
+        }
+
+
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(gameAnimationFrame); // Use stored ID to cancel
+             if (!muted) gameOverSound.triggerAttackRelease('C2', '2n');
+            messageTitle.textContent = 'Game Over!';
+            messageText.textContent = `Final Score: ${score}`;
+            messageBox.classList.remove('hidden');
+            startBtn.textContent = 'Restart';
+        }
+
+        // --- Event Listeners ---
+
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', () => {
+            if (gameRunning) {
+                gameRunning = false;
+                cancelAnimationFrame(gameAnimationFrame); // Use stored ID to cancel
+                messageTitle.textContent = 'Paused';
+                messageText.textContent = 'Click Start to Resume';
+                messageBox.classList.remove('hidden');
+            } else {
+                startGame(); // Resume
+            }
+        });
+
+        muteBtn.addEventListener('click', () => {
+            muted = !muted;
+            muteBtn.textContent = muted ? 'Unmute' : 'Mute';
+        });
+
+        messageButton.addEventListener('click', () => {
+            messageBox.classList.add('hidden');
+        });
+
+        // --- Initial Setup ---
+        //startGame(); // Start the game when the page loads - removed to start on button press
+    </script>
+</body>
+</html>
