@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angle Assault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212;
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            border: 2px solid #ddd;
+            background-color: #222;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            width: 150px;
+            text-shadow: 1px 1px 0px #333;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #4364f7, #6200ea);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        #message {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        .hidden {
+            display: none;
+        }
+        #helpText {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 11;
+            text-align: center;
+            font-size: 0.9em;
+            line-height: 1.5;
+            max-width: 80%;
+            border: 2px solid #4a148c;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        #helpText h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #a777e3;
+            text-shadow: 1px 1px 0px #333;
+        }
+        #helpText ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+        }
+        #helpText li {
+            margin-bottom: 5px;
+        }
+        #helpText p {
+            margin-bottom: 10px;
+        }
+        #helpText .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #a777e3;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+            text-shadow: 1px 1px 0px #333;
+        }
+        #helpText .close-button:hover {
+            opacity: 1;
+        }
+        #gameWonOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 12;
+        }
+        #gameWonOverlay h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #a777e3;
+            text-shadow: 2px 2px 4px #000;
+        }
+        #gameWonOverlay p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #eee;
+            text-shadow: 1px 1px 2px #000;
+        }
+        #gameWonOverlay button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+        }
+        #nextStepsOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 13;
+            padding: 20px;
+            text-align: center;
+            overflow-y: auto;
+        }
+        #nextStepsOverlay h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #a777e3;
+            text-shadow: 2px 2px 4px #000;
+        }
+        #nextStepsOverlay p {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #eee;
+            text-shadow: 1px 1px 2px #000;
+            line-height: 1.5;
+        }
+        #nextStepsOverlay ol {
+            list-style-position: inside;
+            padding-left: 0;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            color: #eee;
+        }
+        #nextStepsOverlay li {
+            margin-bottom: 10px;
+        }
+        #nextStepsOverlay .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #a777e3;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+            text-shadow: 1px 1px 0px #333;
+        }
+        #nextStepsOverlay .close-button:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div id="message" class="hidden"></div>
+    <div id="controls">
+        <button id="startButton">Start Game</button>
+        <button id="helpButton">Help</button>
+        <button id="nextStepsButton">Next Steps</button>
+    </div>
+    <div id="helpText" class="hidden">
+        <h2>How to Play Angle Assault</h2>
+        <p>Welcome to Angle Assault!  In this game, you'll control a cannon to shoot targets.</p>
+        <ul>
+            <li><strong>Objective:</strong>  Destroy all of the targets in each level.</li>
+            <li><strong>Controls:</strong>
+                <ul>
+                    <li>Use the mouse to aim the cannon.</li>
+                    <li>Click the mouse button to fire.</li>
+                </ul>
+            </li>
+            <li><strong>Levels:</strong>  The game has multiple levels with increasing difficulty.</li>
+            <li><strong>Scoring:</strong> You score points for each target you hit.</li>
+        </ul>
+        <p>Good luck, and have fun!</p>
+        <div class="close-button" id="closeHelp">×</div>
+    </div>
+    <div id="gameWonOverlay" class="hidden">
+        <h2>Congratulations!</h2>
+        <p>You have completed the game!</p>
+        <button id="restartButton">Play Again</button>
+    </div>
+    <div id="nextStepsOverlay" class="hidden">
+        <h2>Next Steps</h2>
+        <p>Here are some ideas to expand on this game:</p>
+        <ol>
+            <li><strong>Add More Levels:</strong> Create new levels with different target layouts and challenges.</li>
+            <li><strong>Implement Power-ups:</strong> Introduce power-ups like multi-shot, laser targeting, or explosive projectiles.</li>
+            <li><strong>Create Enemy Types:</strong> Add different types of targets with varying sizes, speeds, and behaviors.</li>
+            <li><strong>Add a Scoreboard:</strong> Implement a scoreboard to track the player's score and high scores.</li>
+            <li><strong>Sound Effects:</strong> Include sound effects for shooting, hitting targets, and winning the game.</li>
+            <li><strong>Visual Enhancements:</strong> Improve the game's graphics with animations, particle effects, and background images.</li>
+            <li><strong>Mobile Compatibility:</strong> Adapt the game for mobile devices with touch controls.</li>
+            <li><strong>Multiplayer Mode:</strong> Allow players to compete against each other.</li>
+            <li><strong>Story Mode:</strong> Create a story or campaign mode with a series of levels and objectives.</li>
+            <li><strong>Level Editor:</strong>  Let players create their own levels.</li>
+        </ol>
+        <p>These are just a few ideas to get you started.  Feel free to experiment and come up with your own creative ways to make the game even more fun!</p>
+        <div class="close-button" id="closeNextSteps">×</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageElement = document.getElementById('message');
+        const startButton = document.getElementById('startButton');
+        const helpButton = document.getElementById('helpButton');
+        const helpText = document.getElementById('helpText');
+        const closeHelpButton = document.getElementById('closeHelp');
+        const gameWonOverlay = document.getElementById('gameWonOverlay');
+        const restartButton = document.getElementById('restartButton');
+        const nextStepsButton = document.getElementById('nextStepsButton');
+        const nextStepsOverlay = document.getElementById('nextStepsOverlay');
+        const closeNextStepsButton = document.getElementById('closeNextSteps');
+
+        let cannonX = 50;
+        let cannonY = canvas.height;
+        let cannonAngle = Math.PI / 4;
+        let projectileX = cannonX;
+        let projectileY = cannonY;
+        let projectileSpeed = 5;
+        let projectileRadius = 5;
+        let targets = [];
+        let score = 0;
+        let gameStarted = false;
+        let animationFrameId;
+        let level = 1;
+        let gameOver = false;
+        let targetCount = 0; // Added to track number of targets in a level
+        let shootSound = new Audio('https://houselearning.github.io/home/games/static/shoot.mp3'); // Load sound effect
+
+        function displayMessage(message, duration = 3000) {
+            messageElement.textContent = message;
+            messageElement.classList.remove('hidden');
+            setTimeout(() => {
+                messageElement.classList.add('hidden');
+            }, duration);
+        }
+
+        function generateTarget(x, y, radius, color) {
+            return { x, y, radius, color, hit: false };
+        }
+
+        function generateTargetsForLevel(lvl) {
+            targets = [];
+            targetCount = 0; // Reset target count for new level
+            let numTargets;
+            let minRadius = 15;
+            let maxRadius = 30;
+            let baseTargets = 2 + lvl; // Base number of targets, increases with level
+            let widthFactor = canvas.width / 6; //increased distribution area.
+            let heightFactor = canvas.height / 4;
+
+            numTargets = baseTargets + Math.floor(Math.random() * 2); // Randomly add 0, 1, or 2 targets
+
+            for (let i = 0; i < numTargets; i++) {
+                let x = widthFactor + Math.random() * widthFactor * 4;
+                let y = heightFactor + Math.random() * heightFactor * 2;
+                let radius = minRadius + Math.random() * (maxRadius - minRadius);
+                let color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                targets.push(generateTarget(x, y, radius, color));
+            }
+            targetCount = targets.length; // Store the number of targets in the level
+        }
+
+        function drawCannon() {
+            ctx.beginPath();
+            ctx.moveTo(cannonX, cannonY);
+            ctx.lineTo(cannonX + 50 * Math.cos(cannonAngle), cannonY - 50 * Math.sin(cannonAngle));
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.lineWidth = 1;
+        }
+
+        function drawProjectile() {
+            if (gameStarted) {
+                ctx.beginPath();
+                ctx.arc(projectileX, projectileY, projectileRadius, 0, Math.PI * 2);
+                ctx.fillStyle = '#a777e3';
+                ctx.fill();
+            }
+        }
+
+        function drawTargets() {
+            targets.forEach(target => {
+                if (!target.hit) {
+                    ctx.beginPath();
+                    ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = target.color;
+                    ctx.fill();
+                }
+            });
+        }
+
+        function updateProjectilePosition() {
+            if (gameStarted) {
+                projectileX += projectileSpeed * Math.cos(cannonAngle);
+                projectileY -= projectileSpeed * Math.sin(cannonAngle);
+            }
+        }
+
+        function checkCollision() {
+            if (!gameStarted) return;
+            targets.forEach(target => {
+                if (!target.hit) {
+                    const dx = projectileX - target.x;
+                    const dy = projectileY - target.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < projectileRadius + target.radius) {
+                        target.hit = true;
+                        score += 10;
+                        displayMessage(`Target Hit! +10 points`, 1000);
+                    }
+                }
+            });
+        }
+
+        function checkWin() {
+            let targetsHit = targets.filter(t => t.hit).length;
+            if (targetsHit === targetCount) { //check if all targets are hit
+                level++;
+                displayMessage(`Level ${level} starting!`, 2000);
+                generateTargetsForLevel(level);
+            }
+        }
+
+        function drawScore() {
+            ctx.font = '20px "Press Start 2P"';
+            ctx.fillStyle = '#eee';
+            ctx.fillText(`Score: ${score}`, 10, 30);
+        }
+
+        function drawLevel() {
+            ctx.font = '20px "Press Start 2P"';
+            ctx.fillStyle = '#eee';
+            ctx.fillText(`Level: ${level}`, canvas.width - 150, 30);
+        }
+
+        function gameLoop() {
+            if (!gameStarted && !gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawTrack();
+            drawCannon();
+            drawProjectile();
+            drawTargets();
+            updateProjectilePosition();
+            checkCollision();
+            checkWin();
+            drawScore();
+            drawLevel();
+
+            if (gameStarted && !gameOver) {
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function drawTrack() {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+        }
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (!gameStarted) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            cannonAngle = Math.atan2(cannonY - mouseY, mouseX - cannonX);
+        });
+
+        canvas.addEventListener('click', () => {
+            if (!gameStarted) return;
+            projectileX = cannonX;
+            projectileY = cannonY;
+            shootSound.play(); // Play the sound effect
+            gameLoop();
+        });
+
+        startButton.addEventListener('click', () => {
+            if (!gameStarted || gameOver) {
+                gameStarted = true;
+                gameOver = false;
+                level = 1;
+                score = 0;
+                startButton.textContent = 'Restart Game';
+                messageElement.classList.add('hidden');
+                gameWonOverlay.style.display = 'none';
+                generateTargetsForLevel(level);
+                gameLoop();
+            }
+        });
+
+        helpButton.addEventListener('click', () => {
+            helpText.classList.remove('hidden');
+        });
+
+        closeHelpButton.addEventListener('click', () => {
+            helpText.classList.add('hidden');
+        });
+
+        restartButton.addEventListener('click', () => {
+            gameWonOverlay.style.display = 'none';
+            gameOver = false;
+            gameStarted = true;
+            score = 0;
+            level = 1;
+            startButton.textContent = 'Restart Game';
+            generateTargetsForLevel(level);
+            gameLoop();
+        });
+
+        nextStepsButton.addEventListener('click', () => {
+            nextStepsOverlay.style.display = 'flex';
+        });
+
+        closeNextStepsButton.addEventListener('click', () => {
+            nextStepsOverlay.style.display = 'none';
+        });
+
+        generateTargetsForLevel(level);
+        drawTrack();
+        drawCannon();
+        drawTargets();
+        drawScore();
+        drawLevel();
+    </script>
+    </script>
+</body>
+</html>
