@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probability Portal Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #374151; /* Tailwind gray-800 equivalent */
+            border-radius: 0.5rem; /* Tailwind rounded-md equivalent */
+            background-color: #e5e7eb; /* Tailwind gray-200 equivalent */
+            display: block; /* Prevent extra space below canvas */
+        }
+        .portal {
+            position: absolute;
+            width: 50px; /* Increased size for better visibility */
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem; /* Increased font size */
+            color: white; /* Default text color */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+        }
+        .portal-blue {
+            background-color: rgba(56, 189, 248, 0.7); /* Tailwind sky-400 with opacity */
+            border: 2px solid #38bdf8; /* Tailwind sky-400 */
+        }
+        .portal-orange {
+            background-color: rgba(251, 146, 60, 0.7); /* Tailwind orange-400 with opacity */
+            border: 2px solid #fb923c; /* Tailwind orange-400 */
+        }
+        .portal-text {
+            font-weight: 600; /* Tailwind font-semibold */
+            /* color: white;  Inherit color from parent */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Added text shadow */
+        }
+        #info {
+            margin-top: 1rem; /* Tailwind mt-4 */
+            padding: 1rem; /* Tailwind p-4 */
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            border-radius: 0.5rem; /* Tailwind rounded-md */
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            text-align: center;
+            font-size: 1rem; /* Tailwind text-base */
+            color: #4b5563; /* Tailwind gray-600 */
+        }
+        #instructions {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+        #instructions h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        #instructions ul {
+            list-style-position: inside;
+            margin-bottom: 0.75rem;
+        }
+        #instructions li {
+            margin-bottom: 0.25rem;
+        }
+        #gameContainer {
+            position: relative; /* Allows for absolutely positioned elements within */
+            width: fit-content; /* Adjust to content */
+            margin: 0 auto; /* Center the game and info section */
+        }
+    </style>
+    <script>
+        // Source Sans Pro
+        document.addEventListener('DOMContentLoaded', function() {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap';
+            document.head.appendChild(link);
+            document.body.style.fontFamily = "'Source Sans Pro', sans-serif";
+        });
+    </script>
+</head>
+<body class="bg-gray-100 flex justify-center items-start min-h-screen py-8">
+    <div id="gameContainer" class="flex flex-col items-center w-full">
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div id="info" class="mt-4 w-full max-w-2xl">
+            <p>Probability of reaching the goal: <span id="probability">0%</span></p>
+            <p>Number of steps: <span id="steps">0</span></p>
+        </div>
+        <div id="instructions" class="mt-4 w-full max-w-2xl">
+             <h2>How to Play</h2>
+             <ul>
+                <li>Click to place two portals: a blue portal and an orange portal.</li>
+                <li>The green square is the starting point, and the red square is the goal.</li>
+                <li>The goal is to move the green square to the red square using the portals.</li>
+                <li>Each portal has a probability of moving the square to a new location.</li>
+                <li>You can only place one blue portal and one orange portal at a time.  Placing a new portal will remove the old one.</li>
+             </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const probabilityDisplay = document.getElementById('probability');
+        const stepsDisplay = document.getElementById('steps');
+        const infoDisplay = document.getElementById('info'); // Correct ID
+        const gameContainer = document.getElementById('gameContainer');
+
+        const gridSize = 20;
+        const numRows = canvas.height / gridSize;
+        const numCols = canvas.width / gridSize;
+
+        let startX = 1;
+        let startY = 1;
+        let goalX = numCols - 2;
+        let goalY = numRows - 2;
+        let bluePortal = null;
+        let orangePortal = null;
+        let currentX = startX;
+        let currentY = startY;
+        let steps = 0;
+
+        const portalProbability = 0.7; // 70% probability of using the portal
+
+        function drawGrid() {
+            ctx.strokeStyle = '#d1d5db'; // Tailwind gray-300
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= numCols; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * gridSize, 0);
+                ctx.lineTo(x * gridSize, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= numRows; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * gridSize);
+                ctx.lineTo(canvas.width, y * gridSize);
+                ctx.stroke();
+            }
+        }
+
+        function drawSquare(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+        }
+
+        function drawPortal(x, y, color, label) {
+            const portalElement = document.createElement('div');
+            portalElement.className = `portal portal-${color}`;
+            portalElement.style.left = (x * gridSize) + 'px';
+            portalElement.style.top = (y * gridSize) + 'px';
+            portalElement.textContent = label;
+            portalElement.style.color = 'white'; // Set default text color
+            if (color === 'blue') {
+                portalElement.style.backgroundColor = 'rgba(56, 189, 248, 0.7)';
+                portalElement.style.border = '2px solid #38bdf8';
+            } else if (color === 'orange') {
+                portalElement.style.backgroundColor = 'rgba(251, 146, 60, 0.7)';
+                portalElement.style.border = '2px solid #fb923c';
+            }
+            gameContainer.appendChild(portalElement);
+
+            // Store the element so we can remove it later.
+            if (color === 'blue') {
+                bluePortal.element = portalElement;
+            } else {
+                orangePortal.element = portalElement;
+            }
+        }
+
+        function removePortalElements() {
+            if (bluePortal && bluePortal.element) {
+                bluePortal.element.remove();
+            }
+            if (orangePortal && orangePortal.element) {
+                orangePortal.element.remove();
+            }
+        }
+
+        function calculateProbability() {
+            if (!bluePortal || !orangePortal) {
+                return 0;
+            }
+
+            let possiblePaths = 0;
+            let successfulPaths = 0;
+            const simulations = 10000; // Increase for more accuracy
+
+            for (let i = 0; i < simulations; i++) {
+                let currentXSim = startX;
+                let currentYSim = startY;
+                let pathSuccessful = false;
+                let simSteps = 0; // Track steps for this simulation
+
+                while (simSteps < 20 && !pathSuccessful) { // Limit steps to prevent infinite loops
+                    simSteps++;
+                    if (currentXSim === goalX && currentYSim === goalY) {
+                        pathSuccessful = true;
+                        break;
+                    }
+
+                    const usePortal = Math.random() < portalProbability;
+                    if (usePortal) {
+                        const portalType = Math.random() < 0.5 ? bluePortal : orangePortal;
+                        if (portalType) { // Check if portal is defined
+                            currentXSim = portalType.x;
+                            currentYSim = portalType.y;
+                        }
+                    } else {
+                        // Move randomly (same as before)
+                        const direction = Math.floor(Math.random() * 4);
+                        switch (direction) {
+                            case 0: currentXSim = Math.max(0, currentXSim - 1); break;
+                            case 1: currentXSim = Math.min(numCols - 1, currentXSim + 1); break;
+                            case 2: currentYSim = Math.max(0, currentYSim - 1); break;
+                            case 3: currentYSim = Math.min(numRows - 1, currentYSim + 1); break;
+                        }
+                    }
+                }
+
+                possiblePaths++;
+                if (pathSuccessful) {
+                    successfulPaths++;
+                }
+            }
+            return (successfulPaths / possiblePaths) * 100;
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawSquare(startX, startY, 'green');
+            drawSquare(goalX, goalY, 'red');
+            if (bluePortal) {
+                drawPortal(bluePortal.x, bluePortal.y, 'blue', 'A');
+            }
+            if (orangePortal) {
+                drawPortal(orangePortal.x, orangePortal.y, 'orange', 'B');
+            }
+            drawSquare(currentX, currentY, 'purple'); // Current position
+            probabilityDisplay.textContent = calculateProbability().toFixed(2) + '%';
+            stepsDisplay.textContent = steps;
+        }
+
+        function handleCanvasClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / gridSize);
+            const y = Math.floor((event.clientY - rect.top) / gridSize);
+
+            if (x === startX && y === startY) {
+                alert("Cannot place a portal on the starting position.");
+                return;
+            }
+            if (x === goalX && y === goalY) {
+                alert("Cannot place a portal on the goal position.");
+                return;
+            }
+
+            if (!bluePortal) {
+                bluePortal = { x, y };
+            } else if (!orangePortal) {
+                orangePortal = { x, y };
+            } else {
+                // Reset portals
+                removePortalElements();
+                bluePortal = { x, y };
+                orangePortal = null; // Clear orange portal
+            }
+            drawGame();
+        }
+
+        function movePlayer() {
+            if (!bluePortal || !orangePortal) {
+                alert("Place both portals first!");
+                return;
+            }
+
+            steps++;
+            const usePortal = Math.random() < portalProbability;
+            if (usePortal) {
+                const portalType = Math.random() < 0.5 ? bluePortal : orangePortal;
+                currentX = portalType.x;
+                currentY = portalType.y;
+            } else {
+                const direction = Math.floor(Math.random() * 4);
+                switch (direction) {
+                    case 0: currentX = Math.max(0, currentX - 1); break;
+                    case 1: currentX = Math.min(numCols - 1, currentX + 1); break;
+                    case 2: currentY = Math.max(0, currentY - 1); break;
+                    case 3: currentY = Math.min(numRows - 1, currentY + 1); break;
+                }
+            }
+
+            drawGame();
+            if (currentX === goalX && currentY === goalY) {
+                alert(`You reached the goal in ${steps} steps!`);
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            currentX = startX;
+            currentY = startY;
+            steps = 0;
+            removePortalElements(); // Remove portal elements from the DOM
+            bluePortal = null;
+            orangePortal = null;
+            drawGame();
+        }
+
+        // Initial draw
+        drawGame();
+        canvas.addEventListener('click', handleCanvasClick);
+        // Add a button to move the player, for testing
+        const moveButton = document.createElement('button');
+        moveButton.textContent = 'Move Player'; // Button text
+        moveButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4'; // Tailwind classes
+        moveButton.onclick = movePlayer;
+        gameContainer.appendChild(moveButton);
+
+        // Add a reset button
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Reset Game';
+        resetButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4 ml-2'; // Tailwind classes
+        resetButton.onclick = resetGame;
+        gameContainer.appendChild(resetButton);
+    </script>
+</body>
+</html>
