@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suburb Sleuth 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #87CEEB; /* Sky Blue */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            background-color: #4CAF50; /* Green */
+            display: block;
+            width: 80%;
+            height: 80%;
+            max-width: 800px;
+            max-height: 600px;
+            border: 4px solid #2E8B57; /* Dark Sea Green */
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #555;
+            z-index: 1;
+            text-align: center;
+            border: 2px solid #2E8B57;
+        }
+        #gameMessage {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #222;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none; /* Ensure message doesn't interfere with controls */
+            border: 2px solid #2E8B57;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #gameMessage.show {
+            opacity: 1;
+        }
+
+        .house {
+            background-color: #FFA500; /* Orange */
+            border: 2px solid #FF8C00; /* Dark Orange */
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            border-radius: 6px;
+        }
+
+        .road {
+            background-color: #808080; /* Gray */
+            border: 1px solid #708090; /* Slate Gray */
+        }
+
+        .grass {
+            background-color: #228B22; /* Forest Green */
+        }
+
+    </style>
+    <script>
+        // --- 3D Scene Setup (Three.js) ---
+        let scene, camera, renderer, controls;
+        let gridHelper;
+        let player;
+        let houses = [];
+        let buildings = []; // Array for other buildings
+        let fences = [];
+        let gridSize = 20;
+        let cellSize = 8; // Increased cell size for bigger houses and roads
+        let playerSpeed = 0.2;
+        let houseImage = new Image();
+        let canvas;
+        let carModel;
+        let cameraFollow = true;
+        let gltfLoader;
+        let platformSize = 1000;
+        let fenceSize = 2;
+
+        // --- Game Logic and State ---
+        let gameStarted = false;
+        let questActive = false;
+        let questCompleted = false;
+        let currentQuest = {};
+        let playerDirection = 'south';
+        let lastValidX, lastValidZ;
+        let isMoving = false;
+        let moveTimeout;
+        let keysPressed = {}; // Store pressed keys
+
+        // --- Sound Effects (Tone.js) ---
+        const synth = new Tone.Synth().toDestination();
+        const walkingSound = () => {
+            if (!isMoving) return;
+            synth.triggerAttackRelease("C4", "0.05");
+        };
+        const questStartSound = () => synth.triggerAttackRelease("G4", "0.2");
+        const questCompleteSound = () => {
+            const polySynth = new Tone.PolySynth().toDestination();
+            polySynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "0.5");
+        };
+
+        // --- DOM Elements ---
+        let gameMessage;
+
+        function init() {
+            // --- Scene Setup ---
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+
+            // --- Camera Setup ---
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000); // Increased far plane
+            camera.position.set(0, 15, 15);
+            camera.lookAt(scene.position);
+
+            // --- Renderer Setup ---
+            canvas = document.getElementById('gameCanvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvas });
+            renderer.setSize(window.innerWidth * 0.8, window.innerHeight * 0.8);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // --- Lighting ---
+            const ambientLight = new THREE.HemisphereLight(0xffffff, 0x404040, 0.7);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.2);
+            directionalLight.position.set(10, 20, 0);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            scene.add(directionalLight);
+
+            // --- Grid Setup ---
+            gridHelper = new THREE.GridHelper(gridSize * cellSize, gridSize);
+            gridHelper.position.set(0, 0.1, 0);
+            scene.add(gridHelper);
+
+            // --- Player Setup (Car Model) ---
+            const carGeometry = new THREE.BoxGeometry(1, 0.6, 2);
+            const carMaterial = new THREE.MeshBasicMaterial({ color: 0x0000FF });
+            carModel = new THREE.Mesh(carGeometry, carMaterial);
+            carModel.position.set(0, 0.3, 0);
+            carModel.castShadow = true;
+            carModel.receiveShadow = true;
+            player = carModel;
+            scene.add(player);
+
+            // --- Initial Camera Position ---
+            camera.position.set(0, 15, 30);
+            camera.lookAt(player.position);
+
+            // --- Load Assets and Generate World ---
+            gltfLoader = new THREE.GLTFLoader();
+            gameMessage = document.getElementById('gameMessage');
+            generateWorld();
+            initGame();
+            animate();
+
+            // --- Event Listeners ---
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keyup', onKeyUp, false);
+            lastValidX = player.position.x;
+            lastValidZ = player.position.z;
+        }
+
+        function generateWorld() {
+            // Clear existing houses, buildings and roads
+            houses.forEach(house => scene.remove(house));
+            houses = [];
+            buildings.forEach(building => scene.remove(building));
+            buildings = [];
+            fences.forEach(fence => scene.remove(fence));
+            fences = [];
+
+            const streetWidth = 16; // Increased road width
+            const blockWidth = 30;    // Increased block width
+            const citySize = 200;
+            const numBlocks = Math.floor(citySize / blockWidth);
+
+            // Create grid of roads
+            for (let i = -numBlocks; i <= numBlocks; i++) {
+                for (let j = -numBlocks; j <= numBlocks; j++) {
+                    addRoad(i * blockWidth, j * blockWidth, streetWidth); // Pass streetWidth
+                    if (Math.random() > 0.5) {
+                        addRoad(i * blockWidth + cellSize, j * blockWidth, streetWidth);
+                    }
+                     if (Math.random() > 0.5) {
+                         addRoad(i * blockWidth, j * blockWidth + cellSize, streetWidth);
+                    }
+                }
+            }
+
+            // Add houses and buildings
+            for (let i = -numBlocks; i <= numBlocks; i++) {
+                for (let j = -numBlocks; j <= numBlocks; j++) {
+                    const x = i * blockWidth;
+                    const z = j * blockWidth;
+
+                    if (Math.random() > 0.7) { // Adjust probability as needed
+                        const buildingType = Math.random();
+                        if (buildingType < 0.6) {
+                            addHouse(x + cellSize/2, z + cellSize/2);
+                        } else if (buildingType < 0.8) {
+                            addBuilding(x + cellSize/2, z+ cellSize/2, 'building');
+                        } else if (buildingType < 0.9) {
+                            addBuilding(x + cellSize/2, z+ cellSize/2, 'park');
+                        } else {
+                            addBuilding(x + cellSize/2, z+ cellSize/2, 'farm');
+                        }
+                    }
+                }
+            }
+
+
+            // Create boundary fence
+            const fenceOffset = platformSize / 2 + fenceSize / 2;
+            for (let i = -platformSize / 2; i <= platformSize / 2; i += fenceSize) {
+                addFence(i, -fenceOffset, 0); // Bottom
+                addFence(i, fenceOffset, 0);    // Top
+                addFence(-fenceOffset, i, Math.PI / 2); // Left
+                addFence(fenceOffset, i, Math.PI / 2);  // Right
+            }
+
+            // --- Ground Mesh ---
+            const groundGeometry = new THREE.PlaneGeometry(platformSize, platformSize);
+            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+        }
+
+        function addHouse(x, z) {
+            gltfLoader.load(
+                'https://houselearning.github.io/home/games/static/house.gltf',
+                (gltf) => {
+                    const houseModel = gltf.scene;
+                    houseModel.position.set(x, 0, z);
+                    houseModel.scale.set(25, 25, 25); // Enlarge houses
+                    houseModel.rotation.y = Math.PI / 2;
+                    scene.add(houseModel);
+                    houses.push(houseModel);
+                },
+                (xhr) => {
+                    // console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+                },
+                (error) => {
+                    console.error('Error loading GLTF model:', error);
+                    const houseGeometry = new THREE.BoxGeometry(cellSize - 1, cellSize - 1, cellSize - 1);
+                    const houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+                    const house = new THREE.Mesh(houseGeometry, houseMaterial);
+                    house.position.set(x, (cellSize - 1) / 2, z);
+                    scene.add(house);
+                    houses.push(house);
+                }
+            );
+        }
+
+        function addBuilding(x, z, type) {
+            let modelName = '';
+            switch (type) {
+                case 'building': modelName = 'https://houselearning.github.io/home/games/static/building.gltf'; break;
+                case 'park':     modelName = 'https://houselearning.github.io/home/games/static/park.gltf';     break;
+                case 'farm':     modelName = 'https://houselearning.github.io/home/games/static/farm.gltf';     break;
+                default:       return;
+            }
+            gltfLoader.load(
+                modelName,
+                (gltf) => {
+                    const model = gltf.scene;
+                    model.position.set(x, 0, z);
+                    model.scale.set(25, 25, 25); // Enlarge buildings
+                    model.rotation.y = Math.PI / 2;
+                    scene.add(model);
+                    buildings.push(model);
+                },
+                (xhr) => {},
+                (error) => {
+                    console.error('Error loading GLTF model:', error);
+                    const buildingGeometry = new THREE.BoxGeometry(cellSize * 2, cellSize * 2, cellSize * 2);
+                    const buildingMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
+                    const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                    building.position.set(x,  cellSize, z);
+                    scene.add(building);
+                    buildings.push(building);
+                }
+            );
+        }
+
+        function addRoad(x, z, width = cellSize) {
+            const roadGeometry = new THREE.PlaneGeometry(width, width); // Use width parameter
+            const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 });
+            const road = new THREE.Mesh(roadGeometry, roadMaterial);
+            road.rotation.x = -Math.PI / 2;
+            road.position.set(x, 0.01, z);
+            road.receiveShadow = true;
+            scene.add(road);
+        }
+
+        function addFence(x, z, rotationY) {
+            gltfLoader.load(
+                'https://houselearning.github.io/home/games/static/fence.gltf',
+                (gltf) => {
+                    const fenceModel = gltf.scene;
+                    fenceModel.position.set(x, 0, z);
+                    fenceModel.scale.set(6, 6, 6);
+                    fenceModel.rotation.y = rotationY;
+                    scene.add(fenceModel);
+                    fences.push(fenceModel);
+                },
+                (xhr) => {},
+                (error) => {
+                    console.error('Error loading GLTF model:', error);
+                    const fenceGeometry = new THREE.BoxGeometry(fenceSize, cellSize * 2, fenceSize);
+                    const fenceMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+                    const fence = new THREE.Mesh(fenceGeometry, fenceMaterial);
+                    fence.rotation.y = rotationY;
+                    fence.position.set(x,  cellSize, z);
+                    scene.add(fence);
+                    fences.push(fence);
+                }
+            );
+        }
+
+        function initGame() {
+            gameStarted = true;
+            questActive = false;
+            questCompleted = false;
+            currentQuest = {};
+            player.position.set(0, 0.3, 0);
+            playerDirection = 'south';
+            lastValidX = player.position.x;
+            lastValidZ = player.position.z;
+            displayMessage("Welcome to Suburb Sleuth!", 3000);
+            startQuest();
+        }
+
+        function startQuest() {
+            if (questActive) return;
+
+            questActive = true;
+            questCompleted = false;
+            if (houses.length === 0) {
+                return;
+            }
+            const targetHouseIndex = Math.floor(Math.random() * houses.length);
+            const targetHouse = houses[targetHouseIndex];
+            let questX, questZ;
+             questX = targetHouse.position.x;
+             questZ = targetHouse.position.z;
+
+
+            currentQuest = {
+                targetX: questX,
+                targetZ: questZ,
+                houseIndex: targetHouseIndex,
+            };
+            questStartSound();
+            displayMessage(`Find the house at [${currentQuest.targetX.toFixed(1)}, ${currentQuest.targetZ.toFixed(1)}]!`, 5000);
+        }
+
+        function completeQuest() {
+            questCompleted = true;
+            questActive = false;
+            questCompleteSound();
+            displayMessage("Quest Complete!  Returning you to start.", 3000);
+            setTimeout(startQuest, 3000);
+        }
+
+        function displayMessage(message, duration = 3000) {
+            gameMessage.textContent = message;
+            gameMessage.classList.add('show');
+            setTimeout(() => {
+                gameMessage.classList.remove('show');
+            }, duration);
+        }
+
+        function updatePlayerPosition() {
+            let newX = player.position.x;
+            let newZ = player.position.z;
+
+            const boundary = platformSize / 2 - 1;
+            if (newX > boundary) newX = boundary;
+            if (newX < -boundary) newX = -boundary;
+            if (newZ > boundary) newZ = boundary;
+            if (newZ < -boundary) newZ = -boundary;
+
+            let isValidPosition = true;
+            for (let house of houses) {
+                const houseX = house.position.x;
+                const houseZ = house.position.z;
+                if (Math.abs(newX - houseX) < cellSize / 2 && Math.abs(newZ - houseZ) < cellSize / 2) {
+                    isValidPosition = false;
+                    break;
+                }
+            }
+             for (let building of buildings) {
+                const buildingX = building.position.x;
+                const buildingZ = building.position.z;
+                if (Math.abs(newX - buildingX) < cellSize && Math.abs(newZ - buildingZ) < cellSize) {
+                    isValidPosition = false;
+                    break;
+                }
+            }
+
+            if (isValidPosition) {
+                player.position.x = newX;
+                player.position.z = newZ;
+                lastValidX = newX;
+                lastValidZ = newZ;
+            } else {
+                player.position.x = lastValidX;
+                player.position.z = lastValidZ;
+            }
+
+            if (questActive && Math.abs(player.position.x - currentQuest.targetX) < cellSize / 2 && Math.abs(player.position.z - currentQuest.targetZ) < cellSize / 2) {
+                completeQuest();
+            }
+        }
+
+        function onKeyDown(event) {
+            if (!gameStarted) return;
+
+            keysPressed[event.key] = true;
+            isMoving = true;
+            clearTimeout(moveTimeout);
+
+            let dx = 0;
+            let dz = 0;
+
+            if (keysPressed['ArrowUp']) {
+                dz -= playerSpeed;
+                playerDirection = 'north';
+            }
+            if (keysPressed['ArrowDown']) {
+                dz += playerSpeed;
+                playerDirection = 'south';
+            }
+            if (keysPressed['ArrowLeft']) {
+                dx -= playerSpeed;
+                playerDirection = 'west';
+            }
+            if (keysPressed['ArrowRight']) {
+                dx += playerSpeed;
+                playerDirection = 'east';
+            }
+
+            player.position.x += dx;
+            player.position.z += dz;
+            updatePlayerPosition();
+            walkingSound();
+            event.preventDefault();
+        }
+
+        function onKeyUp(event) {
+            if (!gameStarted) return;
+            keysPressed[event.key] = false;
+            let anyKeyPressed = false;
+             for (let key in keysPressed) {
+                if (keysPressed[key]) {
+                    anyKeyPressed = true;
+                    break;
+                }
+             }
+            isMoving = anyKeyPressed;
+
+            clearTimeout(moveTimeout);
+            moveTimeout = setTimeout(() => {
+                if (!isMoving) {
+                }
+            }, 100);
+            event.preventDefault();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth * 0.8, window.innerHeight * 0.8);
+        }
+
+        function updateCameraPosition() {
+            if (cameraFollow) {
+                camera.position.x = player.position.x;
+                camera.position.z = player.position.z + 15;
+                camera.position.y = 10;
+                camera.lookAt(player.position);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            switch (playerDirection) {
+                case 'north':
+                    player.rotation.y = Math.PI;
+                    break;
+                case 'south':
+                    player.rotation.y = 0;
+                    break;
+                case 'west':
+                    player.rotation.y = Math.PI / 2;
+                    break;
+                case 'east':
+                    player.rotation.y = -Math.PI / 2;
+                    break;
+            }
+            updateCameraPosition();
+            renderer.render(scene, camera);
+        }
+
+        // --- Initialize Everything ---
+        window.onload = init;
+    </script>
+</head>
+<body>
+    <div id="instructions">
+        Use arrow keys to move around the grid and find the designated house.
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="gameMessage"></div>
+</body>
+</html>
