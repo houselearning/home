@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Galaxy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            cursor: grab;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        #gameCanvas:active {
+            cursor: grabbing;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1;
+            font-size: 0.8em;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+        #shapeInfo {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 1;
+            text-align: center;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 200px;
+            max-width: 300px;
+        }
+        #shapeInfo h2 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        #shapeInfo p {
+            margin-bottom: 5px;
+        }
+        #closeInfoButton {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: transparent;
+            color: white;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        #closeInfoButton:hover {
+            opacity: 1;
+        }
+        #helpButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+        #helpButton:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        #helpText {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 1;
+            text-align: left;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+        }
+        #helpText h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        #helpText ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+        #helpText p {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-sans antialiased">
+    <canvas id="gameCanvas"></canvas>
+    <div id="instructions" class="text-center text-gray-300 text-sm p-2 bottom-0 left-1/2 transform -translate-x-1/2 bg-black/70 rounded-md">
+        Use mouse to drag and explore the Geometry Galaxy!  Click on shapes to learn more.
+    </div>
+    <div id="shapeInfo" class="hidden">
+        <h2 id="shapeName">Shape Name</h2>
+        <p id="shapeDescription">Description of the shape.</p>
+        <p id="shapeFormula">Formula: </p>
+        <button id="closeInfoButton">Close</button>
+    </div>
+    <button id="helpButton" title="About Geometry Galaxy">
+        <span class="material-icons">question_mark</span>
+    </button>
+    <div id="helpText" class="hidden">
+        <h2>About Geometry Galaxy</h2>
+        <ul>
+            <li>Use your mouse to drag and rotate the galaxy.</li>
+            <li>Click on a shape to learn more about it.</li>
+            <li>Use the arrow keys (&larr;, &rarr;, &uarr;, &darr;) to move around.</li>
+        </ul>
+        <p>Explore the beauty of 3D geometry!</p>
+        <button id="closeHelpButton" class="absolute top-2 right-2 bg-transparent text-white border-none cursor-pointer text-lg opacity-70 hover:opacity-100">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
+
+    <script>
+       const canvas = document.getElementById('gameCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setClearColor(0x000000);
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 7;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        // Starfield
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 1.5, sizeAttenuation: true });
+        const starVertices = [];
+        for (let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = -Math.random() * 1000;
+            starVertices.push(x, y, z);
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        const shapeInfoDiv = document.getElementById('shapeInfo');
+        const shapeNameDisplay = document.getElementById('shapeName');
+        const shapeDescriptionDisplay = document.getElementById('shapeDescription');
+        const shapeFormulaDisplay = document.getElementById('shapeFormula');
+        const closeInfoButton = document.getElementById('closeInfoButton');
+        const helpButton = document.getElementById('helpButton');
+        const helpTextDiv = document.getElementById('helpText');
+        const closeHelpButton = document.getElementById('closeHelpButton');
+
+        let selectedShape = null;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let targetRotation = { x: 0, y: 0 };
+        let damping = 0.95;
+        let autoRotate = true;
+        let cameraSpeed = 0.1;
+        let isHelpVisible = false;
+
+        const geometryData = [
+            {
+                name: "Tetrahedron",
+                description: "A tetrahedron is a polyhedron with four triangular faces, six straight edges, and four vertex corners.",
+                formula: "Volume = (√2 / 12) * a³",
+                createGeometry: (size) => new THREE.TetrahedronGeometry(size),
+                color: 0xF4D03F
+            },
+            {
+                name: "Cube",
+                description: "A cube is a three-dimensional solid object bounded by six square faces, facets or sides, with three meeting at each vertex.",
+                formula: "Volume = a³",
+                createGeometry: (size) => new THREE.BoxGeometry(size, size, size),
+                color: 0x3498DB
+            },
+            {
+                name: "Octahedron",
+                description: "An octahedron is a polyhedron with eight faces, twelve edges, and six vertices. The term is most commonly used to refer to the regular octahedron, one of the five regular polyhedra, or Platonic solids.",
+                formula: "Volume = (√2 / 3) * a³",
+                createGeometry: (size) => new THREE.OctahedronGeometry(size),
+                color: 0x2ECC71
+            },
+            {
+                name: "Dodecahedron",
+                description: "A dodecahedron is a polyhedron with twelve flat faces. The regular convex dodecahedron is one of the five Platonic solids.",
+                formula: "Volume = (15 + 7√5) / 4 * a³",
+                createGeometry: (size) => new THREE.DodecahedronGeometry(size),
+                color: 0xE74C3C
+            },
+            {
+                name: "Icosahedron",
+                description: "An icosahedron is a polyhedron with 20 faces. The regular convex icosahedron is one of the five Platonic solids.",
+                formula: "Volume = (5 * (3 + √5) / 12) * a³",
+                createGeometry: (size) => new THREE.IcosahedronGeometry(size),
+                color: 0x9B59B6
+            },
+            {
+                name: "Sphere",
+                description: "A sphere is a perfectly round geometrical object in three-dimensional space that is the surface of a completely round ball.",
+                formula: "Volume = (4/3) * π * r³",
+                createGeometry: (size) => new THREE.SphereGeometry(size, 32, 32),
+                color: 0xF1C40F
+            },
+            {
+                name: "Torus",
+                description: "A torus is a geometric shape resembling a donut; it is a surface of revolution generated by revolving a circle in three-dimensional space about an axis that is coplanar with the circle.",
+                formula: "Volume = (πr²) * (2πR)",
+                createGeometry: (size) => new THREE.TorusGeometry(size, size * 0.3, 16, 100),
+                color: 0x1ABC9C
+            },
+            {
+                name: "Cone",
+                description: "A cone is a three-dimensional geometric shape that tapers smoothly from a flat base (usually circular) to a point called the apex or vertex.",
+                formula: "Volume = (1/3) * π * r² * h",
+                createGeometry: (size) => new THREE.ConeGeometry(size, size * 2, 32),
+                color: 0x8E44AD
+            },
+            {
+                name: "Cylinder",
+                description: "A cylinder is a basic three-dimensional geometric shape, with straight parallel sides and a circular or oval cross-section.",
+                formula: "Volume = π * r² * h",
+                createGeometry: (size) => new THREE.CylinderGeometry(size, size, size * 2, 32),
+                color: 0x34495E
+            },
+            {
+                name: "Pyramid",
+                description: "A pyramid is a polyhedron formed by connecting a polygonal base and a point, called the apex.",
+                formula: "Volume = (1/3) * Base Area * h",
+                createGeometry: (size) => {
+                    const baseWidth = size * 2;
+                    const height = size * 2;
+                    return new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(-baseWidth / 2, 0, -baseWidth / 2),
+                        new THREE.Vector3(baseWidth / 2, 0, -baseWidth / 2),
+                        new THREE.Vector3(baseWidth / 2, 0, baseWidth / 2),
+                        new THREE.Vector3(-baseWidth / 2, 0, baseWidth / 2),
+                        new THREE.Vector3(0, height, 0)
+                    ]).setIndex([
+                        0, 1, 2,    0, 2, 3,
+                        0, 4, 1,    1, 4, 2,    2, 4, 3,    3, 4, 0
+                    ]);
+                },
+                color: 0xA93226
+            },
+            {
+                name: "Ellipsoid",
+                description: "An ellipsoid is a surface described by the equation (x/a)² + (y/b)² + (z/c)² = 1, where a, b, and c are the semi-axes of the ellipsoid.",
+                formula: "Volume = (4/3) * π * a * b * c",
+                createGeometry: (size) => new THREE.SphereGeometry(size, 32, 32).scale(1.5, 1, 1),
+                color: 0x85C1E9
+            },
+            {
+                name: "Paraboloid",
+                description: "A paraboloid is a quadric surface that has a parabolic cross section in two orthogonal directions.",
+                formula: "Volume = (1/2) * π * r² * h",
+                createGeometry: (size) => {
+                  const geometry = new THREE.CylinderGeometry(0, size, size * 2, 32);
+                  geometry.translate(0, size, 0);
+                  return geometry;
+                },
+                color: 0xF7DC6F
+            },
+            {
+                name: "Hyperboloid of One Sheet",
+                description: "A hyperboloid of one sheet is a doubly ruled surface that can be generated by rotating a hyperbola around its conjugate axis.",
+                formula: "Volume = (1/3) * π * h * (R² + r² + R*r)",
+                createGeometry: (size) => {
+                    const height = size * 3;
+                    const radiusTop = size * 0.5;
+                    const radiusBottom = size * 0.5;
+                    const radialSegments = 32;
+                    const heightSegments = 16;
+                    const geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, true);
+                    geometry.translate(0, height / 2, 0);
+                    return geometry;
+                },
+                color: 0xE9724C
+            },
+            {
+                name: "Hyperboloid of Two Sheets",
+                description: "A hyperboloid of two sheets is a quadric surface with two connected components.",
+                formula: "Volume = (1/3) * π * h * (R² + r² + R*r)",
+                 createGeometry: (size) => {
+                    const height = size * 2;
+                    const radiusTop = size * 0.5;
+                    const radiusBottom = size;
+                    const radialSegments = 32;
+                    const heightSegments = 16;
+                    let geometry1 = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, true);
+                    geometry1.translate(0, height / 2, 0);
+                    let geometry2 = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, true);
+                    geometry2.translate(0, -height / 2, 0);
+                    const mergedGeometry = new THREE.BufferGeometry();
+                    mergedGeometry.merge(geometry1);
+                    mergedGeometry.merge(geometry2);
+
+                    return mergedGeometry;
+                },
+                color: 0x45B39D
+            },
+            {
+                name: "Torus Knot",
+                description: "A torus knot is a special kind of space curve with a closed loop that winds around a torus.",
+                formula: "No simple formula",
+                createGeometry: (size) => new THREE.TorusKnotGeometry(size, size * 0.3, 100, 16),
+                color: 0xBA370B
+            },
+        ];
+
+        const shapes = [];
+        const shapeMeshes = [];
+        const numShapes = 200;
+        const worldSize = 50;
+
+        function createGeometryGalaxy() {
+            for (let i = 0; i < numShapes; i++) {
+                const shapeData = geometryData[i % geometryData.length];
+                const size = Math.random() * 1.5 + 0.7;
+                const geometry = shapeData.createGeometry(size);
+                const material = new THREE.MeshStandardMaterial({ color: shapeData.color, roughness: 0.6, metalness: 0.2 });
+                const shape = new THREE.Mesh(geometry, material);
+
+                const x = (Math.random() - 0.5) * worldSize;
+                const y = (Math.random() - 0.5) * worldSize;
+                const z = (Math.random() - 0.5) * worldSize;
+
+                shape.position.set(x, y, z);
+                shape.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                shapes.push({
+                    ...shapeData,
+                    mesh: shape,
+                    size: size
+                });
+                shapeMeshes.push(shape);
+                scene.add(shape);
+            }
+        }
+
+        createGeometryGalaxy();
+
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+            return needResize;
+        }
+
+        function getShapeName(mesh) {
+            const shape = shapes.find(s => s.mesh === mesh);
+            return shape ? shape.name : "Unknown";
+        }
+
+        function getShapeDescription(mesh) {
+            const shape = shapes.find(s => s.mesh === mesh);
+            return shape ? shape.description : "No description available.";
+        }
+
+        function getShapeFormula(mesh) {
+            const shape = shapes.find(s => s.mesh === mesh);
+            return shape ? shape.formula : "No formula available";
+        }
+
+        function showShapeInfo(mesh) {
+            selectedShape = mesh;
+            if (selectedShape) {
+                shapeNameDisplay.textContent = getShapeName(selectedShape);
+                shapeDescriptionDisplay.textContent = getShapeDescription(selectedShape);
+                shapeFormulaDisplay.textContent = getShapeFormula(selectedShape);
+                shapeInfoDiv.classList.remove('hidden');
+            }
+        }
+
+        closeInfoButton.addEventListener('click', () => {
+            shapeInfoDiv.classList.add('hidden');
+            selectedShape = null;
+        });
+
+        helpButton.addEventListener('click', () => {
+            isHelpVisible = !isHelpVisible;
+            helpTextDiv.classList.toggle('hidden', !isHelpVisible);
+        });
+
+        closeHelpButton.addEventListener('click', () => {
+            isHelpVisible = false;
+            helpTextDiv.classList.add('hidden');
+        });
+
+
+        function handleMouseDown(event) {
+            isDragging = true;
+            autoRotate = false;
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+            canvas.style.cursor = 'grabbing';
+        }
+
+        function handleMouseMove(event) {
+            if (!isDragging) {
+                return;
+            }
+
+            const deltaMove = {
+                x: event.clientX - previousMousePosition.x,
+                y: event.clientY - previousMousePosition.y
+            };
+
+            targetRotation.y += deltaMove.x * 0.01;
+            targetRotation.x += deltaMove.y * 0.01;
+
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        }
+
+        function handleMouseClick(event) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(shapeMeshes);
+
+            if (intersects.length > 0) {
+                const intersectedShape = intersects[0].object;
+                showShapeInfo(intersectedShape);
+            }
+        }
+
+        const keys = {};
+
+        function handleKeyDown(event) {
+            keys[event.key] = true;
+        }
+
+        function handleKeyUp(event) {
+            keys[event.key] = false;
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('click', handleMouseClick);
+
+        function updateCameraPosition() {
+            if (keys['ArrowUp'] || keys['w']) camera.position.z -= cameraSpeed;
+            if (keys['ArrowDown'] || keys['s']) camera.position.z += cameraSpeed;
+            if (keys['ArrowLeft'] || keys['a']) camera.position.x -= cameraSpeed;
+            if (keys['ArrowRight'] || keys['d']) camera.position.x += cameraSpeed;
+        }
+
+
+        function animate() {
+            requestAnimationFrame(animate);
+            resizeRendererToDisplaySize(renderer);
+            updateCameraPosition();
+
+            if (autoRotate) {
+                shapes.forEach(shape => {
+                    shape.mesh.rotation.x += 0.005;
+                    shape.mesh.rotation.y += 0.005;
+                    shape.mesh.rotation.z += 0.005;
+                });
+            }
+
+            if (isDragging) {
+                shapes.forEach(shape => {
+                    shape.mesh.rotation.x = targetRotation.x;
+                    shape.mesh.rotation.y = targetRotation.y;
+                });
+            } else {
+                targetRotation.x *= damping;
+                targetRotation.y *= damping;
+                shapes.forEach(shape => {
+                    shape.mesh.rotation.x += targetRotation.x;
+                    shape.mesh.rotation.y += targetRotation.y;
+                });
+            }
+
+            stars.position.z = camera.position.z - 500;
+            renderer.render(scene, camera);
+        }
+
+        resizeRendererToDisplaySize(renderer);
+        animate();
+    </script>
+</body>
+</html>
