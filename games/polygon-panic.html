@@ -1,251 +1,554 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Polygon Panic</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #111; overflow: hidden; }
-    canvas { display: block; margin: auto; }
-    #levelupOverlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7) url("https://houselearning.github.io/home/games/static/levelup.gif") center center no-repeat;
-      background-size: contain;
-      display: none;
-      z-index: 10;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <title>Polygon Panic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #111;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive; /* Apply the font */
+        }
+        canvas {
+            display: block;
+            margin: auto;
+        }
+        #levelupOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7) url("https://houselearning.github.io/home/games/static/levelup.gif") center center no-repeat;
+            background-size: contain;
+            display: none;
+            z-index: 10;
+        }
+        #scoreDisplay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 16px;
+            z-index: 10;
+        }
+        #highScoreDisplay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+            font-size: 16px;
+            z-index: 10;
+        }
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicks to go through */
+            z-index: 11;
+        }
+    </style>
+    <script>
+        // Check if localStorage is available
+        function supportsLocalStorage() {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        const localStorageAvailable = supportsLocalStorage();
+    </script>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <div id="levelupOverlay"></div>
-  <audio id="shootSound" src="https://houselearning.github.io/home/games/static/shoot.mp3"></audio>
-  <audio id="levelupSound" src="https://houselearning.github.io/home/games/static/levelup.mp3"></audio>
-  <audio id="bgMusic" src="https://houselearning.github.io/home/games/static/game.mp3" autoplay loop></audio>
+    <canvas id="gameCanvas"></canvas>
+    <div id="levelupOverlay"></div>
+    <audio id="shootSound" src="https://houselearning.github.io/home/games/static/shoot.mp3"></audio>
+    <audio id="levelupSound" src="https://houselearning.github.io/home/games/static/levelup.mp3"></audio>
+    <audio id="bgMusic" src="https://houselearning.github.io/home/games/static/game.mp3" preload="auto"></audio>
+    <div id="scoreDisplay">Score: 0</div>
+    <div id="highScoreDisplay">High Score: 0</div>
+    <canvas id="confettiCanvas"></canvas>
 
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-canvas.width = 600;
-canvas.height = 800;
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
 
-let player = {
-  x: canvas.width / 2,
-  y: canvas.height - 50,
-  size: 30,
-  speed: 7
-};
+        canvas.width = 600;
+        canvas.height = 800;
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
 
-let keys = {};
-let bullets = [];
-let polygons = [];
-let bosses = [];
-let score = 0;
-let gameOver = false;
-let level = 1;
-let lastLevel = 1;
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            size: 30,
+            speed: 7
+        };
 
-const shootSound = document.getElementById("shootSound");
-const levelupSound = document.getElementById("levelupSound");
-const levelupOverlay = document.getElementById("levelupOverlay");
-document.getElementById("bgMusic").play();
+        let keys = {};
+        let bullets = [];
+        let polygons = [];
+        let bosses = [];
+        let score = 0;
+        let gameOver = false;
+        let level = 1;
+        let lastLevel = 1;
+        let explosionParticles = []; // Array for explosion particles
+        let is3D = false;
+        let cameraZ = 0;
+        let verticalRotation = 0;
+        let confettiParticles = [];
+        let finalBossActive = false;
 
-const backgroundImages = [
-  new Image(), new Image(), new Image(), new Image(), new Image()
-];
-backgroundImages[0].src = "https://houselearning.github.io/home/games/static/level1.gif";
-backgroundImages[1].src = "https://houselearning.github.io/home/games/static/level2.gif";
-backgroundImages[2].src = "https://houselearning.github.io/home/games/static/level3.gif";
-backgroundImages[3].src = "https://houselearning.github.io/home/games/static/level4.gif";
-backgroundImages[4].src = "https://houselearning.github.io/home/games/static/level5.gif";
+        const shootSound = document.getElementById("shootSound");
+        const levelupSound = document.getElementById("levelupSound");
+        const levelupOverlay = document.getElementById("levelupOverlay");
+        const bgMusic = document.getElementById("bgMusic");
+        const scoreDisplay = document.getElementById("scoreDisplay");
+        const highScoreDisplay = document.getElementById("highScoreDisplay");
 
-document.addEventListener("keydown", (e) => {
-  keys[e.key] = true;
-  if (e.key === " ") shoot();
-});
-document.addEventListener("keyup", (e) => keys[e.key] = false);
-
-function shoot() {
-  bullets.push({ x: player.x, y: player.y, radius: 5, speed: 10 });
-  shootSound.currentTime = 0;
-  shootSound.play();
-  score += 75;
-}
-
-function drawPlayer() {
-  ctx.fillStyle = "#0ff";
-  ctx.beginPath();
-  ctx.moveTo(player.x, player.y);
-  ctx.lineTo(player.x - player.size, player.y + player.size);
-  ctx.lineTo(player.x + player.size, player.y + player.size);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawPolygon(x, y, radius, sides, rotation = 0, color = "#f0f") {
-  const angle = (Math.PI * 2) / sides;
-  ctx.beginPath();
-  for (let i = 0; i < sides; i++) {
-    const px = x + radius * Math.cos(i * angle + rotation);
-    const py = y + radius * Math.sin(i * angle + rotation);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-
-function spawnPolygon() {
-  const sides = Math.floor(Math.random() * 5) + 3;
-  const radius = Math.random() * 20 + 20;
-  const x = Math.random() * (canvas.width - radius * 2) + radius;
-  const y = -radius;
-  const speed = Math.random() * 2 + getLevelData(score).polygonSpeed;
-  polygons.push({ x, y, radius, sides, speed });
-}
-
-function spawnBoss() {
-  const radius = 40;
-  const sides = 6;
-  const x = Math.random() * (canvas.width - radius * 2) + radius;
-  const y = -radius;
-  const speed = 2;
-  bosses.push({ x, y, radius, sides, speed, health: 10, maxHealth: 10 });
-}
-
-function drawHealthBar(boss) {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(boss.x - 30, boss.y - boss.radius - 10, 60, 6);
-  ctx.fillStyle = "#f00";
-  ctx.fillRect(boss.x - 30, boss.y - boss.radius - 10, 60 * (boss.health / boss.maxHealth), 6);
-}
-
-function getLevelData(score) {
-  if (score >= 30000) return { level: 5, spawnRate: 200, polygonSpeed: 7 };
-  if (score >= 25000) return { level: 4, spawnRate: 300, polygonSpeed: 6 };
-  if (score >= 10000) return { level: 3, spawnRate: 400, polygonSpeed: 5 };
-  if (score >= 1000) return { level: 2, spawnRate: 500, polygonSpeed: 4 };
-  return { level: 1, spawnRate: 600, polygonSpeed: 3 };
-}
-
-function update() {
-  if (keys["ArrowLeft"]) player.x -= player.speed;
-  if (keys["ArrowRight"]) player.x += player.speed;
-  player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
-
-  bullets.forEach(b => b.y -= b.speed);
-  bullets = bullets.filter(b => b.y > 0);
-
-  polygons.forEach(p => p.y += p.speed);
-  polygons = polygons.filter(p => p.y - p.radius < canvas.height);
-
-  bosses.forEach(b => b.y += b.speed);
-
-  for (let p of polygons) {
-    const dx = player.x - p.x;
-    const dy = (player.y + player.size / 2) - p.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < p.radius + player.size / 2) gameOver = true;
-  }
-
-  for (let boss of bosses) {
-    const dx = player.x - boss.x;
-    const dy = (player.y + player.size / 2) - boss.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < boss.radius + player.size / 2) gameOver = true;
-  }
-
-  bullets.forEach((bullet, i) => {
-    polygons.forEach((p, j) => {
-      const dx = bullet.x - p.x;
-      const dy = bullet.y - p.y;
-      if (Math.sqrt(dx * dx + dy * dy) < bullet.radius + p.radius) {
-        polygons.splice(j, 1);
-        bullets.splice(i, 1);
-      }
-    });
-
-    bosses.forEach((boss, j) => {
-      const dx = bullet.x - boss.x;
-      const dy = bullet.y - boss.y;
-      if (Math.sqrt(dx * dx + dy * dy) < bullet.radius + boss.radius) {
-        boss.health--;
-        bullets.splice(i, 1);
-        if (boss.health <= 0) {
-          bosses.splice(j, 1);
-          score += 500;
+        let highScore = 0;
+        if (localStorageAvailable) {
+            highScore = parseInt(localStorage.getItem('polygonPanicHighScore')) || 0;
         }
-      }
-    });
-  });
+        highScoreDisplay.textContent = `High Score: ${highScore}`;
 
-  let newLevel = getLevelData(score).level;
-  if (newLevel !== lastLevel) {
-    lastLevel = newLevel;
-    level = newLevel;
-    levelupOverlay.style.display = "block";
-    levelupSound.play();
-    setTimeout(() => levelupOverlay.style.display = "none", 2000);
-  }
+        bgMusic.play().catch(e => console.error("Playback prevented:", e)); // Start playing the music
 
-  if (Math.random() < 0.002 * level) spawnBoss();
-}
+        const backgroundImages = [
+            new Image(), new Image(), new Image(), new Image(), new Image(), new Image()
+        ];
+        backgroundImages[0].src = "https://houselearning.github.io/home/games/static/level1.gif";
+        backgroundImages[1].src = "https://houselearning.github.io/home/games/static/level2.gif";
+        backgroundImages[2].src = "https://houselearning.github.io/home/games/static/level3.gif";
+        backgroundImages[3].src = "https://houselearning.github.io/home/games/static/level4.gif";
+        backgroundImages[4].src = "https://houselearning.github.io/home/games/static/level5.gif";
+        backgroundImages[5].src = "https://houselearning.github.io/home/games/static/level6.gif";
 
-function draw() {
-  const bg = backgroundImages[level - 1];
-  if (bg.complete) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-  else ctx.fillStyle = "#000", ctx.fillRect(0, 0, canvas.width, canvas.height);
+        document.addEventListener("keydown", (e) => {
+            keys[e.key] = true;
+            if (e.key === " ") shoot();
+            if (e.key === 'r') verticalRotation += 0.1;
+        });
+        document.addEventListener("keyup", (e) => keys[e.key] = false);
+        window.addEventListener('resize', () => {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        });
 
-  drawPlayer();
+        function shoot() {
+            bullets.push({ x: player.x, y: player.y, z: 0, radius: 5, speed: 10, type: 'basic' });
+            shootSound.currentTime = 0;
+            shootSound.play();
+            score += 75;
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
 
-  polygons.forEach(p => drawPolygon(p.x, p.y, p.radius, p.sides));
-  bullets.forEach(b => {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#f00";
-    ctx.fill();
-  });
+        function drawPlayer() {
+            ctx.fillStyle = "#0ff";
+            ctx.beginPath();
+            if (is3D) {
+                const points = [
+                    { x: player.x, y: player.y, z: 0 },
+                    { x: player.x - player.size, y: player.y + player.size, z: 0 },
+                    { x: player.x + player.size, y: player.y + player.size, z: 0 }
+                ];
+                const projectedPoints = points.map(p => project3D(p.x, p.y, p.z));
+                if (projectedPoints.every(p => p !== null)) { // check if all points are valid
+                    ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
+                    ctx.lineTo(projectedPoints[1].x, projectedPoints[1].y);
+                    ctx.lineTo(projectedPoints[2].x, projectedPoints[2].y);
+                }
+            } else {
+                ctx.moveTo(player.x, player.y);
+                ctx.lineTo(player.x - player.size, player.y + player.size);
+                ctx.lineTo(player.x + player.size, player.y + player.size);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
 
-  bosses.forEach(b => {
-    drawPolygon(b.x, b.y, b.radius, b.sides, 0, "#ff0");
-    drawHealthBar(b);
-  });
+        function drawPolygon(x, y, z, radius, sides, rotation = 0, color = "#f0f") {
+            const angle = (Math.PI * 2) / sides;
+            ctx.beginPath();
+            if (is3D) {
+                const points = [];
+                for (let i = 0; i < sides; i++) {
+                    const px = x + radius * Math.cos(i * angle + rotation);
+                    const py = y + radius * Math.sin(i * angle + rotation);
+                    points.push({ x: px, y: py, z: z });
+                }
+                const projectedPoints = points.map(p => project3D(p.x, p.y, p.z));
+                if (projectedPoints.every(p => p !== null)) {
+                    ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
+                    for (let i = 1; i < sides; i++) {
+                        ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y);
+                    }
+                }
+            } else {
+                for (let i = 0; i < sides; i++) {
+                    const px = x + radius * Math.cos(i * angle + rotation);
+                    const py = y + radius * Math.sin(i * angle + rotation);
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+            }
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
 
-  ctx.fillStyle = "#fff";
-  ctx.font = "20px monospace";
-  ctx.fillText("Score: " + score, 20, 30);
-  ctx.fillText("Level: " + level, canvas.width - 120, 30);
-}
+        function spawnPolygon() {
+            const sides = Math.floor(Math.random() * 5) + 3;
+            const radius = Math.random() * 20 + 20;
+            const x = Math.random() * (canvas.width - radius * 2) + radius;
+            const y = -radius;
+            const z = is3D ? Math.random() * 200 - 100 : 0;
+            const speed = Math.random() * 2 + getLevelData(score).polygonSpeed;
+            polygons.push({ x, y, z, radius, sides, speed, health: 1 });
+        }
 
-function loop() {
-  if (!gameOver) {
-    update();
-    draw();
-    requestAnimationFrame(loop);
-  } else {
-    ctx.fillStyle = "#fff";
-    ctx.font = "48px sans-serif";
-    ctx.fillText("Game Over!", canvas.width / 2 - 130, canvas.height / 2);
-    ctx.font = "24px monospace";
-    ctx.fillText("Final Score: " + score, canvas.width / 2 - 90, canvas.height / 2 + 40);
-  }
-}
+        function spawnBoss() {
+            const radius = 60;
+            const sides = 8;
+            const x = canvas.width / 2;
+            const y = -radius * 3;
+            const z = is3D ? 0 : 0;
+            const speed = 1;
+            const health = 1000;
+            const maxHealth = 1000;
+            bosses.push({ x, y, z, radius, sides, speed, health, maxHealth, final: true });
+        }
 
-let currentSpawnRate = 600;
-let spawnTimer = setInterval(spawnPolygon, currentSpawnRate);
-setInterval(() => {
-  const levelData = getLevelData(score);
-  if (levelData.spawnRate !== currentSpawnRate) {
-    clearInterval(spawnTimer);
-    currentSpawnRate = levelData.spawnRate;
-    spawnTimer = setInterval(spawnPolygon, currentSpawnRate);
-  }
-}, 100);
+        function drawHealthBar(boss) {
+            ctx.fillStyle = "#000";
+            ctx.fillRect(boss.x - 50, boss.y - boss.radius - 20, 100, 8);
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(boss.x - 50, boss.y - boss.radius - 20, 100 * (boss.health / boss.maxHealth), 8);
+        }
 
-loop();
-</script>
+        function getLevelData(score) {
+            if (score >= 65000) return { level: 6, spawnRate: 1000, polygonSpeed: 8 };
+            if (score >= 50000) return { level: 6, spawnRate: 80, polygonSpeed: 7 };
+            if (score >= 35000) return { level: 5, spawnRate: 150, polygonSpeed: 7 };
+            if (score >= 25000) return { level: 4, spawnRate: 200, polygonSpeed: 6 };
+            if (score >= 10000) return { level: 3, spawnRate: 300, polygonSpeed: 5 };
+            if (score >= 1000) return { level: 2, spawnRate: 400, polygonSpeed: 4 };
+            return { level: 1, spawnRate: 500, polygonSpeed: 3 };
+        }
+
+        function update() {
+            if (keys["ArrowLeft"]) player.x -= player.speed;
+            if (keys["ArrowRight"]) player.x += player.speed;
+            player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
+
+            bullets.forEach(b => b.y -= b.speed);
+            bullets = bullets.filter(b => b.y > 0);
+
+            polygons.forEach(p => p.y += p.speed);
+            polygons = polygons.filter(p => p.y - p.radius < canvas.height);
+
+            bosses.forEach(b => b.y += b.speed);
+
+            for (let p of polygons) {
+                const dx = player.x - p.x;
+                const dy = (player.y + player.size / 2) - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < p.radius + player.size / 2) {
+                    gameOver = true;
+                }
+            }
+
+            for (let boss of bosses) {
+                const dx = player.x - boss.x;
+                const dy = (player.y + player.size / 2) - boss.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < boss.radius + player.size / 2) {
+                    gameOver = true;
+                }
+            }
+
+            bullets.forEach((bullet, i) => {
+                polygons.forEach((p, j) => {
+                    const dx = bullet.x - p.x;
+                    const dy = bullet.y - p.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < bullet.radius + p.radius) {
+                        // Create explosion particles
+                        for (let i = 0; i < 10; i++) {
+                            explosionParticles.push({
+                                x: bullet.x,
+                                y: bullet.y,
+                                z: bullet.z,
+                                color: '#ff0',
+                                size: Math.random() * 4 + 2,
+                                speedX: (Math.random() - 0.5) * 3,
+                                speedY: (Math.random() - 0.5) * 3,
+                                speedZ: is3D ? (Math.random() - 0.5) * 3 : 0,
+                                opacity: 1,
+                                decay: 0.03
+                            });
+                        }
+
+                        polygons.splice(j, 1);
+                        bullets.splice(i, 1);
+                        score += 100;
+                        scoreDisplay.textContent = `Score: ${score}`;
+                    }
+                });
+
+                bosses.forEach((boss, j) => {
+                    const dx = bullet.x - boss.x;
+                    const dy = bullet.y - boss.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < bullet.radius + boss.radius) {
+                        boss.health--;
+                        bullets.splice(i, 1);
+                        if (boss.health <= 0) {
+                            // Create explosion particles
+                            for (let i = 0; i < 20; i++) {
+                                explosionParticles.push({
+                                    x: boss.x,
+                                    y: boss.y,
+                                    z: boss.z,
+                                    color: '#f00',
+                                    size: Math.random() * 6 + 3,
+                                    speedX: (Math.random() - 0.5) * 4,
+                                    speedY: (Math.random() - 0.5) * 4,
+                                    speedZ: is3D ? (Math.random() - 0.5) * 4 : 0,
+                                    opacity: 1,
+                                    decay: 0.02
+                                });
+                            }
+                            bosses.splice(j, 1);
+                            score += 500;
+                            scoreDisplay.textContent = `Score: ${score}`;
+                            if (boss.final) {
+                                gameOver = true;
+                                triggerConfetti();
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Update explosion particles
+            explosionParticles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (is3D) p.z += p.speedZ;
+                p.opacity -= p.decay;
+            });
+            explosionParticles = explosionParticles.filter(p => p.opacity > 0);
+
+            // Update confetti particles
+            confettiParticles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.opacity -= p.decay;
+                p.rotation += p.rotSpeed;
+            });
+            confettiParticles = confettiParticles.filter(p => p.opacity > 0);
+
+            let newLevel = getLevelData(score).level;
+            if (newLevel !== lastLevel) {
+                lastLevel = newLevel;
+                level = newLevel;
+                levelupOverlay.style.display = "block";
+                levelupSound.play();
+                setTimeout(() => levelupOverlay.style.display = "none", 2000);
+                if (level === 6) {
+                    is3D = true;
+                    cameraZ = -300;
+                }
+            }
+
+            if (score >= 65000 && !finalBossActive) {
+                finalBossActive = true;
+                spawnBoss();
+            }
+
+            if (Math.random() < 0.002 * level) spawnPolygon();
+        }
+
+        function draw() {
+            const bg = backgroundImages[level - 1];
+            if (bg.complete) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+            else ctx.fillStyle = "#000", ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawPlayer();
+
+            polygons.forEach(p => {
+                if (is3D) {
+                    const projected = project3D(p.x, p.y, p.z);
+                    if (projected) drawPolygon(projected.x, projected.y, 0, p.radius, p.sides, 0, "#f0f");
+                }
+                else drawPolygon(p.x, p.y, p.z, p.radius, p.sides, 0, "#f0f");
+            });
+            bullets.forEach(b => {
+                ctx.beginPath();
+                if (is3D) {
+                    const projected = project3D(b.x, b.y, b.z);
+                    if (projected)  ctx.arc(projected.x, projected.y, b.radius, 0, Math.PI * 2);
+                }
+                else  ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "#f00";
+                ctx.fill();
+            });
+
+            bosses.forEach(b => {
+                if (is3D) {
+                    const projected = project3D(b.x, b.y, b.z);
+                    if (projected) {
+                        drawPolygon(projected.x, projected.y, 0, b.radius, b.sides, 0, "#ff0");
+                        drawHealthBar(b);
+                    }
+                }
+                else {
+                    drawPolygon(b.x, b.y, b.z, b.radius, b.sides, 0, "#ff0");
+                    drawHealthBar(b);
+                }
+            });
+
+            // Draw explosion particles
+            explosionParticles.forEach(p => {
+                ctx.beginPath();
+                if (is3D) {
+                    const projected = project3D(p.x, p.y, p.z);
+                    if (projected) ctx.arc(projected.x, projected.y, p.size, 0, Math.PI * 2);
+                } else {
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                }
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.opacity;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            // Draw Confetti
+            confettiParticles.forEach(p => {
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate(p.rotation);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.globalAlpha = p.opacity;
+                confettiCtx.beginPath();
+                confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                confettiCtx.closePath();
+                confettiCtx.fill();
+                confettiCtx.restore();
+            });
+
+            scoreDisplay.textContent = `Score: ${score}`;
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px 'Press Start 2P', cursive";
+            ctx.fillText("Level: " + level, canvas.width - 140, 30);
+        }
+
+        function loop() {
+            if (!gameOver) {
+                update();
+                draw();
+                requestAnimationFrame(loop);
+            } else {
+                ctx.fillStyle = "#fff";
+                ctx.font = "48px 'Press Start 2P', cursive";
+                ctx.fillText("Game Over!", canvas.width / 2 - 180, canvas.height / 2);
+                 ctx.font = "24px 'Press Start 2P', cursive";
+                if (finalBossActive) {
+                    ctx.fillText("You reached the final level...great.", canvas.width / 2 - 280, canvas.height / 2 + 40);
+                }
+                else{
+                    ctx.fillText("Final Score: " + score, canvas.width / 2 - 140, canvas.height / 2 + 40);
+                }
+
+
+                if (localStorageAvailable) {
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('polygonPanicHighScore', highScore.toString());
+                        highScoreDisplay.textContent = `High Score: ${highScore}`;
+                    }
+                }
+            }
+        }
+
+        function project3D(x, y, z) {
+            const focalLength = 300;
+            const viewerDistance = 1000;
+            const depth = z + viewerDistance + cameraZ;
+            if (depth <= focalLength) return null; // Clip objects behind the viewer
+            const x2D = (x - canvas.width / 2) * (focalLength / depth) + canvas.width / 2;
+            const y2D = (y - canvas.height / 2) * (focalLength / depth) + canvas.height / 2;
+            return { x: x2D, y: y2D };
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 200; i++) {
+                confettiParticles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: Math.random() * confettiCanvas.height / 2,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    size: Math.random() * 8 + 6,
+                    speedX: (Math.random() - 0.5) * 4,
+                    speedY: Math.random() * 3 + 2,
+                    opacity: 1,
+                    decay: 0.02,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.1
+                });
+            }
+            // Start confetti animation loop
+            function animateConfetti() {
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                confettiParticles.forEach(p => {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    p.opacity -= p.decay;
+                    p.rotation += p.rotSpeed;
+
+                    confettiCtx.save();
+                    confettiCtx.translate(p.x, p.y);
+                    confettiCtx.rotate(p.rotation);
+                    confettiCtx.fillStyle = p.color;
+                    confettiCtx.globalAlpha = p.opacity;
+                    confettiCtx.beginPath();
+                    confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    confettiCtx.closePath();
+                    confettiCtx.fill();
+                    confettiCtx.restore();
+                });
+                confettiParticles = confettiParticles.filter(p => p.opacity > 0);
+                if (confettiParticles.length > 0) {
+                    requestAnimationFrame(animateConfetti);
+                }
+            }
+            animateConfetti();
+        }
+
+        let currentSpawnRate = 500;
+        let spawnTimer = setInterval(spawnPolygon, currentSpawnRate);
+        setInterval(() => {
+            const levelData = getLevelData(score);
+            if (levelData.spawnRate !== currentSpawnRate) {
+                clearInterval(spawnTimer);
+                currentSpawnRate = levelData.spawnRate;
+                spawnTimer = setInterval(spawnPolygon,currentSpawnRate);
+            }
+        }, 100);
+
+        loop();
+    </script>
 </body>
 </html>
