@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PI Fighter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            background: #111;
+            border: 2px solid #ddd;
+            display: block;
+            max-width: 95%;
+            max-height: 95%;
+            width: auto;
+            height: auto;
+        }
+        #scoreDisplay {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+             transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.4em;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        #gameMessage {
+            position: absolute;
+            color: #fff;
+            font-size: 1.8em;
+            z-index: 10;
+            text-align: center;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        .button-container {
+            display: flex;
+            margin-top: 10px;
+            z-index: 11;
+        }
+        .game-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .game-button:hover {
+            background: linear-gradient(135deg, #4364f7, #6200ea);
+            box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+            transform: translateY(-3px);
+        }
+        .game-button:active {
+            transform: translateY(1px);
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #piDisplay {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2em;
+            z-index: 10;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            border-radius: 50%;
+            opacity: 0;
+            animation: confettiFall 2s linear infinite;
+            z-index: 12;
+        }
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scoreDisplay">Score: 0</div>
+    <div id="gameMessage"></div>
+    <div class="button-container">
+        <button id="startButton" class="game-button">Start</button>
+    </div>
+    <div id="piDisplay">First Digits of PI: 3.</div>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.min.js"></script>
+    <script>
+       const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const gameMessage = document.getElementById('gameMessage');
+        const startButton = document.getElementById('startButton');
+        const piDisplay = document.getElementById('piDisplay');
+
+        canvas.width = window.innerWidth * 0.8;
+        canvas.height = window.innerHeight * 0.6;
+
+        let piDigits = "31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679";
+        let currentPiIndex = 0;
+        let score = 0;
+        let gameRunning = false;
+        let animationId;
+        let keys = {};
+        let player;
+        let bullets = [];
+        let enemies = [];
+        let wave = 1;
+        let enemySpeed = 1;
+        let enemySpawnRate = 1000;
+        let bossPresent = false;
+        let bossHealth = 20;
+        let bossX;
+        let bossY;
+        let bossSize = 50;
+        let gameOver = false;
+        let boss = null;
+        let collectedPiDigits = [];
+
+
+        // --- Sound Effects (Tone.js) ---
+        const shooterSound = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }
+        }).toDestination();
+
+        const explosionSound = new Tone.Synth({
+            oscillator: { type: 'square' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+        }).toDestination();
+
+        const correctSound = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+        }).toDestination();
+
+          const incorrectSound = new Tone.Synth({
+            oscillator: { type: 'sawtooth' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+        }).toDestination();
+
+        const gameOverSound = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 10,
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: 'exponential' }
+        }).toDestination();
+
+
+
+        // --- Helper Functions ---
+
+        function random(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function displayMessage(msg) {
+            gameMessage.textContent = msg;
+            gameMessage.style.display = 'block';
+            setTimeout(() => {
+                gameMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function playSound(sound) {
+            if (gameRunning) {
+                sound.triggerAttackRelease("C4", "8n");
+            }
+        }
+
+        function createConfetti(x, y, color) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.left = `${x}px`;
+            confetti.style.top = `${y}px`;
+            confetti.style.backgroundColor = color;
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 2000);
+        }
+
+        // --- Game Object Creation ---
+        function createPlayer() {
+            return {
+                x: canvas.width / 2,
+                y: canvas.height - 60,
+                size: 20,
+                speed: 5,
+                color: '#00f',
+                scoreMultiplier: 1,
+            };
+        }
+
+        function createBullet(x, y, isPlayer = true) {
+            return {
+                x: x,
+                y: y,
+                radius: 5,
+                speed: isPlayer ? -7 : 4,
+                color: isPlayer ? '#ff0' : '#f00',
+                isPlayer: isPlayer,
+            };
+        }
+
+        function createEnemy(x, y, size, speed, digit) {
+            return {
+                x: x,
+                y: y,
+                size: size,
+                speed: speed,
+                color: '#f0f',
+                digit: digit,
+                isBoss: false,
+            };
+        }
+
+        function createBoss(x,y){
+            return{
+                x: x,
+                y:y,
+                size: bossSize,
+                speed: enemySpeed/4,
+                color: '#ff0',
+                health: bossHealth,
+                digit: '?',
+                isBoss: true,
+            }
+        }
+
+        // --- Initialization ---
+
+        function initGame() {
+            player = createPlayer();
+            bullets = [];
+            enemies = [];
+            score = 0;
+            currentPiIndex = 0;
+            gameRunning = true;
+            keys = {};
+            wave = 1;
+            enemySpeed = 1;
+            enemySpawnRate = 1000;
+            bossPresent = false;
+            bossHealth = 20;
+            bossX = canvas.width / 2;
+            bossY = -bossSize;
+            gameOver = false;
+            boss = null;
+            collectedPiDigits = [];
+            piDisplay.textContent = "First Digits of PI: 3.";
+
+
+            if (animationId) cancelAnimationFrame(animationId);
+            gameLoop();
+            scoreDisplay.textContent = `Score: ${score}`;
+            gameMessage.style.display = 'none';
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            startButton.textContent = 'Restart';
+        }
+
+        // --- Event Listeners ---
+        function handleKeyDown(e) {
+            if (!gameRunning) return;
+            keys[e.key] = true;
+
+             if (e.key >= '0' && e.key <= '9') {
+                let attemptedDigit = parseInt(e.key);
+                let correctDigit = parseInt(piDigits[currentPiIndex]);
+
+                if (attemptedDigit === correctDigit) {
+                    score += 10 * player.scoreMultiplier;
+                    playSound(correctSound);
+                    collectedPiDigits[currentPiIndex] = attemptedDigit; // Store at correct index
+                    currentPiIndex++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    let displayString = "First Digits of PI: 3.";
+                    for(let i = 0; i < piDigits.length; i++){
+                        if(collectedPiDigits[i] !== undefined){
+                            displayString += collectedPiDigits[i];
+                        }
+                        else{
+                            displayString += "_";
+                        }
+                    }
+                    piDisplay.textContent = displayString;
+
+
+                    if (currentPiIndex >= piDigits.length) {
+                        gameOver = true;
+                        gameRunning = false;
+                        displayMessage("You Defeated PI!");
+                        for (let i = 0; i < 200; i++) {
+                            createConfetti(random(0, canvas.width), random(0, canvas.height), `hsl(${random(0, 360)}, 100%, 50%)`);
+                        }
+                        // Display PI digits everywhere
+                        for (let i = 0; i < 50; i++) {
+                            const piDigit = piDigits[random(0, piDigits.length - 1)];
+                            const x = random(canvas.width * 0.1, canvas.width * 0.9);
+                            const y = random(canvas.height * 0.1, canvas.height * 0.9);
+                            const digitElement = document.createElement('div');
+                            digitElement.style.position = 'absolute';
+                            digitElement.style.left = `${x}px`;
+                            digitElement.style.top = `${y}px`;
+                            digitElement.style.color = '#fff';
+                            digitElement.style.fontSize = '1.5em';
+                            digitElement.textContent = piDigit;
+                            digitElement.style.zIndex = 11;
+                            document.body.appendChild(digitElement);
+                        }
+                    }
+                } else {
+                    playSound(incorrectSound);
+                    score -= 5;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                }
+            }
+
+            if (e.key === ' ') {
+                bullets.push(createBullet(player.x, player.y));
+                playSound(shooterSound);
+            }
+        }
+
+        function handleKeyUp(e) {
+            if (!gameRunning) return;
+            keys[e.key] = false;
+        }
+
+        startButton.addEventListener('click', () => {
+            initGame();
+        });
+
+       document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (!gameRunning) return;
+            keys[e.key] = false;
+        });
+
+
+
+        // --- Update Functions ---
+        function updatePlayer() {
+            if (keys['ArrowLeft']) player.x -= player.speed;
+            if (keys['ArrowRight']) player.x += player.speed;
+            if (keys['ArrowUp']) player.y -= player.speed;
+            if (keys['ArrowDown']) player.y += player.speed;
+
+            player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
+            player.y = Math.max(player.size, Math.min(canvas.height - player.size, player.y));
+        }
+
+        function updateBullets() {
+            bullets.forEach(bullet => bullet.y += bullet.speed / 2);
+            bullets = bullets.filter(bullet =>
+                bullet.y + bullet.radius > 0 && bullet.y - bullet.radius < canvas.height
+            );
+        }
+
+        function updateEnemies() {
+            enemies.forEach(enemy => {
+                enemy.y += enemy.speed / 4;
+            });
+            enemies = enemies.filter(enemy => enemy.y - enemy.size / 2 < canvas.height);
+        }
+
+        function updateBoss(){
+            if(!boss) return;
+            boss.y += boss.speed/8;
+            if(boss.y > canvas.height/4){
+                boss.speed = 0;
+            }
+        }
+
+        function checkBulletCollisions() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                if(bullet.isPlayer){
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+                        const dx = bullet.x - enemy.x;
+                        const dy = bullet.y - enemy.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < bullet.radius + enemy.size / 2) {
+                            bullets.splice(i, 1);
+                            if(enemy.isBoss){
+                                enemy.health -= 1;
+                                if(enemy.health <= 0){
+                                     enemies.splice(j, 1);
+                                     score += 500;
+                                     playSound(explosionSound);
+                                     scoreDisplay.textContent = `Score: ${score}`;
+                                     boss = null;
+                                     bossPresent = false;
+                                }
+                            }
+                            else{
+                                enemies.splice(j, 1);
+                                score += 20;
+                                playSound(explosionSound);
+                                scoreDisplay.textContent = `Score: ${score}`;
+                            }
+
+                            break;
+                        }
+                    }
+                }
+                else{
+                     const dx = bullet.x - player.x;
+                    const dy = bullet.y - player.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if(distance < bullet.radius + player.size/2){
+                        gameOver = true;
+                        playSound(gameOverSound);
+                        displayMessage("Game Over!  You were defeated by PI!");
+                        gameRunning = false;
+                    }
+                }
+            }
+        }
+
+        function checkPlayerCollisions() {
+            for (let enemy of enemies) {
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < player.size / 2 + enemy.size / 2) {
+                    gameOver = true;
+                    playSound(gameOverSound);
+                    displayMessage("Game Over!  You were defeated by PI!");
+                    gameRunning = false;
+                    break;
+                }
+            }
+        }
+
+
+        // --- Spawning Functions ---
+        function spawnEnemy() {
+            if (enemies.length < 10 && !bossPresent) {
+                const enemySize = random(10, 30);
+                const enemyX = random(enemySize, canvas.width - enemySize);
+                const enemyY = -enemySize;
+                const enemySpeed = random(1, 3);
+                const digit = piDigits[random(currentPiIndex, Math.min(currentPiIndex + 5, piDigits.length-1))];
+                enemies.push(createEnemy(enemyX, enemyY, enemySize, enemySpeed, digit));
+            }
+            else if (enemies.length < 5 && bossPresent){
+                const enemySize = random(10, 30);
+                const enemyX = random(enemySize, canvas.width - enemySize);
+                const enemyY = -enemySize;
+                const enemySpeed = random(1, 3);
+                const digit = piDigits[random(currentPiIndex, Math.min(currentPiIndex + 5, piDigits.length-1))];
+                enemies.push(createEnemy(enemyX, enemyY, enemySize, enemySpeed, digit));
+            }
+        }
+
+        function spawnBoss(){
+            if(!boss){
+                boss = createBoss(bossX, bossY);
+                enemies.push(boss);
+                bossPresent = true;
+            }
+        }
+
+
+        // --- Draw Functions ---
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, player.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawBullet(bullet) {
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+            ctx.fillStyle = bullet.color;
+            ctx.fill();
+        }
+
+        function drawEnemy(enemy) {
+            ctx.save();
+            ctx.translate(enemy.x, enemy.y);
+            ctx.fillStyle = enemy.color;
+            ctx.beginPath();
+            ctx.rect(-enemy.size / 2, -enemy.size / 2, enemy.size, enemy.size);
+            ctx.fill();
+
+            // Draw the digit
+            ctx.fillStyle = '#fff';
+            ctx.font = `${enemy.size * 0.6}px "Press Start 2P"`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(enemy.digit, 0, 0);
+
+            ctx.restore();
+        }
+
+        function drawBoss(){
+            if(!boss) return;
+
+            ctx.save();
+            ctx.translate(boss.x, boss.y);
+            ctx.fillStyle = boss.color;
+            ctx.beginPath();
+            ctx.arc(0,0, boss.size, 0, Math.PI * 2);
+            ctx.fill();
+
+             // Draw health bar
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-boss.size, -boss.size - 10, boss.size * 2, 8);
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(-boss.size, -boss.size - 10, (boss.size * 2) * (boss.health / bossHealth), 8);
+
+            ctx.restore();
+        }
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updatePlayer();
+            updateBullets();
+            updateEnemies();
+            updateBoss();
+            checkBulletCollisions();
+            checkPlayerCollisions();
+
+            if (Math.random() < 0.03) spawnEnemy();
+            if(wave > 5 && !bossPresent){
+                spawnBoss();
+            }
+
+
+            drawPlayer();
+            bullets.forEach(drawBullet);
+            enemies.forEach(drawEnemy);
+            drawBoss();
+            scoreDisplay.textContent = `Score: ${score}`;
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Start Game ---
+        initGame();
+    </script>
+</body>
+</html>
