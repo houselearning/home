@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factor Forest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            background-image: url('https://houselearning.github.io/home/games/static/forest.jpg'); /* Replace with your background image */
+            background-size: cover;
+            background-position: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Increased max-width for larger screens */
+            padding: 2rem;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8); /* Added opacity to the container */
+            border-radius: 1rem; /* Increased border-radius */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Added shadow for depth */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Added border */
+
+        }
+
+        h1 {
+            font-size: 2.5rem; /* Increased font-size */
+            margin-bottom: 1rem;
+            color: #388e3c; /* Green color for heading */
+            text-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.2);
+        }
+
+        #game-canvas {
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            background-color: #e0f2f1;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            width: 100%;
+            height: auto;
+            max-height: 600px;
+            aspect-ratio: 8 / 6;
+        }
+
+        #instructions {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: #555;
+            text-align: left;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        }
+        #instructions h2{
+            font-size: 1.2rem;
+            color: #388e3c;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 0.1rem rgba(0,0,0,0.2);
+        }
+
+        #score {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #212121;
+        }
+
+        #game-over-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+            z-index: 10;
+        }
+
+        #game-over-modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
+        #game-over-content {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        #game-over-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #d32f2f;
+        }
+
+        #game-over-score {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #212121;
+        }
+
+        #play-again {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.2rem;
+            background-color: #388e3c;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        #play-again:hover {
+            background-color: #2e7d32;
+        }
+
+        #play-again:active {
+             background-color: #1b5e20;
+             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+        }
+
+        .game-over-button{
+            padding: 0.75rem 1.5rem;
+            font-size: 1.2rem;
+            background-color: #388e3c;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            margin: 0.5rem;
+        }
+        .game-over-button:hover {
+            background-color: #2e7d32;
+        }
+
+        .game-over-button:active {
+             background-color: #1b5e20;
+             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+        }
+
+        #mute-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        #mute-button:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .icon {
+            width: 2rem;
+            height: 2rem;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Factor Forest</h1>
+        <div id="score">Score: 0</div>
+        <canvas id="game-canvas"></canvas>
+        <div id="instructions">
+            <h2>How to Play</h2>
+            <p>
+                Use the arrow keys (<i class="fas fa-arrow-up"></i>, <i class="fas fa-arrow-down"></i>, <i class="fas fa-arrow-left"></i>, <i class="fas fa-arrow-right"></i>) to move your character (the bunny) through the forest.  Collect the numbers (carrots) in the correct order.
+            </p>
+            <p>
+                The numbers you need to collect will be displayed one at a time.  For example, if the number is 6, you need to collect 1, then 2, then 3, then 6.
+            </p>
+            <p>
+                If you collect the numbers in the wrong order, you will lose the game.  The game ends when you collect all the factors in the correct order.
+            </p>
+        </div>
+        <div id="game-over-modal">
+            <div id="game-over-content">
+                <h2 id="game-over-title">Game Over</h2>
+                <p id="game-over-score">Final Score: 0</p>
+                <button id="play-again" class = "game-over-button">Play Again</button>
+                <button id="mute-button" class="absolute top-4 right-4">
+                    <i id="mute-icon" class="fas fa-volume-up icon"></i>
+                </button>
+            </div>
+        </div>
+         <button id="mute-button" class="absolute top-4 right-4">
+            <i id="mute-icon" class="fas fa-volume-up icon"></i>
+        </button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const gameOverScoreDisplay = document.getElementById('game-over-score');
+        const playAgainButton = document.getElementById('play-again');
+        const muteButton = document.getElementById('mute-button');
+        const muteIcon = document.getElementById('mute-icon');
+
+        let isMuted = false;
+
+        // Tone.js setup
+        const correctSound = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.2 }
+        }).toDestination();
+
+        const incorrectSound = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+
+        const gameOverSound = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 10,
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: 'exponential' }
+        }).toDestination();
+
+
+        function playCorrectSound() {
+            if (!isMuted) correctSound.triggerAttackRelease("C4", "8n");
+        }
+
+        function playIncorrectSound() {
+            if (!isMuted) incorrectSound.triggerAttackRelease("G2", "4n");
+        }
+
+        function playGameOverSound() {
+           if (!isMuted) gameOverSound.triggerAttackRelease("A2", "2n");
+        }
+
+        muteButton.addEventListener('click', () => {
+            isMuted = !isMuted;
+            if (isMuted) {
+                muteIcon.classList.remove('fa-volume-up');
+                muteIcon.classList.add('fa-volume-mute');
+            } else {
+                muteIcon.classList.remove('fa-volume-mute');
+                muteIcon.classList.add('fa-volume-up');
+            }
+        });
+
+        function resizeCanvas() {
+            canvas.width = document.querySelector('.container').clientWidth;
+            canvas.height = canvas.width * 0.75; // Maintain aspect ratio
+        }
+
+        resizeCanvas(); // Initial resize
+        window.addEventListener('resize', resizeCanvas); // Resize on window resize
+
+
+
+        const gridSize = 40; // Increased size of grid and game elements.
+        let player;
+        let numbers = [];
+        let score = 0;
+        let targetNumber;
+        let factors;
+        let currentFactorIndex;
+        let gameOver = false;
+        let collectedNumbers = [];
+        const keys = {}; // Store currently pressed keys
+
+        const bunnyImg = new Image();
+        bunnyImg.src = 'http://houselearning.github.io/home/games/static/bunny.gif';
+        const carrotImg = new Image();
+        carrotImg.src = 'http://houselearning.github.io/home/games/static/carrot.jpg';
+
+
+        function initGame() {
+            player = { x: canvas.width / 2, y: canvas.height / 2, size: gridSize };
+            numbers = [];
+            score = 0;
+            targetNumber = Math.floor(Math.random() * 50) + 2;
+            factors = getFactors(targetNumber);
+            factors.sort((a, b) => a - b);
+            currentFactorIndex = 0;
+            gameOver = false;
+            collectedNumbers = [];
+            scoreDisplay.textContent = `Score: ${score}`;
+            gameOverModal.classList.remove('show');
+            generateNumbers();
+            Promise.all([
+                new Promise(resolve => {
+                    bunnyImg.onload = () => resolve();
+                    bunnyImg.onerror = () => {
+                        console.error("Failed to load bunny image");
+                        resolve();
+                    };
+                }),
+                new Promise(resolve => {
+                    carrotImg.onload = () => resolve();
+                    carrotImg.onerror = () => {
+                        console.error("Failed to load carrot image");
+                         resolve();
+                    };
+                })
+            ]).then(() => {
+                draw();
+                // Start the update loop.
+                setInterval(update, 20);
+            });
+        }
+
+
+        function getFactors(number) {
+            const factors = [];
+            for (let i = 1; i <= number; i++) {
+                if (number % i === 0) {
+                    factors.push(i);
+                }
+            }
+            return factors;
+        }
+
+        function generateNumbers() {
+            numbers = [];
+            const numFactors = factors.length;
+            const maxNumbers = 6;
+
+            const potentialNumbers = [...factors];
+            while (potentialNumbers.length < maxNumbers) {
+                const randomNum = Math.floor(Math.random() * 50) + 1;
+                if (!potentialNumbers.includes(randomNum)) {
+                    potentialNumbers.push(randomNum);
+                }
+            }
+
+            for (let i = potentialNumbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [potentialNumbers[i], potentialNumbers[j]] = [potentialNumbers[j], potentialNumbers[i]];
+            }
+
+            const displayedNumbers = potentialNumbers.slice(0, maxNumbers);
+            displayedNumbers.forEach(num => {
+                numbers.push({
+                    x: Math.random() * (canvas.width - 2 * gridSize) + gridSize,
+                    y: Math.random() * (canvas.height - 2 * gridSize) + gridSize,
+                    value: num,
+                    collected: false
+                });
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the bunny
+            ctx.drawImage(bunnyImg, player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
+
+
+            // Draw the numbers (carrots)
+            numbers.forEach(number => {
+                if (!number.collected) {
+                    ctx.drawImage(carrotImg, number.x - gridSize / 2, number.y - gridSize / 2, gridSize, gridSize);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 20px "Press Start 2P"';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 2;
+                    ctx.fillText(number.value, number.x, number.y);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            // Display the target number
+            ctx.fillStyle = '#333';
+            ctx.font = '28px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Collect: ${factors[currentFactorIndex]}`, canvas.width / 2, 30);
+        }
+
+        function update() {
+            if (gameOver) return;
+
+
+            if (keys['ArrowUp'] && player.y > 0) player.y -= 5;
+            if (keys['ArrowDown'] && player.y < canvas.height) player.y += 5;
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= 5;
+            if (keys['ArrowRight'] && player.x < canvas.width) player.x += 5;
+
+            let collectedNumber = null;
+            for (let i = 0; i < numbers.length; i++) {
+                const number = numbers[i];
+                if (!number.collected &&
+                    Math.abs(player.x - number.x) < gridSize &&
+                    Math.abs(player.y - number.y) < gridSize) {
+                    collectedNumber = number;
+                    break;
+                }
+            }
+
+            if (collectedNumber) {
+                if (collectedNumber.value === factors[currentFactorIndex]) {
+                    collectedNumber.collected = true;
+                    collectedNumbers.push(collectedNumber.value);
+                    score += 10;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    playCorrectSound();
+                    currentFactorIndex++;
+
+                    if (currentFactorIndex >= factors.length) {
+                        gameOver = true;
+                        playGameOverSound();
+                        gameOverScoreDisplay.textContent = `Final Score: ${score}`;
+                        gameOverModal.classList.add('show');
+                    } else {
+                         generateNumbers();
+                    }
+                } else {
+                    gameOver = true;
+                    playIncorrectSound();
+                    gameOverScoreDisplay.textContent = `Final Score: ${score}`;
+                    gameOverModal.classList.add('show');
+                }
+            }
+
+            draw();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+
+        playAgainButton.addEventListener('click', () => {
+            initGame();
+        });
+
+        initGame();
+
+
+    </script>
+</body>
+</html>
