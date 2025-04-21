@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Ninja</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden; /* Prevent scrollbars */
+            cursor: url('https://houselearning.github.io/home/games/static/knife.ico'), auto; /* Custom cursor */
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameCanvas {
+            background: rgba(0, 0, 0, 0.8); /* Darker background */
+            display: block;
+            width: 100%; /* Make canvas fill the container */
+            height: 100%; /* Make canvas fill the container */
+        }
+
+        #scoreDisplay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+             transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.5em; /* Larger score display */
+            z-index: 10;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7); /* More pronounced shadow */
+        }
+
+        #gameOverDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 2em;
+            z-index: 11;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.9); /* Darker background for game over screen */
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); /* Glowing red shadow */
+        }
+
+        #gameOverDisplay button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 0.8em;
+            color: #fff;
+            background-color: #ff4500; /* Bright red button */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #gameOverDisplay button:hover {
+            background-color: #cc3700; /* Darker red on hover */
+        }
+
+        .number {
+            position: absolute;
+            font-size: 1.5em; /* Larger numbers */
+            color: #fff;
+            z-index: 1;
+            user-select: none; /* Prevent text selection */
+            pointer-events: none; /* Important: Allows clicks to pass through */
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7); /* Add shadow for better visibility */
+        }
+
+        .bomb {
+            position: absolute;
+            width: 50px; /* Larger bomb */
+            height: 50px; /* Larger bomb */
+            z-index: 1;
+            pointer-events: none; /* Clicks pass through */
+        }
+
+        #explosion {
+            position: absolute;
+            width: 100px; /* Larger explosion */
+            height: 100px; /* Larger explosion */
+            z-index: 12;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="scoreDisplay">Score: 0</div>
+        <div id="gameOverDisplay">
+            <h2>Game Over</h2>
+            <button id="restartButton">Restart</button>
+        </div>
+        <img id="explosion" src="https://houselearning.github.io/home/games/static/explosion.gif" style="display:none;">
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const gameOverDisplay = document.getElementById('gameOverDisplay');
+        const restartButton = document.getElementById('restartButton');
+        const explosionDisplay = document.getElementById('explosion');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let score = 0;
+        let numbers = [];
+        let bombs = [];
+        let gameOver = false;
+        let knifeTrail = [];
+        const trailLength = 10; // Number of points to keep in the trail
+        let animationId;
+
+        // --- Sound Effects (Tone.js) ---
+        const sliceSound = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }
+        }).toDestination();
+
+        // --- Helper Functions ---
+
+        function randomRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // --- Game Object Creation ---
+
+        function createNumber() {
+            const x = randomRange(50, canvas.width - 50);
+            const y = canvas.height + 50; // Start below the bottom
+            const value = randomInt(1, 9);
+            const speed = randomRange(2, 5); // Adjust speed range
+            return { x, y, value, speed, sliced: false };
+        }
+
+        function createBomb() {
+            const x = randomRange(50, canvas.width - 50);
+            const y = canvas.height + 50; // Start below
+            const speed = randomRange(1.5, 4); // Slightly slower than numbers
+            return { x, y, speed, sliced: false };
+        }
+
+        // --- Drawing Functions ---
+
+        function drawNumber(number) {
+            ctx.font = '2em "Press Start 2P"'; // Larger font
+            ctx.fillStyle = number.sliced ? 'rgba(255, 0, 0, 0.8)' : '#fff'; // Red if sliced, white otherwise
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; // Add a shadow
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.textAlign = 'center'; // Center the text
+            ctx.fillText(number.value, number.x, number.y);
+            ctx.shadowBlur = 0; // Reset shadow
+        }
+
+        function drawBomb(bomb) {
+            const img = new Image();
+            img.src = 'https://houselearning.github.io/home/games/static/bomb.png';
+            img.onload = () => {
+                ctx.drawImage(img, bomb.x - 25, bomb.y - 25, 50, 50); // Adjust size as needed
+            };
+        }
+
+        function drawKnifeTrail() {
+            for (let i = 0; i < knifeTrail.length; i++) {
+                const point = knifeTrail[i];
+                const opacity = 0.8 * (1 - i / trailLength); // Fade out the trail
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3 * (1 - i / trailLength), 0, Math.PI * 2); // Size decreases
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // --- Update Functions ---
+        function updateNumbers() {
+            for (let i = 0; i < numbers.length; i++) {
+                numbers[i].y -= numbers[i].speed;
+                if (numbers[i].y < -50) {
+                    numbers.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function updateBombs() {
+            for (let i = 0; i < bombs.length; i++) {
+                bombs[i].y -= bombs[i].speed;
+                if (bombs[i].y < -50) {
+                    bombs.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+         function checkCollision(x, y) {
+            for (let i = 0; i < numbers.length; i++) {
+                const number = numbers[i];
+                const distance = Math.sqrt(Math.pow(x - number.x, 2) + Math.pow(y - number.y, 2));
+                if (distance < 30 && !number.sliced) { // Increased collision radius
+                    number.sliced = true;
+                    score += 10;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    sliceSound.triggerAttackRelease("C4", "16n");
+                    return; // Important: Only slice one object per click
+                }
+            }
+
+            for (let i = 0; i < bombs.length; i++) {
+                const bomb = bombs[i];
+                const distance = Math.sqrt(Math.pow(x - bomb.x, 2) + Math.pow(y - bomb.y, 2));
+                if (distance < 30 && !bomb.sliced) { // Increased collision radius for bombs
+                    bomb.sliced = true; // Set sliced to true, but don't do anything else here.
+                    handleGameOver(x,y); //call game over and pass x,y for explosion
+                    return;
+                }
+            }
+        }
+
+        function handleGameOver(x,y) {
+            gameOver = true;
+            explosionDisplay.style.left = `${x - 50}px`; // Center explosion
+            explosionDisplay.style.top = `${y - 50}px`;
+            explosionDisplay.style.display = 'block'; // Show explosion
+            cancelAnimationFrame(animationId); // Stop game updates
+            gameOverDisplay.style.display = 'block';
+             // Play explosion sound (you can add a sound effect here using Tone.js if you have one)
+            setTimeout(() => {
+                explosionDisplay.style.display = 'none'; // Hide explosion after a delay
+            }, 1000);
+        }
+
+        // --- Event Listeners ---
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            knifeTrail.push({ x, y });
+            if (knifeTrail.length > trailLength) {
+                knifeTrail.shift();
+            }
+            if (!gameOver) {
+                checkCollision(x, y);
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+             if (!gameOver) {
+                checkCollision(x, y);
+            }
+        });
+
+        restartButton.addEventListener('click', () => {
+            gameOver = false;
+            gameOverDisplay.style.display = 'none';
+            score = 0;
+            scoreDisplay.textContent = 'Score: 0';
+            numbers = [];
+            bombs = [];
+            knifeTrail = [];
+            startAnimation();
+        });
+
+        // --- Game Loop ---
+        function drawFrame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawKnifeTrail(); // Draw the knife trail
+            numbers.forEach(drawNumber);
+            bombs.forEach(drawBomb);
+        }
+
+        function updateGame() {
+            updateNumbers();
+            updateBombs();
+        }
+
+        function gameLoop() {
+            if (!gameOver) {
+                updateGame();
+                drawFrame();
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startAnimation() {
+            if (!animationId) {
+                gameLoop();
+            }
+        }
+
+        // --- Initial Setup ---
+        startAnimation(); // Start the game loop
+        setInterval(() => {
+            if (!gameOver) {
+                if (Math.random() < 0.8) { // Adjust probability as needed (e.g., 0.7 for more numbers)
+                    numbers.push(createNumber());
+                }
+                if (Math.random() < 0.2) { // Adjust probability for bombs
+                    bombs.push(createBomb());
+                }
+            }
+        }, 500); // Adjust interval for object creation
+
+        // ---  Resize Listener ---
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>
