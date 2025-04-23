@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variable Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #222;
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            text-align: center;
+            border: 4px solid #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+        }
+
+        p {
+            font-size: 0.9em;
+            color: #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        #vaultDoor {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.5s ease;
+            background-image: url('https://houselearning.github.io/home/games/static/vault.png');
+            background-size: cover;
+            border-radius: 50%;
+            border: 8px solid #b8b3a1;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+        }
+
+        #vaultDoor:hover {
+            transform: scale(1.1);
+        }
+
+        #vaultDoor.open {
+            transform: rotate(720deg) scale(1.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: rotate(720deg) scale(1.5); }
+            50% { transform: rotate(720deg) scale(1.6); }
+            100% { transform: rotate(720deg) scale(1.5); }
+        }
+
+        #guessesRemaining {
+            font-size: 1em;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        #numberSlots {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .number-slot {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            background-color: #3b82f6;
+            color: #fff;
+            margin: 0 5px;
+            font-size: 1.2em;
+            line-height: 40px;
+            text-align: center;
+            border: 2px solid #6d7c93;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .number-slot.correct {
+            background-color: #f6e05e;
+            color: #1a202c;
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash {
+            0% { background-color: #f6e05e; color: #1a202c; }
+            50% { background-color: #ecc94b; color: #1a202c; }
+            100% { background-color: #f6e05e; color: #1a202c; }
+        }
+
+        .number-slot.close {
+            background-color: #48bb78;
+            color: #fff;
+        }
+
+        .number-slot.far {
+            background-color: #e53e3e;
+            color: #fff;
+        }
+
+        #userInput {
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid #718096;
+            margin-right: 10px;
+            width: 100px;
+            font-size: 0.9em;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #2d3748;
+            color: #fff;
+        }
+
+        #checkGuess {
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #checkGuess:hover {
+            background-color: #2563eb;
+        }
+
+        #result {
+            font-size: 1em;
+            color: #fff;
+            margin-top: 1rem;
+            min-height: 2em;
+        }
+
+        #resetGame {
+            margin-top: 1.5rem;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #4a5568;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+            display: none;
+        }
+
+        #resetGame:hover {
+            background-color: #2d3748;
+        }
+
+        #hintButton {
+            margin-top: 1rem;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #f59e0b;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #hintButton:hover {
+            background-color: #d97706;
+        }
+
+        #hint {
+            font-size: 0.8em;
+            color: #fff;
+            margin-top: 1rem;
+            min-height: 2em;
+            display: none;
+        }
+
+        #video-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        #end-video {
+            width: 80vw;
+            height: auto;
+            max-height: 80vh;
+        }
+
+        .certificate-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 101;
+            text-align: center;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ccc;
+        }
+
+        .certificate-popup h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .certificate-popup p {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .certificate-popup img {
+            max-width: 80%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .certificate-popup button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+
+        .certificate-popup button:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                width: 100%;
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            p {
+                font-size: 0.8em;
+            }
+            #userInput {
+                width: 80px;
+                font-size: 0.8em;
+            }
+            #checkGuess {
+                font-size: 0.8em;
+            }
+            #vaultDoor {
+                width: 150px;
+                height: 150px;
+                font-size: 1.5em;
+            }
+            .number-slot {
+                width: 30px;
+                height: 30px;
+                font-size: 1em;
+                line-height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Variable Vault</h1>
+        <p>Crack the code! Guess the 4-digit number to open the vault.</p>
+        <div id="vaultDoor">🔒</div>
+        <p id="guessesRemaining"></p>
+        <div id="numberSlots">
+            <div class="number-slot" id="slot1"></div>
+            <div class="number-slot" id="slot2"></div>
+            <div class="number-slot" id="slot3"></div>
+            <div class="number-slot" id="slot4"></div>
+        </div>
+        <div>
+            <input type="number" id="userInput" placeholder="Enter 4-digit guess" min="1000" max="9999">
+            <button id="checkGuess">Check Guess</button>
+            <button id="hintButton">Hint</button>
+        </div>
+        <p id="result"></p>
+        <button id="resetGame">Reset Game</button>
+        <div id="hint"></div>
+        <div id="video-container">
+            <video id="end-video" controls>
+                <source src="https://houselearning.github.io/home/games/static/thief-success.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="certificate-popup" id="certificate-popup">
+            <h2>Congratulations!</h2>
+            <p>You have cracked the code!</p>
+            <img id="certificate-img" src="" alt="Certificate">
+            <button id="download-certificate">Download Certificate</button>
+        </div>
+    </div>
+
+    <script>
+        let secretNumber = generateSecretNumber();
+        let guessesRemaining = 30;
+        let gameWon = false;
+        let usedHints = 0;
+
+        const vaultDoor = document.getElementById('vaultDoor');
+        const guessesRemainingDisplay = document.getElementById('guessesRemaining');
+        const userInput = document.getElementById('userInput');
+        const checkGuessButton = document.getElementById('checkGuess');
+        const result = document.getElementById('result');
+        const resetButton = document.getElementById('resetGame');
+        const numberSlots = document.querySelectorAll('.number-slot');
+        const hintButton = document.getElementById('hintButton');
+        const hintDisplay = document.getElementById('hint');
+        const videoContainer = document.getElementById('video-container');
+        const endVideo = document.getElementById('end-video');
+        const certificatePopup = document.getElementById('certificate-popup');
+        const certificateImg = document.getElementById('certificate-img');
+        const downloadCertificateButton = document.getElementById('download-certificate');
+
+        guessesRemainingDisplay.textContent = `Guesses Remaining: ${guessesRemaining}`;
+
+        function generateSecretNumber() {
+            return Math.floor(Math.random() * 9000) + 1000;
+        }
+
+        function getHint() {
+            if (usedHints >= 3) {
+                return "You have used all available hints.";
+            }
+
+            usedHints++;
+            const hintType = Math.floor(Math.random() * 3);
+            let hint = "";
+
+            switch (hintType) {
+                case 0:
+                    const digitToReveal = Math.floor(Math.random() * 4);
+                    const digitValue = String(secretNumber)[digitToReveal];
+                    hint = `The digit at position ${digitToReveal + 1} is ${digitValue}.`;
+                    break;
+                case 1:
+                    const sum = String(secretNumber).split('').reduce((acc, curr) => acc + parseInt(curr), 0);
+                    hint = `The sum of the digits is ${sum}.`;
+                    break;
+                case 2:
+                    const parity = secretNumber % 2 === 0 ? "even" : "odd";
+                    hint = `The number is ${parity}.`;
+                    break;
+                default:
+                    hint = "No hint available.";
+            }
+            return hint;
+        }
+
+        function showCertificate() {
+            const today = new Date().toISOString().split('T')[0];
+            const certificateName = `certificate_${today}.png`;
+
+            // Create a temporary canvas for drawing the certificate
+            const certCanvas = document.createElement('canvas');
+            certCanvas.width = 800;
+            certCanvas.height = 600;
+            const certCtx = certCanvas.getContext('2d');
+
+            // Background
+            certCtx.fillStyle = '#f8f8f8';
+            certCtx.fillRect(0, 0, certCanvas.width, certCanvas.height);
+
+            // Border
+            certCtx.strokeStyle = '#4CAF50';
+            certCtx.lineWidth = 5;
+            certCtx.strokeRect(25, 25, certCanvas.width - 50, certCanvas.height - 50);
+
+            // Title
+            certCtx.font = 'bold 2em "Press Start 2P"';
+            certCtx.fillStyle = '#333';
+            certCtx.textAlign = 'center';
+            certCtx.fillText('Certificate of Achievement', certCanvas.width / 2, 100);
+
+            // Awardee
+            certCtx.font = '1.2em "Press Start 2P"';
+            certCtx.fillStyle = '#555';
+            certCtx.fillText('Awarded to:', certCanvas.width / 2, 200);
+
+            certCtx.font = 'bold 1.5em "Press Start 2P"';
+            certCtx.fillStyle = '#222';
+            certCtx.fillText('You', certCanvas.width / 2, 250);
+
+            // Completion Date
+            certCtx.font = '0.9em "Press Start 2P"';
+            certCtx.fillStyle = '#555';
+            certCtx.fillText(`Completed on: ${today}`, certCanvas.width / 2, 350);
+
+            // Message
+            certCtx.font = '1em "Press Start 2P"';
+            certCtx.fillStyle = '#555';
+            certCtx.fillText("For Cracking the Variable Vault!", certCanvas.width / 2, 400);
+
+            // Create image from canvas
+            const dataURL = certCanvas.toDataURL('image/png');
+            certificateImg.src = dataURL;
+            certificatePopup.style.display = 'block';
+        }
+
+        checkGuessButton.addEventListener('click', () => {
+            const guess = Number(userInput.value);
+
+            if (guess < 1000 || guess > 9999 || isNaN(guess)) {
+                result.textContent = "Please enter a valid 4-digit number.";
+                userInput.value = '';
+                return;
+            }
+
+            guessesRemaining--;
+            guessesRemainingDisplay.textContent = `Guesses Remaining: ${guessesRemaining}`;
+            vaultDoor.classList.add('open');
+
+            setTimeout(() => {
+                vaultDoor.classList.remove('open');
+                vaultDoor.textContent = '🔓';
+            }, 2000);
+
+
+            const guessDigits = String(guess).split('');
+            const secretDigits = String(secretNumber).split('');
+
+            let allCorrect = true;
+            for (let i = 0; i < 4; i++) {
+                if (guessDigits[i] === secretDigits[i]) {
+                    numberSlots[i].textContent = guessDigits[i];
+                    numberSlots[i].classList.add('correct');
+                } else if (secretDigits.includes(guessDigits[i])) {
+                    numberSlots[i].textContent = guessDigits[i];
+                    numberSlots[i].classList.add('close');
+                    allCorrect = false;
+                } else {
+                    numberSlots[i].textContent = guessDigits[i];
+                    numberSlots[i].classList.add('far');
+                    allCorrect = false;
+                }
+            }
+
+
+            if (allCorrect) {
+                gameWon = true;
+                result.textContent = "Congratulations! You cracked the code!";
+                userInput.disabled = true;
+                checkGuessButton.disabled = true;
+                resetButton.style.display = 'inline-block';
+                showEndVideo();
+
+            } else if (guessesRemaining === 0) {
+                result.textContent = `Game Over! The correct number was ${secretNumber}.`;
+                userInput.disabled = true;
+                checkGuessButton.disabled = true;
+                resetButton.style.display = 'inline-block';
+            } else {
+                result.textContent = "Keep guessing!";
+                userInput.value = '';
+                userInput.focus();
+            }
+        });
+
+        hintButton.addEventListener('click', () => {
+            const hintText = getHint();
+            hintDisplay.textContent = hintText;
+            hintDisplay.style.display = 'block';
+        });
+
+        function showEndVideo() {
+            videoContainer.style.display = 'block';
+            endVideo.play();
+            endVideo.onended = () => {
+                videoContainer.style.display = 'none';
+                showCertificate();
+            }
+        }
+
+        resetButton.addEventListener('click', () => {
+            secretNumber = generateSecretNumber();
+            guessesRemaining = 30;
+            gameWon = false;
+            vaultDoor.classList.remove('open');
+            vaultDoor.textContent = '🔒';
+            guessesRemainingDisplay.textContent = `Guesses Remaining: ${guessesRemaining}`;
+            userInput.disabled = false;
+            checkGuessButton.disabled = false;
+            result.textContent = '';
+            userInput.value = '';
+            userInput.focus();
+            resetButton.style.display = 'none';
+            hintDisplay.style.display = 'none';
+            numberSlots.forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('correct', 'close', 'far');
+            });
+            usedHints = 0;
+            certificatePopup.style.display = 'none';
+        });
+
+        downloadCertificateButton.addEventListener('click', () => {
+            const img = certificateImg.getAttribute('src');
+            if (img) {
+                const a = document.createElement('a');
+                a.href = img;
+                a.download = `certificate_${new Date().toISOString().split('T')[0]}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        });
+
+    </script>
+</body>
+</html>
