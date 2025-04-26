@@ -1,280 +1,291 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoolMathTime - Math Lessons & Games</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #ffeb3b;
-        }
-        header {
-            background: #0288d1;
-            color: white;
-            padding: 20px;
-            font-size: 28px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .navbar {
-            display: flex;
-            justify-content: center;
-            background: #0277bd;
-            padding: 10px;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            margin: 0 10px;
-            font-size: 18px;
-            background: #01579b;
-            border-radius: 5px;
-        }
-        .navbar a:hover {
-            background: #013a63;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px;
-        }
-        .lesson-card, .game-card {
-            background: white;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 10px;
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-            width: 220px;
-            text-align: center;
-        }
-        .lesson-card h3, .game-card h3 {
-            font-size: 18px;
-            color: #0288d1;
-        }
-        .lesson-card a, .game-card a {
-            text-decoration: none;
-            color: white;
-            background: #0288d1;
-            padding: 10px 15px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .lesson-card a:hover, .game-card a:hover {
-            background: #01579b;
-        }
-        img
-        {
-            width:4cm;
-            height:4cm;
-        }
-    </style>
-    <script>
-  // Correct SHA-256 hash of 'tom2013' from your browser
-  const correctHash = '6fe2bda7facbcf5c1da8ce868bc4dd9c65adca722f629734482ed368d3c33ce0';
-
-  async function unlockMemberGames() {
-    let password = document.getElementById('passwordInput').value.trim();
-    const hash = await sha256(password);
-
-    if (hash === correctHash) {
-      document.getElementById('memberGames').classList.remove('blurred');
-      document.getElementById('unlockArea').style.display = 'none';
-    } else {
-      alert('Wrong password, bro.');
+  <meta charset="UTF-8">
+  <title>CoolMathTime - Math Lessons & Games</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffeb3b;
     }
-  }
+    header {
+      background: #0288d1;
+      color: white;
+      padding: 20px;
+      font-size: 28px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .navbar {
+      display: flex;
+      justify-content: center;
+      background: #0277bd;
+      padding: 10px;
+    }
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 18px;
+      background: #01579b;
+      border-radius: 5px;
+    }
+    .navbar a:hover {
+      background: #013a63;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 20px;
+    }
+    .game-card {
+      background: white;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 10px;
+      box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+      width: 220px;
+      text-align: center;
+      text-decoration: none;
+    }
+    .game-card img {
+      width: 4cm;
+      height: 4cm;
+    }
+    .game-card p {
+      margin-top: 10px;
+      color: #0288d1;
+      font-weight: bold;
+    }
+    .blurred {
+      filter: blur(5px);
+      pointer-events: none;
+      user-select: none;
+    }
+    #unlockArea {
+      text-align: center;
+      margin: 30px;
+    }
+    #unlockArea input, #unlockArea button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+  </style>
+  <script>
+    const correctHash = '6fe2bda7facbcf5c1da8ce868bc4dd9c65adca722f629734482ed368d3c33ce0';
 
-  async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-  }
-</script>
+    async function unlockMemberGames() {
+      const password = document.getElementById('passwordInput').value.trim();
+      const hash = await sha256(password);
+
+      if (hash === correctHash) {
+        document.getElementById('memberGames').classList.remove('blurred');
+        document.getElementById('unlockArea').style.display = 'none';
+      } else {
+        alert('Wrong password, bro.');
+      }
+    }
+
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+  </script>
 </head>
 <body>
-    <header>CoolMathTime - Random Games</header>
-    <nav class="navbar">
-        <a href="/index.html">Home</a>
-        <a href="/math-page.html">Math</a>
-        <a href="/science-page.html">Science</a>
-        <a href="/computer-science.html">Coding</a>
-        <a href="/about.html">About</a>
-    </nav>
-    <a href="https://houselearning.github.io/home/promos/index.html">
-    <img src="https://houselearning.github.io/home/promos/ad1.png" style="float:right;" width="204" height="423">
+
+<header>CoolMathTime - Random Games</header>
+<nav class="navbar">
+  <a href="/index.html">Home</a>
+  <a href="/math-page.html">Math</a>
+  <a href="/science-page.html">Science</a>
+  <a href="/computer-science.html">Coding</a>
+  <a href="/about.html">About</a>
+</nav>
+
+<h2 style="text-align:center; margin-top:20px;">Games</h2>
+
+<div class="container">
+  <!-- Public Games -->
+  <div class="container">
+    <a class="game-card" href="https://houselearning.github.io/home/games/alge-blast.html">
+      <img src="images/alge-blast.png" alt="Alge-Blast">
+      <p>Alge-Blast</p>
     </a>
-    <h2 style="text-align:center; margin-top:20px;">Games</h2>
-    <div class="container">
-  <a class="game-card" href="https://houselearning.github.io/home/games/alge-blast.html">
-    <img src="images/alge-blast.png" alt="Alge-Blast">
-    <p>Alge-Blast</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/games/suburb-sleuth.html">
-    <img src="images/suburb-sleuth.png" alt="Suburb Sleuth">
-    <p>Suburb Sleuth</p>
-  </a>
+    <a class="game-card" href="https://houselearning.github.io/home/games/suburb-sleuth.html">
+      <img src="images/suburb-sleuth.png" alt="Suburb Sleuth">
+      <p>Suburb Sleuth</p>
+    </a>
+  
+  
+  
+    <a class="game-card" href="https://houselearning.github.io/home/games/pi-fighter.html">
+      <img src="images/pi-fighter.png" alt="Pi Fighter">
+      <p>Pi Fighter</p>
+    </a>
+    <a class="game-card" href="https://houselearning.github.io/home/games/geometry-galaxy.html">
+      <img src="images/geometry-galaxy.png" alt="Geometry Galaxy">
+      <p>Geometry Galaxy</p>
+    </a>
+    <a class="game-card" href="https://houselearning.github.io/home/games/angle-assult.html">
+      <img src="images/angle-assault.png" alt="Angle Assault">
+      <p>Angle Assault</p>
+    </a>
+    <a class="game-card" href="https://houselearning.github.io/home/games/function-frenzy.html">
+      <img src="images/function-frenzy.png" alt="Function Frenzy">
+      <p>Function Frenzy</p>
+    </a>
+    <a class="game-card" href="https://houselearning.github.io/home/games/statistics.html">
+      <img src="images/probability-portal.png" alt="Probability Portal">
+      <p>Probability Portal</p>
+    </a>
+    <a class="game-card" href="https://houselearning.github.io/home/math/games/equationescape.html">
+      <img src="images/equation-escape.png" alt="Equation Escape">
+      <p>Equation Escape</p>
+    </a>
+    <a class="game-card" href="https://houselearning.github.io/home/games/factor-forest.html">
+      <img src="images/factor-forest.png" alt="Factor Forest">
+      <p>Factor Forest</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/number-ninja.png" alt="Number Ninja">
+      <p>Number Ninja</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/variable-vault.png" alt="Variable Vault">
+      <p>Variable Vault</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/sum-city.png" alt="Sum City">
+      <p>Sum City</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/prime-time.png" alt="Prime Time">
+      <p>Prime Time</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/division-dominion.png" alt="Division Dominion">
+      <p>Division Dominion</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/multiplication-mayhem.png" alt="Multiplication Mayhem">
+      <p>Multiplication Mayhem</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/subtract-squad.png" alt="Subtract Squad">
+      <p>Subtract Squad</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/addventure-island.png" alt="Addventure Island">
+      <p>Addventure Island</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/math-mage.png" alt="Math Mage">
+      <p>Math Mage</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/infinity-island.png" alt="Infinity Island">
+      <p>Infinity Island</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/pattern-planet.png" alt="Pattern Planet">
+      <p>Pattern Planet</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/integral-invasion.png" alt="Integral Invasion">
+      <p>Integral Invasion</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/graph-gauntlet.png" alt="Graph Gauntlet">
+      <p>The Graph Gauntlet</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/exponent-empire.png" alt="Exponent Empire">
+      <p>The Exponent Empire</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/circle-of-chaos.png" alt="Circle of Chaos">
+      <p>Circle of Chaos</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/matrix-maze.png" alt="Matrix Maze">
+      <p>Matrix Maze</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/logic-lab.png" alt="Logic Lab">
+      <p>Logic Lab</p>
+    </a>
+    <a class="game-card" href="">
+      <img src="images/function-forge.png" alt="Function Forge">
+      <p>Function Forge</p>
+    </a>
+  <!-- Add more public games here -->
+</div>
 
+<!-- Unlock Section -->
+<div id="unlockArea">
+  <h3>Members-Only Games 🔒</h3>
+  <input type="password" id="passwordInput" placeholder="Enter member password">
+  <button onclick="unlockMemberGames()">Unlock</button>
+</div>
 
-
-  <a class="game-card" href="https://houselearning.github.io/home/games/pi-fighter.html">
-    <img src="images/pi-fighter.png" alt="Pi Fighter">
-    <p>Pi Fighter</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/games/geometry-galaxy.html">
-    <img src="images/geometry-galaxy.png" alt="Geometry Galaxy">
-    <p>Geometry Galaxy</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/games/angle-assult.html">
-    <img src="images/angle-assault.png" alt="Angle Assault">
-    <p>Angle Assault</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/games/function-frenzy.html">
-    <img src="images/function-frenzy.png" alt="Function Frenzy">
-    <p>Function Frenzy</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/games/statistics.html">
-    <img src="images/probability-portal.png" alt="Probability Portal">
-    <p>Probability Portal</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/math/games/equationescape.html">
-    <img src="images/equation-escape.png" alt="Equation Escape">
-    <p>Equation Escape</p>
-  </a>
-  <a class="game-card" href="https://houselearning.github.io/home/games/factor-forest.html">
-    <img src="images/factor-forest.png" alt="Factor Forest">
-    <p>Factor Forest</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/number-ninja.png" alt="Number Ninja">
-    <p>Number Ninja</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/variable-vault.png" alt="Variable Vault">
-    <p>Variable Vault</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/sum-city.png" alt="Sum City">
-    <p>Sum City</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/prime-time.png" alt="Prime Time">
-    <p>Prime Time</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/division-dominion.png" alt="Division Dominion">
-    <p>Division Dominion</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/multiplication-mayhem.png" alt="Multiplication Mayhem">
-    <p>Multiplication Mayhem</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/subtract-squad.png" alt="Subtract Squad">
-    <p>Subtract Squad</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/addventure-island.png" alt="Addventure Island">
-    <p>Addventure Island</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/math-mage.png" alt="Math Mage">
-    <p>Math Mage</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/infinity-island.png" alt="Infinity Island">
-    <p>Infinity Island</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/pattern-planet.png" alt="Pattern Planet">
-    <p>Pattern Planet</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/integral-invasion.png" alt="Integral Invasion">
-    <p>Integral Invasion</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/graph-gauntlet.png" alt="Graph Gauntlet">
-    <p>The Graph Gauntlet</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/exponent-empire.png" alt="Exponent Empire">
-    <p>The Exponent Empire</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/circle-of-chaos.png" alt="Circle of Chaos">
-    <p>Circle of Chaos</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/matrix-maze.png" alt="Matrix Maze">
-    <p>Matrix Maze</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/logic-lab.png" alt="Logic Lab">
-    <p>Logic Lab</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/function-forge.png" alt="Function Forge">
-    <p>Function Forge</p>
-  </a>
-            <div id="memberGames" class="blurred">
-
-  <a class="game-card" href="">
-    <img src="images/slope-speedway.png" alt="Slope Speedway">
-    <p>Slope Speedway</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/linear-launch.png" alt="Linear Launch">
-    <p>Linear Launch</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/parabola-project.png" alt="Parabola Project">
-    <p>The Parabola Project</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/radian-runners.png" alt="Radian Runners">
-    <p>Radian Runners</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/modulo-madness.png" alt="Modulo Madness">
-    <p>Modulo Madness</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/time-travelers.png" alt="Time Travelers: Math Edition">
-    <p>Time Travelers: Math Edition</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/code-count.png" alt="Code Count">
-    <p>Code Count</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/calculus-crusade.png" alt="Calculus Crusade">
-    <p>The Calculus Crusade</p>
-  </a>
-  <a class="game-card" href="">
-    <img src="images/absolute-adventure.png" alt="Absolute Adventure">
-    <p>Absolute Adventure</p>
-  </a>
-          <a class="game-card" href="https://houselearning.github.io/home/games/polygon-panic.html">
-    <img src="images/polygon-panic.png" alt="Polygon Panic">
-    <p>Polygon Panic</p>
-  </a>
-          <a class="game-card" href="https://houselearning.github.io/home/games/chromedino.html">
-    <img src="images/decimal-dash.png" alt="Decimal Dash">
-    <p>Chrome Dino</p>
-  </a>  <a class="game-card" href="https://houselearning.github.io/home/assets/eaglercraft/">
-    <img src="images/mathcraft.png" alt="Mathcraft">
-    <p>Minecraft</p>
-  </a>
-            </div>
+<!-- Members-Only Games -->
+<div id="memberGames" class="container blurred">
+    <a class="game-card" href="">
+        <img src="images/slope-speedway.png" alt="Slope Speedway">
+        <p>Slope Speedway</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/linear-launch.png" alt="Linear Launch">
+        <p>Linear Launch</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/parabola-project.png" alt="Parabola Project">
+        <p>The Parabola Project</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/radian-runners.png" alt="Radian Runners">
+        <p>Radian Runners</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/modulo-madness.png" alt="Modulo Madness">
+        <p>Modulo Madness</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/time-travelers.png" alt="Time Travelers: Math Edition">
+        <p>Time Travelers: Math Edition</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="https://houselearning.github.io/home/assets/ampler-launcher" alt="Ampler Launcher">
+        <p>Ampler Launcher</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/calculus-crusade.png" alt="Calculus Crusade">
+        <p>The Calculus Crusade</p>
+      </a>
+      <a class="game-card" href="">
+        <img src="images/absolute-adventure.png" alt="Absolute Adventure">
+        <p>Absolute Adventure</p>
+      </a>
+              <a class="game-card" href="https://houselearning.github.io/home/games/polygon-panic.html">
+        <img src="images/polygon-panic.png" alt="Polygon Panic">
+        <p>Polygon Panic</p>
+      </a>
+              <a class="game-card" href="https://houselearning.github.io/home/games/chromedino.html">
+        <img src="images/decimal-dash.png" alt="Decimal Dash">
+        <p>Chrome Dino</p>
+      </a>  <a class="game-card" href="https://houselearning.github.io/home/assets/eaglercraft/">
+        <img src="images/mathcraft.png" alt="Mathcraft">
+        <p>Minecraft</p>
+      </a>
 </div>
 
 </body>
