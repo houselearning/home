@@ -1,0 +1,467 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sum City</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e; /* Dark background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+        #gameCanvas {
+            background-color: #2d3748; /* Dark grey canvas */
+            border: 4px solid #4a5568; /* Darker border */
+            margin-top: 1rem;
+            display: block;
+            max-width: 95%;
+            max-height: 80vh;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+            border-radius: 0.5rem;
+            position: relative; /* Needed for absolute positioning of message box */
+        }
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            background-color: #4a5568; /* Dark button color */
+            color: #f7fafc; /* Light text color */
+            cursor: pointer;
+            border: 2px solid #718096; /* Darker border */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: 'Press Start 2P', sans-serif;
+            font-size: 0.6rem;
+            text-shadow: 1px 1px 0px #1a202c;
+        }
+        .btn:hover {
+            background-color: #718096; /* Slightly lighter on hover */
+            border-color: #a0aec0;
+            transform: scale(1.05);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        #message-box {
+            position: absolute;
+            top: 10px; /* Positioned relative to the canvas */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            text-align: center;
+            font-size: 0.8rem;
+            z-index: 10;
+            border: 2px solid #a0aec0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        #question-box {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            text-align: center;
+            font-size: 0.8rem;
+            z-index: 11;
+            border: 2px solid #a0aec0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+        #question-box input {
+            margin: 0.5rem;
+            padding: 0.3rem;
+            border-radius: 0.125rem;
+            border: 1px solid #718096;
+            background-color: #2d3748;
+            color: #f7fafc;
+            font-size: 0.7rem;
+        }
+        #question-box button {
+            margin: 0.5rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.125rem;
+            background-color: #4a5568;
+            color: #f7fafc;
+            cursor: pointer;
+            border: 1px solid #718096;
+            font-size: 0.6rem;
+             font-family: 'Press Start 2P', sans-serif;
+        }
+        #question-box button:hover {
+            background-color: #718096;
+        }
+         #question-box button:active {
+             transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        #play-button {
+            position: absolute; /* Position absolutely within its container */
+            bottom: 1rem; /* Distance from the bottom */
+            right: 1rem; /* Distance from the right */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-800 text-gray-50">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="controls">
+        <button id="make-3d" class="btn">Make 3D</button>
+        <button id="save-map" class="btn">Save Map</button>
+        <button id="load-map" class="btn">Load Map</button>
+        <button id="play-button" class="btn" style="display:none;">Populate City</button> </div>
+    <div id="message-box" style="display:none;"></div>
+    <div id="question-box">
+        <p id="question-text"></p>
+        <input type="number" id="answer-input">
+        <button id="answer-submit">Submit</button>
+        <p id="feedback"></p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const controlsDiv = document.getElementById('controls');
+        const messageBox = document.getElementById('message-box');
+        const questionBox = document.getElementById('question-box');
+        const questionText = document.getElementById('question-text');
+        const answerInput = document.getElementById('answer-input');
+        const answerSubmit = document.getElementById('answer-submit');
+        const feedback = document.getElementById('feedback');
+        const make3DButton = document.getElementById('make-3d');
+        const saveMapButton = document.getElementById('save-map');
+        const loadMapButton = document.getElementById('load-map');
+        const playButton = document.getElementById('play-button');
+
+        const buildingData = [
+            { name: 'house', price: 100, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/house.png' },
+            { name: 'apartment', price: 300, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/apartment.png' },
+            { name: 'school', price: 500, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/school.png' },
+            { name: 'hospital', price: 700, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/hospital.png' },
+            { name: 'park', price: 200, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/park.png' },
+            { name: 'market', price: 400, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/market.png' },
+            { name: 'office', price: 600, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/office.png' },
+            { name: 'factory', price: 800, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/factory.png' },
+            { name: 'road_horizontal', price: 50, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/road_horizontal.png' },
+            { name: 'road_vertical', price: 50, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/road_vertical.png' },
+            { name: 'road_intersection', price: 75, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/road_intersection.png' },
+            { name: 'tree', price: 25, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/tree.png' },
+            { name: 'fountain', price: 150, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/fountain.png' },
+            { name: 'stadium', price: 900, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/stadium.png' },
+            { name: 'restaurant', price: 350, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/restaurant.png' },
+            { name: 'police_station', price: 650, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/police_station.png' },
+            { name: 'fire_station', price: 650, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/fire_station.png' },
+            { name: 'bank', price: 550, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/bank.png' },
+            { name: 'library', price: 450, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/library.png' },
+            { name: 'museum', price: 550, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/museum.png' },
+            { name: 'theater', price: 350, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/theater.png' },
+            { name: 'garden', price: 125, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/garden.png' },
+            { name: 'parking_lot', price: 175, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/parking_lot.png'},
+            { name: 'bridge_horizontal', price: 250, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/bridge_horizontal.png'},
+            { name: 'bridge_vertical', price: 250, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/bridge_vertical.png'},
+            { name: 'train_station', price: 325, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/train_station.png'},
+            { name: 'train_track_horizontal', price: 20, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/train_track.png'},
+            { name: 'train_track_vertical', price: 20, imageUrl: 'https://houselearning.github.io/home/assets/sum-city/train_track_vertical.png'},
+
+        ];
+
+        let money = 1000;
+        const cityGrid = [];
+        const gridSize = 20; // Number of cells in each direction
+        const cellSize = canvas.width / gridSize;
+        const buildings = {}; // Store placed buildings
+        let selectedBuilding = null;
+        let gameStarted = false;
+
+        // Initialize grid
+        for (let i = 0; i < gridSize; i++) {
+            cityGrid[i] = [];
+            for (let j = 0; j < gridSize; j++) {
+                cityGrid[i][j] = null; // null represents empty cell
+            }
+        }
+
+        // Load images and create building buttons
+        buildingData.forEach(building => {
+            const img = new Image();
+            img.src = building.imageUrl;
+            img.onload = () => {  // Make sure image is loaded before creating button
+                building.image = img; // Store the image object
+                const button = document.createElement('button');
+                button.classList.add('btn');
+                button.textContent = `${building.name} ($${building.price})`;
+                button.addEventListener('click', () => selectBuilding(building));
+                controlsDiv.appendChild(button);
+            };
+            img.onerror = (error) => {
+                console.error("Error loading image:", building.imageUrl, error);
+                // Handle error (e.g., display a placeholder, remove the button)
+                const button = document.createElement('button');
+                button.classList.add('btn');
+                button.textContent = `${building.name} (Image Error)`;
+                button.style.backgroundColor = '#777'; // Indicate error
+                controlsDiv.appendChild(button);
+            };
+        });
+
+        function selectBuilding(building) {
+            selectedBuilding = building;
+            showMessage(`Selected: ${building.name}`);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#718096'; // Darker grid lines
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= gridSize; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize, 0);
+                ctx.lineTo(i * cellSize, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellSize);
+                ctx.lineTo(canvas.width, i * cellSize);
+                ctx.stroke();
+            }
+        }
+
+        function drawCity() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid(); // Draw grid first
+
+            // Draw placed buildings
+            for (const key in buildings) {
+                if (buildings.hasOwnProperty(key)) {
+                    const { x, y, building } = buildings[key];
+                    // Check if the image is loaded before drawing
+                    if (building.image) {
+                        ctx.drawImage(building.image, x * cellSize, y * cellSize, cellSize, cellSize);
+                    } else {
+                        console.warn(`Image not loaded for ${building.name} at ${x},${y}`);
+                        // Draw a placeholder if the image hasn't loaded
+                        ctx.fillStyle = '#AAA'; // Grey placeholder
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        ctx.fillStyle = '#000';
+                        ctx.font = '8px Press Start 2P';
+                        ctx.fillText('Loading', x * cellSize + 5, y * cellSize + cellSize / 2);
+                    }
+                }
+            }
+        }
+
+        function showMessage(message, duration = 3000) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        function showQuestion() {
+            questionBox.style.display = 'block';
+            const num1 = Math.floor(Math.random() * 100) + 1;
+            const num2 = Math.floor(Math.random() * 100) + 1;
+            const operation = Math.random() < 0.5 ? '+' : '-';
+            let answer;
+            if (operation === '+') {
+                answer = num1 + num2;
+                questionText.textContent = `Solve: ${num1} + ${num2}`;
+            } else {
+                answer = num1 - num2;
+                questionText.textContent = `Solve: ${num1} - ${num2}`;
+            }
+            questionBox.answer = answer; // Store the correct answer
+            feedback.textContent = ''; // Clear previous feedback
+            answerInput.value = '';
+            answerInput.focus();
+        }
+
+        answerSubmit.addEventListener('click', () => {
+            const userAnswer = parseInt(answerInput.value);
+            if (userAnswer === questionBox.answer) {
+                money += 500; // Refuel $500
+                feedback.textContent = 'Correct! $500 added.';
+                questionBox.style.display = 'none';
+                drawCity();
+                showMessage(`Refueled! Current Money: $${money}`);
+            } else {
+                feedback.textContent = 'Incorrect. Try again.';
+                answerInput.value = '';
+                answerInput.focus();
+            }
+        });
+
+       canvas.addEventListener('click', (event) => {
+            if (!selectedBuilding) {
+                showMessage('Please select a building to place.');
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / cellSize);
+            const y = Math.floor((event.clientY - rect.top) / cellSize);
+
+            if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) {
+                showMessage('Cannot place building outside the grid.');
+                return;
+            }
+
+            if (cityGrid[x][y] !== null) {
+                showMessage('Cell is already occupied.');
+                return;
+            }
+
+            if (money < selectedBuilding.price) {
+                showMessage('Insufficient funds!');
+                showQuestion();
+                return;
+            }
+
+            money -= selectedBuilding.price;
+            cityGrid[x][y] = selectedBuilding.name; // Store building name in grid
+            buildings[`${x}-${y}`] = { x, y, building: selectedBuilding }; // Store the whole building object
+            drawCity();
+            showMessage(`Placed ${selectedBuilding.name}. Remaining Money: $${money}`);
+
+            if (!gameStarted) {
+                gameStarted = true;
+                playButton.style.display = 'block'; // Show the play button
+            }
+        });
+
+        make3DButton.addEventListener('click', () => {
+            showMessage('Converting to 3D... (This is a placeholder)');
+            // In a real implementation, you would send the city data to a server
+            // or use a client-side library (like Three.js) to render a 3D scene.
+        });
+
+        saveMapButton.addEventListener('click', () => {
+            const saveData = {
+                money: money,
+                grid: cityGrid,
+                buildings: buildings, // Save the buildings object
+                gameStarted: gameStarted
+            };
+            const dataString = JSON.stringify(saveData);
+            const blob = new Blob([dataString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const now = new Date();
+            const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            a.download = `${dateString}.sumcitymap`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessage('Map saved!');
+        });
+
+        loadMapButton.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.sumcitymap';
+            input.onchange = (event) => {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const saveData = JSON.parse(e.target.result);
+                        money = saveData.money;
+                        cityGrid.length = 0; // Clear existing grid
+                        saveData.grid.forEach(row => {
+                            cityGrid.push([...row]); // Deep copy
+                        });
+                        buildings = saveData.buildings; // Load the buildings object
+                        gameStarted = saveData.gameStarted;
+                        if (gameStarted) {
+                             playButton.style.display = 'block';
+                        }
+                        drawCity();
+                        showMessage('Map loaded!');
+                    } catch (error) {
+                        showMessage('Error loading map: Invalid file.');
+                        console.error(error);
+                    }
+                };
+                reader.onerror = () => {
+                    showMessage('Error reading file.');
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        });
+
+        playButton.addEventListener('click', () => {
+            // "Populate" the city with simple shapes (circles) representing people.
+            //  for demonstration.  Clear any previous population.
+            const populationCount = 10; // Adjust as needed.
+            const personRadius = 5;
+            ctx.fillStyle = '#f59e0b';  // A bright color for the people.
+
+            for (let i = 0; i < populationCount; i++) {
+                let x, y;
+                let isOccupied;
+
+                // Attempt to find a valid, unoccupied position
+                let attempts = 0;
+                do {
+                    x = Math.floor(Math.random() * gridSize);
+                    y = Math.floor(Math.random() * gridSize);
+
+                    // Check for building collision
+                    isOccupied = false;
+                    for (const buildingKey in buildings) {
+                        const building = buildings[buildingKey];
+                        if (building.x === x && building.y === y) {
+                            isOccupied = true;
+                            break;
+                        }
+                    }
+                    attempts++;
+                } while (isOccupied && attempts < 100); // Limit attempts to prevent infinite loops
+
+                // If a valid position is found, draw the person
+                if (!isOccupied) {
+                    const cellCenterX = x * cellSize + cellSize / 2;
+                    const cellCenterY = y * cellSize + cellSize / 2;
+
+                    ctx.beginPath();
+                    ctx.arc(cellCenterX, cellCenterY, personRadius, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+            showMessage(' жителей добавлено!');
+        });
+
+        drawGrid(); // Initial draw of the grid
+
+    </script>
+</body>
+</html>
