@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Time Explorers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: 'Press Start 2P', cursive;
+            background-image: url('https://houselearning.github.io/home/games/static/clock-bg.jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+        #game-title {
+            font-size: 2rem;
+            margin-top: 2rem;
+            color: #ffdb58;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+            animation: fadeIn 2s ease, pulse 2s infinite alternate;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { opacity: 1.05); }
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 120px);
+            grid-template-rows: repeat(4, 120px);
+            margin-top: 2rem;
+            gap: 1rem;
+            padding: 1rem;
+            border: 4px solid #b19cd9;
+            border-radius: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            perspective: 800px;
+        }
+        .location {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #8884d8;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .location:hover {
+            transform: rotateY(20deg);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .clock-face {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #8884d8;
+            border-radius: 50%;
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        .clock-hand {
+            position: absolute;
+            background-color: #555;
+            transform-origin: 50% 95%;
+            border-radius: 4px;
+        }
+        .hour-hand {
+            width: 6px;
+            height: 30px;
+        }
+        .minute-hand {
+            width: 4px;
+            height: 40px;
+        }
+         .second-hand {
+            width: 2px;
+            height: 40px;
+            background-color: #FF4500;
+        }
+        #player-hand {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #blue;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .card {
+            width: 50px;
+            height: 70px;
+            border: 2px solid #8884d8;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            margin: 0.2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        #player-hands {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        #player-hands div{
+             margin: 0.5rem;
+        }
+        #prime-numbers-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1rem;
+            width: 300px;
+            min-height: 80px;
+            border: 2px solid #8884d8;
+            border-radius: 0.5rem;
+            background-color: #f8f8f8;
+        }
+        #time-challenge {
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 2px solid #8884d8;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            text-align: center;
+            min-width: 200px;
+        }
+        #message-box {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            z-index: 10;
+            text-align: center;
+            min-width: 200px;
+            border: 2px solid #8884d8;
+        }
+        .button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: #b19cd9;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: background-color 0.3s;
+            font-family: 'Press Start 2P', cursive;
+        }
+        .button:hover {
+            background-color: #8884d8;
+        }
+        .button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #game-over-modal {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            font-size: 1rem;
+        }
+        #game-over-modal button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+             border: none;
+            border-radius: 0.5rem;
+            background-color: #b19cd9;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: 'Press Start 2P', cursive;
+        }
+        #game-over-modal button:hover {
+             background-color: #8884d8;
+        }
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0.5rem;
+            font-size: 0.7rem;
+            color: #555;
+        }
+        .player-name-input {
+            padding: 0.3rem;
+            border: 1px solid #8884d8;
+            border-radius: 0.3rem;
+            margin-top: 0.2rem;
+            font-size: 0.7rem;
+            font-family: 'Press Start 2P', cursive;
+            width: 100px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #8884d8;
+            border-radius: 0.5rem;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            font-size: 0.8rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #8884d8;
+            padding-bottom: 0.5rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            color: #b19cd9;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #aaa;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+        }
+
+        #setup-options-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #player-setup {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        #player-setup-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        #add-player-button, #start-game-button {
+             padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: #b19cd9;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: background-color 0.3s;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #add-player-button:hover, #start-game-button:hover {
+            background-color: #8884d8;
+        }
+
+        #start-game-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .remove-player-button {
+            padding: 0.2rem 0.5rem;
+            border: none;
+            border-radius: 0.3rem;
+            background-color: #e57373;
+            color: white;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .remove-player-button:hover {
+            background-color: #d32f2f;
+        }
+
+        #ai-players-count {
+            padding: 0.3rem;
+            border: 1px solid #8884d8;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            font-family: 'Press Start 2P', cursive;
+            width: 50px;
+        }
+        #game-mode-buttons {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        #game-mode-buttons button{
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: #b19cd9;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: background-color 0.3s;
+            font-family: 'Press Start 2P', cursive;
+        }
+        #game-mode-buttons button:hover {
+            background-color: #8884d8;
+        }
+        #game-mode-buttons button.selected {
+            background-color: #ffdb58;
+            color: #8884d8;
+        }
+        #multiplayer-link-display {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border: 2px solid #8884d8;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            text-align: center;
+            font-size: 0.8rem;
+            display: none;
+            word-wrap: break-word;
+            max-width: 80%;
+        }
+        #how-to-play {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px solid #8884d8;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        #how-to-play h2 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: #b19cd9;
+        }
+
+        #how-to-play h3 {
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            color: #8884d8;
+        }
+
+        #how-to-play ul {
+            margin-left: 1rem;
+            margin-bottom: 0.5rem;
+            list-style-type: disc;
+        }
+
+        #how-to-play li {
+            margin-bottom: 0.25rem;
+        }
+
+        .game-setup-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 1px solid #8884d8;
+            border-radius: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .gameplay-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 1px solid #8884d8;
+            border-radius: 0.5rem;
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="game-title">Prime Time Explorers</h1>
+    <div id="game-mode-buttons">
+        <button class="button" id="singleplayer-mode">Single Player</button>
+        <button class="button" id="multiplayer-mode">Multiplayer</button>
+    </div>
+    <div id="game-board">
+        </div>
+    <div id="player-hands">
+    </div>
+    <div id="time-challenge"></div>
+    <div id="prime-numbers-area"></div>
+    <div id="controls">
+        <button class="button" id="draw-cards-button">Draw Cards</button>
+        <button class="button" id="submit-time-button">Submit Time</button>
+        <button class="button" id="setup-game-button">Setup Game</button>
+    </div>
+    <div id="message-box"></div>
+    <div id="game-over-modal">
+        <h2>Game Over</h2>
+        <p id="game-over-message"></p>
+        <button id="new-game-button">New Game</button>
+    </div>
+    <div id="setup-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Game Setup</h2>
+                <span class="close-button">&times;</span>
+            </div>
+            <div id="setup-options-content">
+                <div id="player-setup">
+                    <div id="player-setup-list">
+                        <div class="player-info">
+                            <span>Player 1</span>
+                            <input type="text" class="player-name-input" value="Player 1">
+                            <button class="remove-player-button" disabled>Remove</button>
+                        </div>
+                    </div>
+                    <button id="add-player-button">Add Player</button>
+                </div>
+                <div id="ai-setup">
+                    <label for="ai-players-count">AI Players:</label>
+                    <input type="number" id="ai-players-count" value="0" min="0" max="3">
+                </div>
+                <div id="multiplayer-options" style="display: none;">
+                    <p>Share this link with your friend:</p>
+                    <div id="multiplayer-link-display"></div>
+                </div>
+                <button id="start-game-button" disabled>Start Game</button>
+            </div>
+            <div id="how-to-play">
+                <h2>How to Play</h2>
+                <h3>Setting Up the Game</h3>
+                <ol>
+                    <li><strong>Open the Game:</strong> Launch the "Prime Time Explorers" game in your web browser.</li>
+                    <li><strong>Game Mode Selection:</strong>
+                        <ul style="list-style-type: disc;">
+                            <li><strong>Single Player:</strong>  Select "Single Player" to play against AI opponents. You can specify the number of AI players (0-3).</li>
+                            <li><strong>Multiplayer:</strong> Select "Multiplayer" to play with a friend online.  A unique game link will be generated for you to share.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Player Setup:</strong>
+                        <ul style="list-style-type: disc;">
+                            <li>Enter your name in the player name input.  You can add more players (up to 4 total) by clicking the "Add Player" button.</li>
+                            <li>In Multiplayer mode, you need at least 2 players.</li>
+                        </ul>
+                    </li>
+                    <li><img src="placeholder_setup.png" alt="Game Setup" class="game-setup-image"></li>
+                    <li><strong>Start Game:</strong> Once you have set up the players, click the "Start Game" button.</li>
+                </ol>
+                <h3>Playing the Game</h3>
+                <ol>
+                    <li><strong>Time Challenge:</strong>  The game will display a target time (e.g., 3:15).</li>
+                    <li><strong>Draw Cards:</strong> Click the "Draw Cards" button to receive your hand of prime number cards.</li>
+                     <li><img src="placeholder_gameplay.png" alt="Gameplay" class="gameplay-image"></li>
+                    <li><strong>Set the Time:</strong> Use your prime number cards to represent the hour and minute of the target time.
+                        <ul style="list-style-type: disc;">
+                            <li>Cards can be combined through addition and multiplication.</li>
+                            <li>Example: If the target time is 3:15, you could use cards 3 and 5 (3 for the hour, 5 * 3 = 15 for the minutes).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Submit Time:</strong> Once you've selected your cards, click the "Submit Time" button.</li>
+                    <li><strong>Game Outcome:</strong>
+                        <ul style="list-style-type: disc;">
+                            <li>If you are correct, you win!</li>
+                            <li>If you are incorrect, the game will either end (single player) or the next player will take their turn (multiplayer).</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <script>
+        // --- Constants ---
+        const NUM_LOCATIONS = 16;
+        const NUM_CARDS_PER_HAND = 3;
+        const MIN_PLAYERS = 1;
+        const MAX_PLAYERS = 4;
+        const MAX_AI_PLAYERS = 3;
+        const GAME_URL = "";
+
+        // --- Variables ---
+        let gameBoard = document.getElementById('game-board');
+        let playerHandsDiv = document.getElementById('player-hands');
+        let timeChallengeDiv = document.getElementById('time-challenge');
+        let primeNumbersArea = document.getElementById('prime-numbers-area');
+        let messageBox = document.getElementById('message-box');
+        let drawCardsButton = document.getElementById('draw-cards-button');
+        let submitTimeButton = document.getElementById('submit-time-button');
+        let gameOverModal = document.getElementById('game-over-modal');
+        let gameOverMessage = document.getElementById('game-over-message');
+        let newGameButton = document.getElementById('new-game-button');
+        let setupModal = document.getElementById('setup-modal');
+        let setupGameButton = document.getElementById('setup-game-button');
+        let closeModalButton = document.querySelector('.close-button');
+        let addPlayerButton = document.getElementById('add-player-button');
+        let startButton = document.getElementById('start-game-button');
+        let playerSetupList = document.getElementById('player-setup-list');
+        let aiPlayersCountInput = document.getElementById('ai-players-count');
+        let singleplayerModeButton = document.getElementById('singleplayer-mode');
+        let multiplayerModeButton = document.getElementById('multiplayer-mode');
+        let gameMode = 'singleplayer';
+        let players = [];
+        let currentPlayerIndex = 0;
+        let deck = [];
+        let currentPlayerCards = [];
+        let timeChallenge;
+        let isAITurn = false;
+        let gameStarted = false;
+        let partyId = null;
+
+        // --- Helper Functions ---
+        /**
+         * Creates a simple clock face with hour and minute hands.
+         * @param {string} locationId - The ID of the game board location.
+         * @returns {HTMLElement} - The clock face element.
+         */
+        function createClockFace(locationId) {
+            let clockFace = document.createElement('div');
+            clockFace.classList.add('clock-face');
+            clockFace.setAttribute('data-location-id', locationId);
+            let hourHand = document.createElement('div');
+            hourHand.classList.add('clock-hand', 'hour-hand');
+            let minuteHand = document.createElement('div');
+            minuteHand.classList.add('clock-hand', 'minute-hand');
+             let secondHand = document.createElement('div');
+            secondHand.classList.add('clock-hand', 'second-hand');
+            clockFace.appendChild(hourHand);
+            clockFace.appendChild(minuteHand);
+            clockFace.appendChild(secondHand);
+            let playerHand = document.createElement('div');
+            playerHand.id = 'player-hand';
+            clockFace.appendChild(playerHand);
+            return clockFace;
+        }
+
+        /**
+         * Generates an array of prime numbers up to a specified maximum.
+         * @param {number} max - The maximum number (inclusive) to generate primes up to.
+         * @returns {number[]} - An array of prime numbers.
+         */
+        function generatePrimes(max) {
+            let primes = [];
+            let sieve = new Array(max + 1).fill(false);
+
+            for (let i = 2; i <= max; i++) {
+                if (!sieve[i]) {
+                    primes.push(i);
+                    for (let j = i * i; j <= max; j += i) {
+                        sieve[j] = true;}
+                }
+            }
+            return primes;}
+
+        /*** Creates a deck of prime number cards.
+         * @param {number[]} primes - An array of prime numbers.
+         * @returns {number[]} - An array representing the deck of cards.
+         */
+        function createDeck(primes) {
+            let deck = [];
+            for (let i = 0; i < 3; i++) {
+                deck = deck.concat(primes);
+            }
+            return deck;
+        }
+
+        /**
+         * Shuffles a deck of cards using the Fisher-Yates algorithm.
+         * @param {number[]} deck - The deck of cards to shuffle.
+         */
+        function shuffleDeck(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        /**
+         * Draws a card from the deck.
+         * @param {number[]} deck - The deck to draw from.
+         * @returns {number | null} - The drawn card, or null if the deck is empty.
+         */
+        function drawCard(deck) {
+            if (deck.length > 0) {
+                return deck.pop();
+            } else {
+                return null;
+            }
+        }
+
+        /**
+         * Displays a message to the player.
+         * @param {string} message - The message to display.
+         */
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+        }
+
+        /**
+         * Clears the message box.
+         */
+        function clearMessage() {
+            messageBox.style.display = 'none';
+            messageBox.textContent = '';
+        }
+
+        /**
+         * Creates a card element for displaying a prime number.
+         * @param {number} number - The prime number to display on the card.
+         * @returns {HTMLElement} - The card element.
+         */
+        function createCardElement(number) {
+            let card = document.createElement('div');
+            card.classList.add('card');
+            card.textContent = number;
+            card.addEventListener('click', () => {
+                if (!currentPlayerCards.includes(number) && currentPlayerCards.length < NUM_CARDS_PER_HAND) {
+                    currentPlayerCards.push(number);
+                     displayPlayerCards();
+                }
+            });
+            return card;
+        }
+
+         /**
+         * Displays the cards in the player's hand.
+         */
+        function displayPlayerCards() {
+            primeNumbersArea.innerHTML = '';
+            currentPlayerCards.forEach(cardNumber => {
+                let cardElement = createCardElement(cardNumber);
+                primeNumbersArea.appendChild(cardElement);
+            });
+            if(currentPlayerCards.length >= NUM_CARDS_PER_HAND){
+                drawCardsButton.disabled = true;
+            }
+            else{
+                drawCardsButton.disabled = false;
+            }
+        }
+
+        /**
+         * Displays the time challenge.
+         */
+        function displayTimeChallenge() {
+            timeChallengeDiv.textContent = `Set the clock to: ${timeChallenge.hour}:${timeChallenge.minute.toString().padStart(2, '0')}`;
+        }
+
+        /**
+         * Updates the position of the clock hands based on the given time.
+         * @param {string} locationId - The ID of the clock face.
+         * @param {number} hour - The hour (0-23).
+         * @param {number} minute - The minute (0-59).
+         */
+        function updateClockHands(locationId, hour, minute) {
+            const clockFace = document.querySelector(`.clock-face[data-location-id="${locationId}"]`);
+            if (!clockFace) return;
+
+            const hourHand = clockFace.querySelector('.hour-hand');
+            const minuteHand = clockFace.querySelector('.minute-hand');
+
+            // Convert hour to 12-hour format and calculate angles
+            const hour12 = hour % 12;
+            const hourAngle = (hour12 * 30) + (minute * 0.5);
+            const minuteAngle = minute * 6;
+
+            hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+        }
+
+        /**
+         * Checks if the player's selected cards match the time challenge.
+         * @returns {boolean} - True if the time is correct, false otherwise.
+         */
+        function checkTimeMatch() {
+            if (currentPlayerCards.length === 0) {
+                showMessage("Draw cards first!");
+                return false;
+            }
+
+            let hourSum = 0;
+            let minuteSum = 0;
+
+            currentPlayerCards.forEach(card => {
+                if (card <= 12) {
+                    hourSum += card;
+                } else {
+                    minuteSum += card;
+                }
+            });
+
+            if (hourSum === timeChallenge.hour && minuteSum === timeChallenge.minute) {
+                return true;
+            } else {
+                showMessage("Incorrect time. Try again.");
+                return false;
+            }
+        }
+
+        /**
+         * Advances the game to the next player's turn.
+         */
+        function nextPlayer() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            currentPlayer = players[currentPlayerIndex];
+            clearMessage();
+            currentPlayerCards = [];
+            primeNumbersArea.innerHTML = '';
+            drawCardsButton.disabled = false;
+             if (players[currentPlayerIndex].isAI) {
+                isAITurn = true;
+                setTimeout(aiTurn, 1000);
+             }
+             else{
+                isAITurn = false;
+                showMessage(`It's ${players[currentPlayerIndex].name}'s turn!`);
+             }
+        }
+
+        /**
+         * AI player's turn logic.
+         */
+        function aiTurn() {
+            showMessage(`It's ${players[currentPlayerIndex].name}'s turn!`);
+
+            for (let i = 0; i < NUM_CARDS_PER_HAND; i++) {
+                const card = drawCard(deck);
+                if (card) {
+                    currentPlayerCards.push(card);
+                }
+            }
+            displayPlayerCards();
+
+            setTimeout(() => {
+                let hourSum = 0;
+                let minuteSum = 0;
+
+                 currentPlayerCards.forEach(card => {
+                    if (card <= 12) {
+                        hourSum += card;
+                    } else {
+                        minuteSum += card;
+                    }
+                });
+
+                if(hourSum === timeChallenge.hour && minuteSum === timeChallenge.minute){
+                    showMessage(`${players[currentPlayerIndex].name} set the time!`);
+                    let clockId = gameBoard.children[currentPlayerIndex].querySelector('.clock-face').getAttribute('data-location-id');
+                    updateClockHands(clockId, timeChallenge.hour, timeChallenge.minute);
+                    endGame();
+                }
+                else{
+                    showMessage(`${players[currentPlayerIndex].name} couldn't set the time.`);
+                    nextPlayer();
+                }
+            }, 2000);
+        }
+
+        /**
+         * Ends the game and displays the winner.
+         */
+        function endGame() {
+            gameStarted = false;
+            let winner = '';
+            if (players.length > 1) {
+                winner = players[currentPlayerIndex].name;
+            } else {
+                winner = "You";
+            }
+
+            gameOverMessage.textContent = `${winner} fixed the clock! Game Over!`;
+            gameOverModal.style.display = 'flex';
+        }
+
+        /**
+         * Resets the game to the initial state.
+         */
+        function resetGame() {
+            gameOverModal.style.display = 'none';
+            gameBoard.innerHTML = '';
+            playerHandsDiv.innerHTML = '';
+            primeNumbersArea.innerHTML = '';
+            players = [];
+            currentPlayerIndex = 0;
+            deck = [];
+            currentPlayerCards = [];
+            timeChallenge = null;
+            gameStarted = false;
+            drawCardsButton.disabled = true;
+            submitTimeButton.disabled = true;
+            startButton.disabled = false;
+            aiPlayersCountInput.disabled = false;
+            addPlayerButton.disabled = false;
+            document.querySelectorAll('.player-name-input').forEach(input => input.disabled = false);
+            document.getElementById('multiplayer-link-display').style.display = 'none';
+            initializeGame();
+        }
+
+        /**
+         * Initializes the game board with clock faces.
+         */
+        function initializeGameBoard() {
+            gameBoard.innerHTML = '';
+            for (let i = 0; i < NUM_LOCATIONS; i++) {
+                let location = document.createElement('div');
+                location.classList.add('location');
+                location.textContent = `Location ${i + 1}`;
+                let clockFace = createClockFace(`location-${i}`);
+                location.appendChild(clockFace);
+                gameBoard.appendChild(location);
+            }
+        }
+
+        /**
+         * Initializes the game variables and UI.
+         */
+        function initializeGame() {
+            initializeGameBoard();
+            const primes = generatePrimes(30);
+            deck = createDeck(primes);
+            shuffleDeck(deck);
+            drawCardsButton.disabled = true;
+            submitTimeButton.disabled = true;
+            newGameButton.addEventListener('click', resetGame);
+            setupGameButton.addEventListener('click', openSetupModal);
+            closeModalButton.addEventListener('click', closeSetupModal);
+            startButton.addEventListener('click', startGame);
+            addPlayerButton.addEventListener('click', addPlayer);
+            singleplayerModeButton.addEventListener('click', () => {
+                gameMode = 'singleplayer';
+                singleplayerModeButton.classList.add('selected');
+                multiplayerModeButton.classList.remove('selected');
+                aiPlayersCountInput.value = 0;
+                aiPlayersCountInput.disabled = true;
+                document.querySelectorAll('.player-name-input').forEach((input, index) => {
+                    input.disabled = index !== 0;
+                });
+                document.getElementById('multiplayer-options').style.display = 'none';
+                updateStartButtonState();
+                document.getElementById('how-to-play').style.display = 'block';
+            });
+
+            multiplayerModeButton.addEventListener('click', () => {
+                gameMode = 'multiplayer';
+                multiplayerModeButton.classList.add('selected');
+                singleplayerModeButton.classList.remove('selected');
+                aiPlayersCountInput.disabled = true;
+                document.querySelectorAll('.player-name-input').forEach(input => input.disabled = false);
+                document.getElementById('multiplayer-options').style.display = 'block';
+                updateStartButtonState();
+                document.getElementById('how-to-play').style.display = 'block';
+            });
+            singleplayerModeButton.click();
+        }
+
+        // --- Event Handlers ---
+        /**
+         * Draws cards from the deck and displays them.
+         */
+        function handleDrawCards() {
+            clearMessage();
+            currentPlayerCards = [];
+            for (let i = 0; i < NUM_CARDS_PER_HAND; i++) {
+                const card = drawCard(deck);
+                if (card) {
+                    currentPlayerCards.push(card);
+                } else {
+                    showMessage("No more cards in the deck!");
+                    break;
+                }
+            }
+            displayPlayerCards();
+            drawCardsButton.disabled = true;
+            submitTimeButton.disabled = false;
+        }
+
+        /**
+         * Checks the time and either ends the game or advances to the next player.
+         */
+        function handleSubmitTime() {
+            if (checkTimeMatch()) {
+                let clockId = gameBoard.children[currentPlayerIndex].querySelector('.clock-face').getAttribute('data-location-id');
+                updateClockHands(clockId, timeChallenge.hour, timeChallenge.minute);
+                endGame();
+            } else {
+                nextPlayer();
+            }
+        }
+
+        // --- Game Setup Functions ---
+        /**
+         * Opens the game setup modal.
+         */
+        function openSetupModal() {
+            setupModal.style.display = 'block';
+        }
+
+        /**
+         * Closes the game setup modal.
+         */
+        function closeSetupModal() {
+            setupModal.style.display = 'none';
+        }
+
+        /**
+         * Adds a player to the game.
+         */
+        function addPlayer() {
+            const playerList = document.getElementById('player-setup-list');
+            const newPlayerIndex = playerList.children.length + 1;
+
+            if (newPlayerIndex > MAX_PLAYERS) {
+                showMessage(`Maximum ${MAX_PLAYERS} players allowed.`);
+                return;
+            }
+
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('player-info');
+            playerDiv.innerHTML = `
+                <span>Player ${newPlayerIndex}</span>
+                <input type="text" class="player-name-input" value="Player ${newPlayerIndex}">
+                <button class="remove-player-button">Remove</button>
+            `;
+            playerList.appendChild(playerDiv);
+
+            const removeButton = playerDiv.querySelector('.remove-player-button');
+            removeButton.addEventListener('click', () => {
+                playerList.removeChild(playerDiv);
+                updateStartButtonState();
+                const playerInputs = playerList.querySelectorAll('.player-info');
+                playerInputs.forEach((playerDiv, index) => {
+                    const playerNumber = index + 1;
+                    playerDiv.querySelector('span').textContent = `Player ${playerNumber}`;
+                    playerDiv.querySelector('input').value = `Player ${playerNumber}`;
+                });
+            });
+            updateStartButtonState();
+        }
+
+        /**
+         * Updates the state of the start game button based on the number of players.
+         */
+        function updateStartButtonState() {
+            const numPlayers = document.querySelectorAll('.player-name-input').length;
+            const numAIPlayers = parseInt(aiPlayersCountInput.value);
+            if (gameMode === 'singleplayer' && numPlayers + numAIPlayers >= MIN_PLAYERS && numPlayers + numAIPlayers <= MAX_PLAYERS) {
+                startButton.disabled = false;
+            } else if (gameMode === 'multiplayer' && numPlayers >= 2) {
+                startButton.disabled = false;
+            }
+            else {
+                startButton.disabled = true;
+            }
+        }
+
+        /**
+         * Starts the game with the selected players and AI.
+         */
+        function startGame() {
+            const playerInputs = document.querySelectorAll('.player-name-input');
+            players = [];
+
+             if (gameMode === 'multiplayer') {
+                if (playerInputs.length < 2) {
+                    showMessage("Multiplayer mode requires at least two players.");
+                    return;
+                }
+                partyId = Math.random().toString(36).substring(2, 15);
+                let gameLink = window.location.href;
+                if (gameLink.indexOf('?') > -1){
+                    gameLink += `&partyID=${partyId}`;
+                }
+                else{
+                     gameLink += `?partyID=${partyId}`;
+                }
+                document.getElementById('multiplayer-link-display').textContent = gameLink;
+                document.getElementById('multiplayer-link-display').style.display = 'block';
+                showMessage(`Share this link with your friend: ${gameLink}`);
+                playerInputs.forEach(input => {
+                    if (input.value.trim() !== "") {
+                        players.push({ name: input.value.trim(), isAI: false });
+                    }
+                });
+            } else {
+                playerInputs.forEach(input => {
+                    if (input.value.trim() !== "") {
+                        players.push({ name: input.value.trim(), isAI: false });
+                    }
+                });
+
+                const numAIPlayers = parseInt(aiPlayersCountInput.value);
+                if (numAIPlayers > MAX_AI_PLAYERS) {
+                    showMessage(`Maximum ${MAX_AI_PLAYERS} AI players allowed.`);
+                    return;
+                }
+
+                for (let i = 0; i < numAIPlayers; i++) {
+                    players.push({ name: `AI ${i + 1}`, isAI: true });
+                }
+
+                if (players.length < MIN_PLAYERS) {
+                    showMessage(`At least ${MIN_PLAYERS} player(s) are required to start the game.`);
+                    return;
+                }
+            }
+
+            document.querySelectorAll('.player-name-input').forEach(input => input.disabled = true);
+            aiPlayersCountInput.disabled = true;
+            addPlayerButton.disabled = true;
+            startButton.disabled = true;
+            closeSetupModal();
+            gameStarted = true;
+            currentPlayerIndex = 0;
+            currentPlayer = players[currentPlayerIndex];
+            clearMessage();
+            drawCardsButton.disabled = false;
+            submitTimeButton.disabled = true;
+            const hours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+            const minutes = [0, 15, 20, 30, 45, 50];
+            const randomHour = hours[Math.floor(Math.random() * hours.length)];
+            const randomMinute = minutes[Math.floor(Math.random() * minutes.length)];
+            timeChallenge = { hour: randomHour, minute: randomMinute };
+            displayTimeChallenge();
+             if (players[currentPlayerIndex].isAI) {
+                isAITurn = true;
+                setTimeout(aiTurn, 1000);
+             }
+             else{
+                isAITurn = false;
+                showMessage(`It's ${players[currentPlayerIndex].name}'s turn!`);
+             }
+        }
+
+        // --- Event Listeners ---
+        drawCardsButton.addEventListener('click', handleDrawCards);
+        submitTimeButton.addEventListener('click', handleSubmitTime);
+
+        // --- Initialize the game ---
+        initializeGame();
+    </script>
+</body>
+</html>
