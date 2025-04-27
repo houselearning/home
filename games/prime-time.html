@@ -32,7 +32,7 @@
         }
         @keyframes pulse {
             from { transform: scale(1); }
-            to { opacity: 1.05); }
+            to { opacity: 1.05; }
         }
         #game-board {
             display: grid;
@@ -100,7 +100,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background-color: #blue;
+            background-color: blue;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -547,7 +547,7 @@
         const MIN_PLAYERS = 1;
         const MAX_PLAYERS = 4;
         const MAX_AI_PLAYERS = 3;
-        const GAME_URL = "";
+        const GAME_URL = "https://houselearning.github.io/home/games/prime-time/";
 
         // --- Variables ---
         let gameBoard = document.getElementById('game-board');
@@ -617,12 +617,9 @@
                 if (!sieve[i]) {
                     primes.push(i);
                     for (let j = i * i; j <= max; j += i) {
-                        sieve[j] = true;}
-                }
+sieve[j] = true;}}
             }
-            return primes;}
-
-        /*** Creates a deck of prime number cards.
+            return primes;}/*** Creates a deck of prime number cards.
          * @param {number[]} primes - An array of prime numbers.
          * @returns {number[]} - An array representing the deck of cards.
          */
@@ -909,6 +906,7 @@
                 document.getElementById('multiplayer-options').style.display = 'none';
                 updateStartButtonState();
                 document.getElementById('how-to-play').style.display = 'block';
+                console.log("Game mode set to singleplayer");
             });
 
             multiplayerModeButton.addEventListener('click', () => {
@@ -920,6 +918,7 @@
                 document.getElementById('multiplayer-options').style.display = 'block';
                 updateStartButtonState();
                 document.getElementById('how-to-play').style.display = 'block';
+                console.log("Game mode set to multiplayer");
             });
             singleplayerModeButton.click();
         }
@@ -964,6 +963,7 @@
          */
         function openSetupModal() {
             setupModal.style.display = 'block';
+            console.log("Setup modal opened");
         }
 
         /**
@@ -971,6 +971,7 @@
          */
         function closeSetupModal() {
             setupModal.style.display = 'none';
+            console.log("Setup modal closed");
         }
 
         /**
@@ -1022,6 +1023,7 @@
             else {
                 startButton.disabled = true;
             }
+            console.log("Start button state updated.  Number of players:", numPlayers, "AI Players:", numAIPlayers, "Game mode:", gameMode, "Start button disabled:", startButton.disabled);
         }
 
         /**
@@ -1037,7 +1039,7 @@
                     return;
                 }
                 partyId = Math.random().toString(36).substring(2, 15);
-                let gameLink = window.location.href;
+                let gameLink = GAME_URL;
                 if (gameLink.indexOf('?') > -1){
                     gameLink += `&partyID=${partyId}`;
                 }
@@ -1052,6 +1054,8 @@
                         players.push({ name: input.value.trim(), isAI: false });
                     }
                 });
+                console.log("Multiplayer game started. Players:", players, "Party ID:", partyId, "Game Link:", gameLink);
+                console.log("Element display style:", document.getElementById('multiplayer-link-display').style.display); // ADDED THIS LINE
             } else {
                 playerInputs.forEach(input => {
                     if (input.value.trim() !== "") {
@@ -1073,6 +1077,7 @@
                     showMessage(`At least ${MIN_PLAYERS} player(s) are required to start the game.`);
                     return;
                 }
+                 console.log("Single player game started. Players:", players);
             }
 
             document.querySelectorAll('.player-name-input').forEach(input => input.disabled = true);
