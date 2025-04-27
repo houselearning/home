@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Division Dominion</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #game-title {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #board-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 100px);
+            grid-template-rows: repeat(6, 100px);
+            border: 4px solid #666;
+            background-color: #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .territory {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #888;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            background-color: #eee;
+            border-radius: 5px;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .territory:hover {
+            background-color: #ccc;
+            transform: scale(1.05);
+        }
+
+        .controlled-by-player1 {
+            background-color: #b3e0ff;
+            color: #000;
+            animation: pulseBlue 2s infinite;
+        }
+        @keyframes pulseBlue {
+          0% { background-color: #b3e0ff; }
+          50% { background-color: #81d4fa; }
+          100% { background-color: #b3e0ff; }
+        }
+
+        .controlled-by-player2 {
+            background-color: #ffb3b3;
+            color: #000;
+            animation: pulseRed 2s infinite;
+        }
+        @keyframes pulseRed {
+          0% { background-color: #ffb3b3; }
+          50% { background-color: #f78a8a; }
+          100% { background-color: #ffb3b3; }
+        }
+
+        .neutral {
+            background-color: #eee;
+            color: #000;
+        }
+
+        #controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #question-box {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #aaa;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.4em;
+            min-width: 250px;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #answer-input {
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #aaa;
+            border-radius: 8px;
+            width: 200px;
+            font-size: 1.2em;
+            transition: border-color 0.2s;
+        }
+
+        #answer-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+
+        #submit-answer {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #submit-answer:hover {
+            background-color: #45a049;
+            transform: scale(1.1);
+        }
+
+        #game-message {
+            background-color: #e0e0e0;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #aaa;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.3em;
+            min-width: 280px;
+            color: #333;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #player-scores {
+            display: flex;
+            justify-content: space-around;
+            width: 350px;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+        }
+
+        #player-scores div {
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            color: white;
+            font-size: 1.8em;
+            text-align: center;
+        }
+
+        .game-over-content {
+            background-color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            border: 3px solid #eee;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .play-again-button {
+            margin-top: 25px;
+            padding: 15px 30px;
+            background-color: #00B8D4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.3s ease, transform 0.1s;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .play-again-button:hover {
+            background-color: #00869e;
+            transform: scale(1.05);
+        }
+
+        .war-zone {
+            border: 5px solid red;
+            animation: pulseRedBorder 2s infinite;
+        }
+        @keyframes pulseRedBorder {
+          0% { border-color: red; }
+          50% { border-color: #B22222; }
+          100% { border-color: red; }
+        }
+
+        .winning-territory {
+            animation: pulseGold 2s infinite;
+        }
+
+        @keyframes pulseGold {
+            0% { background-color: #FFD700; }
+            50% { background-color: #FFC300; }
+            100% { background-color: #FFD700; }
+        }
+
+    </style>
+</head>
+<body>
+    <h1 id="game-title">Division Dominion</h1>
+    <div id="player-scores">
+        <div id="player1-score">Player 1: 0</div>
+        <div id="player2-score">Player 2: 0</div>
+    </div>
+    <div id="board-container">
+        <div id="game-board"></div>
+    </div>
+    <div id="controls-container">
+        <div id="question-box"></div>
+        <input type="text" id="answer-input" placeholder="Enter your answer">
+        <button id="submit-answer">Capture Territory</button>
+        <div id="game-message"></div>
+    </div>
+    <div class="game-over-overlay" style="display: none;">
+        <div class="game-over-content">
+            <h2 id="game-over-title">Game Over</h2>
+            <p id="game-over-message">Winner: </p>
+            <button class="play-again-button">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+       // --- Game Setup ---
+        const boardSize = 36;
+        const gridSize = Math.sqrt(boardSize);
+        const gameBoard = document.getElementById('game-board');
+        const questionBox = document.getElementById('question-box');
+        const answerInput = document.getElementById('answer-input');
+        const submitButton = document.getElementById('submit-answer');
+        const gameMessage = document.getElementById('game-message');
+        const player1ScoreDisplay = document.getElementById('player1-score');
+        const player2ScoreDisplay = document.getElementById('player2-score');
+        const gameOverOverlay = document.querySelector('.game-over-overlay');
+        const gameOverTitle = document.getElementById('game-over-title');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const playAgainButton = document.querySelector('.play-again-button');
+
+        let board = [];
+        let currentPlayer = 1;
+        let player1Score = 0;
+        let player2Score = 0;
+        let currentQuestion;
+        let gameOver = false;
+        let warZones = [];
+        let warTurns = 0;
+        const maxWarTurns = 3;
+
+        function createBoard() {
+            gameBoard.innerHTML = '';
+            board = [];
+            for (let i = 0; i < boardSize; i++) {
+                const territory = document.createElement('div');
+                territory.classList.add('territory');
+                territory.classList.add('neutral');
+                territory.dataset.index = i;
+                territory.addEventListener('click', handleTerritoryClick);
+                gameBoard.appendChild(territory);
+                board.push(0);
+            }
+            warZones = []; // Reset war zones
+            warTurns = 0;
+        }
+
+        function generateDivisionQuestion() {
+            const num1 = Math.floor(Math.random() * 100) + 20;
+            const num2 = Math.floor(Math.random() * 10) + 2;
+            currentQuestion = {
+                question: `What is ${num1} ÷ ${num2}?`,
+                answer: Math.floor(num1 / num2),
+                num1: num1,
+                num2: num2
+            };
+            questionBox.textContent = currentQuestion.question;
+            answerInput.value = '';
+        }
+
+        function checkAnswer() {
+            if (gameOver) return;
+
+            const playerAnswer = parseInt(answerInput.value);
+            if (isNaN(playerAnswer)) {
+                gameMessage.textContent = 'Please enter a valid number!';
+                return false;
+            }
+
+            if (playerAnswer === currentQuestion.answer) {
+                gameMessage.textContent = 'Correct!';
+                return true;
+            } else {
+                gameMessage.textContent = 'Incorrect! Try again.';
+                return false;
+            }
+        }
+
+        function handleTerritoryClick(event) {
+            if (gameOver) return;
+
+            const territoryIndex = parseInt(event.target.dataset.index);
+            if (board[territoryIndex] !== 0) {
+                if (warZones.includes(territoryIndex)) {
+                    handleWar(territoryIndex, event.target);
+                }
+                else{
+                    gameMessage.textContent = 'This territory is already claimed!';
+                }
+                return;
+            }
+
+            if (!checkAnswer()) {
+                return;
+            }
+
+            board[territoryIndex] = currentPlayer;
+            const territoryElement = event.target;
+            territoryElement.classList.remove('neutral');
+            territoryElement.classList.add(`controlled-by-player${currentPlayer}`);
+            updateScore();
+            switchPlayer();
+            generateDivisionQuestion();
+        }
+
+        function handleWar(territoryIndex, territoryElement) {
+            if (!checkAnswer()) {
+                gameMessage.textContent = "Incorrect! You lose the war turn!";
+                warTurns++;
+                if (warTurns >= maxWarTurns) {
+                    // War is over, revert to previous owner
+                    const previousPlayer = (currentPlayer === 1) ? 2 : 1;
+                    board[territoryIndex] = previousPlayer;
+
+                    territoryElement.classList.remove(`controlled-by-player${currentPlayer}`);
+                    territoryElement.classList.add(`controlled-by-player${previousPlayer}`);
+                    gameMessage.textContent = `War is over! Territory reverts to Player ${previousPlayer}!`;
+                    warTurns = 0;
+                    warZones = [];
+                    updateScore();
+                    switchPlayer();
+                    generateDivisionQuestion();
+                }
+                else{
+                    switchPlayer();
+                    generateDivisionQuestion();
+                }
+                return;
+            }
+
+            // Correct answer, player wins the war
+            gameMessage.textContent = "Correct! You won the war!";
+            board[territoryIndex] = currentPlayer;
+            territoryElement.classList.remove(`controlled-by-player${currentPlayer === 1 ? 2 : 1 }`);
+            territoryElement.classList.add(`controlled-by-player${currentPlayer}`);
+            updateScore();
+            warTurns = 0;
+            warZones = [];
+            switchPlayer();
+            generateDivisionQuestion();
+        }
+
+        function updateScore() {
+            player1Score = board.filter(x => x === 1).length;
+            player2Score = board.filter(x => x === 2).length;
+            player1ScoreDisplay.textContent = `Player 1: ${player1Score}`;
+            player2ScoreDisplay.textContent = `Player 2: ${player2Score}`;
+            checkGameOver();
+        }
+
+        function switchPlayer() {
+            currentPlayer = (currentPlayer === 1) ? 2 : 1;
+            gameMessage.textContent = `It's Player ${currentPlayer}'s turn!`;
+        }
+
+       function checkGameOver() {
+            if (player1Score + player2Score === boardSize) {
+                gameOver = true;
+                declareWinner();
+            }
+            else {
+                //checkWarCondition(); //check for war.
+            }
+        }
+
+        function declareWinner() {
+            let winner = player1Score > player2Score ? 1 : 2;
+            let winnerText = `Player ${winner} wins!`;
+            if (player1Score === player2Score) {
+                winnerText = `It's a Tie!`;
+            }
+            gameOverTitle.textContent = 'Game Over!';
+            gameOverMessage.textContent = winnerText;
+            gameOverOverlay.style.display = 'flex';
+
+             // Highlight the winning territories
+             for (let i = 0; i < boardSize; i++) {
+                if (board[i] === winner) {
+                    const winningTerritoryElement = document.querySelector(`[data-index="${i}"]`);
+                    winningTerritoryElement.classList.add('winning-territory');
+                }
+            }
+        }
+
+        function resetGame() {
+            gameOver = false;
+            gameOverOverlay.style.display = 'none';
+            player1Score = 0;
+            player2Score = 0;
+            currentPlayer = 1;
+            player1ScoreDisplay.textContent = `Player 1: ${player1Score}`;
+            player2ScoreDisplay.textContent = `Player 2: ${player2Score}`;
+            createBoard();
+            generateDivisionQuestion();
+            gameMessage.textContent = `It's Player ${currentPlayer}'s turn!`;
+        }
+
+        function checkWarCondition() {
+            warZones = [];
+            for (let i = 0; i < boardSize; i++) {
+                if (board[i] !== 0) {
+                    const territoryPlayer = board[i];
+                    const adjacentTerritories = getAdjacentTerritories(i);
+
+                    for (const adjacentIndex of adjacentTerritories) {
+                        if (board[adjacentIndex] !== 0 && board[adjacentIndex] !== territoryPlayer) {
+                            if (!warZones.includes(i)) {
+                                warZones.push(i);
+                            }
+                            if (!warZones.includes(adjacentIndex)){
+                                warZones.push(adjacentIndex);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (warZones.length > 0) {
+                gameMessage.textContent = "War declared in contested territories!";
+                warZones.forEach(index => {
+                    const territoryElement = document.querySelector(`[data-index="${index}"]`);
+                    territoryElement.classList.add('war-zone');
+                });
+                warTurns = 0;
+                submitButton.textContent = "Fight War!";
+            }
+            else{
+                submitButton.textContent = "Capture Territory";
+            }
+        }
+
+        function getAdjacentTerritories(index) {
+            const adjacent = [];
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+
+            // Check adjacent cells (up, down, left, right)
+            if (row > 0) adjacent.push(index - gridSize);       // Up
+            if (row < gridSize - 1) adjacent.push(index + gridSize);    // Down
+            if (col > 0) adjacent.push(index - 1);         // Left
+            if (col < gridSize - 1) adjacent.push(index + 1);      // Right
+
+            return adjacent;
+        }
+
+        // --- Initial Setup ---
+        createBoard();
+        generateDivisionQuestion();
+        gameMessage.textContent = `It's Player ${currentPlayer}'s turn!`;
+        submitButton.addEventListener('click', () => {
+            if (warZones.length > 0) {
+                // Handle war logic
+                const territoryIndex = parseInt(answerInput.value); // Get the territory
+                const territoryElement = document.querySelector(`[data-index="${territoryIndex}"]`);
+                handleWar(territoryIndex, territoryElement);
+            }
+            else {
+                //standard capture
+                 if (checkAnswer()) {
+                    // Find the first available neutral territory and claim it.
+                    for (let i = 0; i < boardSize; i++) {
+                        if (board[i] === 0) {
+                            board[i] = currentPlayer;
+                            const territoryElement = document.querySelector(`[data-index="${i}"]`);
+                            territoryElement.classList.remove('neutral');
+                            territoryElement.classList.add(`controlled-by-player${currentPlayer}`);
+                            updateScore();
+                            switchPlayer();
+                            generateDivisionQuestion();
+                            break;
+                        }
+                    }
+                }
+            }
+            checkWarCondition();
+        });
+
+        playAgainButton.addEventListener('click', resetGame);
+    </script>
+</body>
+</html>
