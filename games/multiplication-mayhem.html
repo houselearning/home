@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multiplication Mayhem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #6a11cb, #2575fc); /* Gradient background */
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        #gameCanvas {
+            border: 4px solid #fff;
+            background-color: rgba(255, 255, 255, 0.1); /* Glassmorphism effect - more subtle*/
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+            border-radius: 16px; /* More rounded corners */
+            transition: transform 0.2s ease, box-shadow 0.2s ease; /* Add transitions */
+            backdrop-filter: blur(10px);
+        }
+
+        #gameCanvas:hover {
+            transform: scale(1.04); /* Slight scale on hover */
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5); /* Increased shadow on hover */
+        }
+
+        #controls {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #scoreDisplay {
+            font-size: 2em;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5); /* More pronounced shadow */
+            animation: fadeIn 1s ease, pulse 2s infinite alternate; /* Added animation */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        #messageDisplay {
+            font-size: 1.6em;
+            color: #fff;
+            margin-bottom: 25px;
+            min-height: 2.5em;
+            text-align: center;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 1s ease;
+        }
+
+        .button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            margin: 12px;
+            cursor: pointer;
+            background-color: #ff6b81; /* Vibrant color */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            transition: background-color 0.3s ease, transform 0.1s, box-shadow 0.3s ease; /* Added box-shadow */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .button:hover {
+            background-color: #ff4757; /* Darker shade on hover */
+            transform: scale(1.06); /* Increased scale */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Increased shadow */
+        }
+
+        .button.active {
+            background-color: #e65100;
+            transform: scale(1);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        #muteButton {
+            padding: 12px;
+            font-size: 1.1em;
+            margin: 10px;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.2); /* Glassmorphism for mute button */
+            color: white;
+            border: 2px solid #fff;
+            border-radius: 50%; /* Circular shape */
+            transition: background-color 0.3s ease, transform 0.1s, border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 60px; /* Increased size */
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        #muteButton:hover {
+            background-color: rgba(255, 255, 255, 0.3); /* Slightly lighter on hover */
+            transform: scale(1.1);
+            border-color: #ff6b81; /* Highlight border on hover */
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.4);
+        }
+
+        #muteButton.active {
+            background-color: #e65100;
+            transform: scale(1);
+            border-color: #e65100;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            animation: fadeIn 1s ease;
+        }
+
+        .game-over-content {
+            background-color: rgba(0, 0, 0, 0.7); /* Glassmorphism for game over content */
+            padding: 40px;
+            border-radius: 16px;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+        }
+
+        .game-over-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #ff6b81;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            animation: pulse 2s infinite alternate;
+        }
+
+        .game-over-message {
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .play-again-button {
+            margin-top: 30px;
+            padding: 18px 35px;
+            background-color: #00bfff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.4em;
+            transition: background-color 0.3s ease, transform 0.1s, box-shadow 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .play-again-button:hover {
+            background-color: #00869e;
+            transform: scale(1.08);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        /* New styles for difficulty buttons */
+        .difficulty-buttons {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .difficulty-button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 1em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s, box-shadow 0.3s;
+            font-family: 'Press Start 2P', cursive;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .difficulty-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .difficulty-button.active {
+            background-color: #e65100;
+            transform: scale(1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #gameCanvas {
+            animation: fadeIn 1s ease, pulseCanvas 2s infinite alternate;
+        }
+
+        @keyframes pulseCanvas {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="controls">
+        <div id="scoreDisplay">Score: 0</div>
+        <div id="messageDisplay">Collect the correct products!</div>
+        <div class="difficulty-buttons">
+            <button class="difficulty-button" data-difficulty="1">Easy</button>
+            <button class="difficulty-button" data-difficulty="2">Medium</button>
+            <button class="difficulty-button" data-difficulty="3">Hard</button>
+        </div>
+        <button id="muteButton">🔊</button>
+        <div id="timerDisplay">Time: 60</div> <!-- Timer Display -->
+        <div class="game-over-overlay">
+            <div class="game-over-content">
+                <h2 id="game-over-title">Game Over</h2>
+                <p id="game-over-message">Your Score: 0</p>
+                <button class="play-again-button">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const messageDisplay = document.getElementById('messageDisplay');
+        const muteButton = document.getElementById('muteButton');
+        const gameOverOverlay = document.querySelector('.game-over-overlay');
+        const gameOverTitle = document.getElementById('game-over-title');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const playAgainButton = document.querySelector('.play-again-button');
+        const difficultyButtons = document.querySelectorAll('.difficulty-button');
+        const timerDisplay = document.getElementById('timerDisplay'); // Timer Display
+
+        let player;
+        let foods = [];
+        let score = 0;
+        let gameRunning = false;
+        let muted = false;
+        let animationId;
+        let multiplicationFactor = 2;
+        let correctFoodValue;
+        let gameOverFlag = false;
+        let foodColors = ['#4CAF50', '#FF6B6B', '#FFD700', '#87CEEB'];
+        let imagesLoaded = 0;
+        const totalImages = 5;
+        let images = {};
+        let difficulty = 2;  // Default difficulty
+        let gameSpeed = 7;
+        let foodValueRange = 5;
+        let timer = 60; // Timer
+        let timerInterval; // Timer Interval
+        let highScore = localStorage.getItem('highScore') || 0; // High Score
+
+        // --- Sound Effects (Tone.js) ---
+        const synth = new Tone.Synth().toDestination();
+
+        function playEatSound() {
+            if (!muted) {
+                synth.triggerAttackRelease("C4", "8n");
+            }
+        }
+
+        function playGameOverSound() {
+            if (!muted) {
+                const polySynth = new Tone.PolySynth().toDestination();
+                polySynth.triggerAttackRelease(["C2", "E2", "G2", "Bb2"], "2n");
+            }
+        }
+
+        // --- Game Object Creation ---
+        function createPlayer() {
+            return {
+                x: canvas.width / 2 - 25,
+                y: canvas.height / 2 - 25,
+                size: 50,
+                speed: gameSpeed,
+                color: '#0095DD',
+                image: images.player
+            };
+        }
+
+        function createFood(value, index) {
+            const x = Math.random() * (canvas.width - 40);
+            const y = Math.random() * (canvas.height - 40);
+            const color = foodColors[index % foodColors.length];
+            return {
+                x: x,
+                y: y,
+                size: 30,
+                value: value,
+                color: color,
+                image: images[`food${index}`]
+            };
+        }
+
+        function createImage(src, name, onload) {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                imagesLoaded++;
+                images[name] = img;
+                onload(img);
+                if (imagesLoaded === totalImages) {
+                    startGame();
+                }
+            };
+            img.onerror = () => {
+                console.error('Failed to load image:', src);
+                imagesLoaded++;
+                if (imagesLoaded === totalImages) {
+                    startGame();
+                }
+            };
+            return img;
+        }
+
+        function loadImages() {
+            createImage('https://houselearning.github.io/home/games/static/crabwalk.gif', 'player', () => {});
+            for (let i = 0; i < 4; i++) {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = 30;
+                tempCanvas.height = 30;
+                const color = foodColors[i];
+                tempCtx.fillStyle = color;
+                tempCtx.beginPath();
+                tempCtx.arc(15, 15, 15, 0, 2 * Math.PI);
+                tempCtx.fill();
+                tempCtx.fillStyle = '#FFFFFF';
+                tempCtx.font = '14px Arial';
+                tempCtx.textAlign = 'center';
+                tempCtx.fillText('?', 15, 20);
+                createImage(tempCanvas.toDataURL(), `food${i}`, () => {});
+            }
+        }
+
+        // --- Game Logic ---
+        function generateFoods() {
+            foods = [];
+            correctFoodValue = multiplicationFactor;
+            foods.push(createFood(correctFoodValue, 0));
+            for (let i = 0; i < 3; i++) {
+                let incorrectValue;
+                do {
+                    incorrectValue = Math.floor(Math.random() * (multiplicationFactor + foodValueRange)) + 1;
+                } while (incorrectValue === correctFoodValue || foods.some(food => food.value === incorrectValue));
+                foods.push(createFood(incorrectValue, i+1));
+            }
+            shuffleArray(foods);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function updatePlayerPosition() {
+            if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
+            if (keys['ArrowDown'] && player.y < canvas.height - player.size) player.y += player.speed;
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+            if (keys['ArrowRight'] && player.x < canvas.width - player.size) player.x += player.speed;
+        }
+
+        function checkCollision() {
+            for (let i = 0; i < foods.length; i++) {
+                const food = foods[i];
+                if (player.x < food.x + food.size &&
+                    player.x + player.size > food.x &&
+                    player.y < food.y + food.size &&
+                    player.y + food.size > food.y) {
+                    if (food.value === correctFoodValue) {
+                        score++;
+                        scoreDisplay.textContent = `Score: ${score}`;
+                        playEatSound();
+                        generateFoods();
+                        // Varied Messages
+                        let messages = [
+                            `Awesome! Keep going! Collect products of ${multiplicationFactor}!`,
+                            `You're doing great! Get the products of ${multiplicationFactor}!`,
+                            `Superb! Aim for ${multiplicationFactor}!`,
+                            `Fantastic! Now collect products of ${multiplicationFactor}!`
+                        ];
+                        let randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                        if (score % 5 === 0) {
+                            multiplicationFactor++;
+                            messageDisplay.textContent = `Level Up! Now collect products of ${multiplicationFactor}!`;
+                        } else {
+                            messageDisplay.textContent = randomMessage;
+                        }
+                        break;
+                    } else {
+                        gameOverFlag = true;
+                        gameRunning = false;
+                        playGameOverSound();
+                        cancelAnimationFrame(animationId);
+                        // High Score Check
+                        if (score > highScore) {
+                            highScore = score;
+                            localStorage.setItem('highScore', highScore);
+                            gameOverMessage.textContent = `New High Score! ${score}!`;
+                        } else {
+                            gameOverMessage.textContent = `Oh no! Game Over! Your Score: ${score}`;
+                        }
+                        gameOverOverlay.style.display = 'flex';
+                        break;
+                    }
+                }
+            }
+        }
+
+        // --- Drawing ---
+        function drawPlayer() {
+            if (player && player.image) {
+                ctx.drawImage(player.image, player.x, player.y, player.size, player.size);
+            }
+        }
+
+        function drawFoods() {
+            foods.forEach(food => {
+                if (food && food.image) {
+                    ctx.drawImage(food.image, food.x, food.y, food.size, food.size);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(food.value, food.x + food.size / 2, food.y + food.size / 2 + 4);
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawFoods();
+        }
+
+        // --- Input Handling ---
+        let keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (gameRunning) {
+                updatePlayerPosition();
+                checkCollision();
+                draw();
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // --- Event Listeners ---
+        canvas.addEventListener('click', () => {
+            if (!gameRunning) {
+                startGame();
+            }
+        });
+
+        muteButton.addEventListener('click', () => {
+            muted = !muted;
+            muteButton.textContent = muted ? '🔇' : '🔊';
+            muteButton.classList.toggle('active', muted);
+        });
+
+        playAgainButton.addEventListener('click', () => {
+            startGame();
+        });
+
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                difficulty = parseInt(this.dataset.difficulty);
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                switch (difficulty) {
+                    case 1:
+                        gameSpeed = 5;
+                        foodValueRange = 3;
+                        break;
+                    case 2:
+                        gameSpeed = 7;
+                        foodValueRange = 5;
+                        break;
+                    case 3:
+                        gameSpeed = 9;
+                        foodValueRange = 10;
+                        break;
+                }
+            });
+        });
+        document.querySelector(`[data-difficulty="${difficulty}"]`).classList.add('active');
+
+
+        // --- Start/Reset ---
+        function startGame() {
+            gameOverOverlay.style.display = 'none'; // Ensure overlay is hidden at start
+            if (gameOverFlag) {
+                gameOverFlag = false;
+                score = 0;
+                multiplicationFactor = 2;
+                scoreDisplay.textContent = `Score: ${score}`;
+                messageDisplay.textContent = `Let's multiply by ${multiplicationFactor}!`;
+                imagesLoaded = 0;
+                timer = 60; // Reset Timer
+                timerDisplay.textContent = `Time: ${timer}`; // Reset Timer Display
+                loadImages();
+            } else if (imagesLoaded === totalImages) {
+                player = createPlayer();
+                generateFoods();
+                gameRunning = true;
+                timer = 60; // Reset Timer
+                timerDisplay.textContent = `Time: ${timer}`; // Reset Timer Display
+                // Timer Functionality
+                clearInterval(timerInterval);
+                 timerInterval = setInterval(() => {
+                    timer--;
+                    timerDisplay.textContent = `Time: ${timer}`;
+                    if (timer <= 0) {
+                        gameOverFlag = true;
+                        gameRunning = false;
+                        playGameOverSound();
+                        cancelAnimationFrame(animationId);
+                        if (score > highScore) {
+                            highScore = score;
+                            localStorage.setItem('highScore', highScore);
+                            gameOverMessage.textContent = `New High Score! ${highScore}!`;
+                        } else {
+                            gameOverMessage.textContent = `Time's up! Your Score: ${score}`;
+                        }
+                        gameOverOverlay.style.display = 'flex';
+                        clearInterval(timerInterval);
+                    }
+                }, 1000);
+                if (!animationId) {
+                    gameLoop();
+                }
+            }
+        }
+
+        // --- Initial Setup ---
+        messageDisplay.textContent = 'Click to Start!';
+        loadImages();
+
+    </script>
+</body>
+</html>
