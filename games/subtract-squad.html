@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtract Squad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/tone"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            /* Removed background-image */
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        /* Added styles for the video background */
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensure video covers the entire background */
+            z-index: -1; /* Place video behind other content */
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            padding: 20px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+            animation: fadeInContainer 1s ease forwards 0.5s;
+            opacity: 0;
+        }
+
+        @keyframes fadeInContainer {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ff6b81;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        #problem {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            animation: slideInProblem 1s ease-in-out forwards 1s;
+            transform: translateX(-100%);
+        }
+
+        @keyframes slideInProblem {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        #answer {
+            padding: 12px 15px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            width: calc(100% - 140px);
+            max-width: 300px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            background-color: #f0f0f0;
+            color: #333;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            animation: fadeInInput 1s ease forwards 1.5s;
+            opacity: 0;
+        }
+
+        @keyframes fadeInInput {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #answer:focus {
+            outline: none;
+            border-color: #ff6b81;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #checkButton {
+            padding: 12px 25px;
+            font-size: 1rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 0.5rem;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            animation: pulseButton 2s infinite alternate;
+        }
+
+        @keyframes pulseButton {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.1);
+            }
+        }
+
+        #checkButton:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #message {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            color: white;
+            min-height: 30px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            animation: fadeInMessage 1s ease forwards 2s;
+            opacity: 0;
+        }
+
+        @keyframes fadeInMessage {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #score {
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            animation: slideInScore 1s ease-in-out forwards 1.2s;
+            transform: translateX(100%);
+        }
+
+        @keyframes slideInScore {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .game-over-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        .game-over-content {
+            background-color: #1f1f1f;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 4px solid #ff6b81;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            animation: zoomIn 0.5s ease;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.5);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .game-over-title {
+            font-size: 2rem;
+            color: #ff6b81;
+            margin-bottom: 1rem;
+            animation: pulseTitle 2s infinite alternate;
+        }
+
+        @keyframes pulseTitle {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        .game-over-score {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+        }
+
+        .play-again-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background-color: #00b8d4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 1rem;
+            font-family: 'Press Start 2P', cursive;
+            animation: pulseButton 2s infinite alternate;
+        }
+
+        .play-again-button:hover {
+            background-color: #00869e;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            #problem {
+                font-size: 1.25rem;
+            }
+            #answer {
+                font-size: 0.9rem;
+                padding: 10px 12px;
+                width: calc(100% - 120px);
+            }
+            #checkButton {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+            #message {
+                font-size: 1rem;
+            }
+            #score {
+                font-size: 1rem;
+            }
+            .game-over-content {
+                padding: 1.5rem;
+            }
+            .game-over-title {
+                font-size: 1.75rem;
+            }
+            .game-over-score {
+                font-size: 1.25rem;
+            }
+            .play-again-button {
+                font-size: 1rem;
+                padding: 0.75rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <video id="video-background" src="https://houselearning.github.io/home/games/static/space_bg.mp4" autoplay loop muted playsinline></video>
+    <div class="container">
+        <h1>Subtract Squad</h1>
+        <div id="score">Score: 0</div>
+        <div id="problem"></div>
+        <input type="number" id="answer" placeholder="Enter your answer">
+        <button id="checkButton">Check Answer</button>
+        <div id="message"></div>
+         <div class="game-over-overlay" style="display: none;">
+            <div class="game-over-content">
+                <h2 class="game-over-title">Game Over</h2>
+                <p class="game-over-score">Final Score: <span id="finalScore"></span></p>
+                <button class="play-again-button">Play Again</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let num1, num2, score = 0;
+        const problemElement = document.getElementById("problem");
+        const answerInput = document.getElementById("answer");
+        const checkButton = document.getElementById("checkButton");
+        const messageElement = document.getElementById("message");
+        const scoreElement = document.getElementById("score");
+        const gameOverOverlay = document.querySelector(".game-over-overlay");
+        const finalScoreDisplay = document.getElementById("finalScore");
+        const playAgainButton = document.querySelector(".play-again-button");
+        const maxQuestions = 10;
+        let currentQuestion = 0;
+
+        // --- Sound Effects (Tone.js) ---
+        const correctSound = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.2 }
+        }).toDestination();
+
+        const incorrectSound = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+        }).toDestination();
+
+        const gameOverSound = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 10,
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: 'exponential' }
+        }).toDestination();
+
+        const buttonClickSound = new Tone.Synth({
+            oscillator: { type: 'square' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+        }).toDestination();
+
+        function playCorrectSound() {
+            correctSound.triggerAttackRelease("C4", "8n");
+        }
+
+        function playIncorrectSound() {
+            incorrectSound.triggerAttackRelease("G4", "4n");
+        }
+
+        function playGameOverSound() {
+            const synth = new Tone.Synth().toDestination();
+            const now = Tone.now();
+            synth.triggerAttackRelease("C2", "8n", now);
+            synth.triggerAttackRelease("E2", "8n", now + 0.2);
+            synth.triggerAttackRelease("G2", "8n", now + 0.4);
+            synth.triggerAttackRelease("C3", "1n", now + 0.6);
+        }
+
+        function playButtonClickSound() {
+            buttonClickSound.triggerAttackRelease("D5", "16n");
+        }
+
+        // --- Game Logic ---
+        function generateProblem() {
+            num1 = Math.floor(Math.random() * 100);
+            num2 = Math.floor(Math.random() * 100);
+            if (num2 > num1) {
+                [num1, num2] = [num2, num1];
+            }
+            problemElement.textContent = `${num1} - ${num2} = ?`;
+            answerInput.value = "";
+            answerInput.focus();
+        }
+
+        function checkAnswer() {
+            playButtonClickSound();
+            const userAnswer = parseInt(answerInput.value);
+            if (isNaN(userAnswer)) {
+                messageElement.textContent = "Please enter a valid number!";
+                return;
+            }
+            const correctAnswer = num1 - num2;
+            currentQuestion++;
+            if (userAnswer === correctAnswer) {
+                messageElement.textContent = "Correct!";
+                score++;
+                scoreElement.textContent = `Score: ${score}`;
+                playCorrectSound();
+            } else {
+                messageElement.textContent = "Incorrect!";
+                playIncorrectSound();
+            }
+            if (currentQuestion < maxQuestions) {
+                 generateProblem();
+            }
+            else{
+                endGame();
+            }
+        }
+
+        function endGame() {
+            playGameOverSound();
+            finalScoreDisplay.textContent = score;
+            gameOverOverlay.style.display = "flex";
+        }
+
+        function resetGame() {
+            playButtonClickSound();
+            score = 0;
+            currentQuestion = 0;
+            scoreElement.textContent = `Score: ${score}`;
+            messageElement.textContent = "";
+            gameOverOverlay.style.display = "none";
+            generateProblem();
+        }
+
+        checkButton.addEventListener("click", checkAnswer);
+        playAgainButton.addEventListener("click", resetGame);
+        generateProblem();
+    </script>
+</body>
+</html>
