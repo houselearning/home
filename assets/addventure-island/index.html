@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Addventure Island</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #333; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background-color: lightgrey;
+            display: block;
+            /* margin: 0 auto; */
+            border: 2px solid #fff; /* White border */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+        }
+        #fullscreenButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 15px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button id="fullscreenButton">Go Fullscreen</button>
+    <canvas id="gameCanvas"></canvas>
+    <H1>DEV NOTICE: Game might be glitching out, and the game does not save, sorry!</H1>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 800;
+        canvas.height = 600;
+
+        // Game variables
+        let currentWorld = 1;
+        let currentLevel = 1;
+        let textbooksFound = 0;
+        let totalTextbooks = 0;
+        let gameWon = false;
+        const totalWorlds = 5;
+        const totalLevels = 3; // Reduced for testing
+
+        // Pause variables
+        let gamePaused = false;
+        let showMenu = false;
+        let levelsBeaten = {};
+
+        // Cheat variables
+        let cheatCodeActive = false;
+        let cheatCodeKeys = [];
+        let showCheatMenu = false;
+
+        // World names
+        const worldNames = {
+            1: "Korasi Meadow",
+            2: "Haveno Port",
+            3: "Eldoria Peaks",
+            4: "Sabari City",
+            5: "Konami Corporate Office"
+        };
+
+        // World display variables
+        let showWorldName = false;
+        let worldNameDisplayTimer = 0;
+
+        // Player
+        const player = {
+            x: 50,
+            y: 50,
+            width: 32,
+            height: 32,
+            speed: 2,
+            xVelocity: 0,
+            yVelocity: 0,
+            isJumping: false,
+            canDoubleJump: true, // Added double jump
+            gravity: 0.6,
+            jumpForce: -12,
+            image: new Image()
+        };
+
+        // Enemy size
+        const enemyWidth = 32;
+        const enemyHeight = 32;
+
+        // Textbook size
+        const textbookWidth = 20;
+        const textbookHeight = 20;
+
+        // Star size
+        const starWidth = 16;
+        const starHeight = 16;
+
+        // Obstacle size
+        const obstacleWidth = 20;
+        const obstacleHeight = 20;
+
+        // Player image
+        player.image.src = 'https://houselearning.github.io/home/assets/addventure-island/player.png';
+
+        // Background
+        let backgroundImage = new Image();
+
+        // Platforms
+        const platforms = [];
+
+        // Enemies
+        const enemies = [];
+
+        // Textbooks
+        const textbooks = [];
+
+        // Stars (Collectibles)
+        const stars = [];
+        let starsCollected = 0;
+        let totalStars = 0;
+
+        // Obstacles (Spikes, Moving Platforms)
+        const obstacles = [];
+        const movingPlatforms = [];
+
+        // Keyboard input
+        const keys = {};
+        document.addEventListener('keydown', function(e) {
+            keys[e.key] = true;
+
+            // Cheat code logic
+            if (e.key === 'Backspace') {
+                cheatCodeActive = true;
+                cheatCodeKeys = []; // Reset keys
+            }
+
+            if (cheatCodeActive) {
+                cheatCodeKeys.push(e.key.toLowerCase());
+                if (cheatCodeKeys.length > 2) {
+                    cheatCodeKeys.shift(); // Keep only the last 2 keys
+                }
+
+                if (cheatCodeKeys[0] === 'x' && cheatCodeKeys[1] === 'x') {
+                    showCheatMenu = !showCheatMenu;
+                    cheatCodeActive = false; // Reset cheat code
+					cheatCodeKeys = []; // Clear the cheat code keys after activation
+                }
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            keys[e.key] = false;
+            if (e.key === 'Backspace') {
+                cheatCodeActive = false;
+                cheatCodeKeys = []; // Clear the cheat code keys
+            }
+        });
+
+        // Audio
+        const backgroundMusic = new Audio();
+        backgroundMusic.loop = true;
+        backgroundMusic.muted = false; //Unmute audio
+
+        const jumpSound = new Audio();
+        jumpSound.src = 'https://houselearning.github.io/home/assets/addventure-island/jump.wav';
+        const collectSound = new Audio();
+        collectSound.src = 'https://houselearning.github.io/home/assets/addventure-island/collect.wav';
+        const enemySound = new Audio();
+        enemySound.src = 'https://houselearning.github.io/home/assets/addventure-island/enemy.wav';
+        const levelCompleteSound = new Audio();
+        levelCompleteSound.src = 'https://houselearning.github.io/home/assets/addventure-island/level_complete.wav';
+        const levelFadeInSound = new Audio();
+        levelFadeInSound.src = 'https://houselearning.github.io/home/assets/addventure-island/level_fade_in.wav';
+        const starSound = new Audio();
+        starSound.src = 'https://houselearning.github.io/home/assets/addventure-island/star.wav';
+
+        // Level transition variables
+        let levelLoading = false;
+        let fadeAlpha = 0;
+
+        // Function to handle first user interaction
+        function handleFirstInteraction() {
+            backgroundMusic.muted = false; // Unmute audio
+            backgroundMusic.play(); // Play audio
+
+            // Remove the event listener to prevent it from running again
+            document.removeEventListener('mousedown', handleFirstInteraction);
+            document.removeEventListener('keydown', handleFirstInteraction);
+        }
+
+        // Add event listeners for user interaction
+        document.addEventListener('mousedown', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+
+        // Pause Function
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                gamePaused = !gamePaused;
+                showMenu = false;
+            }
+        });
+
+        function updatePlayer() {
+            if (gamePaused || showCheatMenu) return;
+            // Horizontal movement
+            player.xVelocity = 0;
+            if (keys['ArrowLeft']) {
+                player.xVelocity = -player.speed;
+            }
+            if (keys['ArrowRight']) {
+                player.xVelocity = player.speed;
+            }
+
+            // Jumping
+            if (keys['ArrowUp']) {
+                if (!player.isJumping) {
+                    player.yVelocity = player.jumpForce;
+                    player.isJumping = true;
+                    player.canDoubleJump = true; // Enable double jump
+                    jumpSound.play();
+                } else if (player.canDoubleJump) {
+                    player.yVelocity = player.jumpForce;
+                    player.canDoubleJump = false;
+                    jumpSound.play();
+                }
+            }
+
+            // Apply gravity
+            player.yVelocity += player.gravity;
+
+            // Update position
+            player.x += player.xVelocity;
+            player.y += player.yVelocity;
+
+            // Platform collision
+            platforms.forEach(platform => {
+                if (player.x < platform.x + platform.width &&
+                    player.x + player.width > platform.x &&
+                    player.y < platform.y + platform.height &&
+                    player.y + player.height > platform.y) {
+                    // Collision occurred
+                    if (player.yVelocity > 0) { // Only if falling
+                        player.y = platform.y - player.height;
+                        player.yVelocity = 0;
+                        player.isJumping = false;
+                        player.canDoubleJump = true; // Reset double jump on landing
+                    }
+                }
+            });
+
+            // Moving Platform collision
+            movingPlatforms.forEach(platform => {
+                if (player.x < platform.x + platform.width &&
+                    player.x + player.width > platform.x &&
+                    player.y < platform.y + platform.height &&
+                    player.y + player.height > platform.y) {
+                    // Collision occurred
+                    if (player.yVelocity > 0) { // Only if falling
+                        player.y = platform.y - player.height;
+                        player.yVelocity = 0;
+                        player.isJumping = false;
+                        player.canDoubleJump = true; // Reset double jump on landing
+                        player.x += platform.xVelocity; // Move with the platform
+                    }
+                }
+            });
+
+            // Keep player within bounds (left and right)
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+
+            // Bottom of screen is death
+            if (player.y > canvas.height) {
+                resetLevel();
+            }
+        }
+
+        function drawPlayer() {
+            ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+        }
+
+        function Platform(x, y, width, height, imageSrc) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.image = new Image();
+            this.image.src = imageSrc; // Replace with your platform image
+            this.draw = function() {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            };
+        }
+
+        function MovingPlatform(x, y, width, height, xVelocity, imageSrc) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.xVelocity = xVelocity;
+            this.image = new Image();
+            this.image.src = imageSrc; // Replace with your moving platform image
+            this.draw = function() {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            };
+            this.update = function() {
+                this.x += this.xVelocity;
+                if (this.x < 0 || this.x + this.width > canvas.width) {
+                    this.xVelocity = -this.xVelocity;
+                }
+            };
+        }
+
+        function Enemy(x, y, imageSrc, moveAreaStart, moveAreaEnd) {
+            this.x = x;
+            this.y = y;
+            this.width = enemyWidth;
+            this.height = enemyHeight;
+            this.speed = 0.5;
+            this.image = new Image();
+            this.image.src = imageSrc; // Replace with your enemy image
+            this.moveAreaStart = moveAreaStart;
+            this.moveAreaEnd = moveAreaEnd;
+            this.movingRight = true;
+
+            this.update = function() {
+                if (this.movingRight) {
+                    this.x += this.speed;
+                    if (this.x >= this.moveAreaEnd) {
+                        this.movingRight = false;
+                    }
+                } else {
+                    this.x -= this.speed;
+                    if (this.x <= this.moveAreaStart) {
+                        this.movingRight = true;
+                    }
+                }
+            };
+
+            this.draw = function() {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            };
+        }
+
+        function Textbook(x, y, imageSrc) {
+            this.x = x;
+            this.y = y;
+            this.width = textbookWidth;
+            this.height = textbookHeight;
+            this.image = new Image();
+            this.image.src = imageSrc; // Replace with your textbook image
+            this.collected = false;
+
+            this.draw = function() {
+                if (!this.collected) {
+                    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+                }
+            };
+        }
+
+        function Star(x, y, imageSrc) {
+            this.x = x;
+            this.y = y;
+            this.width = starWidth;
+            this.height = starHeight;
+            this.image = new Image();
+            this.image.src = imageSrc; // Replace with your star image
+            this.collected = false;
+
+            this.draw = function() {
+                if (!this.collected) {
+                    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+                }
+            };
+        }
+
+        function Obstacle(x, y, imageSrc) {
+            this.x = x;
+            this.y = y;
+            this.width = obstacleWidth;
+            this.height = obstacleHeight;
+            this.image = new Image();
+            this.image.src = imageSrc; // Replace with your spike image
+
+            this.draw = function() {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            };
+        }
+
+        function checkCollision(rect1, rect2) {
+            return (
+                rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y
+            );
+        }
+
+        function updateGame() {
+            if (gamePaused || showCheatMenu) return;
+
+            if (showWorldName) {
+                worldNameDisplayTimer++;
+                if (worldNameDisplayTimer > 120) { // Display for 2 seconds (60 frames per second)
+                    showWorldName = false;
+                    worldNameDisplayTimer = 0;
+                }
+                return; // Skip regular game updates during world name display
+            }
+
+            if (levelLoading) {
+                // Fade-in effect
+                fadeAlpha += 0.02; // Adjust for speed
+                if (fadeAlpha >= 1) {
+                    fadeAlpha = 1;
+                    levelLoading = false;
+                }
+                return; // Skip regular game updates during level loading
+            }
+
+            updatePlayer();
+
+            // Update enemies
+            enemies.forEach(enemy => enemy.update());
+
+             // Update moving platforms
+            movingPlatforms.forEach(platform => platform.update());
+
+            // Check for enemy collision
+            enemies.forEach(enemy => {
+                if (checkCollision(player, enemy)) {
+                    console.log('Game Over - Enemy Collision!');
+                    enemySound.play();
+                    resetLevel();
+                }
+            });
+
+            // Check for textbook collection
+            textbooks.forEach(textbook => {
+                if (!textbook.collected && checkCollision(player, textbook)) {
+                    textbook.collected = true;
+                    textbooksFound++;
+                    collectSound.play();
+                    console.log('Textbook collected!');
+                }
+            });
+
+            // Check for star collection
+            stars.forEach(star => {
+                if (!star.collected && checkCollision(player, star)) {
+                    star.collected = true;
+                    starsCollected++;
+                    starSound.play();
+                    console.log('Star collected!');
+                }
+            });
+
+            // Check for obstacle collision
+            obstacles.forEach(obstacle => {
+                if (checkCollision(player, obstacle)) {
+                    console.log('Game Over - Obstacle Collision!');
+                    resetLevel();
+                }
+            });
+
+            // Check if all textbooks and stars are collected
+            if (textbooksFound === totalTextbooks && starsCollected === totalStars) {
+                console.log('Level Complete!');
+                levelCompleteSound.play();
+                levelsBeaten[`${currentWorld}-${currentLevel}`] = true;
+                startLevelTransition();
+            }
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+            drawPlayer();
+            platforms.forEach(platform => platform.draw());
+            movingPlatforms.forEach(platform => platform.draw());
+            enemies.forEach(enemy => enemy.draw());
+            textbooks.forEach(textbook => textbook.draw());
+            stars.forEach(star => star.draw());
+            obstacles.forEach(obstacle => obstacle.draw());
+
+            // Display score and level
+            ctx.fillStyle = 'black';
+            ctx.font = '12px Arial';
+            ctx.fillText(`World: ${currentWorld}, Level: ${currentLevel}, Textbooks: ${textbooksFound}/${totalTextbooks}, Stars: ${starsCollected}/${totalStars}`, 10, 20);
+
+            if (gameWon) {
+                ctx.fillText('You Win!', canvas.width / 2 - 30, canvas.height / 2);
+            }
+
+            if (levelLoading) {
+                // Apply fade effect
+                ctx.fillStyle = `rgba(0, 0, 0, ${1 - fadeAlpha})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            if (showWorldName) {
+                // Display world name
+                ctx.fillStyle = 'black';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(worldNames[currentWorld], canvas.width / 2, canvas.height / 2);
+                ctx.textAlign = 'left'; // Reset text alignment
+            }
+
+            if (gamePaused) {
+                drawPauseScreen();
+            }
+
+            if (showMenu) {
+                drawMenu();
+            }
+
+            if (showCheatMenu) {
+                drawCheatMenu();
+            }
+        }
+
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function loadLevel(world, level) {
+            textbooksFound = 0;
+            starsCollected = 0;
+            enemies.length = 0;
+            textbooks.length = 0;
+            stars.length = 0;
+            obstacles.length = 0;
+            platforms.length = 0;
+            movingPlatforms.length = 0;
+            fadeAlpha = 0; // Reset fade alpha
+
+            // Function to generate a random number within a range
+            function getRandomNumber(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            // Function to add random enemies with spacing
+            function addRandomEnemies(worldAreaStart, worldAreaEnd, enemyImage) {
+                for (let i = 0; i < 3; i++) {
+                    let enemyX = getRandomNumber(worldAreaStart, worldAreaEnd);
+                    let enemyY = 470; // Ground level
+                    let moveAreaStart = worldAreaStart;
+                    let moveAreaEnd = worldAreaEnd;
+                    enemies.push(new Enemy(enemyX, enemyY, enemyImage, moveAreaStart, moveAreaEnd));
+                }
+            }
+
+            // Level design
+            if (world === 1) {
+                if (level === 1)
+            {
+                 // Tutorial Level 1: No enemies, no spikes
+            showWorldName = true;
+            backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background1.png'; // Replace with your tutorial background image
+            backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music5.mp3';
+            backgroundMusic.play();
+            totalTextbooks = 1;
+            totalStars = 2;
+            platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png')); // Ground
+            platforms.push(new Platform(300, 400, 200, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png')); // Platform
+            textbooks.push(new Textbook(350, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+            stars.push(new Star(200, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+            }
+            if (level === 2)
+            {
+                 // Tutorial Level 2: Spikes but no enemies
+            backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background1.png'; // Replace with your tutorial background image
+            backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music4.mp3';
+            backgroundMusic.play();
+            totalTextbooks = 2;
+            totalStars = 1;
+            platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png')); // Ground
+            platforms.push(new Platform(400, 350, 150, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png')); // Platform
+            textbooks.push(new Textbook(450, 320, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+            textbooks.push(new Textbook(700, 470, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+            stars.push(new Star(600, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+            obstacles.push(new Obstacle(300, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+            obstacles.push(new Obstacle(800, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+            }
+                if (level === 3) {
+                    showWorldName = true;
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background1.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music1.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 2;
+                    totalStars = 3;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png')); // Ground
+                    platforms.push(new Platform(200, 350, 200, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png')); // Platform
+                    textbooks.push(new Textbook(250, 320, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(700, 200, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(500, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(700, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(900, 300, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(50, 750, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(100, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(600, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                } else if (level === 4) {
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background2.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music2.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 3;
+                    totalStars = 2;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png'));
+                    platforms.push(new Platform(300, 400, 150, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png'));
+                    movingPlatforms.push(new MovingPlatform(500, 300, 150, 20, 1, 'https://houselearning.github.io/home/assets/addventure-island/moving_platform.png'));
+                    textbooks.push(new Textbook(350, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(550, 270, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(900, 400, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(100, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(800, 250, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(100, 650, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(600, 270, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(950, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                } else {
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background3.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music3.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 1;
+                    totalStars = 1;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png'));
+                    platforms.push(new Platform(100, 400, 100, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png'));
+                    textbooks.push(new Textbook(130, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(500, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(150, 550, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(700, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(400, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                }
+            } else if (world === 2) {
+                if (level === 1) {
+                    showWorldName = true;
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background4.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music4.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 2;
+                    totalStars = 3;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png')); // Ground
+                    platforms.push(new Platform(200, 350, 200, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png')); // Platform
+                    textbooks.push(new Textbook(250, 320, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(700, 200, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(500, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(700, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(900, 300, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(50, 750, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(100, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(600, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                } else if (level === 2) {
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background5.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music5.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 3;
+                    totalStars = 2;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png'));
+                    platforms.push(new Platform(300, 400, 150, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png'));
+                    movingPlatforms.push(new MovingPlatform(500, 300, 150, 20, 1, 'https://houselearning.github.io/home/assets/addventure-island/moving_platform.png'));
+                    textbooks.push(new Textbook(350, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(550, 270, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(900, 400, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(100, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(800, 250, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(100, 650, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(600, 270, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(950, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                } else {
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background1.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music1.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 1;
+                    totalStars = 1;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png'));
+                    platforms.push(new Platform(100, 400, 100, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png'));
+                    textbooks.push(new Textbook(130, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(500, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(150, 550, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(700, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(400, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                }
+            } else if (world === 3) {
+                if (level === 1) {
+                    showWorldName = true;
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background2.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music2.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 2;
+                    totalStars = 3;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png')); // Ground
+                    platforms.push(new Platform(200, 350, 200, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png')); // Platform
+                    textbooks.push(new Textbook(250, 320, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(700, 200, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(500, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(700, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(900, 300, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(50, 750, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(100, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(600, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                } else if (level === 2) {
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background3.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music3.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 3;
+                    totalStars = 2;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png'));
+                    platforms.push(new Platform(300, 400, 150, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png'));
+                    movingPlatforms.push(new MovingPlatform(500, 300, 150, 20, 1, 'https://houselearning.github.io/home/assets/addventure-island/moving_platform.png'));
+                    textbooks.push(new Textbook(350, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(550, 270, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    textbooks.push(new Textbook(900, 400, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(100, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    stars.push(new Star(800, 250, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(100, 650, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(600, 270, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(950, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                } else {
+                    backgroundImage.src = 'https://houselearning.github.io/home/assets/addventure-island/background4.png'; // Replace with your background image
+                    backgroundMusic.src = 'https://houselearning.github.io/home/assets/addventure-island/music4.mp3'; // backgroundMusic.play(); // Moved to handleFirstInteraction
+                    backgroundMusic.play();
+                    totalTextbooks = 1;
+                    totalStars = 1;
+                    platforms.push(new Platform(0, 500, 1200, 100, 'https://houselearning.github.io/home/assets/addventure-island/ground.png'));
+                    platforms.push(new Platform(100, 400, 100, 20, 'https://houselearning.github.io/home/assets/addventure-island/platform.png'));
+                    textbooks.push(new Textbook(130, 370, 'https://houselearning.github.io/home/assets/addventure-island/textbook.png'));
+                    stars.push(new Star(500, 450, 'https://houselearning.github.io/home/assets/addventure-island/star.png'));
+                    addRandomEnemies(150, 550, 'https://houselearning.github.io/home/assets/addventure-island/enemy.png');
+                    obstacles.push(new Obstacle(700, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                    obstacles.push(new Obstacle(400, 470, 'https://houselearning.github.io/home/assets/addventure-island/spike.png'));
+                }
+            }
+
+            console.log(`Loading World ${world}, Level ${level}`);
+            player.x = 50;
+            player.y = 50;
+            backgroundMusic.play();
+        }
+
+        function resetLevel() {
+            loadLevel(currentWorld, currentLevel);
+        }
+
+        function startLevelTransition() {
+            levelLoading = true;
+            fadeAlpha = 0; // Reset fadeAlpha at the start of the transition
+
+            setTimeout(() => {
+                if (currentLevel < totalLevels) {
+                    currentLevel++;
+                } else {
+                    currentWorld++;
+                    currentLevel = 1;
+                    showWorldName = true;
+					if (currentWorld > totalWorlds) {
+						gameWon = true;
+						console.log('You Win!');
+						return;
+					}
+                }
+                levelFadeInSound.play();
+                loadLevel(currentWorld, currentLevel);
+            }, 2000); // 2-second delay
+        }
+
+        // Pause screen
+        function drawPauseScreen() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '30px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Paused', canvas.width / 2, canvas.height / 2 - 50);
+
+            ctx.font = '20px "Press Start 2P"';
+            ctx.fillText('Menu', canvas.width / 2, canvas.height / 2);
+            ctx.fillText('Restart', canvas.width / 2, canvas.height / 2 + 50);
+            ctx.fillText('Continue', canvas.width / 2, canvas.height / 2 + 100);
+            ctx.fillText('Developer Menu', canvas.width / 2, canvas.height / 2 + 150);
+            ctx.textAlign = 'left';
+        }
+
+        // Menu screen
+        function drawMenu() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '30px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText('Select Level', canvas.width / 2, 50);
+
+            let yOffset = 100;
+            for (let level in levelsBeaten) {
+                ctx.font = '20px "Press Start 2P"';
+                ctx.fillText(`World ${level[0]}, Level ${level[2]}`, canvas.width / 2, yOffset);
+                yOffset += 50;
+            }
+            ctx.fillText('Developer Menu', canvas.width / 2, yOffset);
+            ctx.textAlign = 'left';
+        }
+
+        // Cheat menu
+        function drawCheatMenu() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '24px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText('Select Level', canvas.width / 2, 50);
+
+            let yOffset = 100;
+            for (let world = 1; world <= totalWorlds; world++) {
+                for (let level = 1; level <= totalLevels; level++) {
+                    const levelKey = `${world}-${level}`;
+                    ctx.font = '16px "Press Start 2P"';
+                    ctx.fillText(`World ${world}, Level ${level}`, canvas.width / 2, yOffset);
+                    yOffset += 30;
+                }
+            }
+            ctx.textAlign = 'left';
+        }
+
+        // Mouse click event listener
+        canvas.addEventListener('mousedown', function(event) {
+            const x = event.offsetX;
+            const y = event.offsetY;
+
+            if (gamePaused && !showMenu) {
+                // Check if a pause menu option was clicked
+                if (x > canvas.width / 2 - 150 && x < canvas.width / 2 + 150) {
+                    if (y > canvas.height / 2 - 20 && y < canvas.height / 2 + 10) {
+                        // Menu
+                        showMenu = true;
+                        gamePaused = false;
+                    } else if (y > canvas.height / 2 + 30 && y < canvas.height / 2 + 60) {
+                        // Restart
+                        gamePaused = false;
+                        resetLevel();
+                    } else if (y > canvas.height / 2 + 80 && y < canvas.height / 2 + 110) {
+                        // Continue
+                        gamePaused = false;
+                    } else if (y > canvas.height / 2 + 130 && y < canvas.height / 2 + 160) {
+                        // Developer Menu
+                        let password = prompt("Enter password:");
+                        if (password === "tom2013") {
+                            showCheatMenu = true;
+                            gamePaused = false;
+                        } else {
+                            alert("Incorrect password");
+                        }
+                    }
+                }
+            } else if (showMenu) {
+                // Check if a level button was clicked
+                let yOffset = 100;
+                for (let level in levelsBeaten) {
+                    if (x > canvas.width / 2 - 100 && x < canvas.width / 2 + 100 &&
+                        y > yOffset - 20 && y < yOffset + 10) {
+                        // Load the selected level
+                        let world = parseInt(level[0]);
+                        let lvl = parseInt(level[2]);
+                        currentWorld = world;
+                        currentLevel = lvl;
+                        loadLevel(world, lvl);
+                        showMenu = false;
+                        break;
+                    }
+                    yOffset += 50;
+                }
+                if (x > canvas.width / 2 - 150 && x < canvas.width / 2 + 150 &&
+                    y > yOffset - 20 && y < yOffset + 10) {
+                    // Developer Menu
+                    let password = prompt("Enter password:");
+                    if (password === "tom2013") {
+                        showCheatMenu = true;
+                        showMenu = false;
+                    } else {
+                        alert("Incorrect password");
+                    }
+                }
+            } else if (showCheatMenu) {
+                // Check if a cheat menu level was clicked
+                let yOffset = 100;
+                for (let world = 1; world <= totalWorlds; world++) {
+                    for (let level = 1; level <= totalLevels; level++) {
+                        if (x > canvas.width / 2 - 100 && x < canvas.width / 2 + 100 &&
+                            y > yOffset - 15 && y < yOffset + 15) {
+                            // Load the selected level
+                            currentWorld = world;
+                            currentLevel = level;
+                            loadLevel(world, level);
+                            showCheatMenu = false;
+                            return; // Exit the loop after loading the level
+                        }
+                        yOffset += 30;
+                    }
+                }
+            }
+        });
+
+        // Fullscreen
+        document.getElementById('fullscreenButton').addEventListener('click', function() {
+            if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.mozRequestFullScreen) { /* Firefox */
+                canvas.mozRequestFullScreen();
+            } else if (canvas.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                canvas.webkitRequestFullscreen();
+            } else if (canvas.msRequestFullscreen) { /* IE/Edge */
+                canvas.msRequestFullscreen();
+            }
+        });
+
+        // Initial game setup
+        loadLevel(currentWorld, currentLevel);
+        gameLoop();
+    </script>
+</body>
+</html>
