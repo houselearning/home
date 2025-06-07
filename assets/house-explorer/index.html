@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D House Explorer</title>
+    <!-- Load Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load Cannon.js for physics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <!-- Load Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: "Inter", sans-serif; background-color: #f0f0f0; }
+        canvas { display: block; }
+        #info-panel {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        #info-panel p {
+            margin: 5px 0;
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 25px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+            z-index: 100;
+            border: 2px solid #666;
+        }
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+        #togglePush {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+        #togglePush:hover {
+            background-color: #45a049;
+        }
+
+        /* Modal Styles (Computer and Book) */
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #222;
+            border: 5px solid #00F;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            color: #0F0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 70vw;
+            max-width: 600px;
+            height: 70vh;
+            max-height: 400px;
+            position: relative; /* Needed for absolute positioning of close button if not in header */
+        }
+        .modal-header {
+            background-color: #000;
+            padding: 8px;
+            border-bottom: 2px solid #0F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+            color: #0F0;
+        }
+        .modal-header button {
+            background: none;
+            border: 2px solid #0F0;
+            color: #0F0;
+            font-size: 1.2em;
+            padding: 2px 8px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .modal-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Specific Computer Modal Styles */
+        #computer-modal .modal-apps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            border-top: 2px solid #0F0;
+            background-color: #000;
+        }
+        #computer-modal .modal-apps button {
+            background-color: #004;
+            color: #0F0;
+            border: 1px solid #0F0;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        #computer-modal .modal-apps button:hover {
+            background-color: #006;
+            color: #0FF;
+        }
+        #computer-modal #computer-output {
+            color: #0F0;
+            margin-top: 10px;
+        }
+
+        /* Specific Book Modal Styles */
+        #book-content-modal .modal-body {
+            background-color: #f8f8f8; /* Lighter background for book content */
+            color: #333; /* Darker text for readability */
+            font-family: 'Georgia', serif;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+        #book-content-modal #book-title {
+            color: #0F0; /* Keep header title green for consistency */
+        }
+    </style>
+</head>
+<body>
+    <div id="info-panel" class="rounded-lg">
+        <p>Use <b>Arrow Keys</b> to move and look around.</p>
+        <p>Explore the house!</p>
+        <p>Press <b>ESC</b> to exit interactions.</p>
+    </div>
+    <div id="message-box"></div>
+    <div id="controls">
+        <button id="togglePush">Toggle Push Furniture (ON)</button>
+    </div>
+
+    <!-- Computer Simulator Modal -->
+    <div id="computer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Computer Simulator</span>
+                <button id="close-computer-modal">X</button>
+            </div>
+            <div class="modal-body">
+                <p>Welcome to the Computer Simulator!</p>
+                <div id="computer-output"></div>
+            </div>
+            <div class="modal-apps">
+                <button id="app-chatbot">Chatbot</button>
+                <button id="app-weather">Weather</button>
+                <button id="app-news">News Feed</button>
+                <button id="app-game">Simple Game</button>
+                <button id="app-notes">Notes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Content Modal -->
+    <div id="book-content-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="book-title"></span>
+                <button id="close-book-modal">X</button>
+            </div>
+            <div id="book-text-content" class="modal-body">
+                <!-- Book content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Basic Three.js setup
+        let scene, camera, renderer;
+        let playerHeight = 1.1; // Height of the player camera, adjusted for easier passage
+        let playerRadius = 0.5; // Radius for collision detection (player's horizontal extent)
+        let playerSpeed = 0.1; // Movement speed
+        let rotationSpeed = 0.03; // Camera rotation speed
+
+        // Global room dimensions and parameters
+        const roomHeight = 3;
+        const roomDim = 10; // For square rooms (width and depth)
+        const wallThickness = 0.1;
+        const doorWidth = 2;
+        const doorHeight = 2.2;
+        const windowWidth = 3; // Width of the window
+        const windowHeight = 1.5; // Height of the window
+        const furniturePadding = 0.3; // Padding from walls for furniture
+
+        // Physics world for Cannon.js
+        let world;
+        const FIXED_TIME_STEP = 1 / 60; // seconds
+
+        // Cannon.js Materials
+        let groundMaterial, furnitureMaterial;
+        let groundFurnitureContactMaterial;
+
+        // Three.js Raycaster for interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Animation mixer for object animations (e.g., cabinet doors)
+        let mixer; // Declare a global mixer
+        const clock = new THREE.Clock(); // Clock for mixer updates
+
+        // Texture loader
+        const textureLoader = new THREE.TextureLoader();
+        let wallTexture, ceilingTexture, floorTexture, windowViewTexture, carpetTexture;
+        let cityTexture, swanTexture, oceanTexture; // New textures for pictures
+        const pictureTextures = []; // Array to hold loaded textures in order
+
+        // Keyboard state for smooth movement
+        let keys = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            lookLeft: false,
+            lookRight: false
+        };
+
+        let wallMeshes = []; // Array to store all Three.js wall meshes (for visual and Cannon.js body linking)
+        let furnitureMeshes = []; // Array to store all Three.js furniture meshes (for visual and Cannon.js body linking)
+        let playerBoundingBox; // Bounding box for the player (for simple collision detection with walls/furniture)
+
+        let canPushFurniture = true; // New toggle variable for pushing furniture
+        let groundBody; // Reference to the Cannon.js ground body
+
+        let playerState = 'walking'; // 'walking', 'sitting', 'lying', 'interacting' (for modals)
+        let playerOriginalPosition = new THREE.Vector3();
+        let playerOriginalQuaternion = new THREE.Quaternion();
+
+        // Tone.js Synths for sound effects
+        let footstepSynth, furnitureSynth, lampSynth, pictureSynth, modalSynth, pushSynth;
+        let audioContextStarted = false;
+        let footstepInterval = null;
+        const footstepIntervalTime = 300; // milliseconds between footstep sounds
+
+        // Function to show messages to the user
+        function showMessage(message, duration = 3000) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        // Function to play footstep sound
+        function playFootstepSound() {
+            if (audioContextStarted) {
+                footstepSynth.triggerAttackRelease("C1", "8n");
+            }
+        }
+
+        // Initialize the 3D scene and physics world
+        async function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Sky blue background
+
+            // Camera setup: field of view, aspect ratio, near and far clipping planes
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0.5, playerHeight, 0.5); // Start slightly offset to avoid immediate furniture collision
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Enable shadows in the renderer
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+
+            // Initialize Cannon.js world
+            world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0); // Standard gravity (m/s^2)
+
+            // Define Cannon.js materials
+            groundMaterial = new CANNON.Material('groundMaterial');
+            furnitureMaterial = new CANNON.Material('furnitureMaterial');
+
+            // Define contact material between ground and furniture
+            groundFurnitureContactMaterial = new CANNON.ContactMaterial(
+                groundMaterial,
+                furnitureMaterial,
+                {
+                    friction: 0.8,    // High friction to prevent excessive sliding
+                    restitution: 0.0, // No bounce
+                    contactEquationStiffness: 1e8,
+                    contactEquationRelaxation: 3
+                }
+            );
+            world.addContactMaterial(groundFurnitureContactMaterial);
+
+            // Create a static ground plane in Cannon.js
+            const groundShape = new CANNON.Plane();
+            groundBody = new CANNON.Body({ mass: 0, shape: groundShape, material: groundMaterial }); // Assign ground material
+            // Rotate to be horizontal (plane initially faces positive Z)
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+            world.addBody(groundBody);
+
+
+            // Create lights
+            // Dimmed ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8); // Original: 2, now 0.8
+            scene.add(ambientLight);
+
+            // Dimmed directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6); // Original: 1, now 0.6
+            directionalLight.position.set(5, 10, 7); // Position the light source
+            directionalLight.castShadow = true; // Enable shadows for this light
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+
+            // Initialize Three.js AnimationMixer
+            mixer = new THREE.AnimationMixer(scene);
+
+
+            // Load textures
+            wallTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/textures/wall.png',
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(2, 2); }, undefined,
+                function (err) { console.error('An error occurred loading the wall texture.', err); wallTexture = null; }
+            );
+
+            ceilingTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/textures/top.png',
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(2, 2); }, undefined,
+                function (err) { console.error('An error occurred loading the ceiling texture.', err); ceilingTexture = null; }
+            );
+
+            // Load floor texture
+            floorTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/textures/floor.png',
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(3, 3); }, undefined, // More repeats for detail
+                function (err) { console.error('An error occurred loading the floor texture.', err); floorTexture = null; }
+            );
+
+            // Load carpet texture
+            carpetTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/textures/carpet.png',
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(3, 3); }, undefined, // More repeats for detail
+                function (err) { console.error('An error occurred loading the carpet texture.', err); carpetTexture = null; }
+            );
+
+            windowViewTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/wv/window-view.gif',
+                undefined, undefined,
+                function (err) { console.error('An error occurred loading the window view GIF.', err); windowViewTexture = null; }
+            );
+
+            // Load picture textures
+            const textureLoadPromises = [
+                textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/pictures/city.png', (texture) => { cityTexture = texture; }),
+                textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/pictures/swan.png', (texture) => { swanTexture = texture; }),
+                textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/pictures/ocean.png', (texture) => { oceanTexture = texture; })
+            ];
+
+            try {
+                await Promise.all(textureLoadPromises);
+                pictureTextures.push(cityTexture, swanTexture, oceanTexture);
+                console.log("All picture textures loaded.");
+            } catch (err) {
+                console.error("Error loading one or more picture textures:", err);
+                // Provide fallback or error handling for missing textures
+            }
+
+            // Setup Tone.js synths
+            footstepSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.05,
+                octaves: 1,
+                oscillator: { type: "square" },
+                envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 },
+                volume: -15 // Very subtle
+            }).toDestination();
+
+            furnitureSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.08,
+                octaves: 2,
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 },
+                volume: -10
+            }).toDestination();
+
+            lampSynth = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 },
+                volume: -12
+            }).toDestination();
+
+            pictureSynth = new Tone.Synth({
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.001, decay: 0.08, sustain: 0.01, release: 0.08 },
+                volume: -10
+            }).toDestination();
+
+            modalSynth = new Tone.Synth({
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.001, decay: 0.05, sustain: 0.01, release: 0.05 },
+                volume: -18
+            }).toDestination();
+
+            pushSynth = new Tone.NoiseSynth({
+                noise: { type: "brown" },
+                envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+            }).toDestination();
+            pushSynth.volume.value = -10; // Louder noise for pushing
+
+
+            createHouse();
+            addFurniture(); // This will also create Cannon.js bodies for furniture
+
+            playerBoundingBox = new THREE.Box3();
+
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.getElementById('togglePush').addEventListener('click', togglePushFeature);
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousedown', onDocumentMouseDown, false); // For interaction
+
+            // Computer modal event listeners
+            document.getElementById('close-computer-modal').addEventListener('click', () => {
+                document.getElementById('computer-modal').style.display = 'none';
+                playerState = 'walking'; // Revert to walking state
+                modalSynth.triggerAttackRelease("C4", "16n"); // Sound for closing modal
+                showMessage("Computer closed.", 750);
+            });
+            document.getElementById('app-chatbot').addEventListener('click', () => runComputerApp('chatbot'));
+            document.getElementById('app-weather').addEventListener('click', () => runComputerApp('weather'));
+            document.getElementById('app-news').addEventListener('click', () => runComputerApp('news'));
+            document.getElementById('app-game').addEventListener('click', () => runComputerApp('game'));
+            document.getElementById('app-notes').addEventListener('click', () => runComputerApp('notes'));
+
+            // Book modal event listeners
+            document.getElementById('close-book-modal').addEventListener('click', () => {
+                document.getElementById('book-content-modal').style.display = 'none';
+                playerState = 'walking'; // Revert to walking state
+                modalSynth.triggerAttackRelease("C4", "16n"); // Sound for closing modal
+                showMessage("Book closed.", 750);
+            });
+
+
+            animate();
+            showMessage("Welcome to the House Explorer! Press ESC to exit interactions.", 3000);
+        }
+
+        // Helper function to create the floor and carpet for a room
+        function createRoomFloorAndCarpet(x, z, width, depth, baseFloorColor) {
+            const floorGroup = new THREE.Group();
+
+            // Base rectangular floor mesh
+            const baseFloorMaterial = new THREE.MeshStandardMaterial({
+                map: floorTexture || null,
+                color: floorTexture ? 0xffffff : baseFloorColor
+            });
+            const baseFloorGeometry = new THREE.BoxGeometry(width, wallThickness, depth);
+            const baseFloor = new THREE.Mesh(baseFloorGeometry, baseFloorMaterial);
+            baseFloor.position.set(x, -playerHeight / 2, z);
+            baseFloor.receiveShadow = true;
+            floorGroup.add(baseFloor);
+
+            // Circular carpet mesh (on top of the base floor)
+            const carpetMaterial = new THREE.MeshStandardMaterial({
+                map: carpetTexture || null,
+                color: carpetTexture ? 0xffffff : 0x8B4513 // Fallback for carpet if texture fails
+            });
+            const carpetRadius = Math.min(width, depth) / 2 * 0.8; // Smaller radius than room
+            const carpetSegments = 64; // For a smooth circle
+            const carpetGeometry = new THREE.CylinderGeometry(carpetRadius, carpetRadius, wallThickness * 1.5, carpetSegments); // Slightly thicker for visibility
+            const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
+            carpet.position.set(x, -playerHeight / 2 + wallThickness, z); // Slightly above base floor
+            carpet.receiveShadow = true;
+            floorGroup.add(carpet);
+
+            return floorGroup;
+        }
+
+        // Helper function to create a ceiling mesh
+        function createCeiling(x, z, width, depth, fallbackColor) {
+            const material = new THREE.MeshStandardMaterial({
+                map: ceilingTexture || null,
+                color: ceilingTexture ? 0xffffff : fallbackColor
+            });
+            const geometry = new THREE.BoxGeometry(width, wallThickness, depth);
+            const ceiling = new THREE.Mesh(geometry, material);
+            ceiling.position.set(x, roomHeight - playerHeight / 2, z);
+            ceiling.receiveShadow = true; // Ceiling receives shadows
+            return ceiling;
+        }
+
+        // Helper function to create a window plane
+        function createWindow(x, y, z, width, height, rotationY) {
+            const material = new THREE.MeshBasicMaterial({
+                map: windowViewTexture || null,
+                color: windowViewTexture ? 0xffffff : 0x87CEEB,
+                side: THREE.DoubleSide
+            });
+            const geometry = new THREE.PlaneGeometry(width, height);
+            const windowPlane = new THREE.Mesh(geometry, material);
+            windowPlane.position.set(x, y, z);
+            windowPlane.rotation.y = rotationY;
+            scene.add(windowPlane);
+        }
+
+        // Helper function to create a full wall segment (and its static Cannon.js body)
+        function createFullWall(x, z, axis, length, height, fallbackColor) {
+            const material = new THREE.MeshStandardMaterial({
+                map: wallTexture || null,
+                color: wallTexture ? 0xffffff : fallbackColor
+            });
+            let geometry;
+            if (axis === 'x') { // Wall aligned with X-axis (running along Z)
+                geometry = new THREE.BoxGeometry(wallThickness, height, length);
+            } else { // Wall aligned with X-axis (running along X)
+                geometry = new THREE.BoxGeometry(length, height, wallThickness);
+            }
+            const wall = new THREE.Mesh(geometry, material);
+            wall.position.set(x, height / 2 - playerHeight / 2, z); // Center the mesh vertically
+            wall.castShadow = true; // Wall casts shadows
+            wall.receiveShadow = true; // Wall receives shadows
+            scene.add(wall);
+            wallMeshes.push(wall);
+
+            // Create Cannon.js body for the wall (static)
+            const wallBodyShape = new CANNON.Box(new CANNON.Vec3(
+                geometry.parameters.width / 2,
+                geometry.parameters.height / 2,
+                geometry.parameters.depth / 2
+            ));
+            const wallBody = new CANNON.Body({ mass: 0, shape: wallBodyShape });
+            wallBody.position.copy(wall.position);
+            wallBody.quaternion.copy(wall.quaternion);
+            world.addBody(wallBody);
+        }
+
+        // Helper function to create a wall segment with a doorway (and its static Cannon.js bodies)
+        function createSegmentedWall(wallX, wallZ, axis, wallLength, wallHeight, fallbackColor, doorwayWidth, doorwayHeight) {
+            const material = new THREE.MeshStandardMaterial({
+                map: wallTexture || null,
+                color: wallTexture ? 0xffffff : fallbackColor
+            });
+
+            // Top lintel segment
+            const lintelHeight = wallHeight - doorwayHeight;
+            const lintelY = wallHeight / 2 + doorwayHeight / 2 - playerHeight / 2;
+            let lintelGeometry;
+            let lintelMesh;
+
+            if (axis === 'x') { // Wall along Z-axis, doorway along X-axis
+                lintelGeometry = new THREE.BoxGeometry(wallThickness, lintelHeight, doorwayWidth);
+            } else { // Wall along X-axis, doorway along Z-axis
+                lintelGeometry = new THREE.BoxGeometry(doorwayWidth, lintelHeight, wallThickness);
+            }
+            lintelMesh = new THREE.Mesh(lintelGeometry, material);
+            lintelMesh.position.set(wallX, lintelY, wallZ);
+            lintelMesh.castShadow = true; // Lintel casts shadows
+            lintelMesh.receiveShadow = true; // Lintel receives shadows
+            scene.add(lintelMesh);
+            wallMeshes.push(lintelMesh);
+
+            // Create Cannon.js body for lintel
+            const lintelBodyShape = new CANNON.Box(new CANNON.Vec3(
+                lintelGeometry.parameters.width / 2,
+                lintelGeometry.parameters.height / 2,
+                lintelGeometry.parameters.depth / 2
+            ));
+            const lintelBody = new CANNON.Body({ mass: 0, shape: lintelBodyShape });
+            lintelBody.position.copy(lintelMesh.position);
+            lintelBody.quaternion.copy(lintelMesh.quaternion);
+            world.addBody(lintelBody);
+
+
+            // Side segments (left and right of doorway)
+            const sideLength = (wallLength - doorwayWidth) / 2;
+            const sideY = wallHeight / 2 - playerHeight / 2;
+
+            if (sideLength > 0) {
+                let side1Geometry, side2Geometry;
+                let side1X, side1Z, side2X, side2Z;
+
+                if (axis === 'x') { // Wall along Z-axis, doorway along X-axis
+                    side1Geometry = new THREE.BoxGeometry(wallThickness, wallHeight, sideLength);
+                    side2Geometry = new THREE.BoxGeometry(wallThickness, wallHeight, sideLength);
+                    side1X = wallX;
+                    side1Z = wallZ - doorwayWidth / 2 - sideLength / 2;
+                    side2X = wallX;
+                    side2Z = wallZ + doorwayWidth / 2 + sideLength / 2;
+                } else { // Wall along X-axis, doorway along Z-axis
+                    side1Geometry = new THREE.BoxGeometry(sideLength, wallHeight, wallThickness);
+                    side2Geometry = new THREE.BoxGeometry(sideLength, wallHeight, wallThickness);
+                    side1X = wallX - doorwayWidth / 2 - sideLength / 2;
+                    side1Z = wallZ;
+                    side2X = wallX + doorwayWidth / 2 + sideLength / 2;
+                    side2Z = wallZ;
+                }
+
+                const side1Mesh = new THREE.Mesh(side1Geometry, material);
+                side1Mesh.position.set(side1X, sideY, side1Z);
+                side1Mesh.castShadow = true; // Side walls cast shadows
+                side1Mesh.receiveShadow = true; // Side walls receive shadows
+                scene.add(side1Mesh);
+                wallMeshes.push(side1Mesh);
+
+                const side2Mesh = new THREE.Mesh(side2Geometry, material);
+                side2Mesh.position.set(side2X, sideY, side2Z);
+                side2Mesh.castShadow = true; // Side walls cast shadows
+                side2Mesh.receiveShadow = true; // Side walls receive shadows
+                scene.add(side2Mesh);
+                wallMeshes.push(side2Mesh);
+
+                // Create Cannon.js bodies for side segments
+                const side1BodyShape = new CANNON.Box(new CANNON.Vec3(
+                    side1Geometry.parameters.width / 2,
+                    side1Geometry.parameters.height / 2,
+                    side1Geometry.parameters.depth / 2
+                ));
+                const side1Body = new CANNON.Body({ mass: 0, shape: side1BodyShape });
+                side1Body.position.copy(side1Mesh.position);
+                side1Body.quaternion.copy(side1Mesh.quaternion);
+                world.addBody(side1Body);
+
+                const side2BodyShape = new CANNON.Box(new CANNON.Vec3(
+                    side2Geometry.parameters.width / 2,
+                    side2Geometry.parameters.height / 2,
+                    side2Geometry.parameters.depth / 2
+                ));
+                const side2Body = new CANNON.Body({ mass: 0, shape: side2BodyShape });
+                side2Body.position.copy(side2Mesh.position);
+                side2Body.quaternion.copy(side2Mesh.quaternion);
+                world.addBody(side2Body);
+            }
+        }
+
+        // Function to create the entire house structure
+        function createHouse() {
+            // Clear existing meshes and physics bodies to rebuild
+            wallMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                if (mesh.userData.physicsBody) {
+                    world.removeBody(mesh.userData.physicsBody);
+                }
+            });
+            wallMeshes = [];
+            furnitureMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                if (mesh.userData.physicsBody) {
+                    world.removeBody(mesh.userData.physicsBody);
+                }
+            });
+            furnitureMeshes = [];
+
+            // --- Room 1: Living Room (Center: 0, 0, 0) ---
+            const r1X = 0, r1Z = 0;
+            const r1FloorColor = 0x8B4513;
+            const r1WallColor = 0xD2B48C;
+            scene.add(createRoomFloorAndCarpet(r1X, r1Z, roomDim, roomDim, r1FloorColor));
+            const pointLight1 = new THREE.PointLight(0xffffff, 0.6, 10); // Dimmed point light
+            pointLight1.position.set(r1X, roomHeight - 0.5, r1Z);
+            scene.add(pointLight1);
+
+            createSegmentedWall(r1X, r1Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
+            createFullWall(r1X, r1Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r1WallColor);
+            createWindow(r1X, roomHeight / 2, r1Z - roomDim / 2 - wallThickness/2 - 0.01, windowWidth, windowHeight, 0);
+            createFullWall(r1X - roomDim / 2 - wallThickness/2, r1Z, 'x', roomDim, roomHeight, r1WallColor);
+            createSegmentedWall(r1X + roomDim / 2 + wallThickness/2, r1Z, 'x', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
+            scene.add(createCeiling(r1X, r1Z, roomDim, roomDim, 0xcccccc));
+
+            // --- Room 2: Kitchen (Right of Living Room) ---
+            const r2X = roomDim + wallThickness;
+            const r2Z = 0;
+            const r2FloorColor = 0x556B2F;
+            const r2WallColor = 0xF5F5DC;
+            scene.add(createRoomFloorAndCarpet(r2X, r2Z, roomDim, roomDim, r2FloorColor));
+            const pointLight2 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            pointLight2.position.set(r2X, roomHeight - 0.5, r2Z);
+            scene.add(pointLight2);
+
+            createFullWall(r2X, r2Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r2WallColor);
+            createFullWall(r2X, r2Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r2WallColor);
+            createSegmentedWall(r2X - roomDim / 2 - wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor, doorWidth, doorHeight);
+            createFullWall(r2X + roomDim / 2 + wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor);
+            createWindow(r2X + roomDim / 2 + wallThickness/2 + 0.01, roomHeight / 2, r2Z, windowWidth, windowHeight, Math.PI / 2);
+            scene.add(createCeiling(r2X, r2Z, roomDim, roomDim, 0xcccccc));
+
+            // --- Room 3: Dining Room (Behind Living Room) ---
+            const r3X = 0;
+            const r3Z = roomDim + wallThickness;
+            const r3FloorColor = 0x4682B4;
+            const r3WallColor = 0xB0C4DE;
+            scene.add(createRoomFloorAndCarpet(r3X, r3Z, roomDim, roomDim, r3FloorColor));
+            const pointLight3 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            pointLight3.position.set(r3X, roomHeight - 0.5, r3Z);
+            scene.add(pointLight3);
+
+            createFullWall(r3X, r3Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r3WallColor);
+            createWindow(r3X, roomHeight / 2, r3Z + roomDim / 2 + wallThickness/2 + 0.01, windowWidth, windowHeight, 0);
+            createSegmentedWall(r3X, r3Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            createSegmentedWall(r3X - roomDim / 2 - wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            createSegmentedWall(r3X + roomDim / 2 + wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            scene.add(createCeiling(r3X, r3Z, roomDim, roomDim, 0xcccccc));
+
+            // --- Room 4: Bedroom 1 (Left of Dining Room) ---
+            const r4X = -(roomDim + wallThickness);
+            const r4Z = roomDim + wallThickness;
+            const r4FloorColor = 0x6A5ACD;
+            const r4WallColor = 0xE6E6FA;
+            scene.add(createRoomFloorAndCarpet(r4X, r4Z, roomDim, roomDim, r4FloorColor));
+            const pointLight4 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            pointLight4.position.set(r4X, roomHeight - 0.5, r4Z);
+            scene.add(pointLight4);
+
+            createFullWall(r4X, r4Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r4WallColor);
+            createFullWall(r4X, r4Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r4WallColor);
+            createFullWall(r4X - roomDim / 2 - wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor);
+            createWindow(r4X - roomDim / 2 - wallThickness/2 - 0.01, roomHeight / 2, r4Z, windowWidth, windowHeight, -Math.PI / 2);
+            createSegmentedWall(r4X + roomDim / 2 + wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor, doorWidth, doorHeight);
+            scene.add(createCeiling(r4X, r4Z, roomDim, roomDim, 0xcccccc));
+
+            // --- Room 5: Bedroom 2 (Right of Dining Room) ---
+            const r5X = roomDim + wallThickness;
+            const r5Z = roomDim + wallThickness;
+            const r5FloorColor = 0x800000;
+            const r5WallColor = 0xFFA07A;
+            scene.add(createRoomFloorAndCarpet(r5X, r5Z, roomDim, roomDim, r5FloorColor));
+            const pointLight5 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            pointLight5.position.set(r5X, roomHeight - 0.5, r5Z);
+            scene.add(pointLight5);
+
+            createFullWall(r5X, r5Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r5WallColor);
+            createFullWall(r5X, r5Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r5WallColor);
+            createSegmentedWall(r5X - roomDim / 2 - wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor, doorWidth, doorHeight);
+            createFullWall(r5X + roomDim / 2 + wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor);
+            createWindow(r5X + roomDim / 2 + wallThickness/2 + 0.01, roomHeight / 2, r5Z, windowWidth, windowHeight, Math.PI / 2);
+            scene.add(createCeiling(r5X, r5Z, roomDim, roomDim, 0xcccccc));
+        }
+
+        // --- Camera Animation Helper ---
+        function animateCameraToState(targetPosition, targetQuaternion, duration, callback) {
+            const initialPosition = camera.position.clone();
+            const initialQuaternion = camera.quaternion.clone();
+            const start = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+
+                camera.position.lerpVectors(initialPosition, targetPosition, progress);
+                camera.quaternion.slerpQuaternions(initialQuaternion, targetQuaternion, progress);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            animate();
+        }
+
+        // --- Interaction Functions ---
+        function animateRotation(object, targetRotation, duration, property = 'y', callback) {
+            if (!object) return;
+            const initialRotation = object.rotation[property];
+            const start = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+                object.rotation[property] = initialRotation + (targetRotation - initialRotation) * progress;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            animate();
+        }
+
+
+        function openCabinet(cabinetGroup) {
+            if (cabinetGroup.userData.isAnimating) return;
+            cabinetGroup.userData.isAnimating = true;
+
+            const pivotLeftDoor = cabinetGroup.getObjectByName('pivotLeftDoor');
+            const pivotRightDoor = cabinetGroup.getObjectByName('pivotRightDoor');
+
+            if (!pivotLeftDoor || !pivotRightDoor) {
+                console.warn("Cabinet door pivots not found for animation.");
+                cabinetGroup.userData.isAnimating = false;
+                return;
+            }
+
+            if (audioContextStarted) furnitureSynth.triggerAttackRelease("C3", "8n"); // Sound for opening
+            animateRotation(pivotLeftDoor, Math.PI / 2, 500, 'y', null); // Open left door by 90 degrees
+            animateRotation(pivotRightDoor, -Math.PI / 2, 500, 'y', () => { // Open right door by 90 degrees
+                cabinetGroup.userData.isAnimating = false;
+                cabinetGroup.userData.isOpen = true;
+            });
+            showMessage("Cabinet opened!", 750);
+        }
+
+        function closeCabinet(cabinetGroup) {
+            if (cabinetGroup.userData.isAnimating) return;
+            cabinetGroup.userData.isAnimating = true;
+
+            const pivotLeftDoor = cabinetGroup.getObjectByName('pivotLeftDoor');
+            const pivotRightDoor = cabinetGroup.getObjectByName('pivotRightDoor');
+
+            if (!pivotLeftDoor || !pivotRightDoor) {
+                console.warn("Cabinet door pivots not found for animation.");
+                cabinetGroup.userData.isAnimating = false;
+                return;
+            }
+
+            if (audioContextStarted) furnitureSynth.triggerAttackRelease("C2", "8n"); // Sound for closing
+            animateRotation(pivotLeftDoor, 0, 500, 'y', null); // Close left door
+            animateRotation(pivotRightDoor, 0, 500, 'y', () => { // Close right door
+                cabinetGroup.userData.isAnimating = false;
+                cabinetGroup.userData.isOpen = false;
+            });
+            showMessage("Cabinet closed.", 750);
+        }
+
+        function openOven(ovenGroup) {
+            if (ovenGroup.userData.isAnimating) return;
+            ovenGroup.userData.isAnimating = true;
+
+            const ovenDoorPivot = ovenGroup.getObjectByName('ovenDoorPivot');
+            if (!ovenDoorPivot) {
+                console.warn("Oven door pivot not found for animation.");
+                ovenGroup.userData.isAnimating = false;
+                return;
+            }
+
+            if (audioContextStarted) furnitureSynth.triggerAttackRelease("D3", "8n"); // Sound for opening
+            animateRotation(ovenDoorPivot, Math.PI / 2, 500, 'x', () => {
+                ovenGroup.userData.isAnimating = false;
+                ovenGroup.userData.isOpen = true;
+                showMessage("Oven door opened! (No settings available right now)", 750);
+            });
+        }
+
+        function closeOven(ovenGroup) {
+            if (ovenGroup.userData.isAnimating) return;
+            ovenGroup.userData.isAnimating = true;
+
+            const ovenDoorPivot = ovenGroup.getObjectByName('ovenDoorPivot');
+            if (!ovenDoorPivot) {
+                console.warn("Oven door pivot not found for animation.");
+                ovenGroup.userData.isAnimating = false;
+                return;
+            }
+
+            if (audioContextStarted) furnitureSynth.triggerAttackRelease("D2", "8n"); // Sound for closing
+            animateRotation(ovenDoorPivot, 0, 500, 'x', () => {
+                ovenGroup.userData.isAnimating = false;
+                ovenGroup.userData.isOpen = false;
+                showMessage("Oven door closed.", 750);
+            });
+        }
+
+
+        function toggleLampLight(lampGroup) {
+            const lampLight = lampGroup.getObjectByName('lampLight');
+            if (lampLight) {
+                if (audioContextStarted) lampLight.visible ? lampSynth.triggerAttackRelease("C4", "16n") : lampSynth.triggerAttackRelease("G3", "16n"); // Sound for toggle
+                lampLight.visible = !lampLight.visible;
+                showMessage(`Lamp is now ${lampLight.visible ? 'ON' : 'OFF'}`, 1000);
+            }
+        }
+
+        function openComputerModal() {
+            document.getElementById('computer-modal').style.display = 'flex';
+            document.getElementById('computer-output').textContent = ''; // Clear previous output
+            playerState = 'interacting'; // Set player state to interacting
+            if (audioContextStarted) modalSynth.triggerAttackRelease("E5", "16n"); // Sound for opening modal
+            showMessage("Accessing computer...", 1000);
+        }
+
+        function openBookContentModal(title, contentHtml) { // Changed contentUrl to contentHtml
+            document.getElementById('book-title').textContent = title;
+            const bookTextContent = document.getElementById('book-text-content');
+            bookTextContent.innerHTML = contentHtml; // Directly set HTML content
+
+            document.getElementById('book-content-modal').style.display = 'flex';
+            playerState = 'interacting';
+            if (audioContextStarted) modalSynth.triggerAttackRelease("D5", "16n"); // Sound for opening modal
+            showMessage(`Reading: "${title}". Press ESC to close.`, 1500);
+        }
+
+
+        function exitInteraction() {
+            // Close any open modals
+            const computerModal = document.getElementById('computer-modal');
+            const bookModal = document.getElementById('book-content-modal');
+            if (computerModal.style.display === 'flex' || bookModal.style.display === 'flex') {
+                if (audioContextStarted) modalSynth.triggerAttackRelease("C4", "16n"); // Sound for closing modal
+            }
+            computerModal.style.display = 'none';
+            bookModal.style.display = 'none';
+
+
+            // Reset camera to original walking state if not already there
+            if (playerState !== 'walking') {
+                animateCameraToState(playerOriginalPosition, playerOriginalQuaternion, 500, () => {
+                    playerState = 'walking'; // Reset player state after animation
+                    showMessage("Back to exploring!", 750);
+                });
+            }
+        }
+
+        async function runComputerApp(appName) {
+            const outputElement = document.getElementById('computer-output');
+            outputElement.textContent = `Running ${appName}...`;
+
+            let prompt = "";
+            switch (appName) {
+                case 'chatbot':
+                    prompt = "You are a friendly AI assistant named 'Nexus'. Give a very brief, cheerful greeting, mention today's date (Friday, June 6, 2025), and ask how you can assist the user with their virtual house exploration.";
+                    break;
+                case 'weather':
+                    prompt = "Provide a very brief, fictional weather report for 'Lumin City' at 3:00 PM local time. Include temperature (e.g., 25°C), a weather condition (e.g., 'Scattered data clouds'), and a fun, futuristic detail about the forecast (e.g., 'Expect a high chance of virtual rainfall and holographic rainbows by evening.').";
+                    break;
+                case 'news':
+                    prompt = "Generate a very brief, fictional, and uplifting news headline from the future. It should be positive and relate to technology or discovery. (e.g., 'Quantum Leaps in Energy Efficiency Announced!').";
+                    break;
+                case 'game':
+                    prompt = "Give a very short, quirky instruction for a simple text-based adventure game within a virtual house. For example: 'You are a tiny pixel exploring a gigantic kitchen. Type 'EAT COOKIE' to gain energy or 'HIDE' under the fridge.'";
+                    break;
+                case 'notes':
+                    prompt = "Write a very short, generic, and slightly humorous note or reminder for a busy digital citizen in a virtual world. (e.g., 'Remember to defrag your virtual pantry before dinner.').";
+                    break;
+                default:
+                    outputElement.textContent = `App '${appName}' not recognized.`;
+                    return;
+            }
+
+            try {
+                outputElement.textContent = `Running ${appName}...\n(Loading response from Nexus...)`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "" // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    outputElement.textContent = `${appName} output:\n${text}`;
+                } else {
+                    outputElement.textContent = `Error: No valid response from Nexus.`;
+                    console.error("LLM response structure unexpected:", result);
+                }
+            } catch (error) {
+                outputElement.textContent = `Error running ${appName}: ${error.message}`;
+                console.error(`Error with LLM call for ${appName}:`, error);
+            }
+        }
+
+        function animateDrawerSlide(drawerMesh, targetPositionZ, duration, callback) {
+            if (!drawerMesh) return;
+            const initialPositionZ = drawerMesh.position.z;
+            const start = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+                drawerMesh.position.z = initialPositionZ + (targetPositionZ - initialPositionZ) * progress;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            animate();
+        }
+
+        // Helper to create a generated furniture piece (Three.js Group)
+        // Returns the THREE.Group and its calculated bounding box
+        function createGeneratedFurniture(type, color, width, height, depth, x, y, z, rotationY = 0) {
+            let material = new THREE.MeshStandardMaterial({ color: color });
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+            group.rotation.y = rotationY;
+            group.userData.type = type; // Store type for interaction logic
+
+            group.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            switch (type) {
+                case 'couch':
+                    // Base of the couch (more detailed with a subtle bevel)
+                    const couchBaseGeometry = new THREE.BoxGeometry(width, height * 0.3, depth);
+                    const couchBase = new THREE.Mesh(couchBaseGeometry, material);
+                    couchBase.position.y = height * 0.15;
+                    group.add(couchBase);
+
+                    // Backrest with more thickness
+                    const couchBackrest = new THREE.Mesh(new THREE.BoxGeometry(width, height * 0.7, depth * 0.25), material);
+                    couchBackrest.position.set(0, height * 0.55, -depth / 2 + depth * 0.125);
+                    group.add(couchBackrest);
+
+                    // Armrests (slightly more defined)
+                    const armrestWidth = width * 0.15;
+                    const armrestHeight = height * 0.5;
+                    const armrestDepth = depth;
+                    const armrestGeometry = new THREE.BoxGeometry(armrestWidth, armrestHeight, armrestDepth);
+                    const armrest1 = new THREE.Mesh(armrestGeometry, material);
+                    armrest1.position.set(width / 2 - armrestWidth / 2, armrestHeight / 2 + height * 0.15, 0);
+                    group.add(armrest1);
+                    const armrest2 = new THREE.Mesh(armrestGeometry, material);
+                    armrest2.position.set(-width / 2 + armrestWidth / 2, armrestHeight / 2 + height * 0.15, 0);
+                    group.add(armrest2);
+
+                    // Cushions (more plush look)
+                    const cushionMaterial = new THREE.MeshStandardMaterial({ color: color + 0x111111, roughness: 0.7, metalness: 0.1 });
+                    const cushionWidth = width * 0.8;
+                    const cushionHeight = height * 0.25; // Slightly thicker
+                    const cushionDepth = depth * 0.45;
+                    const cushionY = height * 0.3 + cushionHeight / 2;
+
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(cushionWidth / 2 - 0.1, cushionHeight, cushionDepth), cushionMaterial)).position.set(-cushionWidth / 4 + 0.05, cushionY, depth * 0.05);
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(cushionWidth / 2 - 0.1, cushionHeight, cushionDepth), cushionMaterial)).position.set(cushionWidth / 4 - 0.05, cushionY, depth * 0.05);
+
+                    // Couch legs (cylinders for a more modern look)
+                    const legRadius = 0.05;
+                    const legHeight = 0.1;
+                    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.9, roughness: 0.3 });
+                    const legOffsetHorizontal = width / 2 - 0.2;
+                    const legOffsetDepth = depth / 2 - 0.2;
+                    const legYPos = legHeight / 2;
+
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 16), legMaterial)).position.set(legOffsetHorizontal, legYPos, legOffsetDepth);
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 16), legMaterial)).position.set(-legOffsetHorizontal, legYPos, legOffsetDepth);
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 16), legMaterial)).position.set(legOffsetHorizontal, legYPos, -legOffsetDepth);
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 16), legMaterial)).position.set(-legOffsetHorizontal, legYPos, -legOffsetDepth);
+
+                    group.userData.interact = (obj) => {
+                        if (playerState !== 'walking') return;
+                        playerOriginalPosition.copy(camera.position);
+                        playerOriginalQuaternion.copy(camera.quaternion);
+
+                        const targetPos = new THREE.Vector3(0, playerHeight * 0.3, depth * 0.2);
+                        targetPos.applyQuaternion(obj.quaternion);
+                        targetPos.add(obj.position);
+
+                        const targetQuaternion = obj.quaternion.clone();
+
+                        animateCameraToState(targetPos, targetQuaternion, 700);
+
+                        playerState = 'sitting';
+                        showMessage("Resting comfortably on the couch. Press ESC to get up.", 1500);
+                    };
+                    break;
+                case 'table':
+                    const tableMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.1, roughness: 0.6 });
+                    const tabletop = new THREE.Mesh(new THREE.BoxGeometry(width, height / 10, depth), tableMaterial);
+                    tabletop.position.y = height - height / 20;
+                    group.add(tabletop);
+
+                    const legThickness = width / 12;
+                    const tableLegHeight = height * 0.9;
+                    const tableLegGeometry = new THREE.BoxGeometry(legThickness, tableLegHeight, legThickness);
+                    const tableLegOffsetWidth = width / 2 - legThickness * 1.5;
+                    const tableLegOffsetDepth = depth / 2 - legThickness * 1.5;
+                    const tableLegY = tableLegHeight / 2;
+
+                    group.add(new THREE.Mesh(tableLegGeometry, tableMaterial)).position.set(tableLegOffsetWidth, tableLegY, tableLegOffsetDepth);
+                    group.add(new THREE.Mesh(tableLegGeometry, tableMaterial)).position.set(-tableLegOffsetWidth, tableLegY, tableLegOffsetDepth);
+                    group.add(new THREE.Mesh(tableLegGeometry, tableMaterial)).position.set(tableLegOffsetWidth, tableLegY, -tableLegOffsetDepth);
+                    group.add(new THREE.Mesh(tableLegGeometry, tableMaterial)).position.set(-tableLegOffsetWidth, tableLegY, -tableLegOffsetDepth);
+
+                    group.userData.interact = () => showMessage("A sturdy table. Looks like a great place for a meal or a game!", 1500);
+                    break;
+                case 'chair':
+                    const chairMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.05, roughness: 0.6 });
+                    const seat = new THREE.Mesh(new THREE.BoxGeometry(width, height * 0.1, depth), chairMaterial);
+                    seat.position.y = height * 0.4;
+                    group.add(seat);
+
+                    const chairBackrest = new THREE.Mesh(new THREE.BoxGeometry(width, height * 0.6, depth * 0.1), chairMaterial);
+                    chairBackrest.position.set(0, height * 0.7, -depth / 2 + depth * 0.05);
+                    group.add(chairBackrest);
+
+                    const chairLegThickness = width / 10;
+                    const chairLegHeight = height * 0.4;
+                    const chairLegGeometry = new THREE.BoxGeometry(chairLegThickness, chairLegHeight, chairLegThickness);
+                    const chairLegOffsetWidth = width / 2 - chairLegThickness * 0.5;
+                    const chairLegOffsetDepth = depth / 2 - chairLegThickness * 0.5;
+                    const chairLegY = chairLegHeight / 2;
+
+                    group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(chairLegOffsetWidth, chairLegY, chairLegOffsetDepth);
+                    group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(-chairLegOffsetWidth, chairLegY, chairLegOffsetDepth);
+                    group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(chairLegOffsetWidth, chairLegY, -chairLegOffsetDepth);
+                    group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(-chairLegOffsetWidth, chairLegY, -chairLegOffsetDepth);
+
+                    group.userData.interact = () => showMessage("A simple chair. Looks comfortable enough.", 1500);
+                    break;
+                case 'bed':
+                    const bedMaterial = new THREE.MeshStandardMaterial({ color: color, roughness: 0.9 });
+                    const mattress = new THREE.Mesh(new THREE.BoxGeometry(width, height * 0.5, depth), bedMaterial);
+                    mattress.position.y = height * 0.75;
+                    group.add(mattress);
+
+                    const frameBase = new THREE.Mesh(new THREE.BoxGeometry(width + 0.1, height * 0.2, depth + 0.1), bedMaterial);
+                    frameBase.position.y = height * 0.1;
+                    group.add(frameBase);
+
+                    const headboard = new THREE.Mesh(new THREE.BoxGeometry(width, height * 0.7, depth * 0.1), bedMaterial);
+                    headboard.position.set(0, height * 0.9, -depth / 2 - 0.05);
+                    group.add(headboard);
+
+                    // Add simple pillows
+                    const pillowMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.7 });
+                    const pillowWidth = width * 0.4;
+                    const pillowHeight = height * 0.15;
+                    const pillowDepth = depth * 0.3;
+                    const pillowY = height * 0.75 + pillowHeight / 2 + 0.02; // Slightly above mattress
+                    const pillowOffsetZ = depth / 2 - pillowDepth / 2 - 0.1; // Near headboard
+
+                    const pillow1 = new THREE.Mesh(new THREE.BoxGeometry(pillowWidth, pillowHeight, pillowDepth), pillowMaterial);
+                    pillow1.position.set(-width * 0.25, pillowY, pillowOffsetZ);
+                    group.add(pillow1);
+                    const pillow2 = new THREE.Mesh(new THREE.BoxGeometry(pillowWidth, pillowHeight, pillowDepth), pillowMaterial);
+                    pillow2.position.set(width * 0.25, pillowY, pillowOffsetZ);
+                    group.add(pillow2);
+
+                    group.userData.interact = (obj) => {
+                        if (playerState !== 'walking') return;
+                        playerOriginalPosition.copy(camera.position);
+                        playerOriginalQuaternion.copy(camera.quaternion);
+
+                        const targetPos = new THREE.Vector3(0, playerHeight * 0.1, depth * 0.2); // Adjust Y for lying height
+                        targetPos.applyQuaternion(obj.quaternion);
+                        targetPos.add(obj.position);
+
+                        // Rotate camera to simulate lying down
+                        const targetQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0, 'YXZ')); // Rotate X for looking down (lying)
+                        targetQuaternion.multiplyQuaternions(obj.quaternion, targetQuaternion); // Combine with bed's rotation
+
+                        animateCameraToState(targetPos, targetQuaternion, 1000);
+
+                        playerState = 'lying';
+                        showMessage("Laying down on the bed... sweet dreams! Press ESC to get up.", 1500);
+                    };
+                    break;
+                case 'dresser':
+                    const dresserMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.05, roughness: 0.6 });
+                    const dresserBody = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), dresserMaterial);
+                    dresserBody.position.y = height / 2;
+                    group.add(dresserBody);
+
+                    const drawerMaterial = new THREE.MeshStandardMaterial({ color: color - 0x111111, roughness: 0.5 });
+                    const drawerHeight = (height * 0.9) / 3;
+                    group.userData.drawers = [];
+                    group.userData.isAnimating = false;
+                    group.userData.isOpen = false;
+
+                    for (let j = 0; j < 3; j++) {
+                        const drawer = new THREE.Mesh(new THREE.BoxGeometry(width * 0.9, drawerHeight * 0.9, depth * 0.1), drawerMaterial);
+                        drawer.position.set(0, height * 0.8 - (j * drawerHeight * 1.1) - drawerHeight / 2, depth / 2 + 0.05);
+                        drawer.userData.initialZ = depth / 2 + 0.05;
+                        drawer.name = `drawer${j}`;
+                        group.add(drawer);
+                        group.userData.drawers.push(drawer);
+
+                        // Handles for drawers
+                        const handleMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8, roughness: 0.2 });
+                        const handle = new THREE.Mesh(new THREE.BoxGeometry(width * 0.2, 0.05, 0.02), handleMaterial);
+                        handle.position.set(0, drawer.position.y, depth / 2 + 0.1);
+                        group.add(handle);
+                    }
+
+                    group.userData.interact = () => {
+                        if (group.userData.isAnimating) return;
+                        group.userData.isAnimating = true;
+
+                        const targetZOffset = group.userData.isOpen ? 0 : 0.4;
+
+                        if (audioContextStarted) furnitureSynth.triggerAttackRelease(group.userData.isOpen ? "E2" : "E3", "8n"); // Sound for open/close
+
+                        let completedAnimations = 0;
+                        const numDrawers = group.userData.drawers.length;
+
+                        group.userData.drawers.forEach(drawer => {
+                            const targetZ = drawer.userData.initialZ + (group.userData.isOpen ? 0 : targetZOffset);
+                            animateDrawerSlide(drawer, targetZ, 300, () => {
+                                completedAnimations++;
+                                if (completedAnimations === numDrawers) {
+                                    group.userData.isAnimating = false;
+                                    group.userData.isOpen = !group.userData.isOpen;
+                                    showMessage(`Dresser drawers ${group.userData.isOpen ? 'opened' : 'closed'}.`, 750);
+                                }
+                            });
+                        });
+                    };
+                    break;
+                case 'cabinet':
+                    const cabinetMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.05, roughness: 0.6 });
+                    const cabinetBody = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), cabinetMaterial);
+                    cabinetBody.position.y = height / 2;
+                    group.add(cabinetBody);
+
+                    const doorMaterial = new THREE.MeshStandardMaterial({ color: color + 0x111111, roughness: 0.5 });
+                    const doorWidthHalf = (width - 0.05) / 2; // Adjusted for a small gap
+
+                    // Left door (pivot for animation)
+                    const door1 = new THREE.Mesh(new THREE.BoxGeometry(doorWidthHalf, height * 0.9, depth * 0.1), doorMaterial);
+                    door1.position.set(doorWidthHalf / 2, 0, 0); // Position relative to pivot
+                    const pivotLeftDoor = new THREE.Object3D();
+                    pivotLeftDoor.name = 'pivotLeftDoor';
+                    pivotLeftDoor.position.set(-doorWidthHalf / 2, height / 2, depth / 2 + 0.05); // Pivot point at door's local origin relative to cabinet
+                    pivotLeftDoor.add(door1);
+                    group.add(pivotLeftDoor);
+
+                    // Right door (pivot for animation)
+                    const door2 = new THREE.Mesh(new THREE.BoxGeometry(doorWidthHalf, height * 0.9, depth * 0.1), doorMaterial);
+                    door2.position.set(-doorWidthHalf / 2, 0, 0); // Position relative to pivot
+                    const pivotRightDoor = new THREE.Object3D();
+                    pivotRightDoor.name = 'pivotRightDoor';
+                    pivotRightDoor.position.set(doorWidthHalf / 2, height / 2, depth / 2 + 0.05); // Pivot point at door's local origin relative to cabinet
+                    pivotRightDoor.add(door2);
+                    group.add(pivotRightDoor);
+
+                    // Handles for cabinet doors (adjusted positions)
+                    const cabinetHandleMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8, roughness: 0.2 });
+                    const cabinetHandleHeight = 0.15;
+                    const cabinetHandleRadius = 0.03;
+
+                    const handleLeft = new THREE.Mesh(new THREE.CylinderGeometry(cabinetHandleRadius, cabinetHandleRadius, cabinetHandleHeight, 8), cabinetHandleMaterial);
+                    handleLeft.rotation.z = Math.PI / 2;
+                    handleLeft.position.set(-doorWidthHalf + 0.15, height / 2, depth / 2 + 0.1);
+                    group.add(handleLeft);
+
+                    const handleRight = new THREE.Mesh(new THREE.CylinderGeometry(cabinetHandleRadius, cabinetHandleRadius, cabinetHandleHeight, 8), cabinetHandleMaterial);
+                    handleRight.rotation.z = Math.PI / 2;
+                    handleRight.position.set(doorWidthHalf - 0.15, height / 2, depth / 2 + 0.1);
+                    group.add(handleRight);
+
+                    group.userData.isOpen = false;
+                    group.userData.isAnimating = false;
+                    group.userData.interact = () => {
+                        if (!group.userData.isAnimating) {
+                            if (group.userData.isOpen) {
+                                closeCabinet(group);
+                            } else {
+                                openCabinet(group);
+                            }
+                        }
+                    };
+                    break;
+                case 'oven':
+                    const ovenMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.3, roughness: 0.4 });
+                    const ovenBody = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), ovenMaterial);
+                    ovenBody.position.y = height / 2;
+                    group.add(ovenBody);
+
+                    const burnerMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5, roughness: 0.3 });
+                    const burnerRadius = width * 0.15;
+                    const burnerHeight = 0.02;
+                    const burnerOffset = width / 4;
+
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(burnerRadius, burnerRadius, burnerHeight, 32), burnerMaterial)).position.set(burnerOffset, height - burnerHeight / 2, burnerOffset);
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(burnerRadius, burnerRadius, burnerHeight, 32), burnerMaterial)).position.set(-burnerOffset, height - burnerHeight / 2, burnerOffset);
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(burnerRadius, burnerRadius, burnerHeight, 32), burnerMaterial)).position.set(burnerOffset, height - burnerHeight / 2, -burnerOffset);
+                    group.add(new THREE.Mesh(new THREE.CylinderGeometry(burnerRadius, burnerRadius, burnerHeight, 32), burnerMaterial)).position.set(-burnerOffset, height - burnerHeight / 2, -burnerOffset);
+
+                    const ovenDoorMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.1, roughness: 0.7 });
+                    const ovenDoor = new THREE.Mesh(new THREE.BoxGeometry(width * 0.8, height * 0.4, depth * 0.1), ovenDoorMaterial);
+                    ovenDoor.position.set(0, 0, depth / 2 + 0.05); // Position relative to pivot
+                    const ovenDoorPivot = new THREE.Object3D();
+                    ovenDoorPivot.name = 'ovenDoorPivot';
+                    ovenDoorPivot.position.set(0, height * 0.3, 0); // Pivot point at the bottom center of the door
+                    ovenDoorPivot.add(ovenDoor);
+                    group.add(ovenDoorPivot);
+
+                    const ovenHandleMaterial = new THREE.MeshStandardMaterial({ color: 0xAAAAAA, metalness: 0.8, roughness: 0.2 });
+                    const ovenHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, width * 0.7, 16), ovenHandleMaterial);
+                    ovenHandle.rotation.z = Math.PI / 2;
+                    ovenHandle.position.set(0, height * 0.3 + ovenDoor.geometry.parameters.height / 2 + 0.05, depth / 2 + 0.1);
+                    group.add(ovenHandle);
+
+                    group.userData.isOpen = false;
+                    group.userData.isAnimating = false;
+                    group.userData.interact = () => {
+                        if (!group.userData.isAnimating) {
+                            if (group.userData.isOpen) {
+                                closeOven(group);
+                            } else {
+                                openOven(group);
+                            }
+                        }
+                    };
+                    break;
+                case 'computer':
+                    const computerMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.1, roughness: 0.2 });
+                    const monitor = new THREE.Mesh(new THREE.BoxGeometry(width, height * 0.7, depth / 10), computerMaterial);
+                    monitor.position.y = height * 0.15;
+                    group.add(monitor);
+
+                    const monitorStandBase = new THREE.Mesh(new THREE.BoxGeometry(width * 0.3, height * 0.1, depth * 0.3), computerMaterial);
+                    monitorStandBase.position.y = -height * 0.35;
+                    group.add(monitor);
+
+                    const monitorStandArm = new THREE.Mesh(new THREE.BoxGeometry(width * 0.1, height * 0.2, depth * 0.1), computerMaterial);
+                    monitorStandArm.position.y = -height * 0.2;
+                    group.add(monitorStandArm);
+
+                    const keyboard = new THREE.Mesh(new THREE.BoxGeometry(width * 0.8, height / 20, depth * 0.4), computerMaterial);
+                    keyboard.position.set(0, -height * 0.45, depth * 0.3);
+                    group.add(keyboard);
+
+                    // Mouse
+                    const mouseMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.15), computerMaterial);
+                    mouseMesh.position.set(width * 0.4, -height * 0.45 + 0.05, depth * 0.3);
+                    group.add(mouseMesh);
+
+                    group.userData.interact = () => openComputerModal();
+                    break;
+                case 'bookshelf':
+                    const shelfMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.05, roughness: 0.6 });
+                    
+                    // Outer frame of the bookshelf
+                    const frameThickness = 0.08;
+                    const frameMaterial = new THREE.MeshStandardMaterial({ color: color * 0.9, metalness: 0.05, roughness: 0.6 });
+
+                    // Back panel
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(width, height, frameThickness), frameMaterial)).position.set(0, height / 2, -depth / 2 + frameThickness / 2);
+
+                    // Side panels
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(frameThickness, height, depth), frameMaterial)).position.set(-width / 2 + frameThickness / 2, height / 2, 0);
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(frameThickness, height, depth), frameMaterial)).position.set(width / 2 - frameThickness / 2, height / 2, 0);
+
+                    // Top and Bottom panels
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(width, frameThickness, depth), frameMaterial)).position.set(0, height - frameThickness / 2, 0);
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(width, frameThickness, depth), frameMaterial)).position.set(0, frameThickness / 2, 0);
+
+                    // Shelves
+                    const numShelves = 3; // Declared here
+                    const shelfThickness = 0.05; // Declared here
+                    const shelfGap = (height - (frameThickness * 2)) / (numShelves + 1);
+                    for (let i = 0; i < numShelves; i++) {
+                        const shelfY = frameThickness + (i + 1) * shelfGap; // Position based on bottom frame
+                        const shelf = new THREE.Mesh(new THREE.BoxGeometry(width * 0.85, shelfThickness, depth * 0.85), shelfMaterial);
+                        shelf.position.y = shelfY;
+                        shelf.position.z = 0; // Centered within the frame depth
+                        group.add(shelf);
+
+                        // Books (always 3 per shelf: 2 upright, 1 slanted)
+                        const bookMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()), roughness: 0.7 });
+                        const uprightBookWidth = 0.1;
+                        const uprightBookHeight = 0.3;
+                        const uprightBookDepth = depth * 0.7;
+                        const slantedBookWidth = 0.3;
+                        const slantedBookHeight = 0.05;
+                        const slantedBookDepth = depth * 0.7;
+
+                        // Upright book 1
+                        const book1 = new THREE.Mesh(new THREE.BoxGeometry(uprightBookWidth, uprightBookHeight, uprightBookDepth), bookMaterial);
+                        book1.position.set(-width * 0.3, shelfY + uprightBookHeight / 2 + shelfThickness / 2, 0);
+                        book1.userData.isBook = true;
+                        book1.userData.bookTitle = `Book ${i * 3 + 1}: The Ancient Lore`;
+                        book1.userData.bookContentHtml = `<!DOCTYPE html><html lang="en"><head><title>Book ${i * 3 + 1}: The Ancient Lore</title><style>body{font-family:Georgia,serif;margin:20px;line-height:1.6;}h1{color:#333;}</style></head><body><h1>Book ${i * 3 + 1}: The Ancient Lore</h1><p>A journey through forgotten tales and ancient wisdom, exploring the mysteries of a bygone era. Discover the secrets held within the whispering winds.</p><p>Chapter 1: Echoes of the Past...</p></body></html>`;
+                        group.add(book1);
+
+                        // Upright book 2
+                        const book2 = new THREE.Mesh(new THREE.BoxGeometry(uprightBookWidth, uprightBookHeight * 0.9, uprightBookDepth * 0.9), new THREE.MeshStandardMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()), roughness: 0.7 }));
+                        book2.position.set(-width * 0.1, shelfY + uprightBookHeight * 0.9 / 2 + shelfThickness / 2, 0.05); // Slightly forward
+                        book2.userData.isBook = true;
+                        book2.userData.bookTitle = `Book ${i * 3 + 2}: Cosmic Voyager`;
+                        book2.userData.bookContentHtml = `<!DOCTYPE html><html lang="en"><head><title>Book ${i * 3 + 2}: Cosmic Voyager</title><style>body{font-family:Georgia,serif;margin:20px;line-height:1.6;}h1{color:#333;}</style></head><body><h1>Book ${i * 3 + 2}: Cosmic Voyager</h1><p>Embark on an interstellar adventure beyond the known galaxies. Witness nebulae bloom and stars collide, discovering civilizations lost to time.</p><p>Mission Log: Entry Alpha...</p></body></html>`;
+                        group.add(book2);
+
+                        // Slanted book
+                        const book3 = new THREE.Mesh(new THREE.BoxGeometry(slantedBookWidth, slantedBookHeight, slantedBookDepth), new THREE.MeshStandardMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()), roughness: 0.7 }));
+                        book3.position.set(width * 0.2, shelfY + slantedBookHeight / 2 + shelfThickness / 2, 0);
+                        book3.rotation.x = Math.PI / 8; // Slant
+                        book3.userData.isBook = true;
+                        book3.userData.bookTitle = `Book ${i * 3 + 3}: The Digital Divide`;
+                        book3.userData.bookContentHtml = `<!DOCTYPE html><html lang="en"><head><title>Book ${i * 3 + 3}: The Digital Divide</title><style>body{font-family:Georgia,serif;margin:20px;line-height:1.6;}h1{color:#333;}</style></head><body><h1>Book ${i * 3 + 3}: The Digital Divide</h1><p>A compelling narrative on the impact of technology on society, exploring the widening gap between the connected and the disconnected. A must-read for our times.</p><p>Chapter 1: The New Frontier...</p></body></html>`;
+                        group.add(book3);
+                    }
+
+                    // Bookshelf doors (pivot for animation)
+                    const bookshelfDoorMaterial = new THREE.MeshStandardMaterial({ color: color + 0x111111, roughness: 0.5 });
+                    const bookshelfDoorWidthHalf = (width - frameThickness * 2) / 2; // Adjusted for frame
+
+                    const bookshelfDoor1 = new THREE.Mesh(new THREE.BoxGeometry(bookshelfDoorWidthHalf, height * 0.9, depth * 0.05), bookshelfDoorMaterial);
+                    bookshelfDoor1.position.set(bookshelfDoorWidthHalf / 2, 0, 0); // Position relative to pivot
+                    const pivotBookshelfLeftDoor = new THREE.Object3D();
+                    pivotBookshelfLeftDoor.name = 'pivotBookshelfLeftDoor';
+                    pivotBookshelfLeftDoor.position.set(-bookshelfDoorWidthHalf / 2 - frameThickness/2, height / 2, depth / 2 + 0.05); // Pivot point
+                    pivotBookshelfLeftDoor.add(bookshelfDoor1);
+                    group.add(pivotBookshelfLeftDoor);
+
+                    const bookshelfDoor2 = new THREE.Mesh(new THREE.BoxGeometry(bookshelfDoorWidthHalf, height * 0.9, depth * 0.05), bookshelfDoorMaterial);
+                    bookshelfDoor2.position.set(-bookshelfDoorWidthHalf / 2, 0, 0); // Position relative to pivot
+                    const pivotBookshelfRightDoor = new THREE.Object3D();
+                    pivotBookshelfRightDoor.name = 'pivotBookshelfRightDoor';
+                    pivotBookshelfRightDoor.position.set(bookshelfDoorWidthHalf / 2 + frameThickness/2, height / 2, depth / 2 + 0.05); // Pivot point
+                    pivotBookshelfRightDoor.add(bookshelfDoor2);
+                    group.add(pivotBookshelfRightDoor);
+
+                    group.userData.isOpen = false;
+                    group.userData.isAnimating = false;
+                    group.userData.interact = () => {
+                        if (!group.userData.isAnimating) {
+                            if (group.userData.isOpen) {
+                                if (audioContextStarted) furnitureSynth.triggerAttackRelease("G2", "8n"); // Sound for closing
+                                animateRotation(pivotBookshelfLeftDoor, 0, 500, 'y', null);
+                                animateRotation(pivotBookshelfRightDoor, 0, 500, 'y', () => {
+                                    group.userData.isAnimating = false;
+                                    group.userData.isOpen = false;
+                                    showMessage("Bookshelf closed.", 750);
+                                });
+                            } else {
+                                if (audioContextStarted) furnitureSynth.triggerAttackRelease("G3", "8n"); // Sound for opening
+                                animateRotation(pivotBookshelfLeftDoor, Math.PI / 2, 500, 'y', null);
+                                animateRotation(pivotBookshelfRightDoor, -Math.PI / 2, 500, 'y', () => {
+                                    group.userData.isAnimating = false;
+                                    group.userData.isOpen = true;
+                                    showMessage("Bookshelf opened! Choose a book to read.", 750);
+                                });
+                            }
+                        }
+                    };
+                    break;
+                case 'lamp':
+                    const lampMaterial = new THREE.MeshStandardMaterial({ color: color, metalness: 0.2, roughness: 0.4 });
+                    const baseRadius = width / 4;
+                    const baseHeight = 0.1;
+                    const poleRadius = 0.02;
+                    const poleHeight = height * 0.8;
+                    const shadeRadiusTop = width / 3;
+                    const shadeRadiusBottom = width / 2;
+                    const shadeHeight = height * 0.2;
+
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(baseRadius, baseRadius, baseHeight, 32), lampMaterial);
+                    base.position.y = baseHeight / 2;
+                    group.add(base);
+
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius, poleRadius, poleHeight, 16), lampMaterial);
+                    pole.position.y = baseHeight + poleHeight / 2;
+                    group.add(pole);
+
+                    const shade = new THREE.Mesh(new THREE.CylinderGeometry(shadeRadiusTop, shadeRadiusBottom, shadeHeight, 32), lampMaterial);
+                    shade.position.y = baseHeight + poleHeight + shadeHeight / 2;
+                    group.add(shade);
+
+                    // Emit light from the lamp
+                    const lampLight = new THREE.PointLight(0xFFFFFF, 0.5, 3); // Brightness, distance
+                    lampLight.position.set(0, baseHeight + poleHeight + shadeHeight / 2, 0);
+                    lampLight.name = 'lampLight'; // Name for easy access
+                    lampLight.visible = true; // Initial state
+                    group.add(lampLight);
+
+                    group.userData.interact = () => toggleLampLight(group);
+                    break;
+                default:
+                    const defaultGeometry = new THREE.BoxGeometry(width, height, depth);
+                    const defaultMesh = new THREE.Mesh(defaultGeometry, material);
+                    defaultMesh.position.y = height / 2; // Adjust position for group
+                    group.add(defaultMesh);
+            }
+
+            group.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            // Calculate the bounding box of the entire group
+            const bbox = new THREE.Box3().setFromObject(group);
+            return { group: group, bbox: bbox };
+        }
+
+        // New function to create a picture frame
+        function createPictureFrame(initialTexture, x, y, z, width, height, frameThickness, rotationY) {
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+            group.rotation.y = rotationY;
+            group.userData.type = 'pictureFrame';
+            group.userData.pictureTextures = pictureTextures; // Store the array of textures
+            group.userData.currentTextureIndex = pictureTextures.indexOf(initialTexture); // Store initial index
+
+            // Frame geometry and material
+            const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x5a2d0c, metalness: 0.1, roughness: 0.6 }); // Dark brown for frame
+
+            // Main frame (larger outer box)
+            const frameWidth = width + frameThickness * 2;
+            const frameHeight = height + frameThickness * 2;
+            const frameDepth = frameThickness; // How deep the frame is
+
+            const frameBody = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, frameHeight, frameDepth), frameMaterial);
+            frameBody.position.z = -frameDepth / 2; // Position behind the picture plane
+            frameBody.castShadow = true;
+            frameBody.receiveShadow = true;
+            group.add(frameBody);
+
+            // Picture plane itself
+            const pictureMaterial = new THREE.MeshBasicMaterial({ map: initialTexture, side: THREE.FrontSide });
+            const pictureGeometry = new THREE.PlaneGeometry(width, height);
+            const pictureMesh = new THREE.Mesh(pictureGeometry, pictureMaterial);
+            pictureMesh.position.z = 0; // In front of the frame body
+            pictureMesh.name = 'pictureMesh'; // Give it a name for raycasting identification
+            pictureMesh.userData.isPicture = true; // Flag for raycasting
+            group.add(pictureMesh);
+
+            group.userData.interact = () => {
+                if (audioContextStarted) pictureSynth.triggerAttackRelease("C5", "16n"); // Sound for clicking picture
+                const currentTextureIndex = group.userData.currentTextureIndex;
+                const nextTextureIndex = (currentTextureIndex + 1) % group.userData.pictureTextures.length;
+                const nextTexture = group.userData.pictureTextures[nextTextureIndex];
+
+                pictureMesh.material.map = nextTexture;
+                pictureMesh.material.needsUpdate = true; // Important to update the texture
+                group.userData.currentTextureIndex = nextTextureIndex;
+
+                const imageNames = ['city', 'swan', 'ocean']; // Array of image names in corresponding order
+                const currentImageName = imageNames[nextTextureIndex];
+                showMessage(`Changed picture to: ${currentImageName.charAt(0).toUpperCase() + currentImageName.slice(1)}`, 1000);
+            };
+
+            // Return the group and its bounding box for physics collision
+            const bbox = new THREE.Box3().setFromObject(group);
+            return { group: group, bbox: bbox };
+        }
+
+
+        // Function to handle mouse clicks for interaction
+        function onDocumentMouseDown(event) {
+            // Start audio context on first user interaction if not already started
+            if (!audioContextStarted) {
+                Tone.start();
+                audioContextStarted = true;
+            }
+
+            // Only interact if player is in walking state or an interaction modal is open (to allow closing)
+            if (playerState === 'sitting' || playerState === 'lying') {
+                showMessage("Press ESC to get up first.", 1000);
+                return;
+            }
+
+            // Calculate mouse position in normalized device coordinates (-1 to +1)
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update the raycaster with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+
+            // Prioritize clicking on specific books if bookshelf doors are open
+            let clickedBook = null;
+            const books = furnitureMeshes.flatMap(f => f.userData.type === 'bookshelf' && f.userData.isOpen ? f.children.filter(c => c.userData.isBook) : []);
+            if (books.length > 0) {
+                 const bookIntersects = raycaster.intersectObjects(books, true);
+                 if (bookIntersects.length > 0 && bookIntersects[0].object.userData.isBook) {
+                     clickedBook = bookIntersects[0].object;
+                 }
+            }
+
+            // Check for picture frame clicks
+            let clickedPicture = null;
+            const pictures = furnitureMeshes.filter(f => f.userData.type === 'pictureFrame').flatMap(f => f.children.filter(c => c.userData.isPicture));
+            if (pictures.length > 0) {
+                const pictureIntersects = raycaster.intersectObjects(pictures, true);
+                if (pictureIntersects.length > 0 && pictureIntersects[0].object.userData.isPicture) {
+                    clickedPicture = pictureIntersects[0].object;
+                }
+            }
+
+
+            if (clickedBook) {
+                openBookContentModal(clickedBook.userData.bookTitle, clickedBook.userData.bookContentHtml); // Changed to pass HTML directly
+            } else if (clickedPicture) {
+                // Trigger interaction for the picture frame's group
+                // The actual pictureMesh is a child, so we need to find its parent group
+                let pictureFrameGroup = clickedPicture.parent;
+                if (pictureFrameGroup && pictureFrameGroup.userData.type === 'pictureFrame' && pictureFrameGroup.userData.interact) {
+                    pictureFrameGroup.userData.interact();
+                } else {
+                     console.log("Clicked picture but could not find its interactive group.");
+                }
+            }
+            else {
+                // ... existing furniture interaction logic ...
+                const intersects = raycaster.intersectObjects(furnitureMeshes, true);
+                if (intersects.length > 0) {
+                    let clickedObject = intersects[0].object;
+                    while (clickedObject && !clickedObject.userData.interact && clickedObject.parent !== scene) {
+                        clickedObject = clickedObject.parent;
+                    }
+
+                    if (clickedObject && clickedObject.userData.interact) {
+                        clickedObject.userData.interact(clickedObject);
+                    } else if (clickedObject) {
+                        console.log(`Clicked on non-interactive object: ${clickedObject.name || clickedObject.type || 'Unnamed Mesh'}`);
+                        showMessage("Nothing happens here.", 1000);
+                    }
+                }
+            }
+        }
+
+
+        // Function to place generated furniture in a room
+        function placeFurnitureInRoom(roomName, roomCenterX, roomCenterZ, roomWidth, roomDepth) {
+            // Furniture layouts with precise positions against walls or at specific points
+            const furnitureLayouts = {
+                'Living Room': [
+                    // Couch against the back wall, facing the center, moved slightly further from doorway
+                    { type: 'couch', color: 0x8B4513, width: 2.5, height: 0.8, depth: 1, xOffset: 0, zOffset: roomDepth / 2 - 2.0 + furniturePadding, rotationY: Math.PI }, // Adjusted zOffset
+                    // Coffee table in front of the couch
+                    { type: 'table', color: 0x654321, width: 1.5, height: 0.5, depth: 0.8, xOffset: 0, zOffset: roomDepth / 2 - 2.0 - 0.8 - furniturePadding, rotationY: 0 },
+                    // Two chairs by the front window
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.5, zOffset: -roomDepth / 2 + 0.6 + furniturePadding, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.5, zOffset: -roomDepth / 2 + 0.6 + furniturePadding, rotationY: 0 },
+                    // Cabinet against left wall
+                    { type: 'cabinet', color: 0x778899, width: 1.5, height: 1.0, depth: 0.5, xOffset: -roomWidth / 2 + 0.75 + furniturePadding, zOffset: 0, rotationY: Math.PI / 2 },
+                    // Dresser against right wall
+                    { type: 'dresser', color: 0xdeb887, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.6 - furniturePadding, zOffset: 0, rotationY: -Math.PI / 2 },
+                    // Bookshelf by the back wall
+                    { type: 'bookshelf', color: 0x8B4513, width: 1.0, height: 1.8, depth: 0.4, xOffset: 3.5, zOffset: roomDepth / 2 - 0.2 - furniturePadding, rotationY: Math.PI },
+                    // Floor lamp in a corner
+                    { type: 'lamp', color: 0xAAAAAA, width: 0.5, height: 2.0, depth: 0.5, xOffset: -roomWidth / 2 + 0.5 + furniturePadding, zOffset: roomDepth / 2 - 0.5 - furniturePadding, rotationY: 0 },
+                    // Picture frame on the back wall
+                    { type: 'pictureFrame', initialTexture: 'cityTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: roomDepth / 2 - wallThickness / 2 - 0.01, rotationY: Math.PI } // Against back wall
+                ],
+                'Kitchen': [
+                    // Oven against back wall
+                    { type: 'oven', color: 0x333333, width: 0.8, height: 1.2, depth: 0.7, xOffset: -3, zOffset: roomDepth / 2 - 0.35 - furniturePadding, rotationY: Math.PI },
+                    // Cabinets along back wall
+                    { type: 'cabinet', color: 0x8B4513, width: 2.0, height: 1.0, depth: 0.5, xOffset: 0, zOffset: roomDepth / 2 - 0.25 - furniturePadding, rotationY: Math.PI },
+                    { type: 'cabinet', color: 0x8B4513, width: 2.0, height: 1.0, depth: 0.5, xOffset: 3, zOffset: roomDepth / 2 - 0.25 - furniturePadding, rotationY: Math.PI },
+                    // Dining table in the center of the kitchen
+                    { type: 'table', color: 0x654321, width: 1.8, height: 0.9, depth: 1.0, xOffset: 0, zOffset: -2, rotationY: Math.PI / 4 },
+                    // Two chairs around the table
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.5, zOffset: -2.5, rotationY: Math.PI / 4 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.5, zOffset: -1.5, rotationY: Math.PI / 4 },
+                    // Another small cabinet for extra storage
+                    { type: 'cabinet', color: 0x8B4513, width: 1.0, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.5 - furniturePadding, zOffset: 3.5, rotationY: -Math.PI / 2 },
+                    // Picture frame on the right wall
+                    { type: 'pictureFrame', initialTexture: 'swanTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: roomWidth / 2 - wallThickness / 2 - 0.01, yOffset: 0.5, zOffset: 0, rotationY: -Math.PI / 2 } // Against right wall
+                ],
+                'Dining Room': [
+                    // Large dining table in the center
+                    { type: 'table', color: 0x654321, width: 2.5, height: 0.8, depth: 1.5, xOffset: 0, zOffset: 0, rotationY: 0 },
+                    // Chairs around the dining table
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.2, zOffset: 1, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.2, zOffset: 1, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.2, zOffset: -1, rotationY: Math.PI },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.2, zOffset: -1, rotationY: Math.PI },
+                    // Side cabinet
+                    { type: 'cabinet', color: 0x8B4513, width: 1.5, height: 1.5, depth: 0.5, xOffset: 4, zOffset: 0, rotationY: -Math.PI / 2 },
+                    // Bookshelf in dining room
+                    { type: 'bookshelf', color: 0x654321, width: 1.2, height: 1.5, depth: 0.4, xOffset: -4, zOffset: 2, rotationY: Math.PI / 2 },
+                    // Picture frame on the back wall
+                    { type: 'pictureFrame', initialTexture: 'oceanTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: roomDepth / 2 - wallThickness / 2 - 0.01, rotationY: Math.PI } // Against back wall
+                ],
+                'Bedroom 1': [
+                    // Bed against the back wall
+                    { type: 'bed', color: 0x8B0000, width: 2.0, height: 0.6, depth: 2.5, xOffset: 0, zOffset: roomDepth / 2 - 1.25 - furniturePadding, rotationY: Math.PI },
+                    // Dresser
+                    { type: 'dresser', color: 0xCD853F, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.6 - furniturePadding, zOffset: -2, rotationY: -Math.PI / 2 },
+                    // Nightstand left of bed
+                    { type: 'table', color: 0x654321, width: 0.7, height: 0.7, depth: 0.7, xOffset: -1.2, zOffset: roomDepth / 2 - 0.75 - furniturePadding, rotationY: Math.PI },
+                    // Nightstand right of bed
+                    { type: 'table', color: 0x654321, width: 0.7, height: 0.7, depth: 0.7, xOffset: 1.2, zOffset: roomDepth / 2 - 0.75 - furniturePadding, rotationY: Math.PI },
+                    // Chair with computer in a corner
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -roomWidth / 2 + 1 + furniturePadding, zOffset: -roomDepth / 2 + 1 + furniturePadding, rotationY: Math.PI / 4 },
+                    { type: 'computer', color: 0x333333, width: 0.8, height: 0.6, depth: 0.5, xOffset: -roomWidth / 2 + 1.5 + furniturePadding, zOffset: -roomDepth / 2 + 1.5 + furniturePadding, rotationY: Math.PI / 4 },
+                    // Bookshelf
+                    { type: 'bookshelf', color: 0xCD853F, width: 1.0, height: 1.5, depth: 0.4, xOffset: roomWidth / 2 - 0.5 - furniturePadding, zOffset: 2, rotationY: -Math.PI / 2 },
+                    // Floor lamp
+                    { type: 'lamp', color: 0xAAAAAA, width: 0.4, height: 1.8, depth: 0.4, xOffset: -3.5, zOffset: -3.5, rotationY: Math.PI / 2 },
+                    // Picture frame on the front wall
+                    { type: 'pictureFrame', initialTexture: 'cityTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: -roomWidth / 2 + wallThickness / 2 + 0.01, yOffset: 0.5, zOffset: 0, rotationY: Math.PI / 2 } // Against left wall
+                ],
+                'Bedroom 2': [
+                    // Bed against the left wall
+                    { type: 'bed', color: 0x4682B4, width: 2.0, height: 0.6, depth: 2.5, xOffset: -roomWidth / 2 + 1.25 + furniturePadding, zOffset: 0, rotationY: Math.PI / 2 },
+                    // Dresser
+                    { type: 'dresser', color: 0xdeb887, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.6 - furniturePadding, zOffset: 0, rotationY: -Math.PI / 2 },
+                    // Computer desk against back wall
+                    { type: 'table', color: 0x654321, width: 1.5, height: 0.7, depth: 0.8, xOffset: 0, zOffset: roomDepth / 2 - 0.4 - furniturePadding, rotationY: Math.PI },
+                    { type: 'computer', color: 0x333333, width: 0.8, height: 0.6, depth: 0.5, xOffset: 0, zOffset: roomDepth / 2 - 0.6 - furniturePadding, rotationY: Math.PI },
+                    // Chair for computer desk
+                    { type: 'chair', color: 0x708090, width: 0.6, height: 0.9, depth: 0.6, xOffset: 0, zOffset: roomDepth / 2 - 1.5 - furniturePadding, rotationY: 0 },
+                    // Cabinet
+                    { type: 'cabinet', color: 0x778899, width: 1.0, height: 1.5, depth: 0.5, xOffset: -2, zOffset: -roomDepth / 2 + 0.5 + furniturePadding, rotationY: 0 },
+                    // Bookshelf
+                    { type: 'bookshelf', color: 0x4682B4, width: 1.0, height: 1.8, depth: 0.4, xOffset: -roomWidth / 2 + 0.5 + furniturePadding, zOffset: -2.5, rotationY: Math.PI / 2 },
+                    // Picture frame on the front wall
+                    { type: 'pictureFrame', initialTexture: 'swanTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: -roomDepth / 2 + wallThickness / 2 + 0.01, rotationY: 0 } // Against front wall
+                ]
+            };
+
+            const roomLayout = furnitureLayouts[roomName] || [];
+
+            roomLayout.forEach(config => {
+                const absoluteX = roomCenterX + config.xOffset;
+                const absoluteZ = roomCenterZ + config.zOffset;
+                // Y offset for furniture pieces
+                const absoluteY = -playerHeight / 2 + (config.height ? config.height / 2 : 0) + (config.yOffset || 0);
+
+                if (config.type === 'pictureFrame') {
+                    // Pass the actual texture object, not its string name
+                    const textureToUse = window[config.initialTexture]; // Access the globally loaded texture
+                    if (textureToUse) {
+                        const pictureFrameResult = createPictureFrame(
+                            textureToUse,
+                            absoluteX,
+                            playerHeight / 2 + config.yOffset, // Y position for frames, usually higher
+                            absoluteZ,
+                            config.width, config.height, config.frameThickness,
+                            config.rotationY // Use config.rotationY
+                        );
+                        scene.add(pictureFrameResult.group);
+                        furnitureMeshes.push(pictureFrameResult.group);
+                        // No physics body for picture frames (they are static and on walls)
+                    } else {
+                        console.warn(`Picture texture "${config.initialTexture}" not loaded.`);
+                    }
+                } else {
+                    const furnitureResult = createGeneratedFurniture(
+                        config.type, config.color,
+                        config.width, config.height, config.depth,
+                        absoluteX, -playerHeight / 2, absoluteZ, // Y position adjusted for floor
+                        config.rotationY // Use config.rotationY
+                    );
+                    const furnitureGroup = furnitureResult.group;
+                    const furnitureBbox = furnitureResult.bbox; // Get the computed bbox
+
+                    // Create CANNON.Body for the furniture
+                    const size = new THREE.Vector3();
+                    furnitureBbox.getSize(size); // Get actual dimensions of the group
+
+                    const cannonShape = new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2));
+                    const cannonBody = new CANNON.Body({
+                        mass: 5,
+                        shape: cannonShape,
+                        linearDamping: 0.2, // Reduced to allow pushing
+                        angularDamping: 1, // Keep stable rotation
+                        fixedRotation: true, // Prevent rotation on non-Y axes
+                        material: furnitureMaterial // Assign furniture material
+                    });
+                    // Set the Cannon.js body's position to its center, accounting for the Three.js group's base position
+                    cannonBody.position.set(
+                        furnitureGroup.position.x,
+                        furnitureGroup.position.y + size.y / 2, // Adjusted to physics body center
+                        furnitureGroup.position.z
+                    );
+                    cannonBody.quaternion.copy(furnitureGroup.quaternion); // Initial rotation
+                    world.addBody(cannonBody);
+
+                    furnitureGroup.userData.physicsBody = cannonBody; // Link physics body to Three.js group
+
+                    let collisionDetected = false;
+                    // Check against walls (using Three.js bounding box for initial check)
+                    for (const wall of wallMeshes) {
+                        const wallBoundingBox = new THREE.Box3().setFromObject(wall);
+                        if (furnitureBbox.intersectsBox(wallBoundingBox)) {
+                            collisionDetected = true;
+                            break;
+                        }
+                    }
+
+                    // If no collision with walls, check with previously placed furniture
+                    if (!collisionDetected) {
+                        for (const existingFurniture of furnitureMeshes) {
+                            const existingFurnitureBbox = new THREE.Box3().setFromObject(existingFurniture);
+                            if (furnitureBbox.intersectsBox(existingFurnitureBbox)) {
+                                collisionDetected = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!collisionDetected) {
+                        scene.add(furnitureGroup);
+                        furnitureMeshes.push(furnitureGroup);
+                    } else {
+                        // If initial placement causes collision, remove the Cannon body and log a warning
+                        world.removeBody(cannonBody);
+                        console.warn(`Initial placement of ${config.type} in ${roomName} caused a collision. Skipping.`);
+                    }
+                }
+            });
+        }
+
+        function addFurniture() {
+            // For picture frames, I'm now directly using the texture variables (cityTexture, swanTexture, oceanTexture)
+            // that are loaded at the global scope, instead of string names.
+            placeFurnitureInRoom('Living Room', 0, 0, roomDim, roomDim);
+            placeFurnitureInRoom('Kitchen', roomDim + wallThickness, 0, roomDim, roomDim);
+            placeFurnitureInRoom('Dining Room', 0, roomDim + wallThickness, roomDim, roomDim);
+            placeFurnitureInRoom('Bedroom 1', -(roomDim + wallThickness), roomDim + wallThickness, roomDim, roomDim);
+            placeFurnitureInRoom('Bedroom 2', roomDim + wallThickness, roomDim + wallThickness, roomDim, roomDim);
+        }
+
+        function togglePushFeature() {
+            canPushFurniture = !canPushFurniture;
+            const button = document.getElementById('togglePush');
+            button.textContent = `Toggle Push Furniture (${canPushFurniture ? 'ON' : 'OFF'})`;
+            button.style.backgroundColor = canPushFurniture ? '#4CAF50' : '#f44336'; // Green for ON, Red for OFF
+            showMessage(`Push furniture is now ${canPushFurniture ? 'ON' : 'OFF'}`, 1500);
+            if (audioContextStarted) pushSynth.triggerAttackRelease("16n", 0.5); // Sound for toggling push
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onKeyDown(event) {
+            // Start audio context on first user interaction if not already started
+            if (!audioContextStarted) {
+                Tone.start();
+                audioContextStarted = true;
+            }
+
+            // If player is interacting (e.g., in computer modal, sitting, or lying), only allow ESC
+            if (playerState !== 'walking' && event.code !== 'Escape') {
+                return;
+            }
+
+            switch (event.code) {
+                case 'ArrowUp': case 'KeyW':
+                    if (!keys.forward) { keys.forward = true; } // Don't trigger footstep sound on every keydown if already moving
+                    break;
+                case 'ArrowDown': case 'KeyS':
+                    if (!keys.backward) { keys.backward = true; }
+                    break;
+                case 'ArrowLeft': case 'KeyA':
+                    if (!keys.lookLeft) { keys.lookLeft = true; }
+                    break;
+                case 'ArrowRight': case 'KeyD':
+                    if (!keys.lookRight) { keys.lookRight = true; }
+                    break;
+                case 'Escape': exitInteraction(); break; // Handle ESC key
+            }
+        }
+
+        function onKeyUp(event) {
+            switch (event.code) {
+                case 'ArrowUp': case 'KeyW': keys.forward = false; break;
+                case 'ArrowDown': case 'KeyS': keys.backward = false; break;
+                case 'ArrowLeft': case 'KeyA': keys.lookLeft = false; break;
+                case 'ArrowRight': case 'KeyD': keys.lookRight = false; break;
+            }
+        }
+
+        // Animation loop
+        let lastTime = 0;
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+
+            // Calculate delta time for consistent physics simulation
+            const dt = (currentTime - lastTime) / 1000 || 0;
+            lastTime = currentTime;
+
+            // Update the animation mixer
+            if (mixer) {
+                mixer.update(clock.getDelta());
+            }
+
+            // Store current camera position for collision rollback
+            const previousPosition = camera.position.clone();
+
+            // Only allow movement if in 'walking' state
+            if (playerState === 'walking') {
+                // Handle camera rotation
+                if (keys.lookLeft) { camera.rotation.y += rotationSpeed; }
+                if (keys.lookRight) { camera.rotation.y -= rotationSpeed; }
+
+                // Calculate player's movement vector
+                let moveVector = new THREE.Vector3(0, 0, 0);
+                const cameraDirection = new THREE.Vector3();
+                camera.getWorldDirection(cameraDirection);
+
+                cameraDirection.y = 0; // Keep movement horizontal
+                cameraDirection.normalize();
+
+                if (keys.forward) { moveVector.add(cameraDirection); }
+                if (keys.backward) { moveVector.sub(cameraDirection); }
+
+                // Apply movement (temporarily for collision check)
+                camera.position.add(moveVector.multiplyScalar(playerSpeed));
+
+                // Update player bounding box around the new potential camera position
+                playerBoundingBox.setFromCenterAndSize(
+                    new THREE.Vector3(camera.position.x, camera.position.y - playerHeight / 2, camera.position.z),
+                    new THREE.Vector3(playerRadius * 2, playerHeight, playerRadius * 2)
+                );
+
+                let collisionDetected = false;
+                let furnitureCollision = false; // Flag to indicate furniture collision
+                let collidedFurnitureBody = null; // Store the body of collided furniture
+
+                // Check collision with walls first
+                for (const wall of wallMeshes) {
+                    const wallBoundingBox = new THREE.Box3().setFromObject(wall);
+                    if (playerBoundingBox.intersectsBox(wallBoundingBox)) {
+                        collisionDetected = true;
+                        break; // Stop checking if wall collision
+                    }
+                }
+
+                // If no wall collision, check with furniture
+                if (!collisionDetected) {
+                    for (const furniture of furnitureMeshes) {
+                        // Picture frames don't have physics bodies, skip them here
+                        if (furniture.userData.type === 'pictureFrame') continue;
+
+                        const furnitureBody = furniture.userData.physicsBody;
+                        if (furnitureBody) {
+                            // Calculate a bounding box from the Cannon.js body's position and shape
+                            const halfExtents = furnitureBody.shapes[0].halfExtents;
+                            const furnitureBoundingBox = new THREE.Box3().setFromCenterAndSize(
+                                new THREE.Vector3(furnitureBody.position.x, furnitureBody.position.y, furnitureBody.position.z),
+                                new THREE.Vector3(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2)
+                            );
+
+                            if (playerBoundingBox.intersectsBox(furnitureBoundingBox)) {
+                                collisionDetected = true;
+                                furnitureCollision = true;
+                                collidedFurnitureBody = furnitureBody;
+                                break; // Stop checking if furniture collision
+                            }
+                        }
+                    }
+                }
+
+                if (collisionDetected) {
+                    if (furnitureCollision && collidedFurnitureBody && canPushFurniture) { // Only push if setting is ON
+                        // Calculate the direction of player's push
+                        const pushDirection = new THREE.Vector3();
+                        camera.getWorldDirection(pushDirection); // Direction camera is facing
+                        pushDirection.y = 0; // Only push horizontally
+                        pushDirection.normalize();
+
+                        // Apply an impulse to the furniture body
+                        const pushForceMagnitude = playerSpeed * 750; // Adjusted push strength
+                        const impulseVector = new CANNON.Vec3(
+                            pushDirection.x * pushForceMagnitude,
+                            0, // No vertical push from player movement
+                            pushDirection.z * pushForceMagnitude
+                        );
+                        
+                        // Apply impulse at the base of the furniture body to prevent floating
+                        const halfExtents = collidedFurnitureBody.shapes[0].halfExtents;
+                        const impulsePoint = new CANNON.Vec3(
+                            collidedFurnitureBody.position.x,
+                            collidedFurnitureBody.position.y - halfExtents.y + 0.1, // Small offset above base
+                            collidedFurnitureBody.position.z
+                        );
+                        collidedFurnitureBody.applyImpulse(impulseVector, impulsePoint);
+
+                        // Revert player position to prevent passing through furniture, physics will move furniture away
+                        camera.position.copy(previousPosition);
+                        if (audioContextStarted) pushSynth.triggerAttackRelease("16n", 0.5); // Sound for pushing
+                        showMessage("Push!", 500); // Short message for pushing
+                    } else { // Wall collision or furniture collision with pushing OFF
+                        camera.position.copy(previousPosition);
+                        showMessage("Bonk! Can't go through walls!", 1000);
+                    }
+                }
+
+                // Footstep sound control
+                const isMoving = keys.forward || keys.backward || keys.lookLeft || keys.lookRight; // Consider all movement keys
+
+                if (isMoving && !footstepInterval) {
+                    // Start playing footstep sounds
+                    footstepInterval = setInterval(() => {
+                        playFootstepSound();
+                    }, footstepIntervalTime);
+                } else if (!isMoving && footstepInterval) {
+                    // Stop playing footstep sounds
+                    clearInterval(footstepInterval);
+                    footstepInterval = null;
+                }
+            }
+
+
+            // Step the physics world
+            world.step(FIXED_TIME_STEP, dt);
+
+            // Update Three.js meshes from Cannon.js bodies
+            for (const mesh of furnitureMeshes) {
+                if (mesh.userData.physicsBody) {
+                    // Ensure the visual mesh stays at the correct height relative to its physics body's base
+                    const body = mesh.userData.physicsBody;
+                    const halfExtents = body.shapes[0].halfExtents;
+                    mesh.position.set(body.position.x, body.position.y - halfExtents.y, body.position.z); // Adjust Y
+                    mesh.quaternion.copy(body.quaternion);
+                }
+            }
+
+            // Ensure player stays at a fixed height when walking
+            if (playerState === 'walking') {
+                camera.position.y = playerHeight;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize the game when the window loads
+        window.onload = function () {
+            init();
+        };
+    </script>
+</body>
+</html>
