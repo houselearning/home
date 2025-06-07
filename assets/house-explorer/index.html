@@ -10,6 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
     <!-- Load Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Load GLTFLoader for 3D models -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         body { margin: 0; overflow: hidden; font-family: "Inter", sans-serif; background-color: #f0f0f0; }
         canvas { display: block; }
@@ -231,8 +233,9 @@
         const roomHeight = 3;
         const roomDim = 10; // For square rooms (width and depth)
         const wallThickness = 0.1;
-        const doorWidth = 2;
-        const doorHeight = 2.2;
+        const doorWidth = 3.0; // Adjusted for the new door size
+        const doorHeight = 2.75;
+        const doorThickness = 0.05; // Thickness of the door panel
         const windowWidth = 3; // Width of the window
         const windowHeight = 1.5; // Height of the window
         const furniturePadding = 0.3; // Padding from walls for furniture
@@ -242,7 +245,7 @@
         const FIXED_TIME_STEP = 1 / 60; // seconds
 
         // Cannon.js Materials
-        let groundMaterial, furnitureMaterial;
+        let groundMaterial, furnitureMaterial, doorMaterial; // Keep doorMaterial for backward compatibility in comments, but it's unused
         let groundFurnitureContactMaterial;
 
         // Three.js Raycaster for interaction
@@ -255,9 +258,13 @@
 
         // Texture loader
         const textureLoader = new THREE.TextureLoader();
-        let wallTexture, ceilingTexture, floorTexture, windowViewTexture, carpetTexture;
+        let wallTexture, ceilingTexture, floorTexture, windowViewTexture, carpetTexture, grassTexture;
         let cityTexture, swanTexture, oceanTexture; // New textures for pictures
         const pictureTextures = []; // Array to hold loaded textures in order
+
+        // GLTF Loader for 3D models (e.g., cars)
+        let gltfLoader;
+        let carModel = null; // To store the loaded car GLTF scene
 
         // Keyboard state for smooth movement
         let keys = {
@@ -271,6 +278,8 @@
 
         let wallMeshes = []; // Array to store all Three.js wall meshes (for visual and Cannon.js body linking)
         let furnitureMeshes = []; // Array to store all Three.js furniture meshes (for visual and Cannon.js body linking)
+        let mockHouseMeshes = []; // Array to store mock house meshes for collision detection
+        let doorMeshes = []; // Array to store all Three.js door meshes for interaction (will be empty)
         let playerBoundingBox; // Bounding box for the player (for simple collision detection with walls/furniture)
 
         let canPushFurniture = true; // New toggle variable for pushing furniture
@@ -281,7 +290,7 @@
         let playerOriginalQuaternion = new THREE.Quaternion();
 
         // Tone.js Synths for sound effects
-        let footstepSynth, furnitureSynth, lampSynth, pictureSynth, modalSynth, pushSynth;
+        let footstepSynth, furnitureSynth, lampSynth, pictureSynth, modalSynth, pushSynth, doorOpenSynth, doorCloseSynth; // door synths will be unused
         let audioContextStarted = false;
         let footstepInterval = null;
         const footstepIntervalTime = 300; // milliseconds between footstep sounds
@@ -328,6 +337,7 @@
             // Define Cannon.js materials
             groundMaterial = new CANNON.Material('groundMaterial');
             furnitureMaterial = new CANNON.Material('furnitureMaterial');
+            // doorMaterial = new CANNON.Material('doorMaterial'); // No longer needed for interactive doors
 
             // Define contact material between ground and furniture
             groundFurnitureContactMaterial = new CANNON.ContactMaterial(
@@ -341,6 +351,9 @@
                 }
             );
             world.addContactMaterial(groundFurnitureContactMaterial);
+
+            // Removed player-door contact material as doors are no longer interactive
+
 
             // Create a static ground plane in Cannon.js
             const groundShape = new CANNON.Plane();
@@ -372,6 +385,8 @@
             // Initialize Three.js AnimationMixer
             mixer = new THREE.AnimationMixer(scene);
 
+            // Initialize GLTF Loader
+            gltfLoader = new THREE.GLTFLoader();
 
             // Load textures
             wallTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/textures/wall.png',
@@ -396,6 +411,11 @@
                 function (err) { console.error('An error occurred loading the carpet texture.', err); carpetTexture = null; }
             );
 
+            grassTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/textures/grass.png',
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(20, 20); }, undefined, // Repeat for large areas
+                function (err) { console.error('An error occurred loading the grass texture.', err); grassTexture = null; }
+            );
+
             windowViewTexture = textureLoader.load('https://houselearning.github.io/home/assets/house-explorer/wv/window-view.gif',
                 undefined, undefined,
                 function (err) { console.error('An error occurred loading the window view GIF.', err); windowViewTexture = null; }
@@ -416,6 +436,23 @@
                 console.error("Error loading one or more picture textures:", err);
                 // Provide fallback or error handling for missing textures
             }
+
+            // Load car model
+            try {
+                const gltf = await gltfLoader.loadAsync('https://houselearning.github.io/home/assets/house-explorer/furniture/basic_car.gltf');
+                carModel = gltf.scene;
+                carModel.traverse((node) => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
+                    }
+                });
+                console.log("Car model loaded successfully.");
+            } catch (error) {
+                console.error("Error loading car GLTF model:", error);
+                carModel = null;
+            }
+
 
             // Setup Tone.js synths
             footstepSynth = new Tone.MembraneSynth({
@@ -458,9 +495,23 @@
             }).toDestination();
             pushSynth.volume.value = -10; // Louder noise for pushing
 
+            // Door sounds are now unused
+            doorOpenSynth = new Tone.Synth({
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 },
+                volume: -10
+            }).toDestination();
+
+            doorCloseSynth = new Tone.Synth({
+                oscillator: { type: "square" },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 },
+                volume: -10
+            }).toDestination();
+
 
             createHouse();
             addFurniture(); // This will also create Cannon.js bodies for furniture
+            createOutsideEnvironment(); // Add the new outside elements
 
             playerBoundingBox = new THREE.Box3();
 
@@ -683,6 +734,23 @@
             }
         }
 
+        // Function to create a door (no longer used for interactive doors, but kept for reference)
+        function createDoor(x, z, width, height, thickness, rotationY, pivotSide = 'left') {
+            // This function is no longer used for interactive doors.
+            // It was previously used to create an actual swinging door.
+            // Now, doorways are created using createSegmentedWall directly.
+        }
+
+        // Function to open a door (no longer used)
+        function openDoor(doorGroup) {
+            // This function is no longer used.
+        }
+
+        // Function to close a door (no longer used)
+        function closeDoor(doorGroup) {
+            // This function is no longer used.
+        }
+
         // Function to create the entire house structure
         function createHouse() {
             // Clear existing meshes and physics bodies to rebuild
@@ -700,6 +768,15 @@
                 }
             });
             furnitureMeshes = [];
+            mockHouseMeshes.forEach(mesh => { // Clear mock house meshes
+                scene.remove(mesh);
+                if (mesh.userData.physicsBody) {
+                    world.removeBody(mesh.userData.physicsBody);
+                }
+            });
+            mockHouseMeshes = [];
+            doorMeshes = []; // Ensure doorMeshes is empty
+
 
             // --- Room 1: Living Room (Center: 0, 0, 0) ---
             const r1X = 0, r1Z = 0;
@@ -710,12 +787,17 @@
             pointLight1.position.set(r1X, roomHeight - 0.5, r1Z);
             scene.add(pointLight1);
 
+            // Walls for Living Room
+            // Wall with doorway to Dining Room
             createSegmentedWall(r1X, r1Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
-            createFullWall(r1X, r1Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r1WallColor);
-            createWindow(r1X, roomHeight / 2, r1Z - roomDim / 2 - wallThickness/2 - 0.01, windowWidth, windowHeight, 0);
+            // Front wall now has a doorway (hole)
+            createSegmentedWall(r1X, r1Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
+            // Left wall
             createFullWall(r1X - roomDim / 2 - wallThickness/2, r1Z, 'x', roomDim, roomHeight, r1WallColor);
+            // Wall with doorway to Kitchen
             createSegmentedWall(r1X + roomDim / 2 + wallThickness/2, r1Z, 'x', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
             scene.add(createCeiling(r1X, r1Z, roomDim, roomDim, 0xcccccc));
+
 
             // --- Room 2: Kitchen (Right of Living Room) ---
             const r2X = roomDim + wallThickness;
@@ -727,12 +809,14 @@
             pointLight2.position.set(r2X, roomHeight - 0.5, r2Z);
             scene.add(pointLight2);
 
-            createFullWall(r2X, r2Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r2WallColor);
-            createFullWall(r2X, r2Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r2WallColor);
-            createSegmentedWall(r2X - roomDim / 2 - wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor, doorWidth, doorHeight);
-            createFullWall(r2X + roomDim / 2 + wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor);
+            // Walls for Kitchen
+            createFullWall(r2X, r2Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r2WallColor); // Back wall
+            createFullWall(r2X, r2Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r2WallColor); // Front wall
+            createSegmentedWall(r2X - roomDim / 2 - wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor, doorWidth, doorHeight); // Wall with doorway to Living Room
+            createFullWall(r2X + roomDim / 2 + wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor); // Right wall
             createWindow(r2X + roomDim / 2 + wallThickness/2 + 0.01, roomHeight / 2, r2Z, windowWidth, windowHeight, Math.PI / 2);
             scene.add(createCeiling(r2X, r2Z, roomDim, roomDim, 0xcccccc));
+
 
             // --- Room 3: Dining Room (Behind Living Room) ---
             const r3X = 0;
@@ -744,12 +828,14 @@
             pointLight3.position.set(r3X, roomHeight - 0.5, r3Z);
             scene.add(pointLight3);
 
-            createFullWall(r3X, r3Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r3WallColor);
+            // Walls for Dining Room
+            createFullWall(r3X, r3Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r3WallColor); // Back wall
             createWindow(r3X, roomHeight / 2, r3Z + roomDim / 2 + wallThickness/2 + 0.01, windowWidth, windowHeight, 0);
-            createSegmentedWall(r3X, r3Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
-            createSegmentedWall(r3X - roomDim / 2 - wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
-            createSegmentedWall(r3X + roomDim / 2 + wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            createSegmentedWall(r3X, r3Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight); // Wall with doorway to Living Room
+            createSegmentedWall(r3X - roomDim / 2 - wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight); // Wall with doorway to Bedroom 1
+            createSegmentedWall(r3X + roomDim / 2 + wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight); // Wall with doorway to Bedroom 2
             scene.add(createCeiling(r3X, r3Z, roomDim, roomDim, 0xcccccc));
+
 
             // --- Room 4: Bedroom 1 (Left of Dining Room) ---
             const r4X = -(roomDim + wallThickness);
@@ -761,12 +847,14 @@
             pointLight4.position.set(r4X, roomHeight - 0.5, r4Z);
             scene.add(pointLight4);
 
-            createFullWall(r4X, r4Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r4WallColor);
-            createFullWall(r4X, r4Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r4WallColor);
-            createFullWall(r4X - roomDim / 2 - wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor);
+            // Walls for Bedroom 1
+            createFullWall(r4X, r4Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r4WallColor); // Back wall
+            createFullWall(r4X, r4Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r4WallColor); // Front wall
+            createFullWall(r4X - roomDim / 2 - wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor); // Left wall
             createWindow(r4X - roomDim / 2 - wallThickness/2 - 0.01, roomHeight / 2, r4Z, windowWidth, windowHeight, -Math.PI / 2);
-            createSegmentedWall(r4X + roomDim / 2 + wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor, doorWidth, doorHeight);
+            createSegmentedWall(r4X + roomDim / 2 + wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor, doorWidth, doorHeight); // Wall with doorway to Dining Room
             scene.add(createCeiling(r4X, r4Z, roomDim, roomDim, 0xcccccc));
+
 
             // --- Room 5: Bedroom 2 (Right of Dining Room) ---
             const r5X = roomDim + wallThickness;
@@ -778,13 +866,226 @@
             pointLight5.position.set(r5X, roomHeight - 0.5, r5Z);
             scene.add(pointLight5);
 
-            createFullWall(r5X, r5Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r5WallColor);
-            createFullWall(r5X, r5Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r5WallColor);
-            createSegmentedWall(r5X - roomDim / 2 - wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor, doorWidth, doorHeight);
-            createFullWall(r5X + roomDim / 2 + wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor);
+            // Walls for Bedroom 2
+            createFullWall(r5X, r5Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r5WallColor); // Back wall
+            createFullWall(r5X, r5Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r5WallColor); // Front wall
+            createSegmentedWall(r5X - roomDim / 2 - wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor, doorWidth, doorHeight); // Wall with doorway to Dining Room
+            createFullWall(r5X + roomDim / 2 + wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor); // Right wall
             createWindow(r5X + roomDim / 2 + wallThickness/2 + 0.01, roomHeight / 2, r5Z, windowWidth, windowHeight, Math.PI / 2);
             scene.add(createCeiling(r5X, r5Z, roomDim, roomDim, 0xcccccc));
         }
+
+        // --- Outside Environment Functions ---
+
+        // Creates a large ground plane with grass texture
+        function createGrassPlane(x, z, width, depth) {
+            const material = new THREE.MeshStandardMaterial({
+                map: grassTexture || null,
+                color: grassTexture ? 0xffffff : 0x7CFC00 // Fallback to green if texture fails
+            });
+            const geometry = new THREE.PlaneGeometry(width, depth);
+            const plane = new THREE.Mesh(geometry, material);
+            plane.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+            plane.position.set(x, -playerHeight / 2 - wallThickness / 2, z); // Position below the house floor
+            plane.receiveShadow = true;
+            scene.add(plane);
+        }
+
+        // Creates a road segment
+        function createRoad(x, z, width, length) {
+            const material = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.8 }); // Gray
+            const geometry = new THREE.BoxGeometry(width, 0.05, length); // Flat and thin
+            const road = new THREE.Mesh(geometry, material);
+            road.position.set(x, -playerHeight / 2 - wallThickness / 2 + 0.025, z); // Slightly above grass
+            road.receiveShadow = true;
+            scene.add(road);
+
+            // Add white lines for road markings (simple example)
+            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+            const dashLength = 1.0;
+            const dashGap = 1.0;
+            const numDashes = Math.floor(length / (dashLength + dashGap));
+
+            for (let i = 0; i < numDashes; i++) {
+                const dash = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.01, dashLength), lineMaterial);
+                dash.position.set(x, road.position.y + 0.01, z - length / 2 + (i * (dashLength + dashGap)) + dashLength / 2);
+                scene.add(dash);
+            }
+        }
+
+        // Creates a simple flower bed
+        function createFlowerBed(x, z, width, length, height) {
+            const bedMaterial = new THREE.MeshStandardMaterial({ color: 0x4CAF50, roughness: 0.7 }); // Green for soil
+            const bedGeometry = new THREE.BoxGeometry(width, height, length);
+            const flowerBed = new THREE.Mesh(bedGeometry, bedMaterial);
+            flowerBed.position.set(x, -playerHeight / 2 - wallThickness / 2 + height / 2, z);
+            flowerBed.receiveShadow = true;
+            scene.add(flowerBed);
+
+            // Add simple colorful flowers (spheres)
+            const flowerColors = [0xFF0000, 0xFFFF00, 0x0000FF, 0xFF00FF, 0xFFA500]; // Red, Yellow, Blue, Magenta, Orange
+            const flowerRadius = 0.08;
+            const flowerCount = 10;
+            for (let i = 0; i < flowerCount; i++) {
+                const flowerMaterial = new THREE.MeshStandardMaterial({ color: flowerColors[Math.floor(Math.random() * flowerColors.length)] });
+                const flowerGeometry = new THREE.SphereGeometry(flowerRadius, 8, 8);
+                const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+                flower.position.set(
+                    x + (Math.random() - 0.5) * (width * 0.8),
+                    flowerBed.position.y + height / 2 + flowerRadius,
+                    z + (Math.random() - 0.5) * (length * 0.8)
+                );
+                flower.castShadow = true;
+                scene.add(flower);
+            }
+        }
+
+        // Creates a simple fence segment
+        function createFenceSegment(x, z, length, height, rotationY) {
+            const fenceGroup = new THREE.Group();
+            fenceGroup.position.set(x, height / 2 - playerHeight / 2, z);
+            fenceGroup.rotation.y = rotationY;
+
+            const postMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.6 }); // Brown posts
+            const railMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.6 }); // Brown rails
+
+            // Posts
+            const numPosts = Math.ceil(length / 1.5) + 1; // Approx 1.5m spacing
+            const postSpacing = length / (numPosts - 1);
+            const postHeight = height;
+            const postRadius = 0.08;
+
+            for (let i = 0; i < numPosts; i++) {
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(postRadius, postRadius, postHeight, 8), postMaterial);
+                post.position.x = -length / 2 + i * postSpacing;
+                post.castShadow = true;
+                post.receiveShadow = true;
+                fenceGroup.add(post);
+            }
+
+            // Rails
+            const railThickness = 0.05;
+            const railHeight = 0.1;
+            const railY1 = height * 0.25;
+            const railY2 = height * 0.75;
+
+            const rail1 = new THREE.Mesh(new THREE.BoxGeometry(length, railHeight, railThickness), railMaterial);
+            rail1.position.y = railY1 - height / 2;
+            rail1.castShadow = true;
+            rail1.receiveShadow = true;
+            fenceGroup.add(rail1);
+
+            const rail2 = new THREE.Mesh(new THREE.BoxGeometry(length, railHeight, railThickness), railMaterial);
+            rail2.position.y = railY2 - height / 2;
+            rail2.castShadow = true;
+            rail2.receiveShadow = true;
+            fenceGroup.add(rail2);
+
+            scene.add(fenceGroup);
+        }
+
+        // Creates a simple mock house model
+        function createMockHouse(x, z, width, depth, wallHeight, roofHeight, wallColor, roofColor) {
+            const houseGroup = new THREE.Group();
+            houseGroup.position.set(x, wallHeight / 2 - playerHeight / 2, z);
+
+            // Walls
+            const wallMaterial = new THREE.MeshStandardMaterial({ color: wallColor });
+            const walls = new THREE.Mesh(new THREE.BoxGeometry(width, wallHeight, depth), wallMaterial);
+            walls.castShadow = true;
+            walls.receiveShadow = true;
+            houseGroup.add(walls);
+
+            // Roof (pyramid shape, adjusted for box geometry)
+            const roofMaterial = new THREE.MeshStandardMaterial({ color: roofColor });
+            const roofGeometry = new THREE.ConeGeometry(Math.max(width, depth) / Math.sqrt(2), roofHeight, 4); // Square base cone
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.rotation.y = Math.PI / 4; // Align points with sides
+            roof.position.y = wallHeight / 2 + roofHeight / 2;
+            roof.castShadow = true;
+            roof.receiveShadow = true;
+            houseGroup.add(roof);
+
+            scene.add(houseGroup);
+            mockHouseMeshes.push(houseGroup); // Add to the mockHouseMeshes array for collision detection
+
+            // Create Cannon.js body for the mock house (static)
+            const houseBodyShape = new CANNON.Box(new CANNON.Vec3(width / 2, wallHeight / 2, depth / 2));
+            const houseBody = new CANNON.Body({ mass: 0, shape: houseBodyShape });
+            houseBody.position.set(x, wallHeight / 2, z); // Cannon.js body is centered
+            world.addBody(houseBody);
+            houseGroup.userData.physicsBody = houseBody; // Link physics body to Three.js group
+        }
+
+        // Adds instances of the loaded car model
+        function addCars() {
+            if (!carModel) {
+                console.warn("Car model not loaded, skipping car placement.");
+                return;
+            }
+
+            // Define car spawn points near mock houses
+            const carPositions = [
+                // Near mock houses on player's side (adjust Z to be near house)
+                { x: -20, z: -1.5, rotationY: -Math.PI / 2, scale: 0.015 }, // Near house 1
+                { x: 5, z: -1.5, rotationY: Math.PI / 2, scale: 0.015 },  // Near house 2
+                { x: 25, z: -1.5, rotationY: -Math.PI / 2, scale: 0.015 }, // Near house 3
+                // Near mock houses on opposite side (adjust Z to be near house)
+                { x: -10, z: -21.5, rotationY: Math.PI / 2, scale: 0.015 }, // Near house 4
+                { x: 20, z: -21.5, rotationY: -Math.PI / 2, scale: 0.015 }, // Near house 5
+            ];
+
+            carPositions.forEach(pos => {
+                const clonedCar = carModel.clone();
+                clonedCar.position.set(pos.x, -playerHeight / 2 + 0.1, pos.z); // Adjust Y for ground
+                clonedCar.rotation.y = pos.rotationY;
+                clonedCar.scale.set(pos.scale, pos.scale, pos.scale);
+                scene.add(clonedCar);
+            });
+        }
+
+
+        // Function to create the overall outside environment
+        function createOutsideEnvironment() {
+            const groundSize = 100; // Large ground plane
+            const roadWidth = 5;
+            const roadLength = groundSize; // Road spans the length of the ground
+
+            // Grass plane
+            createGrassPlane(0, 0, groundSize, groundSize);
+
+            // Road in front of the main house
+            createRoad(0, -roomDim / 2 - wallThickness / 2 - roadWidth / 2 - 5, roadWidth, roadLength); // Offset in Z to be in front
+
+            // Flower beds near the front of the house
+            createFlowerBed(roomDim / 2 - 1.5, -roomDim / 2 - wallThickness / 2 - 1.0, 3, 1, 0.2); // Right of former door location
+            createFlowerBed(-roomDim / 2 + 1.5, -roomDim / 2 - wallThickness / 2 - 1.0, 3, 1, 0.2); // Left of former door location
+
+            // Fence barrier (simplified placement around the front property line)
+            const fenceHeight = 1.0;
+            const fenceFrontZ = -roomDim / 2 - wallThickness / 2 + 2; // In front of house, behind road
+            createFenceSegment(0, fenceFrontZ, roomDim + 5, fenceHeight, 0); // Main fence in front
+            createFenceSegment(-(roomDim / 2 + 2.5), fenceFrontZ / 2 - 2, 8, fenceHeight, Math.PI / 2); // Side fence left
+            createFenceSegment((roomDim / 2 + 2.5), fenceFrontZ / 2 - 2, 8, fenceHeight, -Math.PI / 2); // Side fence right
+
+
+            // Mock Houses
+            // 3 on the main side (back, left, right of player's house)
+            createMockHouse(0, roomDim * 2, 8, 8, 4, 2, 0x808080, 0x5a2d0c); // Back house
+            createMockHouse(-(roomDim + 10), 0, 7, 7, 3.5, 1.8, 0x708090, 0x333333); // Left house
+            createMockHouse(roomDim + 10, 0, 7.5, 7.5, 3.8, 1.9, 0xA9A9A9, 0x696969); // Right house
+
+            // 4 on the opposite side of the road
+            const oppositeSideZ = -roomDim / 2 - wallThickness / 2 - roadWidth - 10; // Behind the road
+            createMockHouse(-10, oppositeSideZ, 6, 6, 3, 1.5, 0xB0C4DE, 0x4682B4);
+            createMockHouse(10, oppositeSideZ, 6.5, 6.5, 3.2, 1.6, 0xADD8E6, 0x4169E1);
+            createMockHouse(20, oppositeSideZ + 5, 5.5, 5.5, 2.8, 1.4, 0xFFE4C4, 0xDAA520);
+            createMockHouse(-20, oppositeSideZ - 5, 7, 7, 3.5, 1.7, 0x98FB98, 0x228B22);
+
+            // Add cars after all houses are placed and car model is loaded
+            addCars();
+        }
+
 
         // --- Camera Animation Helper ---
         function animateCameraToState(targetPosition, targetQuaternion, duration, callback) {
@@ -1157,7 +1458,7 @@
                     group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(chairLegOffsetWidth, chairLegY, chairLegOffsetDepth);
                     group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(-chairLegOffsetWidth, chairLegY, chairLegOffsetDepth);
                     group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(chairLegOffsetWidth, chairLegY, -chairLegOffsetDepth);
-                    group.add(new THREE.Mesh(chairLegGeometry, chairMaterial)).position.set(-chairLegOffsetWidth, chairLegY, -chairLegOffsetDepth);
+                    group.add(new THREE.Mesh(new THREE.BoxGeometry(chairLegThickness, chairLegHeight, chairLegThickness), chairMaterial)).position.set(-chairLegOffsetWidth, chairLegY, -chairLegOffsetDepth);
 
                     group.userData.interact = () => showMessage("A simple chair. Looks comfortable enough.", 1500);
                     break;
@@ -1195,7 +1496,7 @@
                         playerOriginalPosition.copy(camera.position);
                         playerOriginalQuaternion.copy(camera.quaternion);
 
-                        const targetPos = new THREE.Vector3(0, playerHeight * 0.1, depth * 0.2); // Adjust Y for lying height
+                        const targetPos = new THREE.Vector3(0, playerHeight * 0.1, depth * 0.2);
                         targetPos.applyQuaternion(obj.quaternion);
                         targetPos.add(obj.position);
 
@@ -1996,6 +2297,24 @@
                     }
                 }
 
+                // If no wall or furniture collision, check with mock houses
+                if (!collisionDetected) {
+                    for (const mockHouse of mockHouseMeshes) {
+                        const mockHouseBody = mockHouse.userData.physicsBody;
+                        if (mockHouseBody) {
+                             const halfExtents = mockHouseBody.shapes[0].halfExtents;
+                            const mockHouseBoundingBox = new THREE.Box3().setFromCenterAndSize(
+                                new THREE.Vector3(mockHouseBody.position.x, mockHouseBody.position.y, mockHouseBody.position.z),
+                                new THREE.Vector3(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2)
+                            );
+                            if (playerBoundingBox.intersectsBox(mockHouseBoundingBox)) {
+                                collisionDetected = true;
+                                break; // Stop checking if mock house collision
+                            }
+                        }
+                    }
+                }
+
                 if (collisionDetected) {
                     if (furnitureCollision && collidedFurnitureBody && canPushFurniture) { // Only push if setting is ON
                         // Calculate the direction of player's push
@@ -2060,6 +2379,20 @@
                     mesh.quaternion.copy(body.quaternion);
                 }
             }
+            // Update mock house meshes from Cannon.js bodies
+            for (const mesh of mockHouseMeshes) {
+                if (mesh.userData.physicsBody) {
+                    const body = mesh.userData.physicsBody;
+                    // Mock house bodies are centered at 0,0,0 relative to their size,
+                    // and their Three.js mesh is also centered for the walls.
+                    // The Y position adjustment is for the overall group's base, which includes roof.
+                    // Need to adjust for the base of the *group* relative to physics body center.
+                    const halfExtents = body.shapes[0].halfExtents;
+                    mesh.position.set(body.position.x, body.position.y - halfExtents.y, body.position.z);
+                    mesh.quaternion.copy(body.quaternion);
+                }
+            }
+
 
             // Ensure player stays at a fixed height when walking
             if (playerState === 'walking') {
