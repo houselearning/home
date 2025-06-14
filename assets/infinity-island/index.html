@@ -1,1 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HouseLearning Infinity Island: Adventure Math</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Tone.js library for background music -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700&display=swap');
 
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* Main HTML body background (bg-main.png placeholder) */
+            background: url('https://houselearning.github.io/home/assets/infinity-island/bg/bg-main.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            overflow-y: auto; /* Allow vertical scrolling if content exceeds viewport height */
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #game-container {
+            background-color: #f0f8ff; /* AliceBlue */
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            border: 5px solid #add8e6; /* Light blue border */
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            color: #2F4F4F; /* DarkSlateGray */
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+        }
+
+        #game-info {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #36454F; /* Charcoal */
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        #game-info span {
+            background-color: #E0FFFF; /* LightCyan */
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        canvas {
+            /* Canvas background will be drawn dynamically by JS using images */
+            background-color: transparent; /* Ensure no CSS background color interferes */
+            border-radius: 15px;
+            display: block;
+            margin: 0 auto;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+            border: 3px solid #8A2BE2; /* BlueViolet */
+            touch-action: none; /* Disable default touch actions */
+        }
+
+        #message-box {
+            background-color: #fffacd;
+            border: 2px solid #daa520;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #8b4513;
+            display: none;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+            max-width: 80%;
+            word-wrap: break-word;
+            z-index: 100;
+            position: absolute;
+        }
+
+        #message-box button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            box-shadow: 0 4px #3C8D40;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        #message-box button:hover {
+            background-color: #45a049;
+            box-shadow: 0 2px #3C8D40;
+        }
+
+        .instructions {
+            font-size: 1em;
+            color: #4682B4;
+            margin-top: 20px;
+            line-height: 1.5;
+            padding: 0 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: center; /* Center buttons when wrapped */
+        }
+
+        .game-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            box-shadow: 0 5px #3C8D40;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+            font-weight: bold;
+        }
+
+        .game-button:hover {
+            background-color: #45a049;
+            box-shadow: 0 2px #3C8D40;
+            transform: translateY(3px);
+        }
+
+        .game-button:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        .game-button:disabled {
+            background-color: #cccccc;
+            box-shadow: 0 3px #bbbbbb;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+
+        /* --- Battle Modal Styles --- */
+        #battle-modal {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffe0b2; /* Light orange for battle */
+            border: 5px solid #d32f2f; /* Dark red border */
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            z-index: 90;
+        }
+
+        #battle-modal h2 {
+            font-family: 'Press Start 2P', cursive;
+            color: #8b0000; /* Dark Red */
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        #battle-stats {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .stat-bar {
+            width: 100px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #555;
+            margin-top: 5px;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background-color: #4CAF50; /* Green for health */
+            width: 100%; /* Default 100% */
+            transition: width 0.5s ease-out;
+        }
+
+        .enemy-health .stat-fill {
+            background-color: #d32f2f; /* Red for enemy health */
+        }
+
+        #battle-problem {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.8em;
+            color: #4A148C; /* Dark Purple */
+            margin-bottom: 25px;
+        }
+
+        #answer-input {
+            padding: 12px;
+            width: 80%;
+            max-width: 200px;
+            border: 3px solid #8b0000;
+            border-radius: 8px;
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #fff8dc; /* Cornsilk */
+            color: #333;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+        }
+
+        #battle-submit {
+            background-color: #FF5722; /* Deep Orange */
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            box-shadow: 0 5px #E64A19;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+            font-weight: bold;
+        }
+
+        #battle-submit:hover {
+            background-color: #E64A19;
+            box-shadow: 0 2px #E64A19;
+            transform: translateY(3px);
+        }
+
+        #battle-submit:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        /* --- Level Select Modal Styles --- */
+        #level-select-modal {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #e6ffe6; /* Light green for level select */
+            border: 5px solid #2e8b57; /* SeaGreen border */
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            z-index: 110; /* Higher than other modals */
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #level-select-modal h2 {
+            font-family: 'Press Start 2P', cursive;
+            color: #2e8b57; /* SeaGreen */
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        #level-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .level-button {
+            background-color: #90ee90; /* LightGreen */
+            color: #2e8b57; /* SeaGreen */
+            padding: 15px;
+            border: 2px solid #3cb371; /* MediumSeaGreen */
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            box-shadow: 0 4px #66cd80; /* Light greenish shadow */
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .level-button:hover:not(:disabled) {
+            background-color: #76e176;
+            transform: translateY(-2px);
+            box-shadow: 0 6px #66cd80;
+        }
+
+        .level-button:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px #66cd80;
+        }
+
+        .level-button:disabled {
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            border-color: #c0c0c0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #level-select-close {
+            background-color: #ff6347; /* Tomato */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            box-shadow: 0 4px #cd5c5c; /* IndianRed */
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        #level-select-close:hover {
+            background-color: #cd5c5c;
+            box-shadow: 0 2px #cd5c5c;
+        }
+
+        /* --- Dev Menu Modal Styles --- */
+        #dev-menu-modal {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333; /* Dark background for dev menu */
+            border: 5px solid #00ffff; /* Cyan border */
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            max-width: 400px;
+            width: 80%;
+            z-index: 120; /* Highest z-index */
+        }
+
+        #dev-menu-modal h2 {
+            font-family: 'Press Start 2P', cursive;
+            color: #00ffff; /* Cyan title */
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+        }
+
+        #dev-menu-modal .dev-button {
+            background-color: #008080; /* Teal */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            box-shadow: 0 5px #005f5f;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+            margin: 10px;
+        }
+
+        #dev-menu-modal .dev-button:hover {
+            background-color: #006b6b;
+            box-shadow: 0 2px #005f5f;
+            transform: translateY(3px);
+        }
+
+        #dev-menu-modal .dev-button:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        #dev-menu-close {
+            background-color: #8b0000; /* Dark Red */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            box-shadow: 0 4px #5e0000;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        #dev-menu-close:hover {
+            background-color: #5e0000;
+            box-shadow: 0 2px #5e0000;
+        }
+
+
+        /* Responsive adjustments for all modals */
+        @media (max-width: 600px) {
+            #battle-modal, #level-select-modal, #dev-menu-modal {
+                padding: 20px;
+            }
+            #battle-modal h2, #level-select-modal h2, #dev-menu-modal h2 {
+                font-size: 1.5em;
+            }
+            #battle-stats {
+                font-size: 1em;
+                flex-direction: column;
+                gap: 15px;
+            }
+            #battle-problem {
+                font-size: 1.4em;
+            }
+            #answer-input {
+                width: 70%;
+                max-width: 150px;
+            }
+            #battle-submit, .dev-button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+            #level-list {
+                grid-template-columns: 1fr; /* Stack levels on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Infinity Island: Adventure Math</h1>
+        <div id="game-info">
+            <span id="score">Score: 0</span>
+            <span id="playerHP">HP: 100</span>
+            <span id="playerXP">XP: 0</span>
+            <span id="playerLevel">Level: 1</span>
+            <span id="currentQuest">Quest: Start your adventure!</span>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Battle Modal -->
+        <div id="battle-modal">
+            <h2 id="enemyName"></h2>
+            <div id="battle-stats">
+                <div class="player-stats">
+                    Player HP: <span id="currentPlayerHP"></span>
+                    <div class="stat-bar"><div id="playerHealthFill" class="stat-fill"></div></div>
+                </div>
+                <div class="enemy-stats">
+                    Enemy HP: <span id="currentEnemyHP"></span>
+                    <div class="stat-bar enemy-health"><div id="enemyHealthFill" class="stat-fill"></div></div>
+                </div>
+            </div>
+            <p id="battle-problem-text"></p>
+            <input type="number" id="answer-input" placeholder="Your Answer">
+            <button id="battle-submit">Cast Spell!</button>
+        </div>
+
+        <!-- General Message Box -->
+        <div id="message-box">
+            <p id="message-text"></p>
+            <button id="message-button">OK</button>
+        </div>
+
+        <!-- Level Select Modal -->
+        <div id="level-select-modal">
+            <h2>Select Level</h2>
+            <div id="level-list">
+                <!-- Level buttons will be dynamically inserted here -->
+            </div>
+            <button id="level-select-close">Close</button>
+        </div>
+
+        <!-- NEW: Dev Menu Modal -->
+        <div id="dev-menu-modal">
+            <h2>Dev Menu</h2>
+            <button id="skipLevelButton" class="dev-button">Skip Level</button>
+            <button id="dev-menu-close" class="dev-button">Close</button>
+        </div>
+
+        <div class="button-group">
+            <button id="startButton" class="game-button">Start Game</button>
+            <button id="refuelHealthButton" class="game-button">Refuel Health ❤️</button>
+            <button id="levelSelectButton" class="game-button">Level Select 🗺️</button>
+            <button id="instructionsButton" class="game-button">Instructions</button>
+            <button id="musicToggleButton" class="game-button">Music: Off 🔇</button>
+        </div>
+
+        <p class="instructions">
+            Explore the map using arrow keys. Battle monsters by solving math problems. Defeat them to gain XP and complete quests!
+        </p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const playerHPDisplay = document.getElementById('playerHP');
+        const playerXPDisplay = document.getElementById('playerXP');
+        const playerLevelDisplay = document.getElementById('playerLevel');
+        const currentQuestDisplay = document.getElementById('currentQuest');
+
+        const battleModal = document.getElementById('battle-modal');
+        const enemyNameDisplay = document.getElementById('enemyName');
+        const currentPlayerHPBattle = document.getElementById('currentPlayerHP');
+        const currentEnemyHPBattle = document.getElementById('currentEnemyHP');
+        const battleProblemText = document.getElementById('battle-problem-text');
+        const answerInput = document.getElementById('answer-input');
+        const battleSubmitButton = document.getElementById('battle-submit');
+        const playerHealthFill = document.getElementById('playerHealthFill');
+        const enemyHealthFill = document.getElementById('enemyHealthFill');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageButton = document.getElementById('message-button');
+        const startButton = document.getElementById('startButton');
+        const instructionsButton = document.getElementById('instructionsButton');
+        const musicToggleButton = document.getElementById('musicToggleButton');
+        const refuelHealthButton = document.getElementById('refuelHealthButton');
+        const levelSelectButton = document.getElementById('levelSelectButton');
+        const levelSelectModal = document.getElementById('level-select-modal');
+        const levelListContainer = document.getElementById('level-list');
+        const levelSelectCloseButton = document.getElementById('level-select-close');
+
+        // NEW: Dev Menu elements
+        const devMenuModal = document.getElementById('dev-menu-modal');
+        const skipLevelButton = document.getElementById('skipLevelButton');
+        const devMenuCloseButton = document.getElementById('dev-menu-close');
+
+
+        // Game parameters
+        let player = {
+            x: 0,
+            y: 0,
+            radius: 20, // Adjusted for image size
+            image: new Image(), // Player image object
+            speed: 5,
+            hp: 100,
+            maxHp: 100,
+            xp: 0,
+            level: 1,
+            attack: 20,
+            targetX: null,
+            targetY: null
+        };
+        // Player image URL
+        player.image.src = "https://houselearning.github.io/home/assets/infinity-island/characters/player.png";
+        player.image.onerror = () => {
+            console.error("Failed to load player image. Using fallback emoji.");
+            player.emoji = '🤠'; // Fallback to emoji
+            totalImagesToLoad--; // Decrease count if image fails
+            imageLoaded(); // Manually call imageLoaded to ensure progress
+        };
+
+        let enemies = [];
+        let currentEnemy = null;
+
+        let score = 0;
+        let gameState = 'start'; // Can be 'start', 'exploring', 'battling', 'gameOver', 'win', 'cheated', 'devMenuOpen'
+        let animationFrameId;
+
+        const maxCanvasWidth = 800;
+        const maxCanvasHeight = 500;
+
+        // Tone.js Music variables
+        let backgroundSynth = null;
+        let backgroundLoop = null;
+
+        // Enemy Types with emojis/images and scaled stats
+        const enemyTypes = {
+            goblin: { emoji: '👹', baseHp: 30, xpReward: 10, attack: 10, difficulty: 1, type: 'Goblin' },
+            slime: { emoji: '🦠', baseHp: 40, xpReward: 15, attack: 15, difficulty: 1.5, type: 'Slime' },
+            skeleton: { emoji: '💀', baseHp: 50, xpReward: 20, attack: 20, difficulty: 2, type: 'Skeleton' },
+            bat: { emoji: '🦇', baseHp: 35, xpReward: 12, attack: 12, difficulty: 1.2, type: 'Bat' },
+            spider: { emoji: '🕷️', baseHp: 45, xpReward: 18, attack: 18, difficulty: 1.8, type: 'Spider' },
+            ogre: { emoji: '🧟', baseHp: 70, xpReward: 25, attack: 25, difficulty: 2.5, type: 'Ogre' },
+            dragonling: { emoji: '🐉', baseHp: 90, xpReward: 35, attack: 30, difficulty: 3, type: 'Dragonling' },
+            ghost: { emoji: '👻', baseHp: 60, xpReward: 22, attack: 22, difficulty: 2.2, type: 'Ghost' },
+            wolf: { emoji: '🐺', baseHp: 40, xpReward: 14, attack: 14, difficulty: 1.7, type: 'Wolf' },
+            golem: { emoji: '🗿', baseHp: 100, xpReward: 40, attack: 35, difficulty: 3.5, type: 'Golem' },
+            // Boss: Titan - Using a reliable placeholder
+            titan: {
+                emoji: '🤖', // Fallback emoji if image fails to load
+                image: new Image(),
+                baseHp: 500000000, xpReward: 0, attack: 500, difficulty: 100, type: 'Titan'
+            },
+            // Healer Boss for refueling health
+            healerBoss: {
+                emoji: '💖', // Heart emoji for healer
+                image: new Image(),
+                baseHp: 150, // Decent HP, not too hard but not trivial
+                xpReward: 0, // No XP for this boss
+                attack: 5, // Low attack, it's about solving the problem, not high damage
+                difficulty: 6, // Relatively challenging math problems
+                type: 'Healer Boss'
+            }
+        };
+        // Titan image URL
+        enemyTypes.titan.image.src = "https://houselearning.github.io/home/assets/infinity-island/characters/beast-titan.png";
+        enemyTypes.titan.image.onerror = () => {
+            console.error("Failed to load Titan image. Using fallback emoji.");
+            enemyTypes.titan.emoji = '🤖'; // Fallback to emoji
+            totalImagesToLoad--; // Decrease count if image fails
+            imageLoaded(); // Manually call imageLoaded to ensure progress
+        };
+        // Healer Boss image URL (optional, can fallback to emoji)
+        enemyTypes.healerBoss.image.src = "https://placehold.co/50x50/FFC0CB/FFFFFF?text=HEAL"; // Placeholder for healer boss
+        enemyTypes.healerBoss.image.onerror = () => {
+            console.error("Failed to load Healer Boss image. Using fallback emoji.");
+            enemyTypes.healerBoss.emoji = '💖';
+            totalImagesToLoad--;
+            imageLoaded();
+        };
+
+        // Quests definitions (20 levels)
+        const quests = [
+            { id: 0, description: "Clear the Goblin Woods", enemyType: ['goblin'], enemiesToDefeat: 2, enemiesDefeatedInQuest: 0 },
+            { id: 1, description: "Venture through Slime Caves", enemyType: ['slime'], enemiesToDefeat: 2, enemiesDefeatedInQuest: 0 },
+            { id: 2, description: "Investigate the Whispering Skeletons", enemyType: ['skeleton'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 3, description: "Expel the Bats from the Twilight Tower", enemyType: ['bat'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 4, description: "Cull the Spiders of the Tangled Web", enemyType: ['spider'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 5, description: "Defeat the Swamp Ogres", enemyType: ['ogre'], enemiesToDefeat: 2, enemiesDefeatedInQuest: 0 },
+            { id: 6, description: "Banish the Ghosts of the Haunted Mansion", enemyType: ['ghost'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 7, description: "Hunt the Wolves of the Howling Peaks", enemyType: ['wolf'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 8, description: "Subdue the Dragonlings of the Ember Ridge", enemyType: ['dragonling'], enemiesToDefeat: 2, enemiesDefeatedInQuest: 0 },
+            { id: 9, description: "Shatter the Stone Golems", enemyType: ['golem'], enemiesToDefeat: 2, enemiesDefeatedInQuest: 0 },
+            // Mixed enemy quests
+            { id: 10, description: "Clear the Goblin & Bat Infestation", enemyType: ['goblin', 'bat'], enemiesToDefeat: 4, enemiesDefeatedInQuest: 0 },
+            { id: 11, description: "Slime & Spider Nest Cleanup", enemyType: ['slime', 'spider'], enemiesToDefeat: 4, enemiesDefeatedInQuest: 0 },
+            { id: 12, description: "Skeleton & Ghost Uprising", enemyType: ['skeleton', 'ghost'], enemiesToDefeat: 5, enemiesDefeatedInQuest: 0 },
+            { id: 13, description: "Forest Guardian Challenge (Ogre & Wolf)", enemyType: ['ogre', 'wolf'], enemiesToDefeat: 4, enemiesDefeatedInQuest: 0 },
+            { id: 14, description: "Dragonling Swarm Suppression (Hard)", enemyType: ['dragonling'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 15, description: "Golem Gauntlet (Advanced)", enemyType: ['golem'], enemiesToDefeat: 3, enemiesDefeatedInQuest: 0 },
+            { id: 16, description: "Mixed Threat Patrol (Goblins, Skeletons, Bats)", enemyType: ['goblin', 'skeleton', 'bat'], enemiesToDefeat: 6, enemiesDefeatedInQuest: 0 },
+            { id: 17, description: "Abyssal Creatures Purge (Slime, Spiders, Ghosts)", enemyType: ['slime', 'spider', 'ghost'], enemiesToDefeat: 6, enemiesDefeatedInQuest: 0 },
+            { id: 18, description: "Guardian's Last Stand (Ogre, Wolves, Dragonlings)", enemyType: ['ogre', 'wolf', 'dragonling'], enemiesToDefeat: 5, enemiesDefeatedInQuest: 0 },
+            // Final Quest: The Titan
+            { id: 19, description: "Face the Lord of Infinity Island: The TITAN!", enemyType: ['titan'], enemiesToDefeat: 1, enemiesDefeatedInQuest: 0 }
+        ];
+        let currentQuestIndex = 0;
+
+        // Canvas Backgrounds (bg-1.png to bg-titan.png)
+        const canvasBackgroundImages = [];
+        const backgroundPaths = [
+            "https://houselearning.github.io/home/assets/infinity-island/bg/1.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/2.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/3.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/4.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/5.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/6.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/7.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/8.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/9.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/10.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/11.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/12.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/13.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/14.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/15.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/16.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/17.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/18.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/19.png",
+            "https://houselearning.github.io/home/assets/infinity-island/bg/titan.png"
+        ];
+
+        // Preload all game assets (images)
+        let imagesLoadedCount = 0;
+        let totalImagesToLoad = backgroundPaths.length + 3; // +1 for player, +1 for titan, +1 for healerBoss
+
+        function imageLoaded() {
+            imagesLoadedCount++;
+            if (imagesLoadedCount === totalImagesToLoad) {
+                console.log("All game images loaded.");
+                drawGame(); // Draw initial empty state with background
+                // Make buttons visible only after all assets are loaded
+                startButton.style.display = 'block';
+                instructionsButton.style.display = 'block';
+                musicToggleButton.style.display = 'block';
+                levelSelectButton.style.display = 'block';
+                // Initially enable/disable refuel button
+                updateRefuelButtonState();
+                updateLevelSelectButtonState();
+            }
+        }
+
+        // Load canvas background images
+        backgroundPaths.forEach((path, index) => {
+            const img = new Image();
+            img.src = path;
+            img.onload = imageLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load background image: ${path}. Falling back to solid color.`);
+                canvasBackgroundImages[index] = 'error'; // Mark as error, will draw solid color
+                imageLoaded(); // Still count as loaded to unblock game start
+            };
+            canvasBackgroundImages[index] = img;
+        });
+
+
+        // Initialize currentProblem with a default text to avoid errors on initial load
+        let currentProblem = {
+            text: "Explore Infinity Island!",
+            answer: null // No answer needed for the initial message
+        };
+
+        // Adjust canvas size based on window size
+        function resizeCanvas() {
+            canvas.width = Math.min(window.innerWidth * 0.8, maxCanvasWidth);
+            canvas.height = Math.min(window.innerHeight * 0.6, maxCanvasHeight);
+            // Re-center player and re-spawn enemies after resize for consistency
+            if (gameState !== 'start' && gameState !== 'gameOver' && gameState !== 'win' && gameState !== 'cheated') {
+                player.x = canvas.width / 2;
+                player.y = canvas.height / 2;
+                spawnEnemiesForQuest();
+            }
+            drawGame(); // Redraw immediately after resize
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Utility to display messages (modal-style)
+        function showMessage(text, callback = null) {
+            messageText.textContent = text;
+            messageBox.style.display = 'flex';
+            messageBox.style.flexDirection = 'column';
+            messageBox.style.justifyContent = 'center';
+            messageBox.style.alignItems = 'center';
+
+            messageButton.onclick = () => {
+                messageBox.style.display = 'none';
+                if (callback) {
+                    callback();
+                }
+            };
+        }
+
+        // --- Tone.js Music Functions ---
+        backgroundSynth = null;
+        backgroundLoop = null;
+
+        function startBackgroundMusic() {
+            Tone.start().then(() => {
+                if (backgroundSynth) {
+                    backgroundSynth.dispose();
+                }
+                if (backgroundLoop) {
+                    backgroundLoop.dispose();
+                }
+
+                backgroundSynth = new Tone.PolySynth(Tone.AMSynth).toDestination();
+                backgroundSynth.set({
+                    oscillator: { type: "sine" },
+                    envelope: {
+                        attack: 1,
+                        decay: 2,
+                        sustain: 0.5,
+                        release: 5
+                    },
+                    volume: -20
+                });
+
+                const chords = [
+                    ["C4", "E4", "G4"],
+                    ["F4", "A4", "C5"],
+                    ["G4", "B4", "D5"],
+                    ["A3", "C4", "E4"]
+                ];
+                let chordIndex = 0;
+
+                backgroundLoop = new Tone.Loop(time => {
+                    const chord = chords[chordIndex % chords.length];
+                    backgroundSynth.triggerAttackRelease(chord, "2n", time);
+                    chordIndex++;
+                }, "2n").start(0);
+
+                Tone.Transport.start();
+                Tone.Master.mute = false;
+                musicToggleButton.textContent = 'Music: On 🎵';
+                console.log("Background music started.");
+            }).catch(e => console.error("Tone.js AudioContext failed to start:", e));
+        }
+
+        function stopBackgroundMusic() {
+            if (backgroundLoop) {
+                backgroundLoop.stop();
+                backgroundLoop.dispose();
+                backgroundLoop = null;
+            }
+            if (backgroundSynth) {
+                backgroundSynth.dispose();
+                backgroundSynth = null;
+            }
+            Tone.Transport.stop();
+            console.log("Background music stopped.");
+        }
+
+        function toggleMusic() {
+            Tone.Master.mute = !Tone.Master.mute;
+            musicToggleButton.textContent = Tone.Master.mute ? 'Music: Off 🔇' : 'Music: On 🎵';
+        }
+        // --- End Tone.js Music Functions ---
+
+
+        // Game Initialization
+        function initGame() {
+            score = 0;
+            player.hp = player.maxHp;
+            player.xp = 0;
+            player.level = 1;
+            currentQuestIndex = 0;
+            quests.forEach(quest => quest.enemiesDefeatedInQuest = 0);
+            currentEnemy = null;
+            gameState = 'exploring';
+            player.emoji = '🤠'; // Reset player emoji in case of "cheated" state
+            player.speed = 5; // Reset player speed in case of "cheated" state
+            player.targetX = null;
+            player.targetY = null;
+
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+
+            updateGameInfoDisplays();
+            spawnEnemiesForQuest();
+            startBackgroundMusic();
+
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            gameLoop();
+        }
+
+        // Update all game info displays (score, HP, XP, Level, Quest)
+        function updateGameInfoDisplays() {
+            scoreDisplay.textContent = `Score: ${score}`;
+            playerHPDisplay.textContent = `HP: ${player.hp}/${player.maxHp}`;
+            playerXPDisplay.textContent = `XP: ${player.xp}`;
+            playerLevelDisplay.textContent = `Level: ${player.level}`;
+            updateQuestDisplay();
+            updateHealthBars();
+            updateRefuelButtonState(); // Update refuel button state whenever health changes
+            updateLevelSelectButtonState(); // Update level select button state whenever quest changes
+        }
+
+        // Update Quest Display
+        function updateQuestDisplay() {
+            if (currentQuestIndex < quests.length) {
+                const currentQuest = quests[currentQuestIndex];
+                currentQuestDisplay.textContent = `Quest: ${currentQuest.description} (${currentQuest.enemiesDefeatedInQuest}/${currentQuest.enemiesToDefeat})`;
+            } else {
+                currentQuestDisplay.textContent = `Quest: All quests completed!`;
+            }
+        }
+
+        // Update Health Bars (for both player and enemy in battle)
+        function updateHealthBars() {
+            const playerHealthPercentage = (player.hp / player.maxHp) * 100;
+            playerHealthFill.style.width = `${Math.max(0, playerHealthPercentage)}%`;
+            currentPlayerHPBattle.textContent = `${player.hp}/${player.maxHp}`;
+
+            if (currentEnemy) {
+                const enemyHealthPercentage = (currentEnemy.hp / currentEnemy.maxHp) * 100;
+                enemyHealthFill.style.width = `${Math.max(0, enemyHealthPercentage)}%`;
+                currentEnemyHPBattle.textContent = `${currentEnemy.hp}/${currentEnemy.maxHp}`;
+            } else {
+                enemyHealthFill.style.width = '0%';
+                currentEnemyHPBattle.textContent = '';
+            }
+        }
+
+        // Update Refuel Button State
+        function updateRefuelButtonState() {
+            // Enable if player health is not full AND not currently battling
+            refuelHealthButton.disabled = (player.hp === player.maxHp) || (gameState === 'battling');
+        }
+
+        // Update Level Select Button State
+        function updateLevelSelectButtonState() {
+            // Enable if not battling and not on start/game over/win/cheated screen
+            levelSelectButton.disabled = (gameState === 'battling' || gameState === 'start' || gameState === 'gameOver' || gameState === 'win' || gameState === 'cheated');
+        }
+
+        // Spawn enemies relevant to the current quest
+        function spawnEnemiesForQuest() {
+            enemies = [];
+            if (currentQuestIndex >= quests.length) return;
+
+            const quest = quests[currentQuestIndex];
+            const enemyTypesForQuest = Array.isArray(quest.enemyType) ? quest.enemyType : [quest.enemyType];
+
+            for (let i = 0; i < quest.enemiesToDefeat; i++) {
+                const selectedEnemyTypeKey = enemyTypesForQuest[Math.floor(Math.random() * enemyTypesForQuest.length)];
+                const enemyBase = enemyTypes[selectedEnemyTypeKey];
+
+                const newEnemy = {
+                    x: Math.random() * (canvas.width - 100) + 50,
+                    y: Math.random() * (canvas.height - 100) + 50,
+                    radius: enemyBase.type === 'Titan' ? 40 : 30, // Titan is larger
+                    emoji: enemyBase.emoji,
+                    image: enemyBase.image || null, // Image for Titan, null for others (use emoji)
+                    hp: enemyBase.baseHp,
+                    maxHp: enemyBase.baseHp,
+                    attack: enemyBase.attack,
+                    xpReward: enemyBase.xpReward,
+                    difficulty: enemyBase.difficulty,
+                    type: enemyBase.type
+                };
+                if (newEnemy.type !== 'Titan' && newEnemy.type !== 'Healer Boss') { // Don't scale Healer Boss stats
+                    newEnemy.hp = Math.round(enemyBase.baseHp * (1 + (player.level - 1) * 0.1));
+                    newEnemy.maxHp = newEnemy.hp;
+                    newEnemy.attack = Math.round(enemyBase.attack * (1 + (player.level - 1) * 0.05));
+                }
+                enemies.push(newEnemy);
+            }
+        }
+
+        // Generate a new math problem for battle
+        function generateMathProblem(difficulty) {
+            let num1, num2, problemText, correctAnswer, operation;
+
+            const effectiveDifficulty = difficulty + player.level * 0.1;
+            let maxVal = Math.floor(5 + effectiveDifficulty * 3);
+            let minVal = Math.floor(1 + effectiveDifficulty * 0.5);
+
+            if (maxVal > 50) maxVal = 50;
+            if (minVal > 20) minVal = 20;
+            if (minVal >= maxVal) minVal = maxVal - 5;
+
+            const operations = ['+', '-', '*'];
+            if (effectiveDifficulty > 5) operations.push('/');
+
+            operation = operations[Math.floor(Math.random() * operations.length)];
+
+            switch (operation) {
+                case '+':
+                    num1 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+                    num2 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+                    correctAnswer = num1 + num2;
+                    problemText = `What is ${num1} + ${num2}?`;
+                    break;
+                case '-':
+                    num1 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal + minVal;
+                    num2 = Math.floor(Math.random() * (num1 - minVal + 1)) + minVal;
+                    correctAnswer = num1 - num2;
+                    problemText = `What is ${num1} - ${num2}?`;
+                    break;
+                case '*':
+                    num1 = Math.floor(Math.random() * Math.min(12, maxVal / 2)) + 2;
+                    num2 = Math.floor(Math.random() * Math.min(12, maxVal / 2)) + 2;
+                    correctAnswer = num1 * num2;
+                    problemText = `What is ${num1} * ${num2}?`;
+                    break;
+                case '/':
+                    correctAnswer = Math.floor(Math.random() * (maxVal / 5)) + 2;
+                    num2 = Math.floor(Math.random() * (maxVal / 5)) + 2;
+                    num1 = correctAnswer * num2;
+                    problemText = `What is ${num1} / ${num2}?`;
+                    break;
+            }
+
+            return { text: problemText, answer: correctAnswer };
+        }
+
+        // Draw everything on the canvas
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw current quest background image
+            const currentBg = canvasBackgroundImages[currentQuestIndex];
+            if (currentBg && currentBg !== 'error' && currentBg.complete) {
+                ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
+            } else {
+                // Fallback if image fails to load or not yet loaded
+                ctx.fillStyle = "#6a5acd"; // Default water color
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+
+            if (gameState === 'exploring' || gameState === 'battling' || gameState === 'devMenuOpen') { // Draw player and enemies even during battle or dev menu
+                // Draw player image
+                if (player.image.complete) {
+                    ctx.drawImage(player.image, player.x - player.radius, player.y - player.radius, player.radius * 2, player.radius * 2);
+                } else {
+                    // Fallback to emoji if image not loaded or failed
+                    ctx.font = `${player.radius * 2}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(player.emoji, player.x, player.y + player.radius * 0.2);
+                }
+
+
+                // Draw enemies (use image for Titan/Healer, emoji for others)
+                enemies.forEach(enemy => {
+                    if ((enemy.type === 'Titan' || enemy.type === 'Healer Boss') && enemy.image.complete) {
+                        ctx.drawImage(enemy.image, enemy.x - enemy.radius, enemy.y - enemy.radius, enemy.radius * 2, enemy.radius * 2);
+                    } else {
+                        ctx.font = `${enemy.radius * 1.5}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(enemy.emoji, enemy.x, enemy.y + enemy.radius * 0.1);
+                    }
+
+                    // Draw enemy HP bar over their head
+                    const hpPercent = (enemy.hp / enemy.maxHp);
+                    ctx.fillStyle = hpPercent > 0.5 ? 'green' : hpPercent > 0.2 ? 'orange' : 'red';
+                    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 15, enemy.radius * 2 * hpPercent, 5);
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 15, enemy.radius * 2, 5);
+                });
+            } else if (gameState === 'cheated') {
+                // Special "cheated" display (draw grim reaper and cage)
+                ctx.clearRect(0,0, canvas.width, canvas.height); // Clear background
+                 // Draw current quest background image for the cheated state as well
+                if (currentBg && currentBg !== 'error' && currentBg.complete) {
+                    ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
+                } else {
+                    ctx.fillStyle = "#6a5acd"; // Default water color
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                ctx.font = '80px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('�', player.x, player.y); // Grim Reaper emoji
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(player.x - 50, player.y - 50, 100, 100); // Draw a cage
+                if(messageBox.style.display === 'none') {
+                    ctx.font = '30px "Press Start 2P"';
+                    ctx.fillStyle = '#FFD700';
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 5;
+                    wrapText(ctx, "You Cheated! Bound forever!", canvas.width / 2, canvas.height / 2 + 80, canvas.width * 0.8, 35);
+                }
+            } else { // Handle 'start', 'gameOver', 'win' states more robustly
+                // Display a static message when game is not active, over the canvas background
+                ctx.font = '30px "Press Start 2P"';
+                ctx.fillStyle = '#FFD700';
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 5;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                wrapText(ctx, currentProblem.text, canvas.width / 2, canvas.height / 2, canvas.width * 0.8, 35);
+            }
+        }
+
+        // Text wrapping function for canvas
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            if (!text) return;
+            const words = text.split(' ');
+            let line = '';
+            const wrappedLines = [];
+
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = context.measureText(testLine);
+                let testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    wrappedLines.push(line.trim());
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            wrappedLines.push(line.trim());
+
+            let startY = y - (wrappedLines.length - 1) * lineHeight / 2;
+
+            wrappedLines.forEach((l, index) => {
+                ctx.strokeText(l, x, startY + index * lineHeight);
+                ctx.fillText(l, x, startY + index * lineHeight);
+            });
+            return startY + (wrappedLines.length - 1) * lineHeight;
+        }
+
+        // Keyboard input handling
+        const keys = {};
+        let isZPressed = false;
+        let isMPressed = false;
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'z') {
+                isZPressed = true;
+            }
+            if (e.key === 'm') {
+                isMPressed = true;
+            }
+
+            // Check for Dev Menu activation (Z + M)
+            if (isZPressed && isMPressed) {
+                // Only allow opening dev menu if not in battle, start, game over, or cheated state
+                if (gameState === 'exploring' || gameState === 'devMenuOpen') {
+                    toggleDevMenu();
+                }
+            }
+
+            if (gameState === 'exploring' && player.speed > 0 && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                keys[e.key] = true;
+                player.targetX = null;
+                player.targetY = null;
+            }
+            if (gameState === 'battling' && e.key === 'Enter') {
+                battleSubmitButton.click();
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'z') {
+                isZPressed = false;
+            }
+            if (e.key === 'm') {
+                isMPressed = false;
+            }
+
+            if (gameState === 'exploring') {
+                keys[e.key] = false;
+            }
+        });
+
+        // NEW: Toggle Dev Menu function
+        function toggleDevMenu() {
+            if (devMenuModal.style.display === 'block') {
+                devMenuModal.style.display = 'none';
+                gameState = 'exploring'; // Resume exploring
+            } else {
+                // Only open if game is not in a blocking state (battle, game over, win, cheated)
+                if (gameState !== 'battling' && gameState !== 'gameOver' && gameState !== 'win' && gameState !== 'cheated') {
+                    devMenuModal.style.display = 'block';
+                    gameState = 'devMenuOpen'; // Set game state to dev menu open
+                    // Pause player movement while dev menu is open
+                    keys['ArrowUp'] = false; keys['ArrowDown'] = false;
+                    keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
+                    player.targetX = null;
+                    player.targetY = null;
+                }
+            }
+            updateRefuelButtonState(); // Update button states
+            updateLevelSelectButtonState(); // Update button states
+        }
+
+
+        // Click-to-move functionality
+        canvas.addEventListener('click', (e) => {
+            if (gameState === 'exploring' && player.speed > 0) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                player.targetX = mouseX;
+                player.targetY = mouseY;
+            }
+        });
+
+        // Touch input handling for arrow key alternatives
+        let startTouchX = 0;
+        let startTouchY = 0;
+        let currentTouchX = 0;
+        let currentTouchY = 0;
+        const swipeThreshold = 50;
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (gameState !== 'exploring' || player.speed === 0) return;
+            startTouchX = e.touches[0].clientX;
+            startTouchY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (gameState !== 'exploring' || player.speed === 0) return;
+            currentTouchX = e.touches[0].clientX;
+            currentTouchY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            if (gameState !== 'exploring' || player.speed === 0) return;
+            const dx = currentTouchX - startTouchX;
+            const dy = currentTouchY - startTouchY;
+
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > swipeThreshold) {
+                if (dx > 0) { keys['ArrowRight'] = true; } else { keys['ArrowLeft'] = true; }
+            } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > swipeThreshold) {
+                if (dy > 0) { keys['ArrowDown'] = true; } else { keys['ArrowUp'] = true; }
+            }
+            player.targetX = null;
+            player.targetY = null;
+
+            setTimeout(() => {
+                keys['ArrowUp'] = false; keys['ArrowDown'] = false;
+                keys['ArrowLeft'] = false; keys['ArrowRight'] = false;
+            }, 50);
+        });
+
+        // Update game state
+        function update() {
+            if (gameState === 'exploring' && player.speed > 0) {
+                const tolerance = player.speed / 2;
+
+                if (player.targetX !== null && player.targetY !== null) {
+                    const dx = player.targetX - player.x;
+                    const dy = player.targetY - player.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance > tolerance) {
+                        const angle = Math.atan2(dy, dx);
+                        player.x += Math.cos(angle) * player.speed;
+                        player.y += Math.sin(angle) * player.speed;
+                    } else {
+                        player.x = player.targetX;
+                        player.y = player.targetY;
+                        player.targetX = null;
+                        player.targetY = null;
+                    }
+                } else {
+                    if (keys['ArrowUp']) { player.y -= player.speed; }
+                    if (keys['ArrowDown']) { player.y += player.speed; }
+                    if (keys['ArrowLeft']) { player.x -= player.speed; }
+                    if (keys['ArrowRight']) { player.x += player.speed; }
+                }
+
+                player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+                player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+                for (let i = 0; i < enemies.length; i++) {
+                    const enemy = enemies[i];
+                    const distance = Math.sqrt(
+                        (player.x - enemy.x) ** 2 +
+                        (player.y - enemy.y) ** 2
+                    );
+
+                    if (distance < player.radius + enemy.radius) {
+                        startBattle(enemy, i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Start a battle encounter
+        function startBattle(enemy, index) {
+            gameState = 'battling';
+            currentEnemy = enemy;
+            currentEnemy.index = index;
+            player.targetX = null;
+            player.targetY = null;
+
+            battleModal.style.display = 'block';
+            enemyNameDisplay.textContent = `${enemy.emoji} ${enemy.type}`;
+
+            currentProblem = generateMathProblem(currentEnemy.difficulty);
+            battleProblemText.textContent = currentProblem.text;
+            answerInput.value = '';
+            answerInput.focus();
+
+            updateGameInfoDisplays();
+        }
+
+        // Handle battle turn (player attacks)
+        battleSubmitButton.addEventListener('click', () => {
+            if (gameState !== 'battling') return;
+
+            const playerAnswer = parseInt(answerInput.value);
+            answerInput.value = '';
+
+            if (isNaN(playerAnswer)) {
+                showMessage("Please enter a number for your answer!", null);
+                return;
+            }
+
+            if (playerAnswer === currentProblem.answer) {
+                currentEnemy.hp -= player.attack;
+                showMessage("Spell cast! You hit the enemy!", () => {
+                    if (currentEnemy.hp <= 0) {
+                        if (currentEnemy.type === 'Titan') {
+                            gameState = 'cheated';
+                            battleModal.style.display = 'none';
+                            player.emoji = '💀'; // Grim Reaper emoji
+                            player.speed = 0; // Lock movement
+                            stopBackgroundMusic();
+                            showMessage("You Cheated! The forces of Infinity Island bind you forever!", () => {
+                                startButton.style.display = 'none';
+                                instructionsButton.style.display = 'none';
+                                musicToggleButton.style.display = 'none';
+                                refuelHealthButton.style.display = 'none'; // Hide refuel button
+                                levelSelectButton.style.display = 'none'; // Hide level select button
+                                cancelAnimationFrame(animationFrameId);
+                            });
+                            return;
+                        } else if (currentEnemy.type === 'Healer Boss') { // NEW: Healer Boss defeated
+                            player.hp = player.maxHp; // Refuel health
+                            showMessage(`You defeated the ${currentEnemy.type} and fully restored your health!`, () => {
+                                enemies = []; // Clear all enemies, as the boss might have been the only one
+                                battleModal.style.display = 'none';
+                                currentEnemy = null;
+                                gameState = 'exploring';
+                                updateGameInfoDisplays();
+                            });
+                            return; // End this battle flow
+                        }
+
+                        // Normal enemy defeated logic
+                        score += currentEnemy.xpReward;
+                        player.xp += currentEnemy.xpReward;
+                        checkLevelUp();
+
+                        quests[currentQuestIndex].enemiesDefeatedInQuest++;
+                        updateQuestDisplay();
+
+                        enemies.splice(currentEnemy.index, 1);
+                        battleModal.style.display = 'none';
+                        currentEnemy = null;
+
+                        if (enemies.length === 0) {
+                            if (currentQuestIndex < quests.length - 1) {
+                                currentQuestIndex++;
+                                showMessage(`Quest Completed! You defeated all foes. Prepare for your next challenge!`, () => {
+                                    spawnEnemiesForQuest();
+                                    gameState = 'exploring';
+                                    updateGameInfoDisplays();
+                                });
+                            } else {
+                                gameState = 'win';
+                                stopBackgroundMusic();
+                                showMessage(`Congratulations, Grand Explorer! You've completed all quests and conquered Infinity Island! Your final score: ${score}.`, () => {
+                                    startButton.textContent = 'Play Again';
+                                    startButton.style.display = 'block';
+                                    instructionsButton.style.display = 'block';
+                                    musicToggleButton.style.display = 'block';
+                                    refuelHealthButton.style.display = 'block'; // Show refuel button
+                                    levelSelectButton.style.display = 'block'; // Show level select button
+                                });
+                            }
+                        } else {
+                            gameState = 'exploring';
+                            updateGameInfoDisplays();
+                        }
+                    } else {
+                        player.hp -= currentEnemy.attack;
+                        updateGameInfoDisplays();
+                        if (player.hp <= 0) {
+                            gameState = 'gameOver';
+                            battleModal.style.display = 'none';
+                            stopBackgroundMusic();
+                            showMessage(`Oh no! The ${currentEnemy.type} defeated you. Game Over! Your final score: ${score}.`, () => {
+                                startButton.textContent = 'Play Again';
+                                startButton.style.display = 'block';
+                                instructionsButton.style.display = 'block';
+                                musicToggleButton.style.display = 'block';
+                                refuelHealthButton.style.display = 'block'; // Show refuel button
+                                levelSelectButton.style.display = 'block'; // Show level select button
+                            });
+                        } else {
+                            currentProblem = generateMathProblem(currentEnemy.difficulty);
+                            battleProblemText.textContent = currentProblem.text;
+                            showMessage(`Nice hit! But the ${currentEnemy.type} attacks you back!`, null);
+                        }
+                    }
+                });
+            } else {
+                player.hp -= currentEnemy.attack * 1.5;
+                updateGameInfoDisplays();
+                if (player.hp <= 0) {
+                    gameState = 'gameOver';
+                    battleModal.style.display = 'none';
+                    stopBackgroundMusic();
+                    showMessage(`Wrong answer! The ${currentEnemy.type} unleashes a powerful blow. Game Over! Your final score: ${score}.`, () => {
+                        startButton.textContent = 'Play Again';
+                        startButton.style.display = 'block';
+                        instructionsButton.style.display = 'block';
+                        musicToggleButton.style.display = 'block';
+                        refuelHealthButton.style.display = 'block'; // Show refuel button
+                        levelSelectButton.style.display = 'block'; // Show level select button
+                    });
+                } else {
+                    currentProblem = generateMathProblem(currentEnemy.difficulty);
+                    battleProblemText.textContent = currentProblem.text;
+                    showMessage(`Incorrect! The ${currentEnemy.type} hit you! Try again!`, null);
+                }
+            }
+        });
+
+        // Check for player level up
+        function checkLevelUp() {
+            const xpToNextLevel = player.level * 50 + (player.level * player.level * 5);
+            if (player.xp >= xpToNextLevel) {
+                player.level++;
+                player.maxHp += 20;
+                player.hp = player.maxHp;
+                player.attack += 5;
+                player.xp = 0;
+                showMessage(`You leveled up to Level ${player.level}! Your HP and attack increased!`, () => updateGameInfoDisplays());
+            }
+        }
+
+        // Main game loop
+        function gameLoop() {
+            update();
+            drawGame();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners for main menu buttons
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none';
+            instructionsButton.style.display = 'none';
+            refuelHealthButton.style.display = 'block'; // Show refuel button on game start
+            levelSelectButton.style.display = 'block'; // Show level select button on game start
+            initGame();
+        });
+
+        instructionsButton.addEventListener('click', () => {
+            showMessage("Welcome, adventurer! Move your cowboy character with the arrow keys (or **click on the map**) to explore Infinity Island. When you bump into a monster, a math battle begins! Solve the math problem to cast a spell and defeat the monster. Correct answers hurt the enemy, but wrong answers hurt you! Defeat all monsters in your current quest to move on. Level up to become stronger! Can you conquer all quests and become the ultimate math hero? Beware: The final boss, the Titan, is IMPOSSIBLE to beat. If you do, it will be considered cheating!", null);
+        });
+
+        // Refuel Health button click handler
+        refuelHealthButton.addEventListener('click', () => {
+            if (gameState === 'exploring' && player.hp < player.maxHp) {
+                const healerBossBase = enemyTypes['healerBoss'];
+                const healerBoss = {
+                    x: canvas.width / 2, // Spawn in center
+                    y: canvas.height / 2,
+                    radius: healerBossBase.radius,
+                    emoji: healerBossBase.emoji,
+                    image: healerBossBase.image,
+                    hp: healerBossBase.baseHp,
+                    maxHp: healerBossBase.baseHp,
+                    attack: healerBossBase.attack,
+                    xpReward: healerBossBase.xpReward,
+                    difficulty: healerBossBase.difficulty,
+                    type: healerBossBase.type
+                };
+                enemies = [healerBoss]; // Replace current enemies with only the healer boss
+                startBattle(healerBoss, 0); // Start battle with the healer boss (at index 0)
+                updateRefuelButtonState(); // Disable button immediately
+                updateLevelSelectButtonState(); // Also disable level select button
+            } else if (player.hp === player.maxHp) {
+                showMessage("Your health is already full! No need for a Healer Boss right now.", null);
+            } else {
+                showMessage("You can't refuel health during an ongoing battle or if the game is over!", null);
+            }
+        });
+
+        // Level Select Button click handler
+        levelSelectButton.addEventListener('click', () => {
+            if (gameState === 'exploring') {
+                showLevelSelectModal();
+                updateLevelSelectButtonState(); // Disable button while modal is open
+            } else {
+                showMessage("You can't select levels during a battle or if the game is not active.", null);
+            }
+        });
+
+        // Show Level Select Modal function
+        function showLevelSelectModal() {
+            levelListContainer.innerHTML = ''; // Clear previous buttons
+            levelSelectModal.style.display = 'block';
+
+            // Loop through quests up to (and including) the current quest index
+            // All levels up to currentQuestIndex are considered "beaten" or accessible
+            for (let i = 0; i <= currentQuestIndex && i < quests.length; i++) {
+                const levelButton = document.createElement('button');
+                levelButton.classList.add('level-button');
+                levelButton.textContent = `Level ${i + 1}: ${quests[i].description}`;
+                levelButton.dataset.levelIndex = i; // Store index for easy access
+
+                // Disable the current active quest to prevent re-selecting it awkwardly
+                if (i === currentQuestIndex && enemies.length > 0) { // If it's the current quest AND there are still enemies
+                    levelButton.disabled = true;
+                    levelButton.textContent += " (Current)";
+                }
+
+                levelButton.addEventListener('click', (event) => {
+                    const selectedLevelIndex = parseInt(event.target.dataset.levelIndex);
+                    selectLevel(selectedLevelIndex);
+                });
+                levelListContainer.appendChild(levelButton);
+            }
+            levelSelectCloseButton.addEventListener('click', closeLevelSelectModal, { once: true });
+        }
+
+        // Close Level Select Modal function
+        function closeLevelSelectModal() {
+            levelSelectModal.style.display = 'none';
+            updateLevelSelectButtonState(); // Re-enable the level select button
+        }
+
+        // Select Level function
+        function selectLevel(levelIndex) {
+            closeLevelSelectModal(); // Close the modal first
+            currentQuestIndex = levelIndex;
+            // Reset enemies for the selected quest
+            quests[currentQuestIndex].enemiesDefeatedInQuest = 0; // Reset progress for replaying
+            spawnEnemiesForQuest();
+            player.x = canvas.width / 2; // Re-center player
+            player.y = canvas.height / 2;
+            gameState = 'exploring';
+            updateGameInfoDisplays();
+            showMessage(`You have warped to Level ${levelIndex + 1}: ${quests[levelIndex].description}!`, null);
+        }
+
+        // NEW: Skip Level functionality
+        skipLevelButton.addEventListener('click', () => {
+            if (gameState === 'devMenuOpen') { // Ensure we are in dev menu
+                if (currentQuestIndex < quests.length - 1) {
+                    currentQuestIndex++;
+                    quests[currentQuestIndex].enemiesDefeatedInQuest = 0; // Reset progress for new level
+                    spawnEnemiesForQuest();
+                    player.x = canvas.width / 2; // Re-center player
+                    player.y = canvas.height / 2;
+                    toggleDevMenu(); // Close dev menu
+                    showMessage(`Level skipped! Now on Level ${currentQuestIndex + 1}: ${quests[currentQuestIndex].description}!`, () => {
+                        gameState = 'exploring'; // Ensure game state is exploring after message
+                        updateGameInfoDisplays();
+                    });
+                } else {
+                    toggleDevMenu(); // Close dev menu
+                    showMessage("You are already on the final quest!", () => {
+                        gameState = 'exploring'; // Ensure game state is exploring after message
+                        updateGameInfoDisplays();
+                    });
+                }
+            }
+        });
+
+        // NEW: Close Dev Menu button handler
+        devMenuCloseButton.addEventListener('click', toggleDevMenu);
+
+
+        // Music toggle button listener
+        musicToggleButton.addEventListener('click', toggleMusic);
+
+        // Initial setup on window load
+        window.onload = () => {
+            resizeCanvas(); // Set initial canvas size
+            // Initial draw will happen after all images are loaded via imageLoaded()
+            // The start/instructions/music buttons will become visible only after all images load.
+            // Hide specific buttons and dev menu initially
+            refuelHealthButton.style.display = 'none';
+            levelSelectButton.style.display = 'none';
+            devMenuModal.style.display = 'none'; // Ensure dev menu is hidden on load
+        };
+    </script>
+</body>
+</html>
