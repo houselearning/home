@@ -26,7 +26,7 @@ Welcome to **HouseLearning Home** — a fun and interactive learning game websit
 ## 📸 Screenshots
 
 Here’s a preview of the HouseLearning Home website:
-![HouseLearning Home Screenshot](https://houselearning.github.io/home/.github/readme/screenshot.png)
+![HouseLearning Home Screenshot](https://houselearning.github.io/home/readme/screenshot.png)
 
 ## 🚀 Getting Started
 
