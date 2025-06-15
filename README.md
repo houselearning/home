@@ -26,11 +26,9 @@ Welcome to **HouseLearning Home** — a fun and interactive learning game websit
 ## 📸 Screenshots
 
 Here’s a preview of the HouseLearning Home website:
-
-![HouseLearning Home Screenshot](assets/screenshot.png)
-
-> 📌 Replace `assets/screenshot.png` with the actual path to your screenshot image in the repo.
-
+<a href="https://houselearning.github.io">
+![HouseLearning Home Screenshot](https://houselearning.github.io/home/.github/readme/screenshot.png)
+</a>
 ## 🚀 Getting Started
 
 To get a local copy up and running, follow these steps:
