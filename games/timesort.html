@@ -4,65 +4,848 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Time Sort - CoolMathTime</title>
+    <!-- Google Fonts: Poppins for a playful look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-        .clock { padding: 10px; background: lightblue; cursor: grab; border: 1px solid #000; }
-        .dropzone { width: 80px; height: 40px; border: 2px dashed #000; display: inline-block; }
-        #timer { font-size: 20px; margin-top: 10px; }
-        #score { font-size: 20px; margin-top: 10px; }
+        /* General Styling */
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #a8dadc 0%, #457b9d 100%); /* Blue gradient background */
+            color: #f1faee; /* Light text color */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            color: #1d3557; /* Darker blue for title */
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        p {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        /* Game Container */
+        .game-area {
+            background-color: rgba(241, 250, 238, 0.95); /* Semi-transparent light background */
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 95%;
+            margin-top: 20px;
+            display: none; /* Hidden by default, shown when game starts */
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Score and Timer Display */
+        #timer, #score, #level-display {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #e63946; /* Red for emphasis */
+            margin-bottom: 15px;
+            background-color: #f1faee;
+            padding: 8px 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        /* Clock Elements */
+        .clock {
+            padding: 15px 25px;
+            background: linear-gradient(145deg, #a2d2ff, #8ecae6); /* Blue gradient for clocks */
+            color: #1d3557;
+            border-radius: 15px;
+            cursor: grab;
+            border: 2px solid #457b9d;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+            font-size: 1.2em;
+            font-weight: 600;
+            user-select: none; /* Prevent text selection */
+            min-width: 120px; /* Ensure consistent width */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock:active {
+            cursor: grabbing;
+            transform: scale(1.05); /* Slightly enlarge when active */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .clock.dragging {
+            opacity: 0.7;
+        }
+
+        /* Container for Draggable Clocks */
+        #times {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            min-height: 80px; /* Prevent layout shift when empty */
+        }
+
+        /* Dropzones */
+        .dropzone {
+            width: 160px; /* Wider to accommodate clocks */
+            height: 60px;
+            border: 3px dashed #1d3557; /* Darker dashed border */
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            position: relative; /* For correct/incorrect feedback */
+        }
+
+        .dropzone.hovered {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-color: #e63946; /* Highlight on hover */
+        }
+
+        .dropzone.correct {
+            border-color: #2a9d8f; /* Green for correct placement */
+            background-color: rgba(42, 157, 143, 0.2);
+        }
+
+        .dropzone.incorrect {
+            border-color: #e63946; /* Red for incorrect placement */
+            background-color: rgba(230, 57, 70, 0.2);
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Container for Dropzones */
+        #slots {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Buttons */
+        .button {
+            padding: 12px 25px;
+            font-size: 1.2em;
+            font-weight: 700;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 20px;
+            background: linear-gradient(145deg, #2a9d8f, #264653); /* Green to dark blue gradient */
+            color: #f1faee;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Overlay/Modal */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #f1faee, #a8dadc); /* Light gradient */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            color: #1d3557;
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-content h2 {
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            color: #e63946;
+        }
+
+        .modal-content p {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            color: #457b9d;
+        }
+
+        .modal-content .button {
+            margin-top: 0; /* Override default margin */
+            background: linear-gradient(145deg, #e63946, #c1121f); /* Red gradient for modal button */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .modal-content .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Start Screen */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(241, 250, 238, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            color: #1d3557;
+        }
+
+        #start-screen h2 {
+            font-size: 2em;
+            color: #1d3557;
+            margin-bottom: 15px;
+        }
+
+        #start-screen p {
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            color: #457b9d;
+        }
+
+        #start-screen .button {
+            background: linear-gradient(145deg, #2a9d8f, #1d3557); /* Green to dark blue gradient */
+        }
+
+        /* Greatest-Least Indicator */
+        .order-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1d3557; /* Dark blue text */
+        }
+
+        .order-indicator svg {
+            margin: 0 10px;
+            fill: #1d3557; /* Color for the arrow */
+        }
+
+        /* Settings Checkbox */
+        .settings-option {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            font-size: 1em;
+            color: #1d3557;
+        }
+
+        .settings-option input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #2a9d8f; /* Accent color for the checkbox */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .game-area {
+                padding: 20px;
+            }
+            .stats-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+            #timer, #score, #level-display {
+                font-size: 1.2em;
+                padding: 6px 10px;
+            }
+            .clock {
+                padding: 10px 15px;
+                font-size: 1em;
+                min-width: 100px;
+            }
+            .dropzone {
+                width: 120px;
+                height: 50px;
+            }
+            .button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            .modal-content {
+                padding: 30px;
+            }
+            .modal-content h2 {
+                font-size: 1.8em;
+            }
+            .modal-content p {
+                font-size: 1.1em;
+            }
+            .order-indicator {
+                font-size: 1em;
+            }
+            .order-indicator svg {
+                width: 80px; /* Adjust SVG size for smaller screens */
+                height: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            p {
+                font-size: 0.9em;
+            }
+            .game-area {
+                padding: 15px;
+            }
+            .clock {
+                min-width: 80px;
+            }
+            .dropzone {
+                width: 100px;
+                height: 45px;
+            }
+            #start-screen {
+                padding: 30px 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <h1>Time Sort - CoolMathTime</h1>
-    <p>Drag the times into the squares in order from greatest to least.</p>
-    <p id="timer">Time Left: 60s</p>
-    <p id="score">Score: 0</p>
-    <div class="container" id="times">
-        <div class="clock" draggable="true">12:45 PM</div>
-        <div class="clock" draggable="true">9:30 AM</div>
-        <div class="clock" draggable="true">3:15 PM</div>
-        <div class="clock" draggable="true">7:50 AM</div>
+
+    <div id="start-screen">
+        <h2>Welcome to Time Sort!</h2>
+        <p>Your mission is to drag the times into the squares in order from **greatest to least**.</p>
+        <p>The faster you sort, the more points you get! Good luck!</p>
+        <div class="settings-option">
+            <input type="checkbox" id="showWrongAnswersCheckbox" checked>
+            <label for="showWrongAnswersCheckbox">Show Wrong Answers</label>
+        </div>
+        <button id="start-button" class="button">Start Game</button>
     </div>
-    <div class="container" id="slots">
-        <div class="dropzone"></div>
-        <div class="dropzone"></div>
-        <div class="dropzone"></div>
-        <div class="dropzone"></div>
+
+    <div class="game-area" id="game-area">
+        <p>Drag the times into the squares in order from greatest to least.</p>
+        <div class="order-indicator">
+            <span>Greatest</span>
+            <svg width="100" height="20" viewBox="0 0 100 20">
+                <line x1="5" y1="10" x2="95" y2="10" stroke="#1d3557" stroke-width="3" />
+                <polygon points="90,5 100,10 90,15" fill="#1d3557" />
+            </svg>
+            <span>Least</span>
+        </div>
+        <div class="stats-container">
+            <p id="level-display">Level: 1</p>
+            <p id="timer">Time Left: 60s</p>
+            <p id="score">Score: 0</p>
+        </div>
+
+        <div class="container" id="times">
+            <!-- Clock elements will be dynamically generated here -->
+        </div>
+
+        <div class="container" id="slots">
+            <!-- Dropzone elements will be dynamically generated here -->
+        </div>
+        <button id="check-button" class="button">Check Order</button>
     </div>
+
+    <!-- Game Over/Level Complete Modal -->
+    <div id="game-modal" class="overlay">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-message"></p>
+            <p id="modal-score"></p>
+            <button id="modal-button" class="button">Play Again?</button>
+        </div>
+    </div>
+
     <script>
+        // --- Game State Variables ---
         let draggedItem = null;
         let score = 0;
-        let timeLeft = 60;
+        let timeLeft = 0; // Initialized per level
+        let timerInterval = null;
+        let currentLevelIndex = 0;
+        let isGameActive = false; // Controls if dragging is allowed and timer runs
+        let showWrongAnswersFeedback = true; // New setting: true by default based on user's previous request
 
-        document.querySelectorAll('.clock').forEach(item => {
-            item.addEventListener('dragstart', (event) => {
-                draggedItem = event.target;
-            });
-        });
-        document.querySelectorAll('.dropzone').forEach(zone => {
-            zone.addEventListener('dragover', (event) => {
-                event.preventDefault();
-            });
-            zone.addEventListener('drop', (event) => {
-                if (!zone.firstChild) {
-                    zone.appendChild(draggedItem);
-                    score += 10;
-                    document.getElementById('score').innerText = "Score: " + score;
-                }
-            });
-        });
 
-        function updateTimer() {
-            if (timeLeft > 0) {
-                timeLeft--;
-                document.getElementById('timer').innerText = "Time Left: " + timeLeft + "s";
-                setTimeout(updateTimer, 1000);
-            } else {
-                alert("Time's up! Your final score is: " + score);
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameArea = document.getElementById('game-area');
+        const startButton = document.getElementById('start-button');
+        const checkButton = document.getElementById('check-button');
+        const timerDisplay = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level-display');
+        const timesContainer = document.getElementById('times');
+        const slotsContainer = document.getElementById('slots');
+        const gameModal = document.getElementById('game-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalScore = document.getElementById('modal-score');
+        const modalButton = document.getElementById('modal-button');
+        const showWrongAnswersCheckbox = document.getElementById('showWrongAnswersCheckbox');
+
+
+        // --- Game Levels Configuration ---
+        const levels = [
+            {
+                times: ["9:00 AM", "1:00 PM", "5:00 AM", "11:00 PM"], // Level 1: 4 times
+                timeLimit: 45 // 45 seconds
+            },
+            {
+                times: ["7:30 AM", "2:15 PM", "10:45 AM", "4:00 PM", "8:50 AM"], // Level 2: 5 times
+                timeLimit: 55
+            },
+            {
+                times: ["12:00 PM", "6:00 AM", "9:00 PM", "3:00 AM", "1:00 AM", "10:00 PM"], // Level 3: 6 times
+                timeLimit: 65
+            },
+            {
+                times: ["1:15 AM", "11:30 PM", "7:45 PM", "2:00 PM", "5:30 AM", "12:00 AM", "8:10 AM"], // Level 4: 7 times
+                timeLimit: 75
+            },
+            {
+                times: ["3:00 PM", "9:00 AM", "12:00 AM", "6:00 PM", "10:00 AM", "1:00 AM", "7:00 PM", "2:00 AM"], // Level 5: 8 times
+                timeLimit: 85
+            }
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Parses a time string (e.g., "9:30 AM", "3:15 PM") into minutes from midnight.
+         * This allows for easy comparison of times.
+         * @param {string} timeString - The time string to parse.
+         * @returns {number} Minutes from midnight (0-1439), or -1 if invalid.
+         */
+        function parseTime(timeString) {
+            const parts = timeString.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (!parts) return -1;
+
+            let hours = parseInt(parts[1], 10);
+            const minutes = parseInt(parts[2], 10);
+            const ampm = parts[3] ? parts[3].toUpperCase() : '';
+
+            // Handle 12 AM (midnight) as 0 hours, 12 PM (noon) as 12 hours
+            if (ampm === 'PM' && hours !== 12) {
+                hours += 12;
+            } else if (ampm === 'AM' && hours === 12) {
+                hours = 0; // 12 AM is 00:xx
+            }
+
+            // Basic validation for hours and minutes
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                return -1;
+            }
+
+            return hours * 60 + minutes;
+        }
+
+        /**
+         * Shuffles an array in place (Fisher-Yates algorithm).
+         * @param {Array} array - The array to shuffle.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
             }
         }
-        updateTimer();
+
+        // --- Game Logic Functions ---
+
+        /**
+         * Clears all existing clocks and dropzones from the DOM.
+         */
+        function clearGameElements() {
+            timesContainer.innerHTML = '';
+            slotsContainer.innerHTML = '';
+        }
+
+        /**
+         * Generates and appends draggable clock elements to the times container.
+         * @param {Array<string>} timesArray - An array of time strings for the current level.
+         */
+        function generateClocks(timesArray) {
+            const shuffledTimes = [...timesArray]; // Create a copy to shuffle
+            shuffleArray(shuffledTimes);
+
+            shuffledTimes.forEach(time => {
+                const clockDiv = document.createElement('div');
+                clockDiv.className = 'clock';
+                clockDiv.draggable = true;
+                clockDiv.textContent = time;
+                timesContainer.appendChild(clockDiv);
+                addClockListeners(clockDiv); // Add listeners to new clocks
+            });
+
+            // Create dropzones based on the number of clocks
+            for (let i = 0; i < timesArray.length; i++) {
+                const dropzoneDiv = document.createElement('div');
+                dropzoneDiv.className = 'dropzone';
+                dropzoneDiv.dataset.index = i; // Store index for potential future use
+                slotsContainer.appendChild(dropzoneDiv);
+                addDropzoneListeners(dropzoneDiv); // Add listeners to new dropzones
+            }
+        }
+
+        /**
+         * Adds drag and drop event listeners to a clock element.
+         * @param {HTMLElement} clockElement - The clock element to add listeners to.
+         */
+        function addClockListeners(clockElement) {
+            clockElement.addEventListener('dragstart', (event) => {
+                // Allow dragging only if the game is active (not Game Over due to time)
+                if (!isGameActive) {
+                    event.preventDefault();
+                    return;
+                }
+                draggedItem = event.target;
+                draggedItem.classList.add('dragging');
+                // Store the original parent of the dragged item to revert if dropped outside a valid zone
+                event.dataTransfer.setData('text/plain', event.target.id); // Required for Firefox
+                draggedItem.dataset.originalParent = draggedItem.parentNode.id;
+            });
+
+            clockElement.addEventListener('dragend', () => {
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                }
+            });
+        }
+
+        /**
+         * Adds drag and drop event listeners to a dropzone element.
+         * @param {HTMLElement} dropzoneElement - The dropzone element to add listeners to.
+         */
+        function addDropzoneListeners(zone) {
+            zone.addEventListener('dragover', (event) => {
+                event.preventDefault(); // Allow drop
+                zone.classList.add('hovered'); // Add visual feedback for hovering
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('hovered'); // Remove visual feedback when leaving
+            });
+
+            zone.addEventListener('drop', (event) => {
+                event.preventDefault();
+                zone.classList.remove('hovered');
+
+                // If the dropzone already contains a clock, return it to its original container (or times container)
+                if (zone.firstChild) {
+                    const existingClock = zone.firstChild;
+                    // Check if the original parent exists and is the 'times' container
+                    const originalParentId = existingClock.dataset.originalParent;
+                    const originalParent = document.getElementById(originalParentId);
+
+                    if (originalParent) {
+                        originalParent.appendChild(existingClock);
+                    } else {
+                        // Fallback: If original parent not found, put it back in the general times container
+                        timesContainer.appendChild(existingClock);
+                    }
+                }
+
+                // Append the new dragged item
+                if (draggedItem) {
+                    zone.appendChild(draggedItem);
+                    draggedItem.classList.remove('dragging'); // Remove dragging class
+                    draggedItem = null;
+                }
+
+                // Clear all correct/incorrect feedback classes when any clock is dropped
+                document.querySelectorAll('.dropzone').forEach(dz => {
+                    dz.classList.remove('correct', 'incorrect');
+                });
+            });
+        }
+
+        /**
+         * Initializes a new game level.
+         * @param {number} levelIndex - The index of the level to load.
+         */
+        function initializeLevel(levelIndex) {
+            if (levelIndex >= levels.length) {
+                gameOver(true); // All levels completed!
+                return;
+            }
+
+            currentLevelIndex = levelIndex;
+            const currentLevel = levels[currentLevelIndex];
+
+            levelDisplay.textContent = `Level: ${currentLevelIndex + 1}`;
+            clearGameElements(); // Clear previous level's elements
+
+            timeLeft = currentLevel.timeLimit;
+            timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+
+            generateClocks(currentLevel.times); // Generate clocks and dropzones
+
+            // Reset scores for new game only (level 0)
+            if (currentLevelIndex === 0) {
+                score = 0;
+            }
+            scoreDisplay.textContent = `Score: ${score}`;
+
+            // Stop any existing timer and start a new one
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+
+            isGameActive = true; // Ensure game is active for dragging
+            checkButton.style.display = 'block'; // Show check button
+        }
+
+        /**
+         * Checks if all dropzones are filled with clocks.
+         * @returns {boolean} True if all slots are filled, false otherwise.
+         */
+        function areAllSlotsFilled() {
+            const dropzones = document.querySelectorAll('.dropzone');
+            for (const zone of dropzones) {
+                if (!zone.firstChild || !zone.firstChild.classList.contains('clock')) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Checks if the clocks in the dropzones are sorted correctly (greatest to least).
+         * Provides visual feedback on dropzones.
+         * @returns {boolean} True if sorted correctly, false otherwise.
+         */
+        function checkOrder() {
+            const dropzones = document.querySelectorAll('.dropzone');
+            // Remove any previous feedback classes
+            dropzones.forEach(zone => zone.classList.remove('correct', 'incorrect'));
+
+            if (!areAllSlotsFilled()) {
+                // If not all slots are filled, provide a visual cue or message
+                modalTitle.textContent = "Not all slots filled!";
+                modalMessage.textContent = "Please drag all clocks into the squares before checking.";
+                modalScore.textContent = "";
+                modalButton.textContent = "Got It!";
+                gameModal.classList.add('active');
+                modalButton.onclick = () => gameModal.classList.remove('active');
+                return false;
+            }
+
+            const droppedTimes = Array.from(dropzones).map(zone => zone.firstChild.textContent);
+            const parsedTimes = droppedTimes.map(time => parseTime(time));
+
+            let isCorrect = true;
+            for (let i = 0; i < parsedTimes.length - 1; i++) {
+                if (parsedTimes[i] < parsedTimes[i + 1]) { // Check for greatest to least
+                    isCorrect = false;
+                    // Apply incorrect feedback only if the setting is enabled
+                    if (showWrongAnswersFeedback) {
+                        dropzones[i].classList.add('incorrect');
+                        dropzones[i+1].classList.add('incorrect'); // Also mark the next one that broke the order
+                    }
+                } else {
+                    // Apply correct feedback even if setting is off, as it's a positive reinforcement
+                    dropzones[i].classList.add('correct');
+                    if (i === parsedTimes.length - 2) {
+                        dropzones[i+1].classList.add('correct');
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                score += (10 * droppedTimes.length) + (timeLeft * 2); // Bonus for correct sort and remaining time
+                scoreDisplay.textContent = `Score: ${score}`;
+                // For correct answer, still call gameOver (but it's a level completion, not game over)
+                gameOver(false, "Level Complete!", `Great job! You sorted them all correctly!`);
+                setTimeout(() => {
+                    hideModal();
+                    initializeLevel(currentLevelIndex + 1); // Go to next level
+                }, 1500); // Give a brief moment to see success message
+            } else {
+                score = Math.max(0, score - 20); // Penalize for incorrect sort, but not below 0
+                scoreDisplay.textContent = `Score: ${score}`;
+
+                // For incorrect answer, display modal but DO NOT set isGameActive to false
+                modalTitle.textContent = "Oops!";
+                modalMessage.textContent = "That's not quite right. Try rearranging the clocks!";
+                modalScore.textContent = "";
+                modalButton.textContent = "Keep Trying!";
+                gameModal.classList.add('active');
+                modalButton.onclick = () => {
+                    gameModal.classList.remove('active');
+                    // Game remains active, user can continue dragging and fixing
+                };
+            }
+            return isCorrect;
+        }
+
+        /**
+         * Updates the game timer.
+         */
+        function updateTimer() {
+            if (isGameActive) {
+                timeLeft--;
+                timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Only call gameOver for time running out
+                    gameOver(false, "Time's Up!", "You ran out of time! Better luck next time.");
+                }
+            }
+        }
+
+        /**
+         * Ends the game and displays the final score or level complete message.
+         * This function is now specifically for winning all levels or running out of time.
+         * @param {boolean} win - True if the game was won (all levels completed), false otherwise.
+         * @param {string} title - The title for the modal.
+         * @param {string} message - The main message for the modal.
+         */
+        function gameOver(win, title, message) {
+            clearInterval(timerInterval);
+            isGameActive = false; // Game is truly over, disable dragging
+            checkButton.style.display = 'none'; // Hide check button
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalScore.textContent = `Final Score: ${score}`;
+
+            if (win) { // User completed all levels
+                modalButton.textContent = "Play Again!";
+                modalButton.onclick = () => {
+                    hideModal();
+                    startGame(); // Restart from level 1
+                };
+            } else { // User ran out of time or completed a level (which triggers next level)
+                // If the game ended because time ran out
+                if (title === "Time's Up!") {
+                    modalButton.textContent = "Restart Level";
+                    modalButton.onclick = () => {
+                        hideModal();
+                        initializeLevel(currentLevelIndex); // Restart current level if time ran out
+                    };
+                } else { // This branch is for "Level Complete!"
+                    modalButton.textContent = "Continue"; // User clicked to hide modal and continue to next level
+                    // This button click is handled by setTimeout in checkOrder for level completion
+                }
+            }
+            gameModal.classList.add('active');
+        }
+
+        /**
+         * Hides the game over/level complete modal.
+         */
+        function hideModal() {
+            gameModal.classList.remove('active');
+        }
+
+        /**
+         * Starts a new game from the beginning.
+         */
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameArea.style.display = 'flex'; // Show the game area
+            currentLevelIndex = 0; // Start from the first level
+            score = 0; // Reset score for a new game
+            initializeLevel(currentLevelIndex); // Load the first level
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', startGame);
+        checkButton.addEventListener('click', checkOrder);
+
+        // Toggle the showWrongAnswersFeedback variable when checkbox changes
+        showWrongAnswersCheckbox.addEventListener('change', (event) => {
+            showWrongAnswersFeedback = event.target.checked;
+        });
+
+        // Initial setup: display start screen
+        document.addEventListener('DOMContentLoaded', () => {
+            gameArea.style.display = 'none'; // Ensure game area is hidden on load
+            startScreen.style.display = 'flex'; // Show start screen
+            gameModal.classList.remove('active'); // Ensure modal is hidden
+            // Set initial state of checkbox from the variable (default true)
+            showWrongAnswersCheckbox.checked = showWrongAnswersFeedback;
+        });
+
     </script>
 </body>
 </html>
