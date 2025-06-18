@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VB.NET Multithreading Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #4caf50;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e8f5e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧵 VB.NET Multithreading Basics</h1>
+  <p>
+    Multithreading lets your app run multiple tasks at once, so it doesn’t freeze up while doing heavy work. VB.NET supports threads via the <code>System.Threading.Thread</code> class and also async patterns, but here we’re starting simple.
+  </p>
+
+  <h2>📚 Example Code: Creating and Starting a Thread</h2>
+  <textarea id="threadExampleCode">
+// Create a new thread that runs a method
+Dim t As New Threading.Thread(AddressOf DoWork)
+t.Start()
+
+Sub DoWork()
+    For i As Integer = 1 To 5
+        Console.WriteLine("Working... " & i)
+        Threading.Thread.Sleep(1000) ' Pause 1 sec to simulate work
+    Next
+    Console.WriteLine("Work complete!")
+End Sub
+  </textarea>
+  <button onclick="simulateThreadExample()">▶️ Run Example</button>
+
+  <div class="output" id="threadExampleOutput">Console output will appear here...</div>
+
+  <div class="tip">
+    🔑 Pro Tip: Always use <code>Thread.Sleep(ms)</code> to simulate delays or wait times in threads. But avoid long blocking sleeps in UI threads to keep apps responsive!
+  </div>
+
+  <h2>🔧 How This Code Works</h2>
+  <ul>
+    <li><code>New Thread(AddressOf DoWork)</code> creates a thread running <code>DoWork</code>.</li>
+    <li><code>t.Start()</code> launches the thread.</li>
+    <li><code>DoWork</code> does some work, here just counting with delays.</li>
+    <li>The main program keeps running separately while the thread works.</li>
+  </ul>
+
+  <h2>📂 Example Code: Using Lambda to Start a Thread</h2>
+  <textarea id="lambdaThreadCode">
+// Start a thread with an inline lambda function
+Dim t As New Threading.Thread(Sub()
+                                 For i As Integer = 1 To 3
+                                     Console.WriteLine("Lambda thread working: " & i)
+                                     Threading.Thread.Sleep(700)
+                                 Next
+                                 Console.WriteLine("Lambda thread done!")
+                             End Sub)
+t.Start()
+  </textarea>
+  <button onclick="simulateLambdaThread()">▶️ Run Lambda Thread</button>
+
+  <div class="output" id="lambdaThreadOutput">Console output will appear here...</div>
+
+  <h2>⚠️ Thread Safety Warning</h2>
+  <p>
+    When multiple threads access the same data, things can go sideways (race conditions, corrupted data). Use synchronization tools like <code>SyncLock</code>, <code>Monitor</code>, or <code>Mutex</code> to keep it safe.
+  </p>
+
+  <h2>🧰 Example Code: Using SyncLock for Thread Safety</h2>
+  <textarea id="syncLockCode">
+// Shared resource example
+Dim counter As Integer = 0
+Dim lockObj As New Object()
+
+Sub IncrementCounter()
+    For i As Integer = 1 To 1000
+        SyncLock lockObj
+            counter += 1
+        End SyncLock
+    Next
+    Console.WriteLine("Counter: " & counter)
+End Sub
+
+Dim t1 As New Threading.Thread(AddressOf IncrementCounter)
+Dim t2 As New Threading.Thread(AddressOf IncrementCounter)
+t1.Start()
+t2.Start()
+t1.Join()
+t2.Join()
+Console.WriteLine("Final counter value: " & counter)
+  </textarea>
+  <button onclick="simulateSyncLock()">▶️ Run SyncLock Example</button>
+
+  <div class="output" id="syncLockOutput">Console output will appear here...</div>
+
+  <div class="tip">
+    💡 <code>SyncLock</code> lets only one thread modify shared data at a time, preventing corruption.
+  </div>
+
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li>Use <code>Thread.Join()</code> to wait for a thread to finish before moving on.</li>
+    <li>Be careful not to block the UI thread — offload heavy work to background threads.</li>
+    <li>Consider higher-level concurrency with <code>Task</code> and <code>Async/Await</code> for easier thread management in modern VB.NET.</li>
+  </ul>
+
+  <script>
+    function simulateThreadExample() {
+      const output = `Working... 1
+Working... 2
+Working... 3
+Working... 4
+Working... 5
+Work complete!`;
+      document.getElementById("threadExampleOutput").innerText = output;
+    }
+
+    function simulateLambdaThread() {
+      const output = `Lambda thread working: 1
+Lambda thread working: 2
+Lambda thread working: 3
+Lambda thread done!`;
+      document.getElementById("lambdaThreadOutput").innerText = output;
+    }
+
+    function simulateSyncLock() {
+      // Since actual threading isn't possible here, simulate the expected output
+      const output = `Counter: 1000
+Counter: 2000
+Final counter value: 2000`;
+      document.getElementById("syncLockOutput").innerText = output;
+    }
+  </script>
+</body>
+</html>
