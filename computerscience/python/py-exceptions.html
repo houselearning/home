@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Python File Exceptions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #007acc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #61dafb;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e0f0ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #007acc;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #004a7f;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    .image-section {
+      margin-top: 2rem;
+      background-color: #e0f0ff;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .image-section img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚨 Python File Exceptions</h1>
+  <p>When working with files, stuff can go wrong — like missing files, permission issues, or corrupted data. Python’s <code>try-except</code> blocks help you catch and handle these errors gracefully without crashing your program.</p>
+
+  <h2>🖥️ Example 1: Handling File Not Found Error</h2>
+  <p>This demo shows how to catch a <code>FileNotFoundError</code> when trying to read a file that doesn’t exist.</p>
+  <textarea id="demo1Code">
+try:
+    with open("missing.txt", "r") as file:
+        content = file.read()
+    print(content)
+except FileNotFoundError:
+    print("Oops! File not found.")
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo1Output");
+      const expected = `try:
+    with open("missing.txt", "r") as file:
+        content = file.read()
+    print(content)
+except FileNotFoundError:
+    print("Oops! File not found.")`;
+      if (code === expected) {
+        output.textContent = "Oops! File not found.";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🖥️ Example 2: Handling Multiple Exceptions</h2>
+  <p>This example catches both file errors and permission errors.</p>
+  <textarea id="demo2Code">
+try:
+    with open("secret.txt", "r") as file:
+        content = file.read()
+    print(content)
+except FileNotFoundError:
+    print("File missing!")
+except PermissionError:
+    print("No permission to read the file.")
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+  <div class="output" id="demo2Output">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("demo2Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo2Output");
+      const expected = `try:
+    with open("secret.txt", "r") as file:
+        content = file.read()
+    print(content)
+except FileNotFoundError:
+    print("File missing!")
+except PermissionError:
+    print("No permission to read the file.")`;
+      if (code === expected) {
+        output.textContent = "File missing!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🖥️ Example 3: Using <code>finally</code> Block</h2>
+  <p>The <code>finally</code> block runs no matter what — great for cleanup like closing files or releasing resources.</p>
+  <textarea id="demo3Code">
+try:
+    file = open("example.txt", "r")
+    content = file.read()
+    print(content)
+except Exception as e:
+    print("Error:", e)
+finally:
+    file.close()
+    print("File closed.")
+  </textarea>
+  <button onclick="runDemo3()">▶️ Run Code</button>
+  <div class="output" id="demo3Output">Output will appear here...</div>
+
+  <script>
+    function runDemo3() {
+      const code = document.getElementById("demo3Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo3Output");
+      const expected = `try:
+    file = open("example.txt", "r")
+    content = file.read()
+    print(content)
+except Exception as e:
+    print("Error:", e)
+finally:
+    file.close()
+    print("File closed.")`;
+      if (code === expected) {
+        output.textContent = `Error: [Simulated File Read Error]\nFile closed.`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Always handle possible file errors to keep your program solid. Use <code>try-except</code> to catch specific exceptions or a generic <code>Exception</code> for any error.
+  </div>
+
+  <div class="image-section">
+    <h2>📷 Exception Handling Visuals</h2>
+    <img src="img/python-try-except.png" alt="Python try-except example" />
+    <img src="img/python-exception-types.png" alt="Common Python exceptions" />
+    <img src="img/python-finally.png" alt="Using finally block in Python" />
+  </div>
+
+</body>
+</html>
