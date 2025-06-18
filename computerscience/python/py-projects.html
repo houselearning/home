@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Python Mini Projects</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+      color: #222;
+    }
+    h1, h2 {
+      color: #0056b3;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #003f7f;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7fffd4;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    ul {
+      background: #d6e9ff;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #003366;
+    }
+    .tip {
+      background-color: #dbefff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #0056b3;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #004080;
+    }
+    code {
+      background: #e3f2fd;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+    }
+    .image-section {
+      margin-top: 2rem;
+      background-color: #cce4ff;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .image-section img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    /* New section for open source links */
+    .open-source-projects {
+      margin-top: 3rem;
+      background: #e8f0fe;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      color: #1a237e;
+    }
+    .open-source-projects h2 {
+      color: #1a237e;
+    }
+    .open-source-projects ul {
+      background: transparent;
+      padding-left: 1rem;
+      margin-left: 0;
+      color: #303f9f;
+    }
+    .open-source-projects a {
+      color: #303f9f;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .open-source-projects a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 Python Mini Projects</h1>
+  <p>Mini projects are perfect for leveling up your Python skills — quick, practical, and fun! Let’s explore some project ideas and code snippets you can start hacking on today.</p>
+
+  <h2>🔥 Why Mini Projects?</h2>
+  <ul>
+    <li>Build confidence by finishing small, doable goals.</li>
+    <li>Practice key Python concepts like loops, functions, and file I/O.</li>
+    <li>Create real things you can show off or use.</li>
+    <li>Experiment and learn faster than just reading docs.</li>
+  </ul>
+
+  <h2>🎯 Project Idea 1: Number Guessing Game</h2>
+  <p>Guess a random number between 1 and 20. You get feedback whether your guess is too high, low, or correct.</p>
+  <textarea id="guessGameCode">
+import random
+
+number = random.randint(1, 20)
+guess = None
+
+while guess != number:
+    guess = int(input("Guess a number between 1 and 20: "))
+    if guess < number:
+        print("Too low! Try again.")
+    elif guess > number:
+        print("Too high! Try again.")
+    else:
+        print("Congrats! You guessed it.")
+  </textarea>
+  <button onclick="runGuessGame()">▶️ Simulate Game</button>
+  <div class="output" id="guessGameOutput">Output simulation will appear here...</div>
+
+  <script>
+    function runGuessGame() {
+      const code = document.getElementById("guessGameCode").value.trim();
+      const output = document.getElementById("guessGameOutput");
+      if (code.includes("random.randint") && code.includes("input")) {
+        output.textContent = 
+          "Guess a number between 1 and 20: 10\nToo low! Try again.\nGuess a number between 1 and 20: 15\nToo high! Try again.\nGuess a number between 1 and 20: 13\nCongrats! You guessed it.";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🎯 Project Idea 2: Simple To-Do List</h2>
+  <p>Keep track of tasks in a list. Add, view, and remove tasks.</p>
+  <textarea id="todoCode">
+tasks = []
+
+def show_tasks():
+    if not tasks:
+        print("Your to-do list is empty.")
+    else:
+        for i, task in enumerate(tasks, 1):
+            print(f"{i}. {task}")
+
+while True:
+    action = input("Add, View, Remove, or Quit? ").lower()
+    if action == "add":
+        task = input("Enter a task: ")
+        tasks.append(task)
+        print(f"Added: {task}")
+    elif action == "view":
+        show_tasks()
+    elif action == "remove":
+        show_tasks()
+        num = int(input("Enter task number to remove: "))
+        if 1 <= num <= len(tasks):
+            removed = tasks.pop(num - 1)
+            print(f"Removed: {removed}")
+        else:
+            print("Invalid number.")
+    elif action == "quit":
+        print("Goodbye!")
+        break
+    else:
+        print("Invalid action.")
+  </textarea>
+  <button onclick="runTodo()">▶️ Simulate To-Do</button>
+  <div class="output" id="todoOutput">Output simulation will appear here...</div>
+
+  <script>
+    function runTodo() {
+      const code = document.getElementById("todoCode").value.trim();
+      const output = document.getElementById("todoOutput");
+      if (code.includes("tasks = []") && code.includes("Add, View, Remove")) {
+        output.textContent = 
+`Add, View, Remove, or Quit? add
+Enter a task: Learn Python
+Added: Learn Python
+Add, View, Remove, or Quit? view
+1. Learn Python
+Add, View, Remove, or Quit? remove
+1. Learn Python
+Enter task number to remove: 1
+Removed: Learn Python
+Add, View, Remove, or Quit? quit
+Goodbye!`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🎯 Project Idea 3: Basic Calculator</h2>
+  <p>Create a calculator that adds, subtracts, multiplies, or divides two numbers.</p>
+  <textarea id="calcCode">
+def calculator():
+    op = input("Choose operation (+, -, *, /): ")
+    a = float(input("Enter first number: "))
+    b = float(input("Enter second number: "))
+    
+    if op == "+":
+        print(f"Result: {a + b}")
+    elif op == "-":
+        print(f"Result: {a - b}")
+    elif op == "*":
+        print(f"Result: {a * b}")
+    elif op == "/":
+        if b != 0:
+            print(f"Result: {a / b}")
+        else:
+            print("Error: Cannot divide by zero.")
+    else:
+        print("Invalid operation.")
+
+calculator()
+  </textarea>
+  <button onclick="runCalc()">▶️ Simulate Calculator</button>
+  <div class="output" id="calcOutput">Output simulation will appear here...</div>
+
+  <script>
+    function runCalc() {
+      const code = document.getElementById("calcCode").value.trim();
+      const output = document.getElementById("calcOutput");
+      if (code.includes("calculator()")) {
+        output.textContent =
+`Choose operation (+, -, *, /): +
+Enter first number: 10
+Enter second number: 5
+Result: 15.0`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Start small, then add features like saving data to files, input validation, or GUI interfaces!
+  </div>
+
+  <div class="image-section">
+    <h2>📷 Mini Projects Screenshots</h2>
+    <img src="img/guess-game.png" alt="Number Guessing Game" />
+    <img src="img/todo-list.png" alt="To-Do List App" />
+    <img src="img/basic-calculator.png" alt="Basic Calculator" />
+  </div>
+
+  <!-- Open Source Projects Section -->
+  <div class="open-source-projects">
+    <h2>🌐 Open Source Python Mini Projects</h2>
+    <p>Check out these cool repos to see mini projects in action or contribute yourself:</p>
+    <ul>
+      <li><a href="https://github.com/jwasham/coding-interview-university" target="_blank" rel="noopener">Coding Interview University</a> – A comprehensive study plan for programming and computer science.</li>
+      <li><a href="https://github.com/TheAlgorithms/Python" target="_blank" rel="noopener">TheAlgorithms/Python</a> – Collection of open-source algorithms and data structures implemented in Python.</li>
+      <li><a href="https://github.com/trekhleb/learn-python" target="_blank" rel="noopener">Learn Python</a> – Hands-on Python tutorials and mini projects.</li>
+      <li><a href="https://github.com/Python-World/python-mini-projects" target="_blank" rel="noopener">Real Python Mini Projects</a> – Practical mini projects to practice Python.</li>
+      <li><a href="https://github.com/milaan9/91_Python_Mini_Projects" target="_blank" rel="noopener">Python Mini Projects by milaan9</a> – A neat collection of 91 beginner-friendly mini projects.</li>
+    </ul>
+  </div>
+
+</body>
+</html>
