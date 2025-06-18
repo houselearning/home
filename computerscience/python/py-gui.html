@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Python GUI with Tkinter</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #222;
+    }
+    h1, h2 {
+      color: #007acc;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #5aeaff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #d0ebff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #007acc;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #004a8c;
+    }
+    code {
+      background: #e3f2fd;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #e3f2fd;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+    .image-section {
+      margin-top: 2rem;
+      background-color: #e3f2fd;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .image-section img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🖥️ Python GUI Basics with Tkinter</h1>
+  <p><strong>Tkinter</strong> is the default GUI toolkit for Python. It lets you build windows, buttons, labels, textboxes, and other UI elements fast and easy.</p>
+
+  <h2>🖥️ Example 1: Simple Window with a Button</h2>
+  <p>This demo shows how to create a basic window with a clickable button.</p>
+  
+  <textarea id="demoCode">
+import tkinter as tk
+
+def on_click():
+    print("Button clicked!")
+
+root = tk.Tk()
+root.title("Simple Tkinter GUI")
+
+btn = tk.Button(root, text="Click Me", command=on_click)
+btn.pack(pady=20)
+
+root.mainloop()
+  </textarea>
+  <button onclick="runDemo()">▶️ Run Code</button>
+  <div class="output" id="demoOutput">Output simulation will appear here...</div>
+
+  <script>
+    function runDemo() {
+      const code = document.getElementById("demoCode").value.trim();
+      const output = document.getElementById("demoOutput");
+      const expected = `import tkinter as tk
+
+def on_click():
+    print("Button clicked!")
+
+root = tk.Tk()
+root.title("Simple Tkinter GUI")
+
+btn = tk.Button(root, text="Click Me", command=on_click)
+btn.pack(pady=20)
+
+root.mainloop()`;
+      if (code === expected) {
+        output.textContent = "Button clicked! (Simulated console output)";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔑 Key Tkinter Concepts</h2>
+  <ul>
+    <li><code>tk.Tk()</code> creates the main application window.</li>
+    <li><code>Button</code>, <code>Label</code>, <code>Entry</code> are common widgets.</li>
+    <li><code>pack()</code>, <code>grid()</code>, and <code>place()</code> arrange widgets on screen.</li>
+    <li><code>command</code> binds a function to button clicks.</li>
+    <li><code>mainloop()</code> starts the event loop to keep the window open.</li>
+  </ul>
+
+  <h2>🖥️ Example 2: Label and Text Entry</h2>
+  <p>Adding a label and text input to greet the user by name.</p>
+  
+  <textarea id="demo2Code">
+import tkinter as tk
+
+def greet():
+    name = entry.get()
+    print(f"Hello, {name}!")
+
+root = tk.Tk()
+root.title("Greeting App")
+
+label = tk.Label(root, text="Enter your name:")
+label.pack()
+
+entry = tk.Entry(root)
+entry.pack()
+
+btn = tk.Button(root, text="Greet", command=greet)
+btn.pack(pady=10)
+
+root.mainloop()
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+  <div class="output" id="demo2Output">Output simulation will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("demo2Code").value.trim();
+      const output = document.getElementById("demo2Output");
+      const expected = `import tkinter as tk
+
+def greet():
+    name = entry.get()
+    print(f"Hello, {name}!")
+
+root = tk.Tk()
+root.title("Greeting App")
+
+label = tk.Label(root, text="Enter your name:")
+label.pack()
+
+entry = tk.Entry(root)
+entry.pack()
+
+btn = tk.Button(root, text="Greet", command=greet)
+btn.pack(pady=10)
+
+root.mainloop()`;
+      if (code === expected) {
+        output.textContent = "Hello, [name]! (Simulated console output)";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Use <code>pack()</code> for quick layouts, but for complex apps, learn <code>grid()</code> for better control.
+  </div>
+
+  <div class="image-section">
+    <h2>📷 Tkinter Example Screenshots</h2>
+    <img src="img/tkinter-simple-button.png" alt="Simple Tkinter Button" />
+    <img src="img/tkinter-greet-app.png" alt="Tkinter Greeting App" />
+  </div>
+
+</body>
+</html>
