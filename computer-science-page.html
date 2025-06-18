@@ -1,172 +1,392 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Science | CoolMathTime</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .navbar {
-            background-color: #333;
-            overflow: hidden;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-        }
-        .navbar a:hover {
-            background-color: #575757;
-        }
-        .container {
-            display: flex;
-            flex-grow: 1;
-        }
-        .section {
-            flex: 1;
-            padding: 20px;
-            box-sizing: border-box;
-            height: 100%;
-        }
-        .left {
-            background-color: #f4f4f4;
-        }
-        .middle {
-            background-color: #e0e0e0;
-            overflow-y: auto;
-            max-height: 100vh;
-        }
-        .right {
-            background-color: #d1d1d1;
-        }
-        .games {
-            background-color: #c0c0c0;
-            flex-basis: 100%;
-            text-align: center;
-            padding: 20px;
-        }
-        a {
-            display: block;
-            margin: 5px 0;
-            text-decoration: none;
-            color: #333;
-        }
-        a:hover {
-            color: #007BFF;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Computer Science | CoolMathTime</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    /* Navbar */
+    .navbar {
+      background-color: #20232a;
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 12px 20px;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+      scrollbar-width: thin;
+      scrollbar-color: #61dafb transparent;
+    }
+    /* Custom scrollbar for WebKit browsers */
+    .navbar::-webkit-scrollbar {
+      height: 6px;
+    }
+    .navbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .navbar::-webkit-scrollbar-thumb {
+      background-color: #61dafb;
+      border-radius: 3px;
+    }
+
+    .navbar a {
+      color: #61dafb;
+      text-decoration: none;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .navbar a:hover,
+    .navbar a:focus {
+      background-color: #61dafb;
+      color: #20232a;
+      outline: none;
+    }
+
+    /* Container & sections */
+    .container {
+      flex-grow: 1;
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 20px auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .section {
+      background: white;
+      flex: 1;
+      padding: 20px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.05);
+      max-height: 80vh;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    /* Section Titles */
+    h2 {
+      margin-top: 0;
+      font-weight: 700;
+      color: #20232a;
+      border-bottom: 3px solid #61dafb;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      font-size: 22px;
+    }
+    h3 {
+      margin-top: 16px;
+      color: #444;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    /* Links inside sections */
+    .section a {
+      display: block;
+      color: #007acc;
+      text-decoration: none;
+      margin: 6px 0;
+      font-weight: 500;
+      font-size: 15px;
+      border-radius: 4px;
+      padding: 6px 10px;
+      transition: background-color 0.25s ease;
+    }
+    .section a:hover,
+    .section a:focus {
+      background-color: #e0f3ff;
+      outline: none;
+    }
+
+    /* Games section */
+    .games {
+      max-width: 1200px;
+      margin: 20px auto 40px;
+      background: #20232a;
+      color: #61dafb;
+      border-radius: 8px;
+      padding: 25px 30px;
+      text-align: center;
+      box-shadow: 0 6px 16px rgb(0 0 0 / 0.1);
+    }
+    .games h2 {
+      color: #61dafb;
+      border: none;
+      margin-bottom: 20px;
+    }
+    .games a {
+      color: #82c7ff;
+      text-decoration: none;
+      margin: 0 12px;
+      font-weight: 600;
+      font-size: 16px;
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+    .games a:hover,
+    .games a:focus {
+      background-color: #61dafb;
+      color: #20232a;
+      outline: none;
+    }
+    .games p {
+      margin-top: 25px;
+      font-weight: 500;
+      font-size: 16px;
+      color: #a0a0a0;
+    }
+    .games p a {
+      color: #61dafb;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+    .games p a:hover,
+    .games p a:focus {
+      color: #82c7ff;
+      text-decoration: none;
+      outline: none;
+    }
+.game-item {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.game-item img {
+  max-width: 160px;
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-bottom: 8px;
+  object-fit: cover;
+  user-select: none;
+  transition: transform 0.3s ease;
+}
+
+.game-item img:hover {
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
+.game-item a {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 16px;
+  color: #82c7ff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.game-item a:hover,
+.game-item a:focus {
+  color: #61dafb;
+  text-decoration: underline;
+  outline: none;
+}
+
+    /* Scrollbar for sections */
+    .section::-webkit-scrollbar {
+      width: 8px;
+    }
+    .section::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 6px;
+    }
+    .section::-webkit-scrollbar-thumb {
+      background: #61dafb;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-    <div class="navbar">
-        <a href="#vb">VB.NET</a>
-        <a href="#web">Web Development</a>
-        <a href="#csharp">C#</a>
-        <a href="#games">Games</a>
-    </div>
-    <div class="container">
-        <div class="section left" id="vb">
-            <h2>VB.NET Topics</h2>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-intro.html">Introduction to VB.NET</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-syntax.html">VB.NET Syntax</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-variables.html">Variables and Data Types</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-conditions.html">Conditional Statements</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-loops.html">Loops in VB.NET</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-arrays.html">Working with Arrays</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-functions.html">Functions and Methods</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-oop.html">Object-Oriented Programming</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-exceptions.html">Exception Handling</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-fileio.html">File I/O Operations</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-database.html">Database Connectivity</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-winform.html">Windows Forms Development</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-threads.html">Multithreading</a>
-            <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-async.html">Asynchronous Programming</a>
-        </div>
-        
-        <div class="section middle" id="web">
-            <h2>Web Development Topics</h2>
-            <h3>HTML</h3>
-            <a href="https://houselearning.github.io/home/computerscience/html/introduction.html">Introduction to HTML</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/elements.html">HTML Elements & Structure</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/formsandinputs.html">Forms & Inputs</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/tables.html">Tables & Lists</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/navigation.html">Links & Navigation</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/images.html">Images & Multimedia</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/sematicelements.html">Semantic Elements</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/meta.html">Meta Tags & SEO</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/formsandvalidation.html">Forms & Validation</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/html5.html">HTML5 Features</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/canvas.html">Canvas & Graphics</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/bestpractices.html">Best Practices</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/access.html">Accessibility</a>
-            <a href="https://houselearning.github.io/home/computerscience/html/embedding.html">Embedding Videos & Audio</a>
-            <h3>CSS</h3>
-            <a href="https://houselearning.github.io/home/computerscience/css/intro-to-css.html">CSS Basics</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/selectors.html">Selectors & Specificity</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/box-model.html">Box Model</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/flexbox.html">Flexbox & Grid</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/css-positioning.html">Positioning</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/css-animation.html">Animations & Transitions</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/responsive-design.html">Media Queries & Responsive Design</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/css-variables.html">CSS Variables</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/css-framework.html">CSS Frameworks</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/css-darkmode.html">Dark Mode</a>
-            <a href="https://houselearning.github.io/home/computerscience/css/css-practices.html">Best Practices</a>
-            <h3>JavaScript</h3>
-            <a href="https://houselearning.github.io/home/computerscience/js/introtojs.html">JS Basics</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/variabletypes.html">Variables & Data Types</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/function.html">Functions & Scope</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/eventlisteners.html">Events & Event Listeners</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/dom.html">DOM Manipulation</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/conditions.html">Loops & Conditionals</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/arrays.html">Arrays & Objects</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/asyncawait.html">Promises & Async/Await</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/fetchapi.html">Fetch API & AJAX</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/es6.html">ES6+ Features</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/debugging.html">Error Handling & Debugging</a>
-            <a href="https://houselearning.github.io/home/computerscience/js/cookies.html">Local Storage & Cookies</a>
-        </div>
-        
-        <div class="section right" id="csharp">
-            <h2>C# Topics</h2>
-            <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-intro.html" target="_blank">Introduction to C#</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-syntax.html" target="_blank">C# Syntax</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-variables.html" target="_blank">Variables and Data Types</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-conditions.html" target="_blank">Conditional Statements</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-loops.html" target="_blank">Loops in C#</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-arrays.html" target="_blank">Working with Arrays</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-functions.html" target="_blank">Functions and Methods</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-oop.html" target="_blank">Object-Oriented Programming</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-exceptions.html" target="_blank">Exception Handling</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-fileio.html" target="_blank">File I/O Operations</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-database.html" target="_blank">Database Connectivity</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-wpf.html" target="_blank">WPF and WinForms</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-threads.html" target="_blank">Multithreading</a>
-        <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-async.html" target="_blank">Asynchronous Programming</a>
-        </div>
-    </div>
-    <div class="games" id="games">
-        <h2>Games</h2>
-        <a href="https://houselearning.github.io/home/computerscience/games/blockturtlecode.html">Block Turtle Code</a>
-        <a href="https://houselearning.github.io/home/computerscience/games/fruitninja.html">Fruit Ninja</a>
-        <a href="https://houselearning.github.io/home/computerscience/games/3d.html">3D Editor</a>
-        <a href="https://houselearning.github.io/home/computerscience/games/scratchjump.html">Game 3</a>
 
-        <p>Student-Created games <a href="#">Learn More</a></p>
-        <a href="https://houselearning.github.io/home/assets/local/appelv1.html">Appel V1</a>
-        <a href="https://houselearning.github.io/home/assets/local/minecraftv8.html">Minecraft V8</a>
-        <a href="https://houselearning.github.io/home/assets/local/paperminecraftv11.html">Paper Minecraft V11</a>
+  <nav class="navbar" role="navigation" aria-label="Primary">
+    <a href="#vb">VB.NET</a>
+    <a href="#web">Web Development</a>
+    <a href="#csharp">C#</a>
+    <a href="#games">Games</a>
+    <a href="https://houselearning.github.io/home/computerscience/python/index.html" target="_blank" rel="noopener noreferrer">Python</a>
+    <a href="https://houselearning.github.io/home/computerscience/java/index.html" target="_blank" rel="noopener noreferrer">Java</a>
+    <a href="#jspage" target="_blank" rel="noopener noreferrer">JavaScript</a>
+    <a href="https://houselearning.github.io/home/computerscience/ruby/index.html" target="_blank" rel="noopener noreferrer">Ruby</a>
+    <a href="https://houselearning.github.io/home/computerscience/swift/index.html" target="_blank" rel="noopener noreferrer">Swift</a>
+    <a href="https://houselearning.github.io/home/computerscience/kotlin/index.html" target="_blank" rel="noopener noreferrer">Kotlin</a>
+    <a href="https://houselearning.github.io/home/computerscience/go/index.html" target="_blank" rel="noopener noreferrer">Go</a>
+    <a href="https://houselearning.github.io/home/computerscience/php/index.html" target="_blank" rel="noopener noreferrer">PHP</a>
+    <a href="https://houselearning.github.io/home/computerscience/typescript/index.html" target="_blank" rel="noopener noreferrer">TypeScript</a>
+    <a href="https://houselearning.github.io/home/computerscience/r/index.html" target="_blank" rel="noopener noreferrer">R</a>
+    <a href="https://houselearning.github.io/home/computerscience/sql/index.html" target="_blank" rel="noopener noreferrer">SQL</a>
+    <a href="https://houselearning.github.io/home/computerscience/dart/index.html" target="_blank" rel="noopener noreferrer">Dart</a>
+    <a href="https://houselearning.github.io/home/computerscience/matlab/index.html" target="_blank" rel="noopener noreferrer">MATLAB</a>
+    <a href="https://houselearning.github.io/home/computerscience/bash/index.html" target="_blank" rel="noopener noreferrer">Bash</a>
+    <a href="https://houselearning.github.io/home/computerscience/perl/index.html" target="_blank" rel="noopener noreferrer">Perl</a>
+    <a href="https://houselearning.github.io/home/computerscience/cpp/index.html" target="_blank" rel="noopener noreferrer">C++</a>
+    <a href="https://houselearning.github.io/home/computerscience/json/index.html" target="_blank" rel="noopener noreferrer">JSON</a>
+    <a href="https://houselearning.github.io/home/computerscience/powershell/index.html" target="_blank" rel="noopener noreferrer">PowerShell</a>
+    <a href="https://houselearning.github.io/home/computerscience/shell/index.html" target="_blank" rel="noopener noreferrer">Shell Scripting</a>
+    <a href="https://houselearning.github.io/home/computerscience/assembly/index.html" target="_blank" rel="noopener noreferrer">Assembly</a>
+    <a href="https://houselearning.github.io/home/computerscience/yaml/index.html" target="_blank" rel="noopener noreferrer">YAML</a>
+    <a href="https://houselearning.github.io/home/computerscience/markdown/index.html" target="_blank" rel="noopener noreferrer">Markdown</a>
+    <a href="https://houselearning.github.io/home/computerscience/markdown/index.html" target="_blank" rel="noopener noreferrer">Bootstrap</a>
+    <a href="https://houselearning.github.io/home/computerscience/markdown/index.html" target="_blank" rel="noopener noreferrer">Tailwind CSS</a>
+    <a href="https://houselearning.github.io/home/computerscience/markdown/index.html" target="_blank" rel="noopener noreferrer">Tone.js</a>
+    <a href="https://houselearning.github.io/home/computerscience/markdown/index.html" target="_blank" rel="noopener noreferrer">THREE.js</a>
+  </nav>
 
-<b>Feeling like you want to show off? ✨ <a href="https://houselearning.github.io/home/computerscience/submit-game.html" title="Click to upload a game to coolmathtime, (Rules & Restrictions apply)">Upload a game</a> and we will debate on adding it.</b>
-    </div>
+  <main class="container">
+    <section class="section left" id="vb" tabindex="0" aria-label="VB.NET Topics">
+      <h2>VB.NET Topics</h2>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-intro.html" target="_blank" rel="noopener noreferrer">Introduction to VB.NET</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-syntax.html" target="_blank" rel="noopener noreferrer">VB.NET Syntax</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-variables.html" target="_blank" rel="noopener noreferrer">Variables and Data Types</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-conditions.html" target="_blank" rel="noopener noreferrer">Conditional Statements</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-loops.html" target="_blank" rel="noopener noreferrer">Loops in VB.NET</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-arrays.html" target="_blank" rel="noopener noreferrer">Working with Arrays</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-functions.html" target="_blank" rel="noopener noreferrer">Functions and Methods</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-oop.html" target="_blank" rel="noopener noreferrer">Object-Oriented Programming</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-exceptions.html" target="_blank" rel="noopener noreferrer">Exception Handling</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-fileio.html" target="_blank" rel="noopener noreferrer">File I/O Operations</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-database.html" target="_blank" rel="noopener noreferrer">Database Connectivity</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-winforms.html" target="_blank" rel="noopener noreferrer">Windows Forms Development</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-threads.html" target="_blank" rel="noopener noreferrer">Multithreading</a>
+      <a href="https://houselearning.github.io/home/computerscience/vbnet/vb-async.html" target="_blank" rel="noopener noreferrer">Asynchronous Programming</a>
+    </section>
+
+    <section class="section middle" id="web" tabindex="0" aria-label="Web Development Topics">
+      <h2>Web Development Topics</h2>
+
+      <h3>HTML</h3>
+      <a href="https://houselearning.github.io/home/computerscience/html/introduction.html" target="_blank" rel="noopener noreferrer">Introduction to HTML</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/elements.html" target="_blank" rel="noopener noreferrer">HTML Elements & Structure</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/formsandinputs.html" target="_blank" rel="noopener noreferrer">Forms & Inputs</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/tables.html" target="_blank" rel="noopener noreferrer">Tables & Lists</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/navigation.html" target="_blank" rel="noopener noreferrer">Links & Navigation</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/images.html" target="_blank" rel="noopener noreferrer">Images & Multimedia</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/sematicelements.html" target="_blank" rel="noopener noreferrer">Semantic Elements</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/meta.html" target="_blank" rel="noopener noreferrer">Meta Tags & SEO</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/formsandvalidation.html" target="_blank" rel="noopener noreferrer">Forms & Validation</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/html5.html" target="_blank" rel="noopener noreferrer">HTML5 Features</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/canvas.html" target="_blank" rel="noopener noreferrer">Canvas & Graphics</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/bestpractices.html" target="_blank" rel="noopener noreferrer">Best Practices</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/access.html" target="_blank" rel="noopener noreferrer">Accessibility</a>
+      <a href="https://houselearning.github.io/home/computerscience/html/embedding.html" target="_blank" rel="noopener noreferrer">Embedding Videos & Audio</a>
+
+      <h3>CSS</h3>
+      <a href="https://houselearning.github.io/home/computerscience/css/intro-to-css.html" target="_blank" rel="noopener noreferrer">CSS Basics</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/selectors.html" target="_blank" rel="noopener noreferrer">Selectors & Specificity</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/box-model.html" target="_blank" rel="noopener noreferrer">Box Model</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/flexbox.html" target="_blank" rel="noopener noreferrer">Flexbox & Grid</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/css-positioning.html" target="_blank" rel="noopener noreferrer">Positioning</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/css-animation.html" target="_blank" rel="noopener noreferrer">Animations & Transitions</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/responsive-design.html" target="_blank" rel="noopener noreferrer">Media Queries & Responsive Design</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/css-variables.html" target="_blank" rel="noopener noreferrer">CSS Variables</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/css-framework.html" target="_blank" rel="noopener noreferrer">CSS Frameworks</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/css-darkmode.html" target="_blank" rel="noopener noreferrer">Dark Mode</a>
+      <a href="https://houselearning.github.io/home/computerscience/css/css-practices.html" target="_blank" rel="noopener noreferrer">Best Practices</a>
+
+      <h3 id="jspage">JavaScript</h3>
+      <a href="https://houselearning.github.io/home/computerscience/js/introtojs.html" target="_blank" rel="noopener noreferrer">JS Basics</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/variabletypes.html" target="_blank" rel="noopener noreferrer">Variables & Data Types</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/function.html" target="_blank" rel="noopener noreferrer">Functions & Scope</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/eventlisteners.html" target="_blank" rel="noopener noreferrer">Events & Event Listeners</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/dom.html" target="_blank" rel="noopener noreferrer">DOM Manipulation</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/conditions.html" target="_blank" rel="noopener noreferrer">Loops & Conditionals</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/arrays.html" target="_blank" rel="noopener noreferrer">Arrays & Objects</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/asyncawait.html" target="_blank" rel="noopener noreferrer">Promises & Async/Await</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/fetchapi.html" target="_blank" rel="noopener noreferrer">Fetch API & AJAX</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/es6.html" target="_blank" rel="noopener noreferrer">ES6+ Features</a>
+      <a href="https://houselearning.github.io/home/computerscience/js/debugging.html" target="_blank" rel="noopener noreferrer">Debugging & Tools</a>
+
+    </section>
+
+    <section class="section right" id="games" tabindex="0" aria-label="Games">
+        <h3>C# Topics</h3>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-intro.html" target="_blank">Introduction to C#</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-syntax.html" target="_blank">C# Syntax</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-variables.html" target="_blank">Variables and Data Types</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-conditions.html" target="_blank">Conditional Statements</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-loops.html" target="_blank">Loops in C#</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-arrays.html" target="_blank">Working with Arrays</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-functions.html" target="_blank">Functions and Methods</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-oop.html" target="_blank">Object-Oriented Programming</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-exceptions.html" target="_blank">Exception Handling</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-fileio.html" target="_blank">File I/O Operations</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-database.html" target="_blank">Database Connectivity</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-wpf.html" target="_blank">WPF and WinForms</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-threads.html" target="_blank">Multithreading</a>
+    <a href="https://houselearning.github.io/home/computerscience/csharp/csharp-async.html" target="_blank">Asynchronous Programming</a>
+    </section>
+  </main>
+
+<div class="games" id="games" tabindex="0" aria-label="Games">
+  <h2>Games</h2>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/block-turtle-code.png" alt="Block Turtle Code Screenshot" />
+    <a href="https://houselearning.github.io/home/computerscience/games/blockturtlecode.html" target="_blank" rel="noopener noreferrer">Block Turtle Code</a>
+  </div>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/fruit-ninja.png" alt="Fruit Ninja Screenshot" />
+    <a href="https://houselearning.github.io/home/computerscience/games/fruitninja.html" target="_blank" rel="noopener noreferrer">Fruit Ninja</a>
+  </div>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/3d-editor.png" alt="3D Editor Screenshot" />
+    <a href="https://houselearning.github.io/home/computerscience/games/3d.html" target="_blank" rel="noopener noreferrer">3D Editor</a>
+  </div>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/scratch-jump.png" alt="Scratch Jump Screenshot" />
+    <a href="https://houselearning.github.io/home/computerscience/games/scratchjump.html" target="_blank" rel="noopener noreferrer">Scratch Jump</a>
+  </div>
+
+  <p>Student-Created games <a href="#" tabindex="0">Learn More</a></p>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/appel.png" alt="Appel V1 Screenshot" />
+    <a href="https://houselearning.github.io/home/assets/local/appelv1.html" target="_blank" rel="noopener noreferrer">Appel V1</a>
+  </div>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/minecraft.png" alt="Minecraft V8 Screenshot" />
+    <a href="https://houselearning.github.io/home/assets/local/minecraftv8.html" target="_blank" rel="noopener noreferrer">Minecraft V8</a>
+  </div>
+  
+  <div class="game-item">
+    <img src="https://houselearning.github.io/home/assets/local/cs-img/paper-minecraft.png" alt="Paper Minecraft V11 Screenshot" />
+    <a href="https://houselearning.github.io/home/assets/local/paperminecraftv11.html" target="_blank" rel="noopener noreferrer">Paper Minecraft V11</a>
+  </div>
+
+  <b>Feeling like you want to show off? ✨ 
+    <a href="https://houselearning.github.io/home/computerscience/submit-game.html" 
+       title="Click to upload a game to coolmathtime, (Rules & Restrictions apply)" 
+       tabindex="0">Upload a game</a> and we will debate on adding it.
+  </b>
+</div>
+
+
+
+
+
 </body>
 </html>
