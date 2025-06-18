@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VB.NET Asynchronous Programming Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #4caf50;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e8f5e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚡ VB.NET Asynchronous Programming</h1>
+  <p>
+    Async programming lets you run long tasks without freezing your app’s UI. You use <code>Async</code> methods with <code>Await</code> to pause execution until tasks finish — but the UI stays responsive.
+  </p>
+
+  <h2>📚 Example Code: Basic Async Method</h2>
+  <textarea id="asyncBasicCode">
+Imports System.Threading.Tasks
+
+Async Function DoWorkAsync() As Task
+    For i As Integer = 1 To 5
+        Console.WriteLine("Working async... " & i)
+        Await Task.Delay(1000) ' Wait 1 sec without blocking thread
+    Next
+    Console.WriteLine("Async work done!")
+End Function
+
+' Call the async method (in real app, await this)
+DoWorkAsync()
+  </textarea>
+  <button onclick="simulateAsyncBasic()">▶️ Run Async</button>
+
+  <div class="output" id="asyncBasicOutput">Console output will appear here...</div>
+
+  <div class="tip">
+    🔑 Pro Tip: <code>Task.Delay(ms)</code> is like <code>Thread.Sleep</code>, but async — it pauses without blocking your thread or freezing UI.
+  </div>
+
+  <h2>🔧 How It Works</h2>
+  <ul>
+    <li><code>Async Function</code> lets you use <code>Await</code> inside.</li>
+    <li><code>Await Task.Delay()</code> pauses the method without blocking.</li>
+    <li>The method returns a <code>Task</code> that can be awaited or run on its own.</li>
+    <li>UI thread stays smooth because it’s not blocked.</li>
+  </ul>
+
+  <h2>📂 Example Code: Async Method Returning Result</h2>
+  <textarea id="asyncReturnCode">
+Imports System.Threading.Tasks
+
+Async Function CalculateSumAsync(a As Integer, b As Integer) As Task(Of Integer)
+    Await Task.Delay(1500) ' Simulate delay
+    Return a + b
+End Function
+
+Async Sub RunCalculation()
+    Dim result As Integer = Await CalculateSumAsync(10, 20)
+    Console.WriteLine("Sum result: " & result)
+End Sub
+
+RunCalculation()
+  </textarea>
+  <button onclick="simulateAsyncReturn()">▶️ Run Async Return</button>
+
+  <div class="output" id="asyncReturnOutput">Console output will appear here...</div>
+
+  <h2>⚠️ Exception Handling in Async</h2>
+  <p>
+    Wrap your <code>Await</code> calls inside <code>Try...Catch</code> to catch exceptions from async methods.
+  </p>
+
+  <h2>🧰 Example Code: Async with Try...Catch</h2>
+  <textarea id="asyncTryCatchCode">
+Imports System.Threading.Tasks
+
+Async Function MightFailAsync() As Task
+    Await Task.Delay(500)
+    Throw New Exception("Something went wrong!")
+End Function
+
+Async Sub RunSafeAsync()
+    Try
+        Await MightFailAsync()
+    Catch ex As Exception
+        Console.WriteLine("Caught error: " & ex.Message)
+    End Try
+End Sub
+
+RunSafeAsync()
+  </textarea>
+  <button onclick="simulateAsyncTryCatch()">▶️ Run Async TryCatch</button>
+
+  <div class="output" id="asyncTryCatchOutput">Console output will appear here...</div>
+
+  <div class="tip">
+    💡 Always handle exceptions in async code to prevent app crashes and weird bugs.
+  </div>
+
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li>Use <code>Async/Await</code> for I/O, file, network, or long CPU-bound tasks.</li>
+    <li>Don’t mix blocking calls like <code>Thread.Sleep</code> in async code — use <code>Task.Delay</code> instead.</li>
+    <li>In UI apps (WinForms, WPF), async keeps the interface responsive while working behind the scenes.</li>
+    <li><code>Async Sub</code> is mainly for event handlers — avoid it elsewhere to allow proper error handling.</li>
+  </ul>
+
+  <script>
+    function simulateAsyncBasic() {
+      const output = `Working async... 1
+Working async... 2
+Working async... 3
+Working async... 4
+Working async... 5
+Async work done!`;
+      document.getElementById("asyncBasicOutput").innerText = output;
+    }
+
+    function simulateAsyncReturn() {
+      const output = `Sum result: 30`;
+      document.getElementById("asyncReturnOutput").innerText = output;
+    }
+
+    function simulateAsyncTryCatch() {
+      const output = `Caught error: Something went wrong!`;
+      document.getElementById("asyncTryCatchOutput").innerText = output;
+    }
+  </script>
+</body>
+</html>
