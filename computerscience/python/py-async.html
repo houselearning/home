@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Python Async/Await Basics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #ff6600;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff6600;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #cc5200;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ffa64d;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #ffe6cc;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff6600;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #994d00;
+    }
+
+    code {
+      background: #f0f0f0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #fff3e6;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    .image-section {
+      margin-top: 2rem;
+      background-color: #ffe6cc;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .image-section img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Python Async & Await Basics</h1>
+  <p>Async programming helps your program run multiple things at the same time without waiting around. Python uses <code>async</code> and <code>await</code> keywords to make this easy.</p>
+
+  <h2>🧩 What’s Async?</h2>
+  <p>It lets your code <strong>pause and wait</strong> for tasks (like network calls) without freezing the whole program. This is great for speeding up I/O-bound tasks.</p>
+
+  <h2>🖥️ Example 1: Basic Async Function</h2>
+  <p>This example defines a simple async function that "waits" for 1 second before printing.</p>
+  
+  <textarea id="demo1Code">
+import asyncio
+
+async def say_hello():
+    print("Hello...")
+    await asyncio.sleep(1)
+    print("...World!")
+
+asyncio.run(say_hello())
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo1Output");
+      const expected = `import asyncio
+
+async def say_hello():
+    print("Hello...")
+    await asyncio.sleep(1)
+    print("...World!")
+
+asyncio.run(say_hello())`;
+      if (code === expected) {
+        output.textContent = "Hello...\n...World!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔍 Key Concepts</h2>
+  <ul>
+    <li><code>async def</code>: Declares an async function.</li>
+    <li><code>await</code>: Pauses until the awaited task finishes.</li>
+    <li><code>asyncio.run()</code>: Runs the main async function.</li>
+    <li>Useful for I/O-bound and high-latency tasks (network, files, etc.)</li>
+  </ul>
+
+  <h2>🖥️ Example 2: Running Multiple Async Tasks</h2>
+  <p>Here, two async tasks run “simultaneously” with <code>asyncio.gather()</code>.</p>
+  
+  <textarea id="demo2Code">
+import asyncio
+
+async def task(name, seconds):
+    print(f"Task {name} started")
+    await asyncio.sleep(seconds)
+    print(f"Task {name} done")
+
+async def main():
+    await asyncio.gather(
+        task("A", 2),
+        task("B", 1)
+    )
+
+asyncio.run(main())
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+  <div class="output" id="demo2Output">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("demo2Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo2Output");
+      const expected = `import asyncio
+
+async def task(name, seconds):
+    print(f"Task {name} started")
+    await asyncio.sleep(seconds)
+    print(f"Task {name} done")
+
+async def main():
+    await asyncio.gather(
+        task("A", 2),
+        task("B", 1)
+    )
+
+asyncio.run(main())`;
+      if (code === expected) {
+        output.textContent = "Task A started\nTask B started\nTask B done\nTask A done";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Use async/await to avoid blocking your app during slow I/O operations like network requests or file reads.
+  </div>
+
+  <div class="image-section">
+    <h2>📷 Async Flow Diagram</h2>
+    <img src="img/python-async-await-diagram.png" alt="Async await flow diagram" />
+    <img src="img/python-asyncio-event-loop.png" alt="Asyncio event loop visualization" />
+  </div>
+
+</body>
+</html>
