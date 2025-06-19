@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ruby File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1, h2 {
+      color: #c62828;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #c62828;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #a30d0d;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ff8a80;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #ffeaea;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #c62828;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #720000;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📖 Ruby File I/O</h1>
+  <p>File I/O lets you read from and write to files on your system. Ruby makes it clean and easy.</p>
+
+  <h2>🖥️ Example: Writing to a File</h2>
+  <textarea id="writeCode">
+File.open("example.txt", "w") do |file|
+  file.puts "Hello, Ruby File!"
+end
+  </textarea>
+  <button onclick="simulateWrite()">▶️ Simulate Write</button>
+  <div class="output" id="writeOutput">Output will appear here...</div>
+
+  <h2>🖥️ Example: Reading from a File</h2>
+  <textarea id="readCode">
+File.open("example.txt", "r") do |file|
+  puts file.read
+end
+  </textarea>
+  <button onclick="simulateRead()">▶️ Simulate Read</button>
+  <div class="output" id="readOutput">Output will appear here...</div>
+
+  <script>
+    function simulateWrite() {
+      const code = document.getElementById("writeCode").value.trim();
+      const expected = 'File.open("example.txt", "w") do |file|\n  file.puts "Hello, Ruby File!"\nend';
+      document.getElementById("writeOutput").textContent = (code === expected)
+        ? 'File example.txt created with content:\nHello, Ruby File!'
+        : '[Simulation] Code not recognized.';
+    }
+
+    function simulateRead() {
+      const code = document.getElementById("readCode").value.trim();
+      const expected = 'File.open("example.txt", "r") do |file|\n  puts file.read\nend';
+      document.getElementById("readOutput").textContent = (code === expected)
+        ? 'Hello, Ruby File!'
+        : '[Simulation] Code not recognized.';
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always remember to close files or use blocks so Ruby handles it for you!
+  </div>
+
+</body>
+</html>
