@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swift File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9fdf9;
+      color: #2a3a2a;
+    }
+
+    h1, h2 {
+      color: #2e7d32;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #222;
+      color: #a5d6a7;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #1b4d21;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1b4d21;
+      color: #a5d6a7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #d0e8d0;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2e7d32;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #1b4d21;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f0f8f0;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 Swift File I/O</h1>
+  <p>Swift lets you read from and write to files using <code>FileManager</code>, <code>Data</code>, and <code>String</code> methods. Let’s break it down.</p>
+
+  <h2>📝 Writing to a File</h2>
+  <textarea id="code1">
+// Get file URL in the documents directory
+let filename = "example.txt"
+if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+  let fileURL = dir.appendingPathComponent(filename)
+  let text = "Hello, Swift File I/O!"
+
+  do {
+    try text.write(to: fileURL, atomically: true, encoding: .utf8)
+    print("File written successfully at \\(fileURL.path)")
+  } catch {
+    print("Failed to write file: \\(error.localizedDescription)")
+  }
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="output1">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("code1").value.trim();
+      const output = document.getElementById("output1");
+      if (code.includes("write(to:") && code.includes("try")) {
+        output.textContent = "File written successfully at /User/Documents/example.txt";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Reading from a File</h2>
+  <textarea id="code2">
+// Read file content as string
+if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+  let fileURL = dir.appendingPathComponent("example.txt")
+
+  do {
+    let content = try String(contentsOf: fileURL, encoding: .utf8)
+    print(content)
+  } catch {
+    print("Failed to read file: \\(error.localizedDescription)")
+  }
+}
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+
+  <div class="output" id="output2">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("code2").value.trim();
+      const output = document.getElementById("output2");
+      if (code.includes("String(contentsOf:") && code.includes("try")) {
+        output.textContent = "Hello, Swift File I/O!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔧 Handy Tips</h2>
+  <ul>
+    <li>Use <code>FileManager</code> to navigate directories and manage files.</li>
+    <li>Always wrap file operations in <code>do-catch</code> to handle errors gracefully.</li>
+    <li>For binary data, use <code>Data</code> methods instead of <code>String</code>.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> The <code>documentsDirectory</code> is where you should save user files for iOS apps.
+  </div>
+
+</body>
+</html>
