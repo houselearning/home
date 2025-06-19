@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swift Error Handling</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9fdf9;
+      color: #2a3a2a;
+    }
+
+    h1, h2 {
+      color: #2e7d32;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #222;
+      color: #a5d6a7;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #1b4d21;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1b4d21;
+      color: #a5d6a7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #d0e8d0;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2e7d32;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #1b4d21;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f0f8f0;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚠️ Swift Error Handling</h1>
+  <p>Swift uses <code>throw</code>, <code>try</code>, and <code>catch</code> to handle errors gracefully and keep your app from crashing.</p>
+
+  <h2>📝 Defining Errors</h2>
+  <textarea id="code1">
+// Define an error enum
+enum PasswordError: Error {
+  case tooShort
+  case noNumber
+}
+
+func validate(password: String) throws {
+  if password.count < 6 {
+    throw PasswordError.tooShort
+  }
+  if !password.contains(where: { $0.isNumber }) {
+    throw PasswordError.noNumber
+  }
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="output1">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("code1").value.trim();
+      const output = document.getElementById("output1");
+      if (code.includes("enum PasswordError") && code.includes("throw")) {
+        output.textContent = "Error enum and function defined successfully.";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🛠️ Using <code>try</code> and <code>catch</code></h2>
+  <textarea id="code2">
+// Call the function and handle errors
+do {
+  try validate(password: "abc")
+  print("Password is valid!")
+} catch PasswordError.tooShort {
+  print("Password too short!")
+} catch PasswordError.noNumber {
+  print("Password needs a number!")
+} catch {
+  print("Unknown error: \\(error)")
+}
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+
+  <div class="output" id="output2">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("code2").value.trim();
+      const output = document.getElementById("output2");
+      if (code.includes("do {") && code.includes("try validate") && code.includes("catch")) {
+        output.textContent = "Password too short!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>💡 Tips</h2>
+  <ul>
+    <li>Use <code>throws</code> on functions that can throw errors.</li>
+    <li>Use <code>try?</code> to convert errors into optional values.</li>
+    <li>Use <code>try!</code> only if you’re 100% sure no error will occur (risky!).</li>
+    <li>Always handle errors with <code>do-catch</code> or propagate them.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Proper error handling keeps your Swift code safe and user-friendly.
+  </div>
+
+</body>
+</html>
