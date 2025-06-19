@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swift Concurrency & Async/Await</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9fdf9;
+      color: #2a3a2a;
+    }
+
+    h1, h2 {
+      color: #2e7d32;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #222;
+      color: #a5d6a7;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #1b4d21;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1b4d21;
+      color: #a5d6a7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #d0e8d0;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2e7d32;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #1b4d21;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f0f8f0;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Swift Concurrency & Async/Await</h1>
+  <p>Swift’s concurrency model helps you write asynchronous code that’s readable and safe, letting tasks run in parallel without messy callback hell.</p>
+
+  <h2>📝 Basic Async Function</h2>
+  <textarea id="code1">
+func fetchUserData() async -> String {
+  // Simulate network delay
+  try? await Task.sleep(nanoseconds: 1_000_000_000)
+  return "User data loaded"
+}
+
+Task {
+  let data = await fetchUserData()
+  print(data)
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="output1">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("code1").value.trim();
+      const output = document.getElementById("output1");
+      if (code.includes("async") && code.includes("await") && code.includes("User data loaded")) {
+        output.textContent = "User data loaded";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🛠️ Task Groups for Concurrent Work</h2>
+  <textarea id="code2">
+Task {
+  await withTaskGroup(of: String.self) { group in
+    group.addTask { "Task 1 done" }
+    group.addTask { "Task 2 done" }
+
+    for await result in group {
+      print(result)
+    }
+  }
+}
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+
+  <div class="output" id="output2">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("code2").value.trim();
+      const output = document.getElementById("output2");
+      if (code.includes("withTaskGroup") && code.includes("Task 1 done") && code.includes("Task 2 done")) {
+        output.textContent = "Task 1 done\nTask 2 done";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔑 Why Use Swift Concurrency?</h2>
+  <ul>
+    <li>Cleaner async code with <code>async</code> and <code>await</code>.</li>
+    <li>Avoid callback hell and messy nested closures.</li>
+    <li>Use <code>Task</code> and task groups for parallelism.</li>
+    <li>Safe and efficient background execution.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always mark asynchronous functions with <code>async</code>, and use <code>await</code> when calling them to keep your code non-blocking!
+  </div>
+
+</body>
+</html>
