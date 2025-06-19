@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Java Exceptions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+    h1, h2 {
+      color: #ff5722;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e64a19;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ffd180;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #ffe0b2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff5722;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5d4037;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>☕ Java Exceptions</h1>
+  <p>Exceptions in Java are unexpected events that disrupt the flow of a program. Java handles these events with <code>try-catch</code> blocks.</p>
+
+  <h2>🖥️ Example: Basic Exception Handling</h2>
+  <textarea id="exceptionCode">
+public class Example {
+  public static void main(String[] args) {
+    try {
+      int result = 10 / 0;
+      System.out.println(result);
+    } catch (ArithmeticException e) {
+      System.out.println("Cannot divide by zero!");
+    }
+  }
+}</textarea>
+  <button onclick="runExceptionDemo()">▶️ Run Code</button>
+
+  <div class="output" id="exceptionOutput">Output will appear here...</div>
+
+  <script>
+    function runExceptionDemo() {
+      const code = document.getElementById("exceptionCode").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("exceptionOutput");
+      const expected = `public class Example {\n  public static void main(String[] args) {\n    try {\n      int result = 10 / 0;\n      System.out.println(result);\n    } catch (ArithmeticException e) {\n      System.out.println(\"Cannot divide by zero!\");\n    }\n  }\n}`;
+      if (code === expected) {
+        output.textContent = "Cannot divide by zero!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📝 Common Exception Types</h2>
+  <ul>
+    <li><strong>ArithmeticException</strong> - Division by zero</li>
+    <li><strong>NullPointerException</strong> - Accessing an object with a null reference</li>
+    <li><strong>ArrayIndexOutOfBoundsException</strong> - Invalid array index</li>
+    <li><strong>NumberFormatException</strong> - Invalid number conversion</li>
+    <li><strong>IOException</strong> - Input/output errors</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always handle exceptions gracefully to avoid program crashes!
+  </div>
+
+</body>
+</html>
