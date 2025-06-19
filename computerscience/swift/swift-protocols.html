@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swift Protocols & Extensions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9fdf9;
+      color: #2a3a2a;
+    }
+
+    h1, h2 {
+      color: #2e7d32;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #222;
+      color: #a5d6a7;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #1b4d21;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1b4d21;
+      color: #a5d6a7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #d0e8d0;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2e7d32;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #1b4d21;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f0f8f0;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧩 Swift Protocols & Extensions</h1>
+  <p>Protocols let you define a blueprint of methods and properties that a class, struct, or enum can adopt.</p>
+
+  <h2>📝 Defining and Using a Protocol</h2>
+  <textarea id="code1">
+protocol Drivable {
+  func drive()
+}
+
+class Car: Drivable {
+  func drive() {
+    print("Car is driving")
+  }
+}
+
+let myCar = Car()
+myCar.drive()
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="output1">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("code1").value.trim();
+      const output = document.getElementById("output1");
+      if (code.includes("protocol Drivable") && code.includes("Car") && code.includes("Car is driving")) {
+        output.textContent = "Car is driving";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔧 Protocol Extensions</h2>
+  <textarea id="code2">
+extension Drivable {
+  func drive() {
+    print("Default driving behavior")
+  }
+}
+
+class Bike: Drivable {}
+
+let myBike = Bike()
+myBike.drive()
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+
+  <div class="output" id="output2">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("code2").value.trim();
+      const output = document.getElementById("output2");
+      if (code.includes("extension Drivable") && code.includes("Bike") && code.includes("Default driving behavior")) {
+        output.textContent = "Default driving behavior";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>⚡ Why Use Protocols?</h2>
+  <ul>
+    <li>Define shared behavior without inheritance.</li>
+    <li>Enable multiple types to conform to the same protocol.</li>
+    <li>Protocol extensions provide default implementations.</li>
+    <li>Great for clean, flexible, and reusable code.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Protocols are key to Swift’s powerful and flexible type system. Use them to write modular code!
+  </div>
+
+</body>
+</html>
