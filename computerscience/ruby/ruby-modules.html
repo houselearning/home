@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ruby Modules Lesson</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1, h2 {
+      color: #c62828;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #c62828;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #a31010;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ff8a80;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+    }
+    .tip {
+      background-color: #ffeaea;
+      padding: 0.8rem 1rem;
+      border-left: 5px solid #c62828;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #7f0000;
+    }
+    code {
+      background: #f3f3f3;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💎 Ruby Modules</h1>
+  <p>Modules are a way to group related methods, constants, and classes together. They help organize your code and promote reusability.</p>
+
+  <h2>📦 Defining a Module</h2>
+  <p>Here's a simple module with a method inside it:</p>
+
+  <textarea id="codeArea1">
+module Greetings
+  def say_hello
+    puts "Hello from the module!"
+  end
+end
+
+class Person
+  include Greetings
+end
+
+person = Person.new
+person.say_hello</textarea>
+
+  <button onclick="runSim1()">▶️ Simulate Output</button>
+
+  <div class="output" id="output1">Output will appear here...</div>
+
+  <script>
+    function runSim1() {
+      const code = document.getElementById("codeArea1").value.trim();
+      const expected = `module Greetings\n  def say_hello\n    puts \"Hello from the module!\"\n  end\nend\n\nclass Person\n  include Greetings\nend\n\nperson = Person.new\nperson.say_hello`;
+      const output = document.getElementById("output1");
+      if (code === expected) {
+        output.textContent = "Hello from the module!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>include</code> to add module methods as instance methods, and <code>extend</code> for class methods.
+  </div>
+
+  <h2>📌 Module Constants</h2>
+  <p>You can also define constants inside modules:</p>
+  <pre><code>module Config
+  VERSION = "1.0.0"
+end
+
+puts Config::VERSION</code></pre>
+
+  <h2>📑 Summary</h2>
+  <ul>
+    <li><code>module</code> defines a module block.</li>
+    <li><code>include</code> mixes module methods as instance methods.</li>
+    <li><code>extend</code> makes module methods class-level methods.</li>
+    <li>Modules can hold constants, methods, and even other modules.</li>
+  </ul>
+
+</body>
+</html>
