@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Java File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+    h1, h2 {
+      color: #ff6f00;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff6f00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #e65100;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ffcc80;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #fff3e0;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff6f00;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #e65100;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 Java File I/O (Input/Output)</h1>
+  <p>File I/O lets you read data from files and write data to files. Java provides several classes in the <code>java.io</code> and <code>java.nio</code> packages for this.</p>
+
+  <h2>📝 Example: Writing to a File</h2>
+  <textarea id="writeCode">
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class WriteExample {
+    public static void main(String[] args) {
+        try {
+            FileWriter writer = new FileWriter("output.txt");
+            writer.write("Hello World!\nThis is written to a file.");
+            writer.close();
+            System.out.println("Successfully wrote to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+}
+  </textarea>
+  <button onclick="simulateWrite()">▶️ Simulate Write</button>
+
+  <div class="output" id="writeOutput">Output will appear here...</div>
+
+  <script>
+    function simulateWrite() {
+      const output = document.getElementById("writeOutput");
+      output.textContent = "Successfully wrote to the file.";
+    }
+  </script>
+
+  <h2>📖 Example: Reading from a File</h2>
+  <textarea id="readCode">
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class ReadExample {
+    public static void main(String[] args) {
+        try {
+            File file = new File("output.txt");
+            Scanner reader = new Scanner(file);
+            while (reader.hasNextLine()) {
+                String data = reader.nextLine();
+                System.out.println(data);
+            }
+            reader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found.");
+            e.printStackTrace();
+        }
+    }
+}
+  </textarea>
+  <button onclick="simulateRead()">▶️ Simulate Read</button>
+
+  <div class="output" id="readOutput">Output will appear here...</div>
+
+  <script>
+    function simulateRead() {
+      const output = document.getElementById("readOutput");
+      output.textContent = "Hello World!\nThis is written to a file.";
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always close your file readers and writers to avoid resource leaks.
+  </div>
+
+</body>
+</html>
