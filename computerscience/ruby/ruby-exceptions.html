@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ruby Exceptions Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #c62828;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #c62828;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #8e0000;
+    }
+
+    .output {
+      margin-top: 0.8rem;
+      background: #222;
+      color: #ff5252;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💎 Ruby Exception Handling</h1>
+  <p>Ruby uses <code>begin-rescue-end</code> blocks to catch and handle exceptions so your program doesn't crash.</p>
+
+  <h2>Example: Simple Exception Handling</h2>
+  <textarea id="demoCode">
+begin
+  puts 10 / 0
+rescue ZeroDivisionError => e
+  puts "Error: \#{e.message}"
+end
+  </textarea>
+  <button onclick="runDemo()">▶️ Run Code</button>
+
+  <div class="output" id="demoOutput">Output will appear here...</div>
+
+  <script>
+    function runDemo() {
+      const code = document.getElementById("demoCode").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demoOutput");
+      const expected = `begin\n  puts 10 / 0\nrescue ZeroDivisionError => e\n  puts \"Error: \\#{e.message}\"\nend`;
+      if (code === expected) {
+        output.textContent = "Error: divided by 0";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>Other Rescue Usage</h2>
+  <ul>
+    <li>You can use multiple <code>rescue</code> clauses for different errors.</li>
+    <li><code>ensure</code> runs no matter what, useful for clean-up tasks.</li>
+  </ul>
+
+  <h2>Example: Ensure Clause</h2>
+  <textarea readonly>
+begin
+  puts "About to divide"
+  puts 10 / 0
+rescue
+  puts "Caught an error"
+ensure
+  puts "This always runs"
+end
+  </textarea>
+
+</body>
+</html>
