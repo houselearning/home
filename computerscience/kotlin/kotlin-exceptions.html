@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kotlin Exceptions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #a25ddc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #a25ddc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #7a3bb3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ba91f7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #f0e6ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #a25ddc;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5e2c87;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚨 Kotlin Exceptions</h1>
+  <p>Exceptions let you handle errors gracefully in your Kotlin programs. Use <code>try</code>, <code>catch</code>, and <code>finally</code> blocks to manage error-prone code.</p>
+
+  <h2>📝 Basic Try-Catch Example</h2>
+  <textarea id="demo1Code">
+fun main() {
+    try {
+        val number = "abc".toInt()
+        println(number)
+    } catch (e: NumberFormatException) {
+        println("Error: Not a valid number")
+    } finally {
+        println("Done trying.")
+    }
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo1Output");
+      const expected = `fun main() {
+    try {
+        val number = "abc".toInt()
+        println(number)
+    } catch (e: NumberFormatException) {
+        println("Error: Not a valid number")
+    } finally {
+        println("Done trying.")
+    }
+}`;
+      if (code === expected) {
+        output.textContent = `Error: Not a valid number
+Done trying.`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📝 Throwing Exceptions</h2>
+  <textarea id="demo2Code">
+fun divide(a: Int, b: Int): Int {
+    if (b == 0) {
+        throw IllegalArgumentException("Divider can't be zero")
+    }
+    return a / b
+}
+
+fun main() {
+    try {
+        println(divide(10, 0))
+    } catch (e: IllegalArgumentException) {
+        println("Caught exception: " + e.message)
+    }
+}
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+
+  <div class="output" id="demo2Output">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("demo2Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo2Output");
+      const expected = `fun divide(a: Int, b: Int): Int {
+    if (b == 0) {
+        throw IllegalArgumentException("Divider can't be zero")
+    }
+    return a / b
+}
+
+fun main() {
+    try {
+        println(divide(10, 0))
+    } catch (e: IllegalArgumentException) {
+        println("Caught exception: " + e.message)
+    }
+}`;
+      if (code === expected) {
+        output.textContent = `Caught exception: Divider can't be zero`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>finally</code> for code that must run regardless of exceptions, like closing files or releasing resources.
+  </div>
+
+</body>
+</html>
