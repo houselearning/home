@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Go File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0faff;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #00ADD8;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00ADD8;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #008bb0;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a5d6a7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e0f8ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00ADD8;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #005f73;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 Go File I/O</h1>
+  <p>Go’s <code>os</code> and <code>io/ioutil</code> packages provide simple ways to read from and write to files.</p>
+
+  <h2>📝 Example: Writing and Reading a File</h2>
+  <textarea id="demo1Code">
+package main
+
+import (
+    "fmt"
+    "io/ioutil"
+    "os"
+)
+
+func main() {
+    // Write a string to a file
+    message := []byte("Hello, Go file I/O!")
+    err := ioutil.WriteFile("example.txt", message, 0644)
+    if err != nil {
+        fmt.Println("Error writing file:", err)
+        return
+    }
+
+    // Read the content back
+    content, err := ioutil.ReadFile("example.txt")
+    if err != nil {
+        fmt.Println("Error reading file:", err)
+        return
+    }
+
+    fmt.Println(string(content))
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo1Output");
+      const expected = `package main\n\nimport (\n    "fmt"\n    "io/ioutil"\n    "os"\n)\n\nfunc main() {\n    // Write a string to a file\n    message := []byte("Hello, Go file I/O!")\n    err := ioutil.WriteFile("example.txt", message, 0644)\n    if err != nil {\n        fmt.Println("Error writing file:", err)\n        return\n    }\n\n    // Read the content back\n    content, err := ioutil.ReadFile("example.txt")\n    if err != nil {\n        fmt.Println("Error reading file:", err)\n        return\n    }\n\n    fmt.Println(string(content))\n}`;
+      if (code === expected) {
+        output.textContent = "Hello, Go file I/O!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Points</h2>
+  <ul>
+    <li><code>ioutil.WriteFile</code> writes bytes to a file, creating it if it doesn’t exist.</li>
+    <li>File permission <code>0644</code> means read/write owner, read-only others.</li>
+    <li><code>ioutil.ReadFile</code> reads entire file content as bytes.</li>
+    <li>Always check for errors when reading/writing files.</li>
+    <li>For more complex file handling, use the <code>os</code> package.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Go 1.16 deprecated <code>ioutil</code>, so you can also use <code>os.WriteFile</code> and <code>os.ReadFile</code> in newer versions.
+  </div>
+
+</body>
+</html>
