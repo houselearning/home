@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Go Goroutines & Channels</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0faff;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #00ADD8;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00ADD8;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #008bb0;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a5d6a7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e0f8ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00ADD8;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #005f73;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Go Goroutines & Channels</h1>
+  <p>Goroutines let you run functions concurrently, and channels let goroutines communicate safely.</p>
+
+  <h2>📝 Example: Basic Goroutine and Channel</h2>
+  <textarea id="demo1Code">
+package main
+
+import (
+  "fmt"
+  "time"
+)
+
+func worker(ch chan string) {
+  time.Sleep(1 * time.Second)
+  ch <- "Work done!"
+}
+
+func main() {
+  ch := make(chan string)
+  go worker(ch)
+  msg := <-ch
+  fmt.Println(msg)
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+      const output = document.getElementById("demo1Output");
+      const expected = `package main\n\nimport (\n  "fmt"\n  "time"\n)\n\nfunc worker(ch chan string) {\n  time.Sleep(1 * time.Second)\n  ch <- "Work done!"\n}\n\nfunc main() {\n  ch := make(chan string)\n  go worker(ch)\n  msg := <-ch\n  fmt.Println(msg)\n}`;
+      if (code === expected) {
+        output.textContent = "Work done!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Points</h2>
+  <ul>
+    <li>A <code>goroutine</code> runs a function concurrently using the <code>go</code> keyword.</li>
+    <li><code>channels</code> are typed pipes for communication between goroutines.</li>
+    <li>Send data with <code>ch &lt;- value</code> and receive with <code>value := &lt;-ch</code>.</li>
+    <li>Channels help avoid race conditions by synchronizing access.</li>
+    <li>Use <code>make(chan type)</code> to create a channel.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Goroutines are super lightweight threads. Use channels to coordinate them instead of shared memory.
+  </div>
+
+</body>
+</html>
