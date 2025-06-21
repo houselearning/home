@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeScript Tooling & tsconfig.json</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    pre {
+      background: #f4f8ff;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      color: #3178C6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e7ff;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      color: #1a237e;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Tooling & <code>tsconfig.json</code></h1>
+  <p>TypeScript's tooling helps you configure the compiler and your project via <code>tsconfig.json</code>, so your code compiles exactly how you want it.</p>
+
+  <h2>📁 What is <code>tsconfig.json</code>?</h2>
+  <p>This file tells the TypeScript compiler (tsc) how to compile your project — what files to include, target JavaScript version, module system, and more.</p>
+
+  <h2>📝 Sample <code>tsconfig.json</code></h2>
+  <textarea id="tsconfigCode" readonly>
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "sourceMap": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
+  </textarea>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Run <code>tsc --init</code> to auto-generate a <code>tsconfig.json</code> with defaults.
+  </div>
+
+  <h2>🔧 Key Compiler Options</h2>
+  <ul>
+    <li><code>target</code>: JavaScript version output (ES5, ES6/ES2015, ESNext, etc.)</li>
+    <li><code>module</code>: Module system (CommonJS, ESNext, AMD, etc.)</li>
+    <li><code>strict</code>: Enables strict type-checking options (recommended)</li>
+    <li><code>outDir</code>: Output directory for compiled JS files</li>
+    <li><code>rootDir</code>: Directory containing source TS files</li>
+    <li><code>esModuleInterop</code>: Enables compatibility for importing CommonJS modules</li>
+    <li><code>sourceMap</code>: Generates source maps for debugging</li>
+  </ul>
+
+  <h2>📦 Quick Usage</h2>
+  <pre>
+# Initialize tsconfig.json
+tsc --init
+
+# Compile your project based on tsconfig.json
+tsc
+
+# Compile and watch for changes
+tsc --watch
+  </pre>
+
+  <h2>🔍 Integrating with Node.js and Bundlers</h2>
+  <p>Use <code>esModuleInterop</code> and <code>module</code> options for smooth interop with Node.js and bundlers like Webpack or Rollup.</p>
+
+  <h2>📂 Folder Structure Example</h2>
+  <pre>
+my-project/
+├── src/
+│   └── index.ts
+├── dist/
+│   └── index.js
+├── tsconfig.json
+└── package.json
+  </pre>
+
+</body>
+</html>
