@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TypeScript Generics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Generics</h1>
+  <p>Generics make your code more flexible by allowing it to work with any type while preserving type safety. Think of them as "type variables" you can reuse in classes, functions, and interfaces.</p>
+
+  <h2>📚 Example Code: Generic Function</h2>
+  <textarea id="tsGenericsCode">
+function identity<T>(value: T): T {
+  return value;
+}
+
+console.log(identity<string>("Hello"));
+console.log(identity<number>(42));
+  </textarea>
+  <button onclick="simulateTsGenerics()">▶️ Simulate Output</button>
+
+  <div class="output" id="genericsOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateTsGenerics() {
+      const code = document.getElementById("tsGenericsCode").value;
+      const output = document.getElementById("genericsOutput");
+
+      if (code.includes('identity<T>(value: T): T') &&
+          code.includes('console.log(identity<string>("Hello"))') &&
+          code.includes('console.log(identity<number>(42))')) {
+        output.innerText = "Hello\n42";
+      } else {
+        output.innerText = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Use angle brackets <code>&lt;T&gt;</code> to declare a generic type. It can be named anything — <code>T</code>, <code>U</code>, <code>ItemType</code>, etc.
+  </div>
+
+  <h2>🔧 Generic Function Syntax</h2>
+  <ul>
+    <li><code>&lt;T&gt;</code> defines a type placeholder</li>
+    <li>When calling the function, you can explicitly specify the type like <code>identity&lt;string&gt;("text")</code>, or let TypeScript infer it</li>
+    <li>Generics maintain type safety while allowing flexibility</li>
+  </ul>
+
+  <h2>📦 Generic Classes Example</h2>
+  <pre>
+class Box<T> {
+  value: T;
+  constructor(value: T) {
+    this.value = value;
+  }
+  getValue(): T {
+    return this.value;
+  }
+}
+
+const numberBox = new Box<number>(123);
+console.log(numberBox.getValue());
+  </pre>
+
+  <div class="tip">
+    ⚡ You can use generics in functions, classes, and interfaces for reusable, strongly-typed code.
+  </div>
+
+</body>
+</html>
