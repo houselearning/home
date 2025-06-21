@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PHP File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f5ff;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #8892be;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #8892be;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #6d75a3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #d1c4e9;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #eae6f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #8892be;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5e5e8a;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐘 PHP File I/O (Read & Write Files)</h1>
+  <p>PHP lets you read from and write to files on your server — super useful for saving data, logs, or config info.</p>
+
+  <h2>📝 Example: Write & Read a File</h2>
+  <textarea id="demoFileIOCode">
+<?php
+  $filename = "example.txt";
+
+  // Write to the file
+  file_put_contents($filename, "Hello from PHP File I/O!\n");
+
+  // Read the file content
+  $content = file_get_contents($filename);
+
+  echo $content;
+?>
+  </textarea>
+  <button onclick="runDemoFileIO()">▶️ Simulate Output</button>
+
+  <div class="output" id="demoFileIOOutput">Output will appear here...</div>
+
+  <script>
+    function runDemoFileIO() {
+      const code = document.getElementById("demoFileIOCode").value.trim().replace(/\r\n/g,'\n');
+      const expected = `<?php\n  $filename = \"example.txt\";\n\n  // Write to the file\n  file_put_contents($filename, \"Hello from PHP File I/O!\\n\");\n\n  // Read the file content\n  $content = file_get_contents($filename);\n\n  echo $content;\n?>`;
+      const output = document.getElementById("demoFileIOOutput");
+      if (code === expected) {
+        output.textContent = "Hello from PHP File I/O!\n";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key File I/O Functions</h2>
+  <ul>
+    <li><code>file_put_contents()</code> — Write a string to a file (creates or overwrites).</li>
+    <li><code>file_get_contents()</code> — Read the entire contents of a file into a string.</li>
+    <li><code>fopen()</code>, <code>fwrite()</code>, <code>fread()</code>, and <code>fclose()</code> — More granular control for reading/writing files.</li>
+    <li>Always handle file permissions and errors in real projects.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> File paths are relative to your script location or can be absolute paths on your server.
+  </div>
+
+</body>
+</html>
