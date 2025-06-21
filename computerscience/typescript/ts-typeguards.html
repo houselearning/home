@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeScript Type Guards</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    pre {
+      background: #f4f8ff;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      color: #3178C6;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Type Guards</h1>
+  <p>Type Guards help you safely narrow down types in conditional blocks, so TypeScript knows exactly what you're working with.</p>
+
+  <h2>📚 Example Code: Using Type Guards</h2>
+  <textarea id="tsTypeGuardsCode">
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function printValue(value: string | number) {
+  if (isString(value)) {
+    console.log("String:", value.toUpperCase());
+  } else {
+    console.log("Number:", value.toFixed(2));
+  }
+}
+
+printValue("hello");
+printValue(123);
+  </textarea>
+  <button onclick="simulateTypeGuards()">▶️ Simulate Output</button>
+
+  <div class="output" id="typeGuardsOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateTypeGuards() {
+      const code = document.getElementById("tsTypeGuardsCode").value;
+      const output = document.getElementById("typeGuardsOutput");
+
+      if (code.includes("function isString") &&
+          code.includes("printValue(\"hello\")") &&
+          code.includes("printValue(123)")) {
+        output.textContent = "String: HELLO\nNumber: 123.00";
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Custom type guard functions use the syntax <code>value is Type</code> to tell TypeScript about type narrowing.
+  </div>
+
+  <h2>🔧 Key Points</h2>
+  <ul>
+    <li>Type Guards narrow union types within conditionals.</li>
+    <li>Use <code>typeof</code>, <code>instanceof</code>, or custom type guard functions.</li>
+    <li>Custom guards have return type <code>paramName is Type</code>.</li>
+  </ul>
+
+  <h2>📦 Example: instanceof Type Guard</h2>
+  <pre>
+class Dog {
+  bark() {
+    console.log("Woof!");
+  }
+}
+
+class Cat {
+  meow() {
+    console.log("Meow!");
+  }
+}
+
+function speak(animal: Dog | Cat) {
+  if (animal instanceof Dog) {
+    animal.bark();
+  } else {
+    animal.meow();
+  }
+}
+
+speak(new Dog());
+speak(new Cat());
+  </pre>
+
+</body>
+</html>
