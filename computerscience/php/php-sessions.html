@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PHP Sessions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f5ff;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #8892be;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #8892be;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #6d75a3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #d1c4e9;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #eae6f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #8892be;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5e5e8a;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐘 PHP Sessions</h1>
+  <p>Sessions let you store data on the server tied to a user’s browser — perfect for logins, carts, or keeping state.</p>
+
+  <h2>📝 Example: Starting & Using a Session</h2>
+  <textarea id="phpSessionCode">
+<?php
+  session_start();
+
+  if (!isset($_SESSION['visits'])) {
+    $_SESSION['visits'] = 1;
+  } else {
+    $_SESSION['visits']++;
+  }
+
+  echo "You have visited this page " . $_SESSION['visits'] . " times.";
+?>
+  </textarea>
+  <button onclick="runPhpSession()">▶️ Simulate Output</button>
+
+  <div class="output" id="phpSessionOutput">Output will appear here...</div>
+
+  <script>
+    let visitCount = 0;
+    function runPhpSession() {
+      const code = document.getElementById("phpSessionCode").value.trim().replace(/\r\n/g,'\n');
+      const expected = `<?php\n  session_start();\n\n  if (!isset($_SESSION['visits'])) {\n    $_SESSION['visits'] = 1;\n  } else {\n    $_SESSION['visits']++;\n  }\n\n  echo "You have visited this page " . $_SESSION['visits'] . " times.";\n?>`;
+      const output = document.getElementById("phpSessionOutput");
+
+      // Simulate session visits count persisting in this browser session
+      if (code === expected) {
+        visitCount++;
+        output.textContent = `You have visited this page ${visitCount} times.`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Session Concepts</h2>
+  <ul>
+    <li>Always call <code>session_start()</code> before any HTML output to use sessions.</li>
+    <li><code>$_SESSION</code> is a superglobal array to store session data.</li>
+    <li>Session data persists across page reloads for the same user.</li>
+    <li>Sessions are stored on the server; the browser holds only a session ID cookie.</li>
+    <li>Use sessions for user login states, carts, preferences, and more.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Remember to <code>session_destroy()</code> to log users out or clear session data when done.
+  </div>
+
+</body>
+</html>
