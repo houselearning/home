@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PHP Security Basics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f5ff;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #8892be;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #8892be;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #6d75a3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #d1c4e9;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #eae6f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #8892be;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5e5e8a;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐘 PHP Security Basics</h1>
+  <p>Security in PHP isn’t optional. Here’s the lowdown on protecting your apps from common attacks and leaks.</p>
+
+  <h2>📝 Example: Sanitizing User Input</h2>
+  <textarea id="phpSecurityCode">
+<?php
+  $username = $_POST['username'] ?? '';
+  // Remove tags and encode special chars to avoid XSS
+  $safe_username = htmlspecialchars(strip_tags($username));
+
+  echo "Welcome, " . $safe_username;
+?>
+  </textarea>
+  <button onclick="runPhpSecurity()">▶️ Simulate Output</button>
+
+  <div class="output" id="phpSecurityOutput">Output will appear here...</div>
+
+  <script>
+    function runPhpSecurity() {
+      const code = document.getElementById("phpSecurityCode").value.trim().replace(/\r\n/g,'\n');
+      const expected = `<?php\n  $username = \$_POST['username'] ?? '';\n  // Remove tags and encode special chars to avoid XSS\n  $safe_username = htmlspecialchars(strip_tags($username));\n\n  echo "Welcome, " . $safe_username;\n?>`;
+      const output = document.getElementById("phpSecurityOutput");
+      if (code === expected) {
+        output.textContent = "Welcome, <script>alert('Hacked!');</sc" + "ript>";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Security Tips</h2>
+  <ul>
+    <li><strong>Sanitize user input</strong> with <code>htmlspecialchars()</code> and <code>strip_tags()</code> to prevent XSS.</li>
+    <li><strong>Use prepared statements</strong> for database queries to avoid SQL injection.</li>
+    <li><strong>Never store plain passwords</strong> — always hash with <code>password_hash()</code> and verify with <code>password_verify()</code>.</li>
+    <li><strong>Validate all inputs</strong> on server-side, never trust client-side only.</li>
+    <li><strong>Use HTTPS</strong> to encrypt data in transit.</li>
+    <li><strong>Set proper file permissions</strong> so no one can access sensitive files directly.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Security is a mindset. Always assume users will try to break your app — then make it bulletproof.
+  </div>
+
+</body>
+</html>
