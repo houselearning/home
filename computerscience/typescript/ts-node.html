@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeScript in Node.js</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #eef6fb;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #007acc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #a8d1ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005a9e;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7fdbff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #d6eaff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #007acc;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #004a75;
+    }
+
+    ul {
+      background: #f0f9ff;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-left: 2rem;
+      color: #004a75;
+    }
+
+    code {
+      background: #cce7ff;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      color: #003a58;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript in Node.js</h1>
+  <p>Use TypeScript with Node.js to write typed, modern JavaScript server-side code that runs perfectly on Node’s runtime.</p>
+
+  <h2>⚙️ Setup</h2>
+  <ul>
+    <li>Install Node.js (v14+ recommended): <a href="https://nodejs.org" target="_blank" rel="noopener noreferrer">nodejs.org</a></li>
+    <li>Initialize project: <code>npm init -y</code></li>
+    <li>Install TypeScript & Node types: <code>npm install typescript @types/node --save-dev</code></li>
+    <li>Create <code>tsconfig.json</code> with <code>npx tsc --init</code></li>
+  </ul>
+
+  <h2>📝 Example: Hello World Server</h2>
+  <textarea id="tsNodeCode">
+import http from "http";
+
+const PORT: number = 3000;
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/plain");
+  res.end("Hello from TypeScript on Node.js!");
+});
+
+server.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}/`);
+});
+  </textarea>
+
+  <button onclick="simulateTSNode()">▶️ Simulate Run</button>
+
+  <div class="output" id="tsNodeOutput">Output will appear here...</div>
+
+  <script>
+    function simulateTSNode() {
+      const code = document.getElementById("tsNodeCode").value;
+      const output = document.getElementById("tsNodeOutput");
+
+      if (
+        code.includes("http.createServer") &&
+        code.includes("res.end") &&
+        code.includes("server.listen")
+      ) {
+        output.textContent =
+`Server running at http://localhost:3000/
+
+Server Connection @ localhost:3000`
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>npx tsc</code> to compile your TypeScript files to JavaScript, then run <code>node dist/index.js</code> (or wherever your compiled files are).
+  </div>
+
+  <h2>🔧 How to Run This Locally</h2>
+  <ul>
+    <li>Write your TypeScript in <code>src/index.ts</code></li>
+    <li>Compile with <code>npx tsc</code></li>
+    <li>Run compiled JS with <code>node dist/index.js</code></li>
+    <li>Use <code>ts-node</code> for dev convenience (<code>npm install -D ts-node</code>) to run TS directly</li>
+  </ul>
+
+  <h2>🚀 Why Use TypeScript with Node.js?</h2>
+  <ul>
+    <li>Static typing catches bugs before runtime</li>
+    <li>Better editor autocompletion & intellisense</li>
+    <li>Modern JS features with ES modules, async/await, etc.</li>
+    <li>Large ecosystem with type definitions via DefinitelyTyped</li>
+  </ul>
+
+</body>
+</html>
