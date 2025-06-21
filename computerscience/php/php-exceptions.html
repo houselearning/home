@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PHP Exceptions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f5ff;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #8892be;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #8892be;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #6d75a3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #d1c4e9;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #eae6f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #8892be;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5e5e8a;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐘 PHP Exceptions</h1>
+  <p>Exceptions let you handle errors gracefully and keep your app from crashing. You <code>try</code> risky code, and <code>catch</code> errors to respond properly.</p>
+
+  <h2>📝 Example: Try-Catch Exception Handling</h2>
+  <textarea id="demoExceptionCode">
+<?php
+  try {
+    if (!file_exists("somefile.txt")) {
+      throw new Exception("File not found!");
+    }
+    $content = file_get_contents("somefile.txt");
+    echo $content;
+  } catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+  }
+?>
+  </textarea>
+  <button onclick="runDemoException()">▶️ Simulate Output</button>
+
+  <div class="output" id="demoExceptionOutput">Output will appear here...</div>
+
+  <script>
+    function runDemoException() {
+      const code = document.getElementById("demoExceptionCode").value.trim().replace(/\r\n/g,'\n');
+      const expected = `<?php\n  try {\n    if (!file_exists("somefile.txt")) {\n      throw new Exception("File not found!");\n    }\n    $content = file_get_contents("somefile.txt");\n    echo $content;\n  } catch (Exception $e) {\n    echo "Error: " . $e->getMessage();\n  }\n?>`;
+      const output = document.getElementById("demoExceptionOutput");
+      if (code === expected) {
+        output.textContent = "Error: File not found!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Exception Concepts</h2>
+  <ul>
+    <li><code>try</code> block contains code that might throw an exception.</li>
+    <li><code>throw</code> keyword raises an exception manually.</li>
+    <li><code>catch</code> block handles the exception and prevents crashes.</li>
+    <li><code>Exception</code> objects carry error messages you can access with <code>getMessage()</code>.</li>
+    <li>You can have multiple <code>catch</code> blocks for different exception types.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use exceptions to make your code more robust and easier to debug instead of relying only on error codes or warnings.
+  </div>
+
+</body>
+</html>
