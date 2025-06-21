@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeScript Enums</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    pre {
+      background: #f4f8ff;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      color: #3178C6;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Enums</h1>
+  <p>Enums let you define a set of named constants, making your code more readable and manageable.</p>
+
+  <h2>📚 Example Code: Basic Enum</h2>
+  <textarea id="tsEnumsCode">
+enum Direction {
+  Up,
+  Down,
+  Left,
+  Right
+}
+
+function move(dir: Direction) {
+  switch(dir) {
+    case Direction.Up: return "Moving Up";
+    case Direction.Down: return "Moving Down";
+    case Direction.Left: return "Moving Left";
+    case Direction.Right: return "Moving Right";
+  }
+}
+
+console.log(move(Direction.Up));
+console.log(move(Direction.Left));
+  </textarea>
+  <button onclick="simulateTsEnums()">▶️ Simulate Output</button>
+
+  <div class="output" id="enumOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateTsEnums() {
+      const code = document.getElementById("tsEnumsCode").value;
+      const output = document.getElementById("enumOutput");
+
+      if (code.includes("enum Direction") &&
+          code.includes("move(Direction.Up)") &&
+          code.includes("move(Direction.Left)")) {
+        output.textContent = "Moving Up\nMoving Left";
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Enums can be numeric (default starting at 0) or string-based (explicit values). Use them to improve clarity in your code.
+  </div>
+
+  <h2>🔧 Enum Variants</h2>
+  <ul>
+    <li><strong>Numeric Enums</strong>: default starts at 0, auto-incremented.</li>
+    <li><strong>String Enums</strong>: assign explicit string values.</li>
+  </ul>
+
+  <pre>
+// Numeric enum (default)
+enum Status {
+  Ready,
+  Waiting,
+  Complete
+}
+
+// String enum
+enum Color {
+  Red = "RED",
+  Green = "GREEN",
+  Blue = "BLUE"
+}
+  </pre>
+
+</body>
+</html>
