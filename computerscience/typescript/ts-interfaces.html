@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TypeScript Interfaces</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Interfaces</h1>
+  <p>An <strong>interface</strong> in TypeScript defines the shape of an object — the properties and their types — without creating actual implementation.</p>
+
+  <h2>📚 Example Code: Defining & Using an Interface</h2>
+  <textarea id="tsInterfaceCode">
+interface User {
+  name: string;
+  age: number;
+  isActive: boolean;
+}
+
+const user1: User = {
+  name: "Alex",
+  age: 21,
+  isActive: true
+};
+
+console.log(user1.name);
+  </textarea>
+  <button onclick="simulateTsInterface()">▶️ Run Code</button>
+
+  <div class="output" id="interfaceOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateTsInterface() {
+      const code = document.getElementById("tsInterfaceCode").value;
+      const output = document.getElementById("interfaceOutput");
+
+      if (code.includes('interface User') &&
+          code.includes('const user1: User =') &&
+          code.includes('console.log(user1.name);')) {
+        output.innerText = "Alex";
+      } else {
+        output.innerText = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Interfaces are purely for type-checking at compile time — they don’t exist in the compiled JavaScript.
+  </div>
+
+  <h2>🔧 Interface Syntax</h2>
+  <ul>
+    <li>Use <code>interface</code> to declare a contract for object shapes</li>
+    <li>Interfaces can be extended (inherit) from others</li>
+    <li>They can be used to type variables, function parameters, or return values</li>
+  </ul>
+
+  <h2>📑 Extending Interfaces</h2>
+  <pre>
+interface Admin extends User {
+  role: string;
+}
+
+const admin1: Admin = {
+  name: "Jamie",
+  age: 30,
+  isActive: true,
+  role: "Moderator"
+};
+  </pre>
+
+  <div class="tip">
+    ⚡ Interfaces are perfect for structuring data models and making your TypeScript code safer and scalable.
+  </div>
+
+</body>
+</html>
