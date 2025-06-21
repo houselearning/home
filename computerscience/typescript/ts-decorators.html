@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeScript Decorators</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    pre {
+      background: #f4f8ff;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      color: #3178C6;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Decorators</h1>
+  <p>Decorators let you add metadata or modify classes, methods, and properties dynamically — a powerful feature for clean, reusable code.</p>
+
+  <h2>📚 Example Code: Class Decorator</h2>
+  <textarea id="tsDecoratorsCode">
+function sealed(constructor: Function) {
+  Object.seal(constructor);
+  Object.seal(constructor.prototype);
+}
+
+@sealed
+class Greeter {
+  greeting: string;
+  constructor(message: string) {
+    this.greeting = message;
+  }
+  greet() {
+    return "Hello, " + this.greeting;
+  }
+}
+
+const greeter = new Greeter("World");
+console.log(greeter.greet());
+  </textarea>
+  <button onclick="simulateDecorators()">▶️ Simulate Output</button>
+
+  <div class="output" id="decoratorsOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateDecorators() {
+      const code = document.getElementById("tsDecoratorsCode").value;
+      const output = document.getElementById("decoratorsOutput");
+
+      if (code.includes("@sealed") &&
+          code.includes("class Greeter") &&
+          code.includes("console.log(greeter.greet())")) {
+        output.textContent = "Hello, World";
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Enable <code>experimentalDecorators</code> in your <code>tsconfig.json</code> to use decorators.
+  </div>
+
+  <h2>🔧 Decorator Types</h2>
+  <ul>
+    <li><strong>Class decorators</strong> — modify or replace a class constructor</li>
+    <li><strong>Method decorators</strong> — modify method behavior or metadata</li>
+    <li><strong>Property decorators</strong> — observe or modify property definitions</li>
+    <li><strong>Parameter decorators</strong> — inspect parameters of methods</li>
+  </ul>
+
+  <h2>📦 Example: Method Decorator</h2>
+  <pre>
+function log(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  descriptor.value = function (...args: any[]) {
+    console.log(`Calling ${propertyKey} with`, args);
+    const result = originalMethod.apply(this, args);
+    console.log(`Result:`, result);
+    return result;
+  };
+  return descriptor;
+}
+
+class Calculator {
+  @log
+  add(x: number, y: number) {
+    return x + y;
+  }
+}
+
+const calc = new Calculator();
+calc.add(5, 3);
+  </pre>
+
+</body>
+</html>
