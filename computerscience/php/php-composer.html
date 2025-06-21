@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PHP Composer Basics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f5ff;
+      color: #333;
+    }
+    h1, h2 {
+      color: #8892be;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #8892be;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #6d75a3;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #d1c4e9;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #eae6f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #8892be;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5e5e8a;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐘 PHP Composer Basics</h1>
+  <p>Composer is the go-to dependency manager for PHP. It handles libraries and autoloading for you.</p>
+
+  <h2>📝 Example: composer.json File</h2>
+  <textarea id="composerCode">
+{
+  "require": {
+    "monolog/monolog": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "MyApp\\": "src/"
+    }
+  }
+}
+  </textarea>
+  <button onclick="runComposerSim()">▶️ Simulate Composer Output</button>
+
+  <div class="output" id="composerOutput">Output will appear here...</div>
+
+  <script>
+    function runComposerSim() {
+      const code = document.getElementById("composerCode").value.trim();
+      const expected = `{
+  "require": {
+    "monolog/monolog": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "MyApp\\\\": "src/"
+    }
+  }
+}`;
+      const output = document.getElementById("composerOutput");
+      if (code === expected) {
+        output.textContent = `Loading composer repositories with package information...
+Updating dependencies
+  - Installing monolog/monolog (3.0.x)`;
+
+        // Wait 1 second, then add the rest
+        setTimeout(() => {
+          output.textContent += `
+Generating autoload files
+Done!`;
+        }, 1000);
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Composer Concepts</h2>
+  <ul>
+    <li>The <code>composer.json</code> file declares your project dependencies and autoload rules.</li>
+    <li>Run <code>composer install</code> to download and set up dependencies.</li>
+    <li>Autoloading follows PSR-4 standards, letting you load classes without manual requires.</li>
+    <li>Use <code>composer update</code> to update packages.</li>
+    <li>Composer handles version constraints, so your dependencies stay stable.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always commit your <code>composer.json</code> and <code>composer.lock</code> files to version control, but ignore the <code>vendor/</code> folder.
+  </div>
+
+</body>
+</html>
