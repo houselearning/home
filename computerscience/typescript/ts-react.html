@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeScript + React</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 340px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    /* We'll add a special style for rendered output */
+    .rendered-output {
+      white-space: normal;
+      font-family: "Segoe UI", sans-serif;
+      color: #222;
+      background: #e6f1fb;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 140px;
+      font-size: 1.1rem;
+      line-height: 1.4;
+      box-shadow: 0 0 10px #3178C6aa;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    pre {
+      background: #f4f8ff;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      color: #3178C6;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚛️ TypeScript + React Basics</h1>
+  <p>Combine TypeScript’s type safety with React’s component-based UI power to build scalable, maintainable web apps.</p>
+
+  <h2>📚 Example Code: Simple Functional Component with Props</h2>
+  <textarea id="tsReactCode">
+import React from "react";
+
+interface GreetingProps {
+  name: string;
+  age?: number; // optional
+}
+
+const Greeting: React.FC<GreetingProps> = ({ name, age }) => {
+  return (
+    &lt;div&gt;
+      &lt;h2&gt;Hello, {name}!&lt;/h2&gt;
+      {age && &lt;p&gt;You are {age} years old.&lt;/p&gt;}
+    &lt;/div&gt;
+  );
+};
+
+export default Greeting;
+  </textarea>
+  <button onclick="simulateTSReact()">▶️ Simulate Output</button>
+
+  <div id="tsReactOutput" class="output">Output will appear here...</div>
+
+  <script>
+    function simulateTSReact() {
+      const code = document.getElementById("tsReactCode").value;
+      const output = document.getElementById("tsReactOutput");
+
+      if (code.includes("GreetingProps") && code.includes("React.FC")) {
+        // Render actual HTML simulating the React component output:
+        output.className = "rendered-output";
+        output.innerHTML = `
+          <div>
+            <h2>Hello, Alex!</h2>
+            <p>You are 25 years old.</p>
+          </div>
+        `;
+      } else {
+        output.className = "output";
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>React.FC</code> or type your function props explicitly. Remember to import React and your types!
+  </div>
+
+  <h2>🔧 Key Concepts</h2>
+  <ul>
+    <li><code>interface</code> defines prop types for components</li>
+    <li>Functional components can use generics like <code>React.FC</code></li>
+    <li>Props can be required or optional using <code>?</code></li>
+    <li>JSX inside TypeScript requires escaping in textareas (&lt; becomes &amp;lt;)</li>
+  </ul>
+
+  <h2>⚙️ Setup</h2>
+  <pre>
+# Create React + TS project
+npx create-react-app my-app --template typescript
+
+# Start dev server
+cd my-app
+npm start
+  </pre>
+
+</body>
+</html>
