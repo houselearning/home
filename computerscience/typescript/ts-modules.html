@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TypeScript Modules</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f8ff;
+      color: #24292e;
+    }
+
+    h1, h2 {
+      color: #3178C6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #3178C6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #225c98;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a8d1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #e6f1fb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #3178C6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟦 TypeScript Modules</h1>
+  <p>TypeScript uses **ES Modules** to split code across multiple files and manage dependencies cleanly.</p>
+
+  <h2>📚 Example Code: Export & Import</h2>
+  <textarea id="tsModuleCode">
+// mathUtils.ts
+export function add(a: number, b: number): number {
+  return a + b;
+}
+
+// main.ts
+import { add } from './mathUtils';
+
+console.log(add(5, 3));
+  </textarea>
+  <button onclick="simulateTsModule()">▶️ Simulate Output</button>
+
+  <div class="output" id="moduleOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateTsModule() {
+      const code = document.getElementById("tsModuleCode").value;
+      const output = document.getElementById("moduleOutput");
+
+      if (code.includes('export function add') &&
+          code.includes("import { add } from './mathUtils'") &&
+          code.includes('console.log(add(5, 3))')) {
+        output.innerText = "8";
+      } else {
+        output.innerText = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 TypeScript modules are just modern JavaScript ES modules with type support. Use <code>export</code> to share functions, classes, or variables, and <code>import</code> to bring them into other files.
+  </div>
+
+  <h2>🔧 Module Syntax</h2>
+  <ul>
+    <li><code>export</code> lets you expose functions, variables, or classes</li>
+    <li><code>import</code> brings them into another file</li>
+    <li>TypeScript respects ES6 module syntax</li>
+    <li>Use a bundler (like Vite, Webpack, or Parcel) for browser projects</li>
+  </ul>
+
+  <h2>📦 Export Variants</h2>
+  <pre>
+// Named export
+export function sayHello() {}
+
+// Default export
+export default function greet() {}
+  </pre>
+
+  <div class="tip">
+    ⚡ Named exports can export multiple values per file. Default export allows one export per file, imported without braces.
+  </div>
+
+</body>
+</html>
