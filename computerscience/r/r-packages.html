@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>R Packages | LearnR</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7fbfc;
+      color: #276BA3;
+    }
+
+    h1, h2 {
+      color: #004d99;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 1rem 0;
+      width: 250px;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #aad4ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #276BA3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #4696cf;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #d7e9fb;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      color: #004d99;
+      white-space: pre-wrap;
+    }
+
+    ul {
+      background: #eaf3f9;
+      padding: 1rem;
+      border-radius: 8px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #004d99;
+    }
+
+    .tip {
+      background-color: #d0e6ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #276BA3;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #276BA3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 R Packages</h1>
+  <p>Packages add tons of power to R by giving you extra functions, datasets, and tools. CRAN is the main repository for R packages.</p>
+
+  <h2>🖼️ Setup Screenshots</h2>
+  <img src="img/r-cran.png" alt="CRAN website showing R packages" />
+  <img src="img/r-install-packages.png" alt="RStudio install packages interface" />
+  <img src="img/r-library.png" alt="Loaded libraries in RStudio" />
+
+  <h2>📝 Example Code: Installing & Loading Packages</h2>
+  <textarea id="pkgCode">
+# Install package (run once)
+install.packages("ggplot2")
+
+# Load package (run every session)
+library(ggplot2)
+  </textarea>
+  <button onclick="runPkgCode()">▶️ Run Simulation</button>
+
+  <div class="output" id="pkgOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>install.packages()</code> once per package, then <code>library()</code> whenever you want to use it.
+  </div>
+
+  <h2>📚 Popular R Packages</h2>
+  <ul>
+    <li><code>ggplot2</code> - Data visualization</li>
+    <li><code>dplyr</code> - Data manipulation</li>
+    <li><code>tidyr</code> - Data tidying</li>
+    <li><code>shiny</code> - Interactive web apps</li>
+    <li><code>caret</code> - Machine learning</li>
+  </ul>
+
+  <script>
+    function runPkgCode() {
+      const code = document.getElementById("pkgCode").value.trim();
+      const output = document.getElementById("pkgOutput");
+
+      const expectedInstall = `# Install package (run once)
+install.packages("ggplot2")
+
+# Load package (run every session)
+library(ggplot2)`;
+
+      if (code === expectedInstall) {
+        output.textContent = 
+`Installing package into '/usr/local/lib/R/site-library'
+trying URL 'https://cran.r-project.org/src/contrib/ggplot2_3.3.5.tar.gz'
+...
+package ‘ggplot2’ successfully installed
+Loading required package: ggplot2`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+</body>
+</html>
