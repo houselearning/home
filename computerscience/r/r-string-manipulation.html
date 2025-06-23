@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>R String Manipulation | LearnR</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f9fc;
+      color: #264653;
+    }
+
+    h1, h2 {
+      color: #2a9d8f;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #8ce4ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2a9d8f;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #21867a;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #d0f0f7;
+      color: #264653;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    ul {
+      background: #e0f7f9;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-left: 2rem;
+      color: #264653;
+    }
+
+    .tip {
+      background-color: #c9f0f7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2a9d8f;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #2a9d8f;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧵 R String Manipulation</h1>
+  <p>Strings are text data wrapped in quotes. R has tons of built-in functions and packages (like <code>stringr</code>) to handle strings easily.</p>
+
+  <h2>📝 Example Code</h2>
+  <textarea id="rStringCode">
+# Sample string
+text <- "Hello, R World!"
+
+# Basic string functions
+nchar(text)                 # Length of string
+toupper(text)               # Convert to uppercase
+tolower(text)               # Convert to lowercase
+substr(text, 8, 9)         # Extract substring ("R ")
+gsub("World", "Universe", text)  # Replace "World" with "Universe"
+  </textarea>
+  <button onclick="runRString()">▶️ Run Simulation</button>
+
+  <div class="output" id="rStringOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>stringr</code> package for more powerful string operations like <code>str_detect()</code>, <code>str_replace()</code>, and <code>str_split()</code>.
+  </div>
+
+  <h2>📚 Common String Functions</h2>
+  <ul>
+    <li><code>nchar()</code> — count characters in a string</li>
+    <li><code>toupper()</code> / <code>tolower()</code> — change case</li>
+    <li><code>substr()</code> — get a substring</li>
+    <li><code>gsub()</code> / <code>sub()</code> — replace patterns</li>
+    <li><code>paste()</code> / <code>paste0()</code> — concatenate strings</li>
+  </ul>
+
+  <script>
+    function runRString() {
+      const code = document.getElementById("rStringCode").value.trim();
+      const output = document.getElementById("rStringOutput");
+
+      // Basic simulation checks - match expected code pattern
+      const expectedLines = [
+        '# Sample string',
+        'text <- "Hello, R World!"',
+        '# Basic string functions',
+        'nchar(text)                 # Length of string',
+        'toupper(text)               # Convert to uppercase',
+        'tolower(text)               # Convert to lowercase',
+        'substr(text, 8, 9)         # Extract substring ("R ")',
+        'gsub("World", "Universe", text)  # Replace "World" with "Universe"'
+      ];
+
+      // Simple validation: all expected lines present (order doesn't have to be strict)
+      const lines = code.split('\n').map(l => l.trim());
+      let valid = expectedLines.every(expLine => lines.some(line => line === expLine));
+
+      if (!valid) {
+        output.textContent = "[Simulation] Output not recognized.";
+        return;
+      }
+
+      // Simulated outputs for each function:
+      const results = [
+        "nchar(text): 15",
+        "toupper(text): HELLO, R WORLD!",
+        "tolower(text): hello, r world!",
+        'substr(text, 8, 9): "R "',
+        'gsub("World", "Universe", text): "Hello, R Universe!"'
+      ];
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
