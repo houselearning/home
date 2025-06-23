@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>R File I/O | LearnR</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f9fc;
+      color: #264653;
+    }
+
+    h1, h2 {
+      color: #2a9d8f;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #8ce4ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2a9d8f;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #21867a;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #d0f0f7;
+      color: #264653;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    ul {
+      background: #e0f7f9;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-left: 2rem;
+      color: #264653;
+    }
+
+    .tip {
+      background-color: #c9f0f7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2a9d8f;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #2a9d8f;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 R File Input & Output</h1>
+  <p>Working with files lets you read data into R and save results for later. R provides simple functions to read/write text and CSV files.</p>
+
+  <h2>📝 Example Code</h2>
+  <textarea id="rFileIoCode">
+# Write a vector to a text file
+writeLines(c("Line 1", "Line 2", "Line 3"), "example.txt")
+
+# Read the file contents
+lines <- readLines("example.txt")
+lines
+  </textarea>
+  <button onclick="runRFileIo()">▶️ Run Simulation</button>
+
+  <div class="output" id="rFileIoOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>read.csv()</code> and <code>write.csv()</code> for CSV files — perfect for tabular data!
+  </div>
+
+  <h2>📚 Common File I/O Functions</h2>
+  <ul>
+    <li><code>writeLines()</code> — write lines of text to a file</li>
+    <li><code>readLines()</code> — read lines of text from a file</li>
+    <li><code>write.csv()</code> / <code>read.csv()</code> — read/write CSV files</li>
+    <li><code>file.create()</code> — create empty files</li>
+    <li><code>file.remove()</code> — delete files</li>
+  </ul>
+
+  <script>
+    function runRFileIo() {
+      const code = document.getElementById("rFileIoCode").value.trim();
+      const output = document.getElementById("rFileIoOutput");
+
+      const expectedLines = [
+        'writeLines(c("Line 1", "Line 2", "Line 3"), "example.txt")',
+        'lines <- readLines("example.txt")',
+        'lines'
+      ];
+
+      // Check if all expected lines exist in code, order doesn't have to be strict
+      const lines = code.split('\n').map(l => l.trim());
+      const valid = expectedLines.every(exp => lines.some(line => line === exp));
+
+      if (!valid) {
+        output.textContent = "[Simulation] Output not recognized.";
+        return;
+      }
+
+      // Simulate output of readLines
+      const simulatedOutput = [
+        '[1] "Line 1"',
+        '[2] "Line 2"',
+        '[3] "Line 3"'
+      ];
+
+      output.textContent = simulatedOutput.join('\n');
+    }
+  </script>
+
+</body>
+</html>
