@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQL Introduction | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #546e7a;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #546e7a;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #37474f;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #cfd8dc;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+    }
+
+    .tip {
+      background-color: #eceff1;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #546e7a;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #37474f;
+    }
+
+    ul {
+      background: #fafafa;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-left: 2rem;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .image-gallery {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .image-gallery img {
+      width: 250px;
+      height: 160px;
+      border-radius: 6px;
+      object-fit: cover;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 SQL Introduction</h1>
+  <p>SQL (Structured Query Language) is the universal language for working with databases. It lets you create, query, update, and manage relational databases like MySQL, PostgreSQL, and SQLite.</p>
+
+  <h2>💾 SQL Setup & Compilers</h2>
+  <p>To start running SQL queries locally or online, you can use:</p>
+  <ul>
+    <li><strong>MySQL Workbench</strong> (GUI for MySQL databases)</li>
+    <li><strong>SQLite Browser</strong> (lightweight local SQL database)</li>
+    <li><strong>Online SQL editors</strong> like <a href="https://sqliteonline.com/" target="_blank">SQLiteOnline.com</a> or <a href="https://www.db-fiddle.com/" target="_blank">DB-Fiddle</a></li>
+  </ul>
+
+  <h2>🖼️ Setup Screens</h2>
+  <div class="image-gallery">
+    <img src="img/sql-download.png" alt="Download MySQL Installer">
+    <img src="img/sql-workbench.png" alt="MySQL Workbench Setup">
+    <img src="img/sqlite-browser.png" alt="SQLite Browser Interface">
+  </div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> No server setup needed if you use SQLite — just download the browser app and start practicing.
+  </div>
+
+  <h2>📝 Example: Basic SELECT Query</h2>
+  <textarea id="sqlCode">
+SELECT name, age 
+FROM users 
+WHERE age &gt; 25;
+  </textarea>
+  <button onclick="runSQLDemo()">▶️ Simulate Query</button>
+
+  <div class="output" id="sqlOutput">Query result will appear here...</div>
+
+  <script>
+    function runSQLDemo() {
+      const code = document.getElementById("sqlCode").value.trim();
+      const output = document.getElementById("sqlOutput");
+
+      const expected = 'SELECT name, age \nFROM users \nWHERE age > 25;';
+      const normalized = code.replace(/&gt;/g, ">").trim();
+
+      if (normalized === expected) {
+        output.textContent = "name       | age\n------------|-----\nAlice      | 30\nBob        | 35";
+      } else {
+        output.textContent = "[Simulation] Query not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔧 How This Query Works</h2>
+  <ul>
+    <li><code>SELECT name, age</code> — fetches the name and age columns</li>
+    <li><code>FROM users</code> — specifies the <code>users</code> table</li>
+    <li><code>WHERE age &gt; 25</code> — filters records where age is greater than 25</li>
+  </ul>
+
+</body>
+</html>
