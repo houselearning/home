@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>R Plots Simulation</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #276BA3;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #276BA3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #4696cf;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 320px;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .tip {
+      background-color: #e3eff7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #276BA3;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #276BA3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 R Plots (Simulation)</h1>
+  <p>Type or paste your R code below and run the simulation to see if it generates a plot!</p>
+
+  <h2>📝 Example Code</h2>
+  <textarea id="plotDemo">
+# Sample data
+x <- c(1, 2, 3, 4, 5)
+y <- c(5, 7, 6, 8, 9)
+
+# Create scatter plot
+plot(x, y, type="p", col="blue", main="Sample Scatter Plot")
+  </textarea>
+  <button onclick="runSimulation()">▶️ Run Simulation</button>
+
+  <div class="output" id="plotOutput">
+    <canvas id="plotCanvas" width="400" height="300"></canvas>
+    <div id="plotMessage" style="padding-top:1rem; font-family: Consolas, monospace; color:#276BA3;"></div>
+  </div>
+
+  <div class="tip">
+    💡 Tip: Make sure your code matches the example exactly to see the simulated plot.
+  </div>
+
+  <script>
+    function runSimulation() {
+      const code = document.getElementById("plotDemo").value.trim();
+      const outputCanvas = document.getElementById("plotCanvas");
+      const msg = document.getElementById("plotMessage");
+      const ctx = outputCanvas.getContext("2d");
+
+      // Clear canvas and message first
+      ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+      msg.textContent = "";
+
+      const expected = `# Sample data
+x <- c(1, 2, 3, 4, 5)
+y <- c(5, 7, 6, 8, 9)
+
+# Create scatter plot
+plot(x, y, type="p", col="blue", main="Sample Scatter Plot")`;
+
+      if (code === expected) {
+        // Draw axes
+        ctx.beginPath();
+        ctx.moveTo(40, 10);
+        ctx.lineTo(40, 290);
+        ctx.lineTo(390, 290);
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Title
+        ctx.font = "16px Segoe UI";
+        ctx.fillStyle = "#276BA3";
+        ctx.fillText("Sample Scatter Plot", 110, 20);
+
+        // Data points
+        const x = [1, 2, 3, 4, 5];
+        const y = [5, 7, 6, 8, 9];
+
+        const xMin = Math.min(...x);
+        const xMax = Math.max(...x);
+        const yMin = Math.min(...y);
+        const yMax = Math.max(...y);
+
+        const plotWidth = 340;
+        const plotHeight = 280;
+
+        for (let i = 0; i < x.length; i++) {
+          const px = 40 + ((x[i] - xMin) / (xMax - xMin)) * plotWidth;
+          const py = 290 - ((y[i] - yMin) / (yMax - yMin)) * plotHeight;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = "blue";
+          ctx.fill();
+        }
+      } else {
+        msg.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+</body>
+</html>
