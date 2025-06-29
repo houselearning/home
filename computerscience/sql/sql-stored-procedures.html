@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQL Stored Procedures | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #eef3f7;
+      color: #2c3e50;
+    }
+
+    h1, h2 {
+      color: #2980b9;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #1f6391;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7fdbff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    ul {
+      background: #dbeefc;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #154360;
+    }
+
+    code {
+      background: #c1d9f7;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: #154360;
+    }
+
+    .tip {
+      background-color: #b3d7ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2980b9;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #154360;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🗃️ SQL Stored Procedures</h1>
+  <p>Stored Procedures are saved SQL code you can reuse — like functions in your database. They help keep your code DRY, improve security, and boost performance.</p>
+
+  <h2>📖 Example: Create a Stored Procedure</h2>
+  <textarea id="procCode">
+CREATE PROCEDURE GetUserById
+  @UserId INT
+AS
+BEGIN
+  SELECT * FROM Users WHERE Id = @UserId;
+END;
+  </textarea>
+  <button onclick="simulateProc()">▶️ Create & Run</button>
+
+  <div class="output" id="procOutput">Output will appear here...</div>
+
+  <script>
+    function simulateProc() {
+      const code = document.getElementById("procCode").value.trim().toUpperCase();
+      const output = document.getElementById("procOutput");
+
+      const expectedStart = "CREATE PROCEDURE GETUSERBYID";
+      const expectedSelect = "SELECT * FROM USERS WHERE ID = @USERID";
+
+      if (code.includes(expectedStart) && code.includes(expectedSelect)) {
+        output.textContent = "✅ Stored Procedure 'GetUserById' created.\n\nExecuting with @UserId = 5:\nResult: User record with Id=5 returned.";
+      } else {
+        output.textContent = "Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>⚙️ Why Use Stored Procedures?</h2>
+  <ul>
+    <li>Reuse SQL code easily</li>
+    <li>Reduce network traffic by sending fewer queries</li>
+    <li>Improve security by restricting direct table access</li>
+    <li>Optimize performance with precompiled execution plans</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use parameters to make your stored procedures flexible and safe from SQL injection.
+  </div>
+
+</body>
+</html>
