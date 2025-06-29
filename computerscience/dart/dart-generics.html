@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dart Generics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0fdfc;
+      color: #333;
+    }
+    h1, h2 {
+      color: #00bfa5;
+    }
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bfa5;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #008e76;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #dbf9f6;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00bfa5;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #007566;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 Dart Generics</h1>
+  <p>Generics let you write flexible, reusable classes and functions that work with any data type while keeping type safety intact.</p>
+
+  <h2>📝 Example: Generic Class</h2>
+  <textarea id="dartGenericCode">
+// Define a generic class
+class Box<T> {
+  T value;
+
+  Box(this.value);
+
+  void display() {
+    print("Value is: $value");
+  }
+}
+
+void main() {
+  var stringBox = Box<String>("Hello");
+  var intBox = Box<int>(42);
+
+  stringBox.display();
+  intBox.display();
+}
+  </textarea>
+
+  <button onclick="simulateGenerics()">▶️ Run Simulation</button>
+
+  <div class="output" id="genericOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateGenerics() {
+      const code = document.getElementById("dartGenericCode").value;
+      const output = document.getElementById("genericOutput");
+
+      if (code.includes("Box<String>(\"Hello\")") && code.includes("Box<int>(42)")) {
+        output.textContent = "Value is: Hello\nValue is: 42";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Why Use Generics?</h2>
+  <ul>
+    <li>Keep your code DRY — don’t duplicate logic for different data types.</li>
+    <li>Catches type errors at compile-time, not runtime.</li>
+    <li>Super useful for collections, services, and utility classes.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> You can also use generics in functions and with <code>List&lt;T&gt;</code>, <code>Map&lt;K, V&gt;</code>, and custom constraints!
+  </div>
+
+</body>
+</html>
