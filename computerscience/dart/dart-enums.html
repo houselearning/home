@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dart Enums</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0fdfc;
+      color: #333;
+    }
+    h1, h2 {
+      color: #00bfa5;
+    }
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bfa5;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #008e76;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #dbf9f6;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00bfa5;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #007566;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 Dart Enums</h1>
+  <p>Enums let you define a fixed set of constant values. Great for things like app states, user roles, or directions.</p>
+
+  <h2>📝 Example: Basic Enum</h2>
+  <textarea id="dartEnumCode">
+// Defining an Enum
+enum TrafficLight { red, yellow, green }
+
+void main() {
+  var current = TrafficLight.green;
+
+  switch (current) {
+    case TrafficLight.red:
+      print("STOP");
+      break;
+    case TrafficLight.yellow:
+      print("SLOW DOWN");
+      break;
+    case TrafficLight.green:
+      print("GO");
+      break;
+  }
+}
+  </textarea>
+
+  <button onclick="simulateEnum()">▶️ Run Simulation</button>
+
+  <div class="output" id="enumOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateEnum() {
+      const code = document.getElementById("dartEnumCode").value;
+      const output = document.getElementById("enumOutput");
+
+      if (code.includes("TrafficLight.green") && code.includes("print(\"GO\")")) {
+        output.textContent = "GO";
+      } else if (code.includes("TrafficLight.red") && code.includes("print(\"STOP\")")) {
+        output.textContent = "STOP";
+      } else if (code.includes("TrafficLight.yellow") && code.includes("print(\"SLOW DOWN\")")) {
+        output.textContent = "SLOW DOWN";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Enum Tips</h2>
+  <ul>
+    <li>Enums are type-safe and restricted to listed values.</li>
+    <li>Use them with <code>switch</code> or <code>if</code> for clean, readable code.</li>
+    <li>Enums in Dart can’t have methods (unless enhanced with <code>enum class</code> in Dart 3+).</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Enums make your code way less error-prone by replacing string or int constants with clear, named states.
+  </div>
+
+</body>
+</html>
