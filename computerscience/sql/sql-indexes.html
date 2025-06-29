@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQL Indexes | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #336699;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #336699;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #254f7d;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #99ccff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+    }
+
+    ul {
+      background: #e6f0fb;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #224466;
+    }
+
+    code {
+      background: #cce0ff;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .tip {
+      background-color: #d9eaff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #336699;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #224466;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 SQL Indexes</h1>
+  <p>Indexes speed up data retrieval by creating quick lookup pointers in your database tables.</p>
+
+  <h2>🔍 Why Use Indexes?</h2>
+  <ul>
+    <li>Faster SELECT queries, especially on large tables</li>
+    <li>Efficient sorting with ORDER BY</li>
+    <li>Speed up JOIN operations</li>
+  </ul>
+
+  <h2>📖 Example: Creating an Index</h2>
+  <textarea id="indexCode">
+CREATE INDEX idx_lastname ON Employees(last_name);
+  </textarea>
+  <button onclick="simulateIndex()">▶️ Create Index</button>
+
+  <div class="output" id="indexOutput">Output will appear here...</div>
+
+  <script>
+    function simulateIndex() {
+      const code = document.getElementById("indexCode").value.trim();
+      const output = document.getElementById("indexOutput");
+
+      if (code.toUpperCase().includes("CREATE INDEX IDX_LASTNAME ON EMPLOYEES(LAST_NAME)")) {
+        output.textContent = "✅ Index 'idx_lastname' created successfully on Employees(last_name)";
+      } else {
+        output.textContent = "Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> While indexes speed up SELECTs, they can slow down INSERT, UPDATE, and DELETE operations because the index needs updating.
+  </div>
+
+</body>
+</html>
