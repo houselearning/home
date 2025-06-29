@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SQL Constraints | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #37474f;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #607d8b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #455a64;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ffe082;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 70px;
+      font-family: Consolas, monospace;
+    }
+
+    .tip {
+      background-color: #eceff1;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #607d8b;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #37474f;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    code {
+      background: #ddd;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔒 SQL Constraints</h1>
+  <p>Constraints enforce rules at the table/column level — stopping invalid, duplicate, or missing data before it even hits your database.</p>
+
+  <h2>✅ Common Constraint Types:</h2>
+  <ul>
+    <li><code>PRIMARY KEY</code> — Unique identifier for each row</li>
+    <li><code>UNIQUE</code> — Ensures all values in a column are different</li>
+    <li><code>NOT NULL</code> — Prevents NULL (empty) values</li>
+    <li><code>CHECK</code> — Limits values based on a condition</li>
+    <li><code>FOREIGN KEY</code> — Connects records between tables</li>
+  </ul>
+
+  <h2>📖 Example: Creating a Table with Constraints</h2>
+  <textarea id="constraintCode">
+CREATE TABLE Users (
+  id INT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  email VARCHAR(100) UNIQUE,
+  age INT CHECK (age >= 13)
+);
+  </textarea>
+  <button onclick="runConstraint()">▶️ Run Query</button>
+
+  <div class="output" id="constraintOutput">Query result will appear here...</div>
+
+  <script>
+    function runConstraint() {
+      const code = document.getElementById("constraintCode").value.trim();
+      const output = document.getElementById("constraintOutput");
+
+      if (code.includes("CREATE TABLE Users") && code.includes("PRIMARY KEY") && code.includes("CHECK (age >= 13)")) {
+        output.textContent = "Table 'Users' created successfully with constraints.";
+      } else {
+        output.textContent = "[Simulated Output] Query not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Constraints keep your data clean, reliable, and safe. Always define your PRIMARY KEY and use NOT NULL where appropriate.
+  </div>
+
+</body>
+</html>
