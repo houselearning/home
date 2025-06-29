@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dart File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0fdfc;
+      color: #333;
+    }
+    h1, h2 {
+      color: #00bfa5;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bfa5;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #008e76;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #dbf9f6;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00bfa5;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #007566;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 Dart File I/O</h1>
+  <p>Dart’s <code>dart:io</code> library lets you read, write, and manage files on your local file system when running on the Dart VM.</p>
+
+  <h2>📝 Example: Writing & Reading a Text File</h2>
+  <textarea id="dartFileIOCode">
+// File I/O Example (Dart VM only)
+import 'dart:io';
+
+void main() async {
+  // Writing to a file
+  final file = File('example.txt');
+  await file.writeAsString('Hello Dart File!');
+
+  // Reading the file
+  final contents = await file.readAsString();
+  print(contents);
+}
+  </textarea>
+
+  <button onclick="simulateFileIO()">▶️ Run Simulation</button>
+
+  <div class="output" id="fileIOOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateFileIO() {
+      const code = document.getElementById("dartFileIOCode").value;
+      const output = document.getElementById("fileIOOutput");
+
+      if (code.includes("File('example.txt')") && code.includes("writeAsString")) {
+        output.textContent = "Hello Dart File!";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key File I/O Methods</h2>
+  <ul>
+    <li><code>File('filename')</code> — Creates a file reference.</li>
+    <li><code>writeAsString()</code> — Writes a string to the file.</li>
+    <li><code>readAsString()</code> — Reads the file’s contents as a string.</li>
+    <li><code>exists()</code> — Checks if a file exists.</li>
+    <li><code>delete()</code> — Deletes a file.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Note:</strong> Dart file operations work in <strong>Dart VM</strong> (command-line apps). You can’t use <code>dart:io</code> in Flutter web apps or browsers.
+  </div>
+
+</body>
+</html>
