@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQL Security | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #263238;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #455a64;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #1c313a;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #80cbc4;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    ul {
+      background: #eceff1;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #37474f;
+    }
+
+    code {
+      background: #cfd8dc;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .tip {
+      background-color: #b2dfdb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00796b;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #004d40;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛡️ SQL Security</h1>
+  <p>Protect your database from common threats and vulnerabilities. Here’s the lowdown on best security practices for SQL.</p>
+
+  <h2>🚨 Common Threat: SQL Injection</h2>
+  <p>SQL Injection happens when attackers insert malicious SQL code into your queries, potentially stealing or destroying data.</p>
+  
+  <h2>🛠️ Best Practices to Prevent SQL Injection:</h2>
+  <ul>
+    <li>Use <code>Prepared Statements</code> or <code>Parameterized Queries</code></li>
+    <li>Avoid directly concatenating user inputs into SQL commands</li>
+    <li>Sanitize and validate all inputs</li>
+    <li>Limit database user permissions (least privilege)</li>
+    <li>Use stored procedures carefully</li>
+  </ul>
+
+  <h2>📜 Example: Unsafe Query Simulation</h2>
+  <textarea id="sqlCode">
+SELECT * FROM Users WHERE username = '' OR '1'='1';
+  </textarea>
+  <button onclick="checkQuery()">▶️ Check Query</button>
+
+  <div class="output" id="output">Output will appear here...</div>
+
+  <script>
+    function checkQuery() {
+      const code = document.getElementById("sqlCode").value.trim();
+      const output = document.getElementById("output");
+      
+      if (code.includes("'' OR '1'='1'")) {
+        output.textContent = "⚠️ Warning: Possible SQL Injection detected! Never trust user input directly.";
+      } else if (code.toLowerCase().includes("select")) {
+        output.textContent = "Query looks safe but always use parameterized queries!";
+      } else {
+        output.textContent = "Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🔐 Other SQL Security Tips</h2>
+  <ul>
+    <li>Use strong passwords and rotate them regularly</li>
+    <li>Grant minimal privileges to database users</li>
+    <li>Encrypt sensitive data at rest and in transit</li>
+    <li>Regularly update and patch your database system</li>
+    <li>Enable auditing and monitoring of database activity</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Never expose your database directly to the internet. Always use an application layer or API to interact with it safely.
+  </div>
+
+</body>
+</html>
