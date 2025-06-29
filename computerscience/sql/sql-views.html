@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SQL Views | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #37474f;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #607d8b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #455a64;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ffe082;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+    }
+
+    .tip {
+      background-color: #eceff1;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #607d8b;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #37474f;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    code {
+      background: #ddd;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>👓 SQL Views</h1>
+  <p>A <strong>View</strong> is a virtual table based on the result of a SELECT query. You can query it just like a table — it automatically runs the query behind the scenes.</p>
+
+  <h2>✅ Key Benefits:</h2>
+  <ul>
+    <li>Simplify complex queries</li>
+    <li>Secure sensitive columns by hiding them</li>
+    <li>Reuse commonly used SELECT queries</li>
+  </ul>
+
+  <h2>📖 Example: Creating a View</h2>
+  <textarea id="viewCode">
+CREATE VIEW ActiveUsers AS
+SELECT id, name, email
+FROM Users
+WHERE active = 1;
+  </textarea>
+  <button onclick="runView()">▶️ Create View</button>
+
+  <div class="output" id="viewOutput">View creation result will appear here...</div>
+
+  <script>
+    function runView() {
+      const code = document.getElementById("viewCode").value.trim();
+      const output = document.getElementById("viewOutput");
+
+      if (
+        code.includes("CREATE VIEW ActiveUsers AS") &&
+        code.includes("SELECT id, name, email") &&
+        code.includes("FROM Users") &&
+        code.includes("WHERE active = 1;")
+      ) {
+        output.textContent = "✅ View 'ActiveUsers' created successfully.";
+      } else {
+        output.textContent = "[Simulated Output] View creation not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> You can query a View like this: <code>SELECT * FROM ActiveUsers;</code>
+  </div>
+
+</body>
+</html>
