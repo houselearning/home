@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dart Annotations</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0fdfc;
+      color: #333;
+    }
+    h1, h2 {
+      color: #00bfa5;
+    }
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bfa5;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #008e76;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #dbf9f6;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00bfa5;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #007566;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏷️ Dart Annotations</h1>
+  <p>Annotations in Dart are a way to add metadata to classes, methods, or fields. They're used by frameworks and tools to add extra info or behavior.</p>
+
+  <h2>📝 Example: Using a Built-in Annotation</h2>
+  <textarea id="dartAnnotationCode">
+// Use the @deprecated annotation to mark outdated code
+class Calculator {
+  @deprecated
+  int add(int a, int b) => a + b;
+
+  int multiply(int a, int b) => a * b;
+}
+
+void main() {
+  var calc = Calculator();
+  print(calc.add(2, 3));      // Using deprecated method
+  print(calc.multiply(2, 3));
+}
+  </textarea>
+
+  <button onclick="simulateAnnotation()">▶️ Run Simulation</button>
+
+  <div class="output" id="annotationOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateAnnotation() {
+      const code = document.getElementById("dartAnnotationCode").value;
+      const output = document.getElementById("annotationOutput");
+
+      if (code.includes("@deprecated") && code.includes("calc.add(2, 3)")) {
+        output.textContent = "5\n6\n\n[Warning] 'add' is deprecated.";
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 What You Should Know</h2>
+  <ul>
+    <li>Annotations start with <code>@</code> and provide metadata to the Dart analyzer or tools.</li>
+    <li>Common built-in annotations: <code>@deprecated</code>, <code>@override</code>, <code>@required</code>.</li>
+    <li>You can create custom annotations by defining classes and using them with <code>@</code>.</li>
+    <li>Annotations don’t change runtime behavior by default, but some tools or frameworks may react to them.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>@deprecated</code> to signal to other devs that a method or class should not be used anymore without breaking your code immediately.
+  </div>
+
+</body>
+</html>
