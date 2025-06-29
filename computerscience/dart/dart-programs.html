@@ -30,7 +30,7 @@
       font-size: 1.1rem;
       line-height: 1.5;
     }
-    ul {
+    ul, ol {
       margin-left: 1.5rem;
       list-style-type: disc;
       margin-top: 0;
@@ -50,6 +50,31 @@
       margin-top: 1rem;
       color: #004d40;
     }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #004d40;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #00332e;
+      color: #a7ffeb;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -59,36 +84,84 @@
 
   <h2>🛠 Setting Up Your Dart Environment</h2>
   <ul>
-    <li>Download and install the Dart SDK from the <a href="https://dart.dev/get-dart" target="_blank" rel="noopener noreferrer">official site</a>.</li>
+    <li>Download and install the Dart SDK from the <a href="https://dart.dev/get-dart" target="_blank">official site</a>.</li>
     <li>Use <code>dart</code> CLI for running scripts and managing packages.</li>
-    <li>For larger apps, use <code>pub</code> (package manager) and <code>dartfmt</code> (code formatter).</li>
-    <li>IDE support: VS Code with the Dart extension or IntelliJ IDEA with Dart plugin makes coding smoother.</li>
+    <li>For larger apps, use <code>pub</code> (package manager) and <code>dart format</code> (formatter).</li>
+    <li>Use VS Code + Dart extension or IntelliJ IDEA with Dart plugin.</li>
   </ul>
 
-  <h2>🛠 Development Workflow</h2>
-  <p>Here’s a typical flow:</p>
-  <ul>
-    <li><strong>Write Code:</strong> Create <code>.dart</code> files in your project folder.</li>
-    <li><strong>Run Locally:</strong> Use <code>dart run yourfile.dart</code> to test your program.</li>
-    <li><strong>Manage Packages:</strong> Add dependencies in <code>pubspec.yaml</code> and run <code>dart pub get</code>.</li>
-    <li><strong>Format & Analyze:</strong> Use <code>dart format .</code> and <code>dart analyze</code> to keep your code clean.</li>
-    <li><strong>Build & Deploy:</strong> For Flutter apps or web, compile and deploy using <code>flutter build</code> or <code>dart compile</code>.</li>
-  </ul>
+  <h2>📚 How to Develop a Dart Program</h2>
+  <ol>
+    <li>Create a new file like <code>main.dart</code>.</li>
+    <li>Write your Dart code inside a <code>main()</code> function.</li>
+    <li>Run it using <code>dart run main.dart</code> in your terminal.</li>
+    <li>Use <code>dart format .</code> to clean up your code.</li>
+    <li>Manage external libraries via <code>pubspec.yaml</code> and <code>dart pub get</code>.</li>
+  </ol>
 
   <h2>📷 Example Projects</h2>
   <div class="images-row">
     <div>
       <img src="img/dart-console-app.png" alt="Console Dart App">
-      <p><strong>Console App:</strong> A simple CLI tool written in Dart for automating tasks.</p>
+      <p><strong>Console App:</strong> Simple CLI tool written in Dart for automating tasks.</p>
     </div>
     <div>
       <img src="img/dart-flutter-app.png" alt="Flutter Mobile App">
-      <p><strong>Flutter Mobile App:</strong> A cross-platform mobile app built with Dart and Flutter.</p>
+      <p><strong>Flutter Mobile App:</strong> Cross-platform app built with Dart + Flutter.</p>
     </div>
   </div>
 
   <div class="tip">
-    💡 <strong>Tip:</strong> Start small with simple Dart scripts to get comfortable, then level up by integrating Flutter for mobile/web development.
+    💡 <strong>Tip:</strong> Start with CLI programs, then build Flutter apps once you’ve mastered Dart basics.
+  </div>
+
+  <h2>🎛️ Interactive Dart Console Demo</h2>
+  <p>This simulates a Dart CLI program that generates a random number every time you hit the button:</p>
+
+  <button onclick="generateRandomNumber()">▶️ Run Dart Program</button>
+
+  <div class="output" id="dartConsoleOutput">Console output will appear here...</div>
+
+  <script>
+    function generateRandomNumber() {
+      const output = document.getElementById("dartConsoleOutput");
+      const randomNum = Math.floor(Math.random() * 100) + 1;
+      output.textContent = "Generated random number: " + randomNum;
+    }
+  </script>
+
+  <h2>📥 Download Example Dart Code</h2>
+  <p>Grab a simple Dart console program template you can run locally:</p>
+
+  <button onclick="downloadExampleCode()">📄 Download Example Code</button>
+
+  <script>
+    function downloadExampleCode() {
+      const code = `
+import 'dart:math';
+
+void main() {
+  var random = Random();
+  var number = random.nextInt(100) + 1;
+  print('Generated random number: \$number');
+}
+      `.trim();
+
+      const blob = new Blob([code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'example-dart-app.dart';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+
+  <div class="tip">
+    ⚡ This Dart code uses <code>dart:math</code> for randomness and <code>print()</code> for console output. Run it using <code>dart run example-dart-app.dart</code>.
   </div>
 
 </body>
