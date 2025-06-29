@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SQL JOINs | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #37474f;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #607d8b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #455a64;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #fff59d;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+    }
+
+    .tip {
+      background-color: #eceff1;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #607d8b;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #37474f;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    code {
+      background: #ddd;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔗 SQL JOINs</h1>
+  <p>A <code>JOIN</code> merges rows from two or more tables based on a related column. Most-used types: <strong>INNER JOIN</strong>, <strong>LEFT JOIN</strong>, <strong>RIGHT JOIN</strong>, and <strong>FULL OUTER JOIN</strong>.</p>
+
+  <h2>📖 Example: INNER JOIN</h2>
+  <textarea id="joinCode">
+SELECT Users.name, Orders.order_date
+FROM Users
+INNER JOIN Orders
+ON Users.id = Orders.user_id;
+  </textarea>
+  <button onclick="runJoin()">▶️ Run Query</button>
+
+  <div class="output" id="joinOutput">Query result will appear here...</div>
+
+  <script>
+    function runJoin() {
+      const code = document.getElementById("joinCode").value.trim();
+      const output = document.getElementById("joinOutput");
+
+      if (code === "SELECT Users.name, Orders.order_date\nFROM Users\nINNER JOIN Orders\nON Users.id = Orders.user_id;") {
+        output.textContent =
+`name       | order_date
+-----------|------------
+John       | 2024-06-01
+Sarah      | 2024-06-02`;
+      } else {
+        output.textContent = "[Simulated Output] Query not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📌 JOIN Syntax</h2>
+  <ul>
+    <li><code>SELECT</code> — Choose which columns to return.</li>
+    <li><code>FROM</code> — Base table.</li>
+    <li><code>INNER JOIN</code> — Combine records that have matching values in both tables.</li>
+    <li><code>ON</code> — Specify which columns to match on.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> An <code>INNER JOIN</code> only returns rows when there’s a match in both tables. Use a <code>LEFT JOIN</code> if you want all rows from the left table regardless.
+  </div>
+
+</body>
+</html>
