@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dart Async / Await</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0fdfc;
+      color: #333;
+    }
+    h1, h2 {
+      color: #00bfa5;
+    }
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bfa5;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #008e76;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #dbf9f6;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00bfa5;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #007566;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Dart Async / Await</h1>
+  <p>Dart uses <strong>async</strong> and <strong>await</strong> keywords for asynchronous operations, like waiting for a delay, fetching data, or file I/O.</p>
+
+  <h2>📝 Example: Async Function with Delay</h2>
+  <textarea id="dartAsyncCode">
+// Dart Async / Await Example
+import 'dart:async';
+
+void main() async {
+  print("Start");
+  await Future.delayed(Duration(seconds: 2));
+  print("Finished after delay");
+}
+  </textarea>
+
+  <button onclick="simulateAsync()">▶️ Run Simulation</button>
+
+  <div class="output" id="asyncOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateAsync() {
+      const code = document.getElementById("dartAsyncCode").value;
+      const output = document.getElementById("asyncOutput");
+
+      if (code.includes("await Future.delayed")) {
+        output.textContent = "Start";
+        setTimeout(() => {
+          output.textContent += "\nFinished after delay";
+        }, 2000);
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>📖 Key Concepts</h2>
+  <ul>
+    <li><code>async</code> marks a function as asynchronous.</li>
+    <li><code>await</code> pauses the function until the awaited Future completes.</li>
+    <li><code>Future.delayed</code> creates a future that completes after a set time.</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Always use <code>await</code> inside an <code>async</code> function — and remember, Dart's event loop runs single-threaded with Futures scheduled on its microtask queue.
+  </div>
+
+</body>
+</html>
