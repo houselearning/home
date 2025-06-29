@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQL Triggers | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #fafafa;
+      color: #2d2d2d;
+    }
+
+    h1, h2 {
+      color: #d35400;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #d35400;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #a84300;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #ffa94d;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    ul {
+      background: #fff3e6;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #a84300;
+    }
+
+    code {
+      background: #ffe6cc;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: #a84300;
+    }
+
+    .tip {
+      background-color: #fffae6;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #d35400;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #a84300;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ SQL Triggers</h1>
+  <p>A <strong>trigger</strong> is special SQL code that automatically runs when specific events happen in your database (like INSERT, UPDATE, DELETE).</p>
+
+  <h2>📖 Example: Create a Trigger</h2>
+  <textarea id="triggerCode">
+CREATE TRIGGER trg_AuditInsert
+ON Employees
+AFTER INSERT
+AS
+BEGIN
+  INSERT INTO AuditLog(EmployeeId, ChangeDate, ChangeType)
+  SELECT Id, GETDATE(), 'INSERT' FROM inserted;
+END;
+  </textarea>
+  <button onclick="simulateTrigger()">▶️ Create & Test Trigger</button>
+
+  <div class="output" id="triggerOutput">Output will appear here...</div>
+
+  <script>
+    function simulateTrigger() {
+      const code = document.getElementById("triggerCode").value.trim().toUpperCase();
+      const output = document.getElementById("triggerOutput");
+
+      const expectedStart = "CREATE TRIGGER TRG_AUDITINSERT";
+      const expectedTable = "ON EMPLOYEES";
+      const expectedInsert = "INSERT INTO AUDITLOG";
+      const expectedSelect = "SELECT ID, GETDATE(), 'INSERT' FROM INSERTED";
+
+      if (
+        code.includes(expectedStart) &&
+        code.includes(expectedTable) &&
+        code.includes(expectedInsert) &&
+        code.includes(expectedSelect)
+      ) {
+        output.textContent = "✅ Trigger 'trg_AuditInsert' created successfully.\n\nWhen a new employee is added, an audit record logs the insertion automatically.";
+      } else {
+        output.textContent = "Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>⚙️ Why Use Triggers?</h2>
+  <ul>
+    <li>Automatically audit or log changes</li>
+    <li>Enforce complex business rules</li>
+    <li>Maintain derived or summary data</li>
+    <li>Keep data consistent without manual intervention</li>
+  </ul>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use triggers sparingly because they can impact performance and make debugging trickier.
+  </div>
+
+</body>
+</html>
