@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MATLAB Machine Learning Intro</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    h1, h2 {
+      color: #0076A8;
+    }
+    p {
+      max-width: 700px;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #FF6C00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #e65a00;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aad1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+    }
+    .tip {
+      background-color: #fff7e6;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #FF6C00;
+      margin: 1.5rem 0;
+      font-style: italic;
+      color: #555;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 700px;
+    }
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🤖 MATLAB Machine Learning Introduction</h1>
+  <p>Machine learning in MATLAB lets you build predictive models using data. MATLAB’s toolbox offers functions for classification, regression, clustering, and deep learning with easy workflows.</p>
+
+  <h2>🖥️ Setup</h2>
+  <ul>
+    <li>Install MATLAB (R2019a or later recommended)</li>
+    <li>Add the <strong>Statistics and Machine Learning Toolbox</strong> via MATLAB Add-Ons</li>
+    <li>You can also use <strong>Deep Learning Toolbox</strong> for neural networks</li>
+  </ul>
+
+  <h2>📂 Example: Simple Classification with MATLAB</h2>
+  <textarea id="mlCode">
+% Load built-in Fisher Iris dataset
+load fisheriris
+% Features and labels
+X = meas;
+Y = species;
+
+% Train a simple classification tree
+tree = fitctree(X,Y);
+
+% Predict the class for a sample
+sample = [5.1, 3.5, 1.4, 0.2];
+predictedClass = predict(tree, sample);
+
+disp(['Predicted class: ' char(predictedClass)]);
+  </textarea>
+  <button onclick="runMlSim()">▶️ Run Simulation</button>
+
+  <div class="output" id="mlOutput">Output will appear here...</div>
+
+  <script>
+    function runMlSim() {
+      const code = document.getElementById("mlCode").value.trim();
+      const output = document.getElementById("mlOutput");
+
+      if (
+        code.includes("fitctree") &&
+        code.includes("predict") &&
+        code.includes("fisheriris")
+      ) {
+        output.textContent = "Predicted class: setosa";
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Pro Tip: Use <code>fitctree</code> for decision trees, <code>fitcsvm</code> for SVM, and <code>fitcensemble</code> for boosted trees or random forests.
+  </div>
+
+  <h2>📚 Learn More</h2>
+  <ul>
+    <li><a href="https://www.mathworks.com/help/stats/machine-learning.html" target="_blank" rel="noopener noreferrer">MATLAB Machine Learning Toolbox Docs</a></li>
+    <li><a href="https://www.mathworks.com/help/stats/classification-tree.html" target="_blank" rel="noopener noreferrer">Classification Trees</a></li>
+    <li><a href="https://www.mathworks.com/videos/machine-learning-in-matlab-1555209131359.html" target="_blank" rel="noopener noreferrer">MATLAB ML Video Tutorial</a></li>
+  </ul>
+
+</body>
+</html>
