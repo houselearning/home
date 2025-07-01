@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detailed MATLAB GUI Simulation & Code</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f7f7;
+      color: #333;
+      max-width: 720px;
+    }
+    h1, h2 {
+      color: #0076A8;
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+    canvas {
+      border: 1px solid #0076A8;
+      border-radius: 10px;
+      background: #e1f0fc;
+      cursor: pointer;
+      display: block;
+      margin-top: 1rem;
+      max-width: 720px;
+      width: 100%;
+      height: 360px;
+    }
+    .tip {
+      background-color: #d9ecf9;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #0076A8;
+      margin: 1.5rem 0;
+      font-style: italic;
+      color: #055a8c;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      font-size: 14px;
+      background: #222;
+      color: #a9d1f7;
+      padding: 1rem;
+      border-radius: 8px;
+      border: none;
+      resize: vertical;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🖥️ Detailed MATLAB GUI Canvas Simulation</h1>
+  <p>This canvas simulates a typical MATLAB GUI window with multiple components:</p>
+  <ul>
+    <li><strong>Window Frame</strong> with title bar and close button</li>
+    <li><strong>Static Text Label</strong></li>
+    <li><strong>Push Button</strong></li>
+    <li><strong>Edit Text Box</strong></li>
+    <li><strong>Checkbox</strong></li>
+    <li><strong>Dropdown Menu (Popup Menu)</strong></li>
+  </ul>
+  <p>Click the blue button inside the canvas to simulate interaction.</p>
+
+  <canvas id="guiCanvas" width="700" height="360" aria-label="Simulated MATLAB GUI"></canvas>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Below the canvas is the MATLAB code you’d use to create this GUI in MATLAB (App Designer or GUIDE style).
+  </div>
+
+  <textarea readonly>
+% MATLAB GUI code example:
+
+function simple_gui
+    fig = figure('Name', 'Detailed GUI', 'Position', [500 300 400 280], ...
+        'MenuBar', 'none', 'NumberTitle', 'off', 'Resize', 'off');
+
+    % Label
+    uicontrol('Style', 'text', 'Position', [20 230 360 30], ...
+        'String', 'Welcome to your MATLAB GUI!', 'FontSize', 12, ...
+        'BackgroundColor', get(fig,'Color'), 'HorizontalAlignment', 'center');
+
+    % Push Button
+    btn = uicontrol('Style', 'pushbutton', 'Position', [150 180 100 35], ...
+        'String', 'Click me', 'FontSize', 11, ...
+        'Callback', @(src, event) disp('Button clicked!'));
+
+    % Edit Text Box
+    uicontrol('Style', 'edit', 'Position', [150 140 100 30], ...
+        'String', 'Type here');
+
+    % Checkbox
+    uicontrol('Style', 'checkbox', 'Position', [150 110 120 25], ...
+        'String', 'Check me');
+
+    % Popup Menu (Dropdown)
+    uicontrol('Style', 'popupmenu', 'Position', [150 70 100 30], ...
+        'String', {'Option 1', 'Option 2', 'Option 3'});
+
+end
+
+% Run this by typing `simple_gui` in MATLAB command window.
+  </textarea>
+
+  <script>
+    const canvas = document.getElementById('guiCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Window
+    const win = {x: 10, y: 10, w: 680, h: 340, r: 12};
+    // Title bar
+    const titleBarHeight = 40;
+
+    // Button
+    const btn = {x: 280, y: 210, w: 140, h: 40, r: 8};
+    let btnClicked = false;
+
+    // Checkbox
+    const checkbox = {x: 280, y: 170, size: 22};
+    let checkboxChecked = false;
+
+    // Edit box
+    const editBox = {x: 280, y: 130, w: 140, h: 30};
+    let editBoxContent = 'Type here';
+
+    // Dropdown
+    const dropdown = {x: 280, y: 90, w: 140, h: 30};
+    const dropdownOptions = ['Option 1', 'Option 2', 'Option 3'];
+    let dropdownSelectedIndex = 0;
+
+    function drawRoundedRect(x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function drawCheckbox(x, y, size, checked) {
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.fillRect(x, y, size, size);
+      ctx.strokeRect(x, y, size, size);
+
+      if (checked) {
+        ctx.strokeStyle = '#0076A8';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x + 4, y + size / 2);
+        ctx.lineTo(x + size / 3, y + size - 5);
+        ctx.lineTo(x + size - 4, y + 5);
+        ctx.stroke();
+      }
+    }
+
+    function drawDropdown(x, y, w, h, selectedIndex) {
+      drawRoundedRect(x, y, w, h, 6, '#fff', '#333');
+      ctx.fillStyle = '#000';
+      ctx.font = '14px Segoe UI';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(dropdownOptions[selectedIndex], x + 10, y + h / 2);
+
+      // Down arrow
+      ctx.beginPath();
+      ctx.moveTo(x + w - 20, y + h / 2 - 5);
+      ctx.lineTo(x + w - 10, y + h / 2 - 5);
+      ctx.lineTo(x + w - 15, y + h / 2 + 5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawEditBox(x, y, w, h, text) {
+      drawRoundedRect(x, y, w, h, 6, '#fff', '#333');
+      ctx.fillStyle = '#000';
+      ctx.font = '14px Consolas, monospace';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x + 8, y + h / 2);
+    }
+
+    function drawButton(x, y, w, h, text, clicked) {
+      drawRoundedRect(x, y, w, h, 8, clicked ? '#004d66' : '#0076A8', '#004d66');
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Segoe UI';
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, x + w / 2, y + h / 2);
+    }
+
+    function drawWindow() {
+      // Background window
+      drawRoundedRect(win.x, win.y, win.w, win.h, win.r, '#cce7f9', '#0076A8');
+
+      // Title bar
+      drawRoundedRect(win.x, win.y, win.w, titleBarHeight, win.r, '#0076A8');
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 18px Segoe UI';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Detailed MATLAB GUI', win.x + 15, win.y + titleBarHeight / 2);
+
+      // Close button (red circle)
+      ctx.beginPath();
+      ctx.fillStyle = '#d9534f';
+      ctx.arc(win.x + win.w - 20, win.y + titleBarHeight / 2, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#a73a3a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Label text
+      ctx.fillStyle = '#00334d';
+      ctx.font = '16px Segoe UI';
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'left';
+      ctx.fillText('Welcome to your MATLAB GUI!', win.x + 20, win.y + titleBarHeight + 15);
+
+      // Draw controls
+      drawButton(btn.x, btn.y, btn.w, btn.h, 'Click me', btnClicked);
+      drawEditBox(editBox.x, editBox.y, editBox.w, editBox.h, editBoxContent);
+      drawCheckbox(checkbox.x, checkbox.y, checkbox.size, checkboxChecked);
+      ctx.fillStyle = '#00334d';
+      ctx.font = '14px Segoe UI';
+      ctx.fillText('Check me', checkbox.x + checkbox.size + 10, checkbox.y + checkbox.size / 4);
+
+      drawDropdown(dropdown.x, dropdown.y, dropdown.w, dropdown.h, dropdownSelectedIndex);
+    }
+
+    function isInsideRect(pos, rect) {
+      return pos.x >= rect.x && pos.x <= rect.x + rect.w && pos.y >= rect.y && pos.y <= rect.y + rect.h;
+    }
+
+    function isInsideSquare(pos, x, y, size) {
+      return pos.x >= x && pos.x <= x + size && pos.y >= y && pos.y <= y + size;
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      if (isInsideRect(clickPos, btn)) {
+        btnClicked = true;
+        alert('Button clicked! (Simulated)');
+        draw();
+      } else if (isInsideSquare(clickPos, checkbox.x, checkbox.y, checkbox.size)) {
+        checkboxChecked = !checkboxChecked;
+        draw();
+      } else if (isInsideRect(clickPos, dropdown)) {
+        dropdownSelectedIndex = (dropdownSelectedIndex + 1) % dropdownOptions.length;
+        draw();
+      }
+    });
+
+    draw();
+  </script>
+
+</body>
+</html>
