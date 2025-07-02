@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bash Cron Jobs</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #ff8c00;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff8c00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #cc7000;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #ffc966;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #3a2f1c;
+      padding: 0.8rem;
+      border-left: 5px solid #ff8c00;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #ffd966;
+    }
+    code {
+      background: #2f2f2f;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffe599;
+    }
+    ul {
+      margin-left: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⏰ Bash Cron Jobs</h1>
+  <p><code>cron</code> is a Linux utility that lets you schedule scripts or commands to run automatically at specified times or intervals.</p>
+
+  <h2>📅 Cron Syntax</h2>
+  <pre><code>* * * * * command_to_run
+│ │ │ │ │
+│ │ │ │ └─ day of week (0 - 7) (Sunday=0 or 7)
+│ │ │ └── month (1 - 12)
+│ │ └─── day of month (1 - 31)
+│ └──── hour (0 - 23)
+└───── minute (0 - 59)
+  </code></pre>
+
+  <h2>📝 Example Cron Job</h2>
+  <pre><code>0 7 * * * /home/user/backup.sh
+# Runs backup.sh every day at 7:00 AM
+  </code></pre>
+
+  <h2>🔧 Try Scheduling</h2>
+  <p>Enter a cron schedule (e.g. <code>0 12 * * 1</code>) and see what it means:</p>
+  <textarea id="cronInput" placeholder="min hour day month dayOfWeek (e.g. 0 12 * * 1)"></textarea>
+  <button onclick="simulateCron()">▶️ Explain Schedule</button>
+
+  <div class="output" id="cronOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Use <code>crontab -e</code> to edit your crontab and schedule your jobs!
+  </div>
+
+  <script>
+    function simulateCron() {
+      const input = document.getElementById('cronInput').value.trim();
+      const output = document.getElementById('cronOutput');
+
+      if (!input) {
+        output.textContent = "Please enter a cron schedule.";
+        return;
+      }
+
+      const parts = input.split(/\s+/);
+      if (parts.length !== 5) {
+        output.textContent = "Invalid cron format. Enter exactly 5 fields.";
+        return;
+      }
+
+      const [min, hour, day, month, dayOfWeek] = parts;
+
+      function interpretPart(value, name, rangeDesc) {
+        if (value === '*') return `every ${name}`;
+        return `${name} = ${value} (${rangeDesc})`;
+      }
+
+      const explanation = 
+`${interpretPart(min, "minute", "0-59")}
+${interpretPart(hour, "hour", "0-23")}
+${interpretPart(day, "day of month", "1-31")}
+${interpretPart(month, "month", "1-12")}
+${interpretPart(dayOfWeek, "day of week", "0-7 (Sun=0 or 7)")}
+`;
+
+      output.textContent = `Cron schedule explanation:\n${explanation}`;
+    }
+  </script>
+
+</body>
+</html>
