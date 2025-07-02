@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bash Command Basics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #111;
+      color: #ddd;
+    }
+    h1, h2 {
+      color: #7CFC00;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #000;
+      color: #7CFC00;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7CFC00;
+      color: black;
+      border: none;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #32CD32;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7CFC00;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+    .tip {
+      background-color: #1e1e1e;
+      padding: 0.8rem;
+      border-left: 4px solid #7CFC00;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+    ul {
+      background: #1b1b1b;
+      padding: 1rem;
+      border-radius: 6px;
+      list-style-type: square;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📖 Common Bash Commands</h1>
+  <p>Bash provides a huge set of commands to interact with files, directories, processes, and the system. Here's a list of essential commands every Bash user should know:</p>
+
+  <h2>📝 Command List</h2>
+  <ul>
+    <li><code>ls</code> — List files in a directory</li>
+    <li><code>cd [dir]</code> — Change directory</li>
+    <li><code>pwd</code> — Show current directory</li>
+    <li><code>mkdir [dir]</code> — Create a new directory</li>
+    <li><code>touch [file]</code> — Create an empty file</li>
+    <li><code>rm [file]</code> — Remove files</li>
+    <li><code>cp [source] [dest]</code> — Copy files</li>
+    <li><code>mv [source] [dest]</code> — Move or rename files</li>
+    <li><code>cat [file]</code> — Display file contents</li>
+    <li><code>echo [text]</code> — Print text to terminal</li>
+    <li><code>clear</code> — Clear the terminal screen</li>
+  </ul>
+
+  <h2>▶️ Try a Command</h2>
+  <textarea id="bashCmd">pwd</textarea>
+  <button onclick="runCommand()">▶️ Run Command</button>
+
+  <div class="output" id="bashCmdOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Try typing a command from the list above into the CLI and hit Run!
+  </div>
+
+  <script>
+    function runCommand() {
+      const code = document.getElementById("bashCmd").value.trim();
+      const output = document.getElementById("bashCmdOutput");
+      let result = "";
+
+      switch (true) {
+        case code === "pwd":
+          result = "/home/user/project";
+          break;
+        case code === "ls":
+          result = "main.sh  notes.txt  images/  src/";
+          break;
+        case code.startsWith("cd"):
+          result = "Changed directory to " + code.split(" ")[1];
+          break;
+        case code.startsWith("mkdir"):
+          result = "Directory '" + code.split(" ")[1] + "' created.";
+          break;
+        case code.startsWith("touch"):
+          result = "File '" + code.split(" ")[1] + "' created.";
+          break;
+        case code.startsWith("rm"):
+          result = "File '" + code.split(" ")[1] + "' removed.";
+          break;
+        case code.startsWith("cp"):
+          const cpParts = code.split(" ");
+          result = "Copied '" + cpParts[1] + "' to '" + cpParts[2] + "'.";
+          break;
+        case code.startsWith("mv"):
+          const mvParts = code.split(" ");
+          result = "Moved '" + mvParts[1] + "' to '" + mvParts[2] + "'.";
+          break;
+        case code.startsWith("cat"):
+          result = "Contents of '" + code.split(" ")[1] + "':\nHello world!";
+          break;
+        case code.startsWith("echo"):
+          result = code.slice(5);
+          break;
+        case code === "clear":
+          result = "";
+          break;
+        default:
+          result = "[Simulated Output] Command not recognized.";
+      }
+
+      output.textContent = result;
+    }
+  </script>
+
+</body>
+</html>
