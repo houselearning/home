@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bash CLI Arguments</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #ffa500; /* Orange vibe */
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff8c00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #cc7000;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #ffc966;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #3a2f1c;
+      padding: 0.8rem;
+      border-left: 5px solid #ff8c00;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #ffd966;
+    }
+    code {
+      background: #2f2f2f;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffe599;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Bash CLI Arguments</h1>
+  <p>Bash scripts can receive inputs via command line arguments. These let you pass data or flags to your script when you run it.</p>
+
+  <h2>📚 Key Variables</h2>
+  <ul>
+    <li><code>$0</code> — The script name</li>
+    <li><code>$1, $2, ...</code> — Arguments 1, 2, etc.</li>
+    <li><code>$#</code> — Number of arguments passed</li>
+    <li><code>$@</code> — All arguments as separate words</li>
+    <li><code>$*</code> — All arguments as a single string</li>
+  </ul>
+
+  <h2>🖥️ Try It Out</h2>
+  <p>Type some arguments separated by spaces (e.g. <code>hello world 123</code>) below and see how the script "receives" them:</p>
+  
+  <textarea id="cliArgsInput" placeholder="e.g. hello world 123"></textarea>
+  <button onclick="simulateCliArgs()">▶️ Run Simulation</button>
+
+  <div class="output" id="cliArgsOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Run a real script like <code>./script.sh arg1 arg2</code> to pass arguments to your bash script.
+  </div>
+
+  <script>
+    function simulateCliArgs() {
+      const input = document.getElementById('cliArgsInput').value.trim();
+      const output = document.getElementById('cliArgsOutput');
+      if(!input) {
+        output.textContent = "No arguments provided!";
+        return;
+      }
+
+      const args = input.split(/\s+/);
+      const argCount = args.length;
+      const scriptName = "script.sh";
+
+      let simulatedOutput = 
+`Script name: ${scriptName}
+Number of arguments: ${argCount}
+All arguments (\$@): ${args.join(' ')}
+All arguments (\$*): ${args.join(' ')}
+Individual arguments:
+`;
+
+      args.forEach((arg, index) => {
+        simulatedOutput += `$${index + 1}: ${arg}\n`;
+      });
+
+      output.textContent = simulatedOutput;
+    }
+  </script>
+
+</body>
+</html>
