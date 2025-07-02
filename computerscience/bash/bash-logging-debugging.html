@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bash Logging & Debugging</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00bcd4;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bcd4;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0097a7;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #80deea;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #004d40;
+      padding: 0.8rem;
+      border-left: 5px solid #00bcd4;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #b2ebf2;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Bash Logging & Debugging</h1>
+
+  <p>Writing shell scripts can get tricky, so knowing how to log output and debug your scripts is 🔑.</p>
+
+  <h2>📝 Logging Output</h2>
+  <p>Redirect standard output (stdout) and error (stderr) to log files:</p>
+  <pre><code>
+# Redirect stdout to file
+echo "Hello, log!" > output.log
+
+# Redirect stderr to file
+ls non_existent_file 2> error.log
+
+# Redirect both stdout and stderr to the same file
+command &> all_output.log
+  </code></pre>
+
+  <h2>🐞 Debugging Tips</h2>
+  <ul>
+    <li><code>bash -x script.sh</code> — Run script with debug info showing commands as they execute.</li>
+    <li><code>set -x</code> — Turn on debug mode inside the script.</li>
+    <li><code>set +x</code> — Turn off debug mode.</li>
+    <li>Use <code>echo</code> or <code>printf</code> to print variable values during execution.</li>
+  </ul>
+
+  <h2>📟 Interactive Debugging Demo</h2>
+
+  <textarea id="debugScript" placeholder="Type a simple bash script snippet here... (e.g., echo Hello)"></textarea>
+  <button onclick="runDebug()">▶️ Run Debug</button>
+
+  <div class="output" id="debugOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Use <code>bash -n script.sh</code> to check script syntax without running it.
+  </div>
+
+  <script>
+    function runDebug() {
+      const code = document.getElementById("debugScript").value.trim();
+      const output = document.getElementById("debugOutput");
+
+      // This is just a simulation of output
+      if (!code) {
+        output.textContent = "Type some bash commands to simulate output.";
+        return;
+      }
+
+      // Basic simulation for demo
+      if (code === "echo Hello") {
+        output.textContent = "Hello";
+      } else if (code.includes("ls")) {
+        if (code.includes("non_existent_file")) {
+          output.textContent = "ls: cannot access 'non_existent_file': No such file or directory";
+        } else {
+          output.textContent = "file1.txt\nfile2.txt\nscript.sh";
+        }
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+</body>
+</html>
