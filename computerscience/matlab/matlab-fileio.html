@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MATLAB File I/O</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    h1, h2 {
+      color: #0076A8;
+    }
+    textarea {
+      width: 100%;
+      height: 230px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #FF6C00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e65a00;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aad1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+    }
+    .tip {
+      background-color: #fff7e6;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #FF6C00;
+      margin: 1.5rem 0;
+      font-style: italic;
+      color: #555;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💾 MATLAB File I/O</h1>
+  <p>Learn to read and write text and data files in MATLAB using <code>fopen</code>, <code>fprintf</code>, <code>fscanf</code>, and <code>fclose</code>.</p>
+
+  <h2>📖 Example: Write and Read Text File</h2>
+  <textarea id="fileioCode">
+filename = 'example.txt';
+fid = fopen(filename, 'w');
+fprintf(fid, 'Hello, MATLAB File I/O!\nThis is a test file.');
+fclose(fid);
+
+fid = fopen(filename, 'r');
+content = fscanf(fid, '%c');
+fclose(fid);
+
+disp(['File content:\n' content]);
+  </textarea>
+  <button onclick="runFileIoSim()">▶️ Run Simulation</button>
+
+  <div class="output" id="fileioOutput">Output will appear here...</div>
+
+  <script>
+    function runFileIoSim() {
+      const code = document.getElementById("fileioCode").value.trim();
+      const output = document.getElementById("fileioOutput");
+
+      if (
+        code.includes("fopen(filename, 'w')") &&
+        code.includes("fprintf(fid, 'Hello, MATLAB File I/O!") &&
+        code.includes("fopen(filename, 'r')") &&
+        code.includes("fscanf(fid, '%c')")
+      ) {
+        output.textContent =
+`File content:
+Hello, MATLAB File I/O!
+This is a test file.`;
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Pro Tip: Always close files with <code>fclose</code> to avoid memory leaks and file locks.
+  </div>
+
+  <h2>🔧 Common File I/O Functions</h2>
+  <ul>
+    <li><code>fopen(filename, mode)</code> — Open a file ('r', 'w', 'a', etc.)</li>
+    <li><code>fprintf(fid, format, ...)</code> — Write formatted data to a file</li>
+    <li><code>fscanf(fid, format)</code> — Read formatted data from a file</li>
+    <li><code>fclose(fid)</code> — Close the open file</li>
+    <li><code>load(filename)</code> — Load data from a MAT-file or ASCII data file</li>
+    <li><code>save(filename, variables)</code> — Save variables to a MAT-file</li>
+  </ul>
+
+</body>
+</html>

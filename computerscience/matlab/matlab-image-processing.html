@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MATLAB Image Processing</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    h1, h2 {
+      color: #0076A8;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #FF6C00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e65a00;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #aad1ff;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+    }
+    .tip {
+      background-color: #fff7e6;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #FF6C00;
+      margin: 1.5rem 0;
+      font-style: italic;
+      color: #555;
+    }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🖼️ MATLAB Image Processing</h1>
+  <p>Learn how to load, display, and manipulate images with MATLAB’s Image Processing Toolbox.</p>
+
+  <h2>📖 Example: Basic Image Operations</h2>
+  <textarea id="imgProcCode">
+img = imread('peppers.png');      % Load an image
+imshow(img);                      % Display the image
+grayImg = rgb2gray(img);          % Convert to grayscale
+imwrite(grayImg, 'grayPeppers.png'); % Save grayscale image
+  </textarea>
+  <button onclick="runImgProcSim()">▶️ Run Simulation</button>
+
+  <div class="output" id="imgProcOutput">Output will appear here...</div>
+
+  <script>
+    function runImgProcSim() {
+      const code = document.getElementById("imgProcCode").value.trim();
+      const output = document.getElementById("imgProcOutput");
+
+      if (
+        code.includes("imread('peppers.png')") &&
+        code.includes("imshow(img)") &&
+        code.includes("rgb2gray(img)") &&
+        code.includes("imwrite(grayImg")
+      ) {
+        output.textContent =
+`Image 'peppers.png' loaded and displayed.
+Converted to grayscale and saved as 'grayPeppers.png'.`;
+      } else {
+        output.textContent = "[Simulation] Code not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>imtool(img)</code> for interactive image exploration and <code>imresize()</code> to resize images.
+  </div>
+
+  <h2>🔧 Common Image Processing Functions</h2>
+  <ul>
+    <li><code>imread(filename)</code> — Read an image file</li>
+    <li><code>imshow(image)</code> — Display image in a figure window</li>
+    <li><code>rgb2gray(image)</code> — Convert RGB to grayscale</li>
+    <li><code>imwrite(image, filename)</code> — Write image to file</li>
+    <li><code>imresize(image, scale)</code> — Resize image by scale factor</li>
+    <li><code>imrotate(image, angle)</code> — Rotate image by angle (degrees)</li>
+    <li><code>edge(image)</code> — Detect edges</li>
+  </ul>
+
+</body>
+</html>

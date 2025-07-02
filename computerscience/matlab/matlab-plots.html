@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MATLAB Plots</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    h1, h2 {
+      color: #0076A8;
+    }
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #FF6C00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e65a00;
+    }
+    canvas {
+      background: #f9f9f9;
+      margin-top: 1rem;
+      border: 2px solid #0076A8;
+      border-radius: 8px;
+    }
+    .tip {
+      background-color: #fff7e6;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #FF6C00;
+      margin: 1.5rem 0;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 MATLAB Plots</h1>
+  <p>MATLAB makes data visualization fast and painless. The <code>plot()</code> function is your go-to tool for quick line charts and data exploration.</p>
+
+  <h2>📖 Basic Plot Example</h2>
+  <textarea id="plotCode">
+x = 0:0.1:2*pi;
+y = sin(x);
+plot(x, y);
+title('Sine Wave');
+xlabel('X-axis');
+ylabel('Y-axis');
+  </textarea>
+  <button onclick="runPlotDemo()">▶️ Run Simulation</button>
+
+  <canvas id="plotCanvas" width="500" height="300"></canvas>
+
+  <script>
+    function runPlotDemo() {
+      const code = document.getElementById("plotCode").value.trim();
+      const canvas = document.getElementById("plotCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (code.includes("x = 0:0.1:2*pi") && code.includes("y = sin(x)") && code.includes("plot(x, y)")) {
+        // Draw axes
+        ctx.beginPath();
+        ctx.moveTo(40, 150);
+        ctx.lineTo(460, 150);
+        ctx.moveTo(250, 20);
+        ctx.lineTo(250, 280);
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Draw sine wave
+        ctx.beginPath();
+        ctx.moveTo(40, 150);
+        for (let i = 0; i <= 420; i++) {
+          const x = i;
+          const y = 150 - Math.sin((i / 420) * (2 * Math.PI)) * 100;
+          ctx.lineTo(x + 40, y);
+        }
+        ctx.strokeStyle = "#FF6C00";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Labels
+        ctx.fillStyle = "#0076A8";
+        ctx.font = "14px Segoe UI";
+        ctx.fillText("Sine Wave", 200, 20);
+        ctx.fillText("X-axis", 440, 160);
+        ctx.fillText("Y-axis", 255, 30);
+      } else {
+        ctx.fillStyle = "#999";
+        ctx.font = "16px Consolas";
+        ctx.fillText("[Simulation] Plot code not recognized.", 50, 150);
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Always label your axes and give your charts clear titles. It makes your visualizations 10x easier to read and explain.
+  </div>
+
+</body>
+</html>
