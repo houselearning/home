@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bash Conditions Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #7CFC00;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #000;
+      color: #7CFC00;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7CFC00;
+      color: black;
+      border: none;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #32CD32;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7CFC00;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+    .tip {
+      background: #1b1b1b;
+      padding: 0.8rem;
+      border-left: 4px solid #7CFC00;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔀 Bash Conditions</h1>
+  <p>Bash uses <code>if</code>, <code>elif</code>, and <code>else</code> to run code based on conditions.</p>
+
+  <h2>📖 Example:</h2>
+  <textarea readonly>
+num=10
+if [ $num -gt 5 ]
+then
+  echo "Greater than 5"
+else
+  echo "5 or less"
+fi
+  </textarea>
+
+  <h2>▶️ Try It Yourself</h2>
+  <textarea id="bashCondInput">num=7
+if [ $num -gt 5 ]
+then
+  echo "Greater than 5"
+else
+  echo "5 or less"
+fi</textarea>
+  <button onclick="runCondSim()">▶️ Run Simulation</button>
+
+  <div class="output" id="condOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Always put spaces between brackets and your values: <code>[ $num -gt 5 ]</code>
+  </div>
+
+  <script>
+    function runCondSim() {
+      const input = document.getElementById("bashCondInput").value;
+      const output = document.getElementById("condOutput");
+
+      let result = "[No output]";
+
+      if (input.includes("num=")) {
+        const num = parseInt(input.match(/num=(\d+)/)[1]);
+
+        if (input.includes("if [ $num -gt 5 ]")) {
+          if (num > 5) result = "Greater than 5";
+          else result = "5 or less";
+        } else {
+          result = "[Simulation] Condition pattern not recognized.";
+        }
+      } else {
+        result = "[Simulation] Variable not set.";
+      }
+
+      output.textContent = result;
+    }
+  </script>
+
+</body>
+</html>
