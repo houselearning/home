@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bash Variables Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #7CFC00;
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      font-family: Consolas, monospace;
+      background: #000;
+      color: #7CFC00;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7CFC00;
+      color: black;
+      border: none;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #32CD32;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7CFC00;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+    .tip {
+      background: #1b1b1b;
+      padding: 0.8rem;
+      border-left: 4px solid #7CFC00;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 Bash Variables</h1>
+  <p>In Bash, variables let you store values like strings and numbers. Variables don’t need to be declared with a type, and you assign them like this:</p>
+
+  <textarea readonly>
+myName="Alex"
+age=25
+echo $myName
+echo $age
+  </textarea>
+
+  <h2>▶️ Try It Yourself</h2>
+  <textarea id="bashVarInput">myName="Alex"
+echo $myName</textarea>
+  <button onclick="runVarSim()">▶️ Run Simulation</button>
+
+  <div class="output" id="varOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Remember, no spaces around <code>=</code> in Bash variables!
+  </div>
+
+  <script>
+    let vars = {}; // store simulated variables
+
+    function runVarSim() {
+      const lines = document.getElementById("bashVarInput").value.trim().split("\n");
+      const output = document.getElementById("varOutput");
+      let result = "";
+
+      lines.forEach(line => {
+        if (line.includes("=") && !line.startsWith("echo")) {
+          const [key, value] = line.split("=");
+          vars[key.trim()] = value.replace(/"/g, "");
+        } else if (line.startsWith("echo")) {
+          const varName = line.split("$")[1];
+          result += (vars[varName] !== undefined ? vars[varName] : "") + "\n";
+        }
+      });
+
+      output.textContent = result.trim() || "[No output]";
+    }
+  </script>
+
+</body>
+</html>
