@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bash String Manipulation</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #ffa500; /* Orange vibe */
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff8c00;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #cc7000;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #ffc966;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #3a2f1c;
+      padding: 0.8rem;
+      border-left: 5px solid #ff8c00;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #ffd966;
+    }
+    ul {
+      margin-top: 0;
+      padding-left: 20px;
+    }
+    code {
+      background: #2f2f2f;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffe599;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧵 Bash String Manipulation</h1>
+  <p>Bash provides nifty ways to slice, transform, and analyze strings. Here’s how you can work with strings effectively.</p>
+
+  <h2>📚 Common String Operations</h2>
+  <ul>
+    <li><code>${var#pattern}</code> — Remove shortest match from front</li>
+    <li><code>${var##pattern}</code> — Remove longest match from front</li>
+    <li><code>${var%pattern}</code> — Remove shortest match from end</li>
+    <li><code>${var%%pattern}</code> — Remove longest match from end</li>
+    <li><code>${#var}</code> — Get string length</li>
+    <li><code>${var:offset:length}</code> — Extract substring</li>
+    <li><code>${var/pattern/replacement}</code> — Replace first occurrence</li>
+    <li><code>${var//pattern/replacement}</code> — Replace all occurrences</li>
+  </ul>
+
+  <h2>🖥️ Try Simulated Commands</h2>
+  <textarea id="bashStringInput" placeholder="Type a command like: length, slice, replace"></textarea>
+  <button onclick="simulateStringCmd()">▶️ Run Command</button>
+
+  <div class="output" id="bashStringOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Try commands like <code>length</code>, <code>slice</code>, or <code>replace</code> to see string magic.
+  </div>
+
+  <script>
+    function simulateStringCmd() {
+      const input = document.getElementById('bashStringInput').value.trim().toLowerCase();
+      const output = document.getElementById('bashStringOutput');
+      const sampleStr = "HelloWorld";
+
+      switch(input) {
+        case 'length':
+          output.textContent = `String: "${sampleStr}"\nLength: ${sampleStr.length}`;
+          break;
+        case 'slice':
+          output.textContent = `String: "${sampleStr}"\nSlice (2 to 7): "${sampleStr.substring(2,7)}"`;
+          break;
+        case 'replace':
+          output.textContent = `String: "${sampleStr}"\nReplace "World" with "Bash": "${sampleStr.replace("World","Bash")}"`;
+          break;
+        case 'replace all':
+          output.textContent = `String: "aaaabbbb"\nReplace all "a" with "x": "xxxabbbb" (simulation, partial)`;
+          break;
+        default:
+          output.textContent = "[Simulation] Command not recognized. Try: length, slice, replace, replace all";
+      }
+    }
+  </script>
+
+</body>
+</html>
