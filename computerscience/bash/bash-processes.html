@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bash Processes</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #4caf50;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #c5c5c5;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #253627;
+      padding: 0.8rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #a0d468;
+    }
+    code {
+      background: #1e1e1e;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    ul {
+      margin-top: 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⚙️ Bash Processes</h1>
+  <p>In Bash, processes are running programs. You can list, manage, and control processes using commands.</p>
+
+  <h2>📚 Common Process Commands</h2>
+  <ul>
+    <li><code>ps</code> — Lists your running processes</li>
+    <li><code>top</code> — Real-time process monitor</li>
+    <li><code>kill [PID]</code> — Sends a signal to terminate a process by its PID</li>
+    <li><code>jobs</code> — Lists background jobs in your shell</li>
+    <li><code>fg %job_number</code> — Brings a background job to the foreground</li>
+    <li><code>bg %job_number</code> — Resumes a suspended job in the background</li>
+  </ul>
+
+  <h2>🖥️ Try Simulated Commands</h2>
+  <textarea id="bashProcessInput" placeholder="Type a command like: ps, jobs, kill 1234"></textarea>
+  <button onclick="simulateProcessCmd()">▶️ Run Command</button>
+
+  <div class="output" id="bashProcessOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Try typing <code>ps</code> or <code>jobs</code> to see running processes and background jobs.
+  </div>
+
+  <script>
+    function simulateProcessCmd() {
+      const input = document.getElementById('bashProcessInput').value.trim();
+      const output = document.getElementById('bashProcessOutput');
+
+      if(input === 'ps') {
+        output.textContent =
+`  PID TTY          TIME CMD
+ 1234 pts/0    00:00:00 bash
+ 2345 pts/0    00:00:01 top
+ 3456 pts/0    00:00:00 vim`;
+      } else if(input === 'jobs') {
+        output.textContent =
+`[1]+  Running                 ./my_script.sh &
+[2]-  Stopped                 nano`;
+      } else if(input.startsWith('kill ')) {
+        const pid = input.split(' ')[1];
+        if(pid === '2345') {
+          output.textContent = `Process ${pid} terminated.`;
+        } else {
+          output.textContent = `kill: (${pid}) - No such process`;
+        }
+      } else if(input.startsWith('fg ')) {
+        output.textContent = 'Bringing job to foreground...';
+      } else if(input.startsWith('bg ')) {
+        output.textContent = 'Resuming job in background...';
+      } else {
+        output.textContent = '[Simulation] Command not recognized.';
+      }
+    }
+  </script>
+
+</body>
+</html>
