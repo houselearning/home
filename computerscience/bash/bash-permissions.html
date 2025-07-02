@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bash File Permissions Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #7CFC00;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #000;
+      color: #7CFC00;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7CFC00;
+      color: black;
+      border: none;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #32CD32;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #7CFC00;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #1b1b1b;
+      padding: 0.8rem;
+      border-left: 4px solid #7CFC00;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+    code {
+      background: #333;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔐 Bash File Permissions</h1>
+  <p>Bash lets you control who can read, write, or execute files with <code>chmod</code>, <code>chown</code>, and <code>ls -l</code> to check permissions.</p>
+
+  <h2>📖 Example: Change and View Permissions</h2>
+  <textarea readonly>
+# View permissions
+ls -l myfile.txt
+
+# Add execute permission for the user (owner)
+chmod u+x myfile.txt
+
+# Remove write permission for group
+chmod g-w myfile.txt
+
+# Change owner to user "alex"
+chown alex myfile.txt
+  </textarea>
+
+  <h2>▶️ Try It Yourself</h2>
+  <textarea id="bashPermInput">ls -l myfile.txt
+chmod u+x myfile.txt
+chmod g-w myfile.txt
+chown alex myfile.txt
+  </textarea>
+  <button onclick="runPermSim()">▶️ Run Simulation</button>
+
+  <div class="output" id="permOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Use <code>u</code>, <code>g</code>, and <code>o</code> for user, group, others; <code>+/-</code> to add/remove permissions; <code>r</code>, <code>w</code>, <code>x</code> for read, write, execute.
+  </div>
+
+  <script>
+    function runPermSim() {
+      const input = document.getElementById("bashPermInput").value.trim();
+      const output = document.getElementById("permOutput");
+
+      const expected =
+`ls -l myfile.txt
+chmod u+x myfile.txt
+chmod g-w myfile.txt
+chown alex myfile.txt`;
+
+      if (input === expected) {
+        output.textContent =
+`-rw-r--r-- 1 user group 1024 Apr 27 20:00 myfile.txt
+Permissions updated:
+- Execute permission added for user
+- Write permission removed for group
+Owner changed to alex`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+</body>
+</html>
