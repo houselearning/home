@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Bash Logging & Debugging</title>
+  <title>Bash Logging & Debugging with Debug Mode</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -15,7 +15,7 @@
     }
     textarea {
       width: 100%;
-      height: 120px;
+      height: 180px;
       font-family: Consolas, monospace;
       background: #252526;
       color: #f0f0f0;
@@ -23,6 +23,7 @@
       border: none;
       border-radius: 6px;
       resize: vertical;
+      white-space: pre-wrap;
     }
     button {
       margin-top: 1rem;
@@ -45,7 +46,7 @@
       padding: 1rem;
       border-radius: 6px;
       white-space: pre-wrap;
-      min-height: 100px;
+      min-height: 140px;
       font-family: Consolas, monospace;
       font-size: 1rem;
     }
@@ -67,9 +68,8 @@
 </head>
 <body>
 
-  <h1>🐚 Bash Logging & Debugging</h1>
-
-  <p>Writing shell scripts can get tricky, so knowing how to log output and debug your scripts is 🔑.</p>
+  <h1>🐚 Bash Logging & Debugging with Debug Mode</h1>
+ <p>Writing shell scripts can get tricky, so knowing how to log output and debug your scripts is 🔑.</p>
 
   <h2>📝 Logging Output</h2>
   <p>Redirect standard output (stdout) and error (stderr) to log files:</p>
@@ -91,41 +91,126 @@ command &> all_output.log
     <li><code>set +x</code> — Turn off debug mode.</li>
     <li>Use <code>echo</code> or <code>printf</code> to print variable values during execution.</li>
   </ul>
+  <p>Simulate <code>bash -x</code>, <code>set -x</code>, <code>set +x</code> to see commands traced during execution.</p>
 
-  <h2>📟 Interactive Debugging Demo</h2>
+  <h2>📝 Try a script below:</h2>
 
-  <textarea id="debugScript" placeholder="Type a simple bash script snippet here... (e.g., echo Hello)"></textarea>
+  <textarea id="debugScript" placeholder="Type a bash script here... e.g.&#10;set -x&#10;echo Hello World&#10;set +x&#10;echo Done"></textarea>
   <button onclick="runDebug()">▶️ Run Debug</button>
 
   <div class="output" id="debugOutput">Output will appear here...</div>
 
   <div class="tip">
-    💡 Tip: Use <code>bash -n script.sh</code> to check script syntax without running it.
+    💡 Tip: Use <code>set -x</code> to turn ON debug mode and <code>set +x</code> to turn it OFF inside your script.
   </div>
 
   <script>
     function runDebug() {
-      const code = document.getElementById("debugScript").value.trim();
+      const input = document.getElementById("debugScript").value.trim();
       const output = document.getElementById("debugOutput");
-
-      // This is just a simulation of output
-      if (!code) {
+      if (!input) {
         output.textContent = "Type some bash commands to simulate output.";
         return;
       }
 
-      // Basic simulation for demo
-      if (code === "echo Hello") {
-        output.textContent = "Hello";
-      } else if (code.includes("ls")) {
-        if (code.includes("non_existent_file")) {
-          output.textContent = "ls: cannot access 'non_existent_file': No such file or directory";
-        } else {
-          output.textContent = "file1.txt\nfile2.txt\nscript.sh";
+      // Track debug mode state
+      let debug = false;
+      const lines = input.split('\n');
+      let resultLines = [];
+
+      // Fake filesystem for cat commands
+      const fakeFiles = {
+        "file1.txt": "This is the content of file1.txt.\nIt has multiple lines.\nEnd of file.",
+        "file2.txt": "File2.txt says hello!",
+        "script.sh": "#!/bin/bash\necho Script running..."
+      };
+
+      function simulateCommand(line) {
+        let trimmed = line.trim();
+
+        // Skip empty lines
+        if (!trimmed) return '';
+
+        // Command parts
+        let parts = trimmed.split(/\s+/);
+        let cmd = parts[0];
+        let args = parts.slice(1);
+
+        // Support echo and printf
+        if (cmd === 'echo') {
+          return args.join(' ');
         }
-      } else {
-        output.textContent = "[Simulation] Output not recognized.";
+        if (cmd === 'printf') {
+          // Simplified printf: just join args replacing \n with actual newlines
+          let str = args.join(' ').replace(/\\n/g, '\n');
+          return str;
+        }
+        if (cmd === 'cat') {
+          if (args.length === 0) {
+            return "cat: missing operand";
+          } else if (fakeFiles[args[0]]) {
+            return fakeFiles[args[0]];
+          } else {
+            return `cat: ${args[0]}: No such file or directory`;
+          }
+        }
+        if (cmd === 'ls') {
+          if (args.length === 0 || args[0] === '.') {
+            return Object.keys(fakeFiles).join('\n');
+          } else if (args[0] === 'non_existent_file') {
+            return "ls: cannot access 'non_existent_file': No such file or directory";
+          } else {
+            return `[Simulated ls] Path '${args[0]}' not found.`;
+          }
+        }
+        if (cmd === 'pwd') {
+          return "/home/user";
+        }
+        if (cmd === 'date') {
+          return new Date().toString();
+        }
+
+        return "[Simulation] Output not recognized.";
       }
+
+      // Process each line simulating debug mode
+      for (let line of lines) {
+        let trimmed = line.trim();
+
+        // Detect debug mode toggles
+        if (trimmed === 'set -x') {
+          debug = true;
+          resultLines.push('+ set -x');
+          continue;
+        }
+        if (trimmed === 'set +x') {
+          debug = false;
+          resultLines.push('+ set +x');
+          continue;
+        }
+        if (trimmed.startsWith('bash -x')) {
+          // Simulate running whole script with debug on
+          resultLines.push('+ ' + trimmed.replace('bash -x ', ''));
+          // For simplicity, just print simulation message
+          resultLines.push('[Simulation] Running script in debug mode...');
+          continue;
+        }
+
+        // If debug mode ON, print command before output
+        if (debug) {
+          resultLines.push('+ ' + trimmed);
+        }
+
+        // Run the command simulation
+        let cmdOutput = simulateCommand(trimmed);
+
+        // Add output only if not empty
+        if (cmdOutput !== '') {
+          resultLines.push(cmdOutput);
+        }
+      }
+
+      output.textContent = resultLines.join('\n');
     }
   </script>
 
