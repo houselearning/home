@@ -1,197 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Canvas Tutorial</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-        }
-        .content {
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .content h2 {
-            color: #333;
-        }
-        .canvas-container {
-            margin-top: 40px;
-        }
-        .quiz-section {
-            margin-top: 40px;
-            background-color: #e9e9e9;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        #result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML Canvas Tutorial</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 2rem;
+    }
+
+    h1, h2, h3 {
+      color: #f44336;
+    }
+
+    p, li {
+      font-size: 1rem;
+    }
+
+    canvas {
+      border: 1px solid #000;
+      margin-top: 1rem;
+    }
+
+    code, pre {
+      background: #e0e0e0;
+      padding: 4px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .tip {
+      background-color: #fbe9e7;
+      padding: 1rem;
+      border-left: 5px solid #f44336;
+      margin: 1.5rem 0;
+      border-radius: 8px;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d32f2f;
+    }
+
+    .quiz-section {
+      margin-top: 3rem;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #bbb;
+    }
+
+    label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+
+    #result {
+      margin-top: 1.5rem;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      background: #111;
+      color: #0f0;
+      font-family: Consolas, monospace;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+      margin-top: 1rem;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>HTML Canvas Tutorial</h1>
-    </header>
+<div class="content">
+  <h1>🖌️ HTML Canvas Tutorial</h1>
 
-    <div class="content">
-        <h2>What is the HTML Canvas?</h2>
-        <p>The HTML <code>&lt;canvas&gt;</code> element is used to draw graphics via JavaScript. It can be used for rendering graphs, charts, animations, and even games!</p>
+  <h2>What is the HTML <code>&lt;canvas&gt;</code>?</h2>
+  <p>The <code>&lt;canvas&gt;</code> element lets you draw graphics via JavaScript — charts, games, animations, and more!</p>
 
-        <h3>1. Drawing on the Canvas</h3>
-        <p>The <code>&lt;canvas&gt;</code> element is essentially a drawing area. You can draw on it using JavaScript by accessing the canvas context (typically 2D). Here's an example:</p>
+  <div class="tip">
+    💡 <strong>Heads up:</strong> The canvas itself is just a blank area. You do all the drawing using JavaScript!
+  </div>
 
-        <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+  <h3>1️⃣ Drawing on the Canvas</h3>
+  <canvas id="myCanvas" width="500" height="500"></canvas>
+  <textarea readonly>
+// Get the canvas and context
+let canvas = document.getElementById("myCanvas");
+let ctx = canvas.getContext("2d");
 
-        <script>
-            // Get the canvas and context
-            let canvas = document.getElementById("myCanvas");
-            let ctx = canvas.getContext("2d");
+// Draw rectangle
+ctx.fillStyle = "#FF0000";
+ctx.fillRect(50, 50, 150, 100);
 
-            // Draw a rectangle
-            ctx.fillStyle = "#FF0000"; // Set the fill color
-            ctx.fillRect(50, 50, 150, 100); // Draw rectangle
+// Draw circle
+ctx.beginPath();
+ctx.arc(250, 250, 50, 0, 2 * Math.PI);
+ctx.fillStyle = "#0000FF";
+ctx.fill();
 
-            // Draw a circle
-            ctx.beginPath();
-            ctx.arc(250, 250, 50, 0, 2 * Math.PI); // Draw circle
-            ctx.fillStyle = "#0000FF";
-            ctx.fill();
+// Draw line
+ctx.moveTo(400, 50);
+ctx.lineTo(400, 200);
+ctx.strokeStyle = "#00FF00";
+ctx.lineWidth = 5;
+ctx.stroke();
+  </textarea>
 
-            // Draw a line
-            ctx.moveTo(400, 50);
-            ctx.lineTo(400, 200);
-            ctx.strokeStyle = "#00FF00"; // Set line color
-            ctx.lineWidth = 5;
-            ctx.stroke();
-        </script>
+  <script>
+    let canvas = document.getElementById("myCanvas");
+    let ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FF0000";
+    ctx.fillRect(50, 50, 150, 100);
+    ctx.beginPath();
+    ctx.arc(250, 250, 50, 0, 2 * Math.PI);
+    ctx.fillStyle = "#0000FF";
+    ctx.fill();
+    ctx.moveTo(400, 50);
+    ctx.lineTo(400, 200);
+    ctx.strokeStyle = "#00FF00";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+  </script>
 
-        <h3>2. Handling User Interaction</h3>
-        <p>You can handle user input on the canvas, such as mouse clicks and movements. Here's an example of how to capture mouse clicks on the canvas:</p>
-        <canvas id="clickCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
-        <script>
-            let clickCanvas = document.getElementById("clickCanvas");
-            let clickCtx = clickCanvas.getContext("2d");
+  <h3>2️⃣ Handling Clicks on the Canvas</h3>
+  <canvas id="clickCanvas" width="500" height="500"></canvas>
+  <textarea readonly>
+let clickCanvas = document.getElementById("clickCanvas");
+let clickCtx = clickCanvas.getContext("2d");
 
-            clickCanvas.addEventListener("click", function(event) {
-                let x = event.offsetX;
-                let y = event.offsetY;
+clickCanvas.addEventListener("click", function(event) {
+  let x = event.offsetX;
+  let y = event.offsetY;
 
-                // Draw a circle where the user clicked
-                clickCtx.beginPath();
-                clickCtx.arc(x, y, 10, 0, 2 * Math.PI);
-                clickCtx.fillStyle = "green";
-                clickCtx.fill();
-            });
-        </script>
+  clickCtx.beginPath();
+  clickCtx.arc(x, y, 10, 0, 2 * Math.PI);
+  clickCtx.fillStyle = "green";
+  clickCtx.fill();
+});
+  </textarea>
 
-        <h3>3. Animations on the Canvas</h3>
-        <p>Animations on the canvas can be achieved using JavaScript's <code>requestAnimationFrame()</code> method. Here's a simple animation:</p>
+  <script>
+    let clickCanvas = document.getElementById("clickCanvas");
+    let clickCtx = clickCanvas.getContext("2d");
 
-        <canvas id="animCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
-        <script>
-            let animCanvas = document.getElementById("animCanvas");
-            let animCtx = animCanvas.getContext("2d");
-            let x = 0; // Starting position of the square
+    clickCanvas.addEventListener("click", function(event) {
+      let x = event.offsetX;
+      let y = event.offsetY;
+      clickCtx.beginPath();
+      clickCtx.arc(x, y, 10, 0, 2 * Math.PI);
+      clickCtx.fillStyle = "green";
+      clickCtx.fill();
+    });
+  </script>
 
-            function animate() {
-                animCtx.clearRect(0, 0, animCanvas.width, animCanvas.height); // Clear canvas
-                animCtx.fillStyle = "blue";
-                animCtx.fillRect(x, 100, 50, 50); // Draw the moving square
-                x += 2; // Move the square to the right
+  <h3>3️⃣ Canvas Animation Example</h3>
+  <canvas id="animCanvas" width="500" height="500"></canvas>
+  <textarea readonly>
+let animCanvas = document.getElementById("animCanvas");
+let animCtx = animCanvas.getContext("2d");
+let x = 0;
 
-                if (x > animCanvas.width) {
-                    x = 0; // Reset to start position
-                }
+function animate() {
+  animCtx.clearRect(0, 0, animCanvas.width, animCanvas.height);
+  animCtx.fillStyle = "blue";
+  animCtx.fillRect(x, 100, 50, 50);
+  x += 2;
+  if (x > animCanvas.width) x = 0;
+  requestAnimationFrame(animate);
+}
 
-                requestAnimationFrame(animate); // Call the animate function again
-            }
+animate();
+  </textarea>
 
-            animate(); // Start the animation
-        </script>
-    </div>
+  <script>
+    let animCanvas = document.getElementById("animCanvas");
+    let animCtx = animCanvas.getContext("2d");
+    let x = 0;
+    function animate() {
+      animCtx.clearRect(0, 0, animCanvas.width, animCanvas.height);
+      animCtx.fillStyle = "blue";
+      animCtx.fillRect(x, 100, 50, 50);
+      x += 2;
+      if (x > animCanvas.width) x = 0;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-        <p><strong>1. What does the <code>&lt;canvas&gt;</code> element do?</strong></p>
-        <label><input type="radio" name="q1" value="a"> It is used to display images.</label><br>
-        <label><input type="radio" name="q1" value="b"> It allows for drawing graphics using JavaScript.</label><br>
-        <label><input type="radio" name="q1" value="c"> It displays text on the page.</label><br>
+  <div class="quiz-section">
+    <h2>🎯 Canvas Quiz</h2>
 
-        <p><strong>2. How do you start drawing on the canvas?</strong></p>
-        <label><input type="radio" name="q2" value="a"> Use the <code>getContext()</code> method to get the drawing context.</label><br>
-        <label><input type="radio" name="q2" value="b"> Use the <code>draw()</code> method.</label><br>
-        <label><input type="radio" name="q2" value="c"> Use the <code>startDrawing()</code> method.</label><br>
+    <form id="quizForm">
+      <p><strong>1. What does the <code>&lt;canvas&gt;</code> element do?</strong></p>
+      <label><input type="radio" name="q1" value="a"> Displays images</label>
+      <label><input type="radio" name="q1" value="b"> Allows drawing via JavaScript</label>
+      <label><input type="radio" name="q1" value="c"> Displays text</label>
 
-        <p><strong>3. How can you animate a shape on the canvas?</strong></p>
-        <label><input type="radio" name="q3" value="a"> Use the <code>setInterval()</code> method.</label><br>
-        <label><input type="radio" name="q3" value="b"> Use the <code>requestAnimationFrame()</code> method.</label><br>
-        <label><input type="radio" name="q3" value="c"> Use the <code>animate()</code> method.</label><br>
+      <p><strong>2. How do you start drawing on the canvas?</strong></p>
+      <label><input type="radio" name="q2" value="a"> Use <code>getContext()</code></label>
+      <label><input type="radio" name="q2" value="b"> Use <code>draw()</code></label>
+      <label><input type="radio" name="q2" value="c"> Use <code>startDrawing()</code></label>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
+      <p><strong>3. How can you animate a shape on the canvas?</strong></p>
+      <label><input type="radio" name="q3" value="a"> Use <code>setInterval()</code></label>
+      <label><input type="radio" name="q3" value="b"> Use <code>requestAnimationFrame()</code></label>
+      <label><input type="radio" name="q3" value="c"> Use <code>animate()</code></label>
 
-        <div id="result"></div>
-    </div>
+      <button type="button" onclick="checkQuiz()">Submit Quiz</button>
+    </form>
 
-    <script>
-        // Quiz checking logic
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
+    <div id="result"></div>
+  </div>
 
-            // Check the answers for each question
-            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'a') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'b') {
-                score++;
-            }
+</div>
 
-            // Display result
-            let resultText = "";
-            if (score === totalQuestions) {
-                resultText = "Excellent! You got all questions right!";
-            } else if (score >= totalQuestions / 2) {
-                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
-            } else {
-                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
-            }
+<script>
+  function checkQuiz() {
+    let score = 0;
+    let total = 3;
 
-            document.getElementById('result').innerText = resultText;
-        }
-    </script>
+    if (document.querySelector('input[name="q1"]:checked')?.value === 'b') score++;
+    if (document.querySelector('input[name="q2"]:checked')?.value === 'a') score++;
+    if (document.querySelector('input[name="q3"]:checked')?.value === 'b') score++;
+
+    const result = document.getElementById("result");
+    if (score === total) {
+      result.innerText = "🎉 Excellent! You nailed all " + total + " questions!";
+    } else if (score >= total / 2) {
+      result.innerText = "✅ Not bad! You got " + score + " out of " + total + ".";
+    } else {
+      result.innerText = "📘 Keep practicing! Score: " + score + "/" + total;
+    }
+  }
+</script>
 
 </body>
 </html>
