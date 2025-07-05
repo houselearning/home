@@ -1,134 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSS Variables & Custom Properties</title>
-    <style>
-        /* Define Variables */
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2ecc71;
-            --font-size: 18px;
-            --box-size: 150px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS Variables & Custom Properties</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #fcfcfc;
+      color: #333;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2, h3 {
+      color: #3f51b5;
+      margin-bottom: 0.5rem;
+    }
 
-        h1 {
-            color: var(--primary-color);
-        }
+    h1 {
+      margin-bottom: 1rem;
+    }
 
-        .box {
-            width: var(--box-size);
-            height: var(--box-size);
-            background-color: var(--secondary-color);
-            display: inline-block;
-            line-height: var(--box-size);
-            color: white;
-            font-size: var(--font-size);
-            border-radius: 10px;
-            margin: 10px;
-            transition: 0.3s;
-        }
+    p {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
 
-        /* Change values for smaller screens */
-        @media (max-width: 600px) {
-            :root {
-                --box-size: 100px;
-                --font-size: 14px;
-            }
-        }
+    .box-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
 
-        /* Quiz Styles */
-        .quiz-section {
-            background: #f4f4f4;
-            padding: 20px;
-            margin-top: 30px;
-            border-radius: 5px;
-        }
+    .box {
+      width: var(--box-size, 150px);
+      height: var(--box-size, 150px);
+      background-color: var(--secondary-color, #2ecc71);
+      color: white;
+      font-size: var(--font-size, 18px);
+      line-height: var(--box-size, 150px);
+      border-radius: 10px;
+      user-select: none;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 2px 8px rgb(63 81 181 / 0.2);
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    /* Responsive Variables */
+    @media (max-width: 600px) {
+      :root {
+        --box-size: 100px;
+        --font-size: 14px;
+      }
+    }
 
-        .quiz-section button {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    /* Code blocks style */
+    pre {
+      background: #111;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      margin-bottom: 1.5rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
 
-        #quiz-result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-    </style>
+    /* Quiz Section */
+    .quiz-section {
+      background: #f1f3f7;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgb(0 0 0 / 0.1);
+      margin-top: 2rem;
+    }
+
+    .quiz-section input[type="radio"] {
+      margin-right: 8px;
+    }
+
+    .quiz-section button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #3f51b5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .quiz-section button:hover {
+      background-color: #303f9f;
+    }
+
+    #quiz-result {
+      font-weight: 600;
+      margin-top: 15px;
+      font-size: 1.1rem;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>CSS Variables & Custom Properties</h1>
-    
-    <p>CSS Variables allow you to store reusable values like colors and sizes.</p>
-    
-    <h3>Example: Boxes using CSS Variables</h3>
+  <h1>CSS Variables & Custom Properties</h1>
+
+  <p>CSS Variables let you store reusable values like colors, sizes, and more — making your styles easy to manage and update.</p>
+
+  <h3>Example: Boxes using CSS Variables</h3>
+  <div class="box-container">
     <div class="box">Box 1</div>
     <div class="box">Box 2</div>
-    
-    <p>Resize your browser to see the boxes adjust!</p>
+  </div>
 
-    <!-- Quiz Section -->
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
+  <p>Resize your browser to see the boxes adjust their size and font dynamically!</p>
 
-        <p><strong>1. How do you declare a CSS variable?</strong></p>
-        <label><input type="radio" name="q1" value="a"> `var(--my-variable)`</label><br>
-        <label><input type="radio" name="q1" value="b"> `--my-variable: value;`</label><br>
-        <label><input type="radio" name="q1" value="c"> `let my-variable = value;`</label><br>
+  <h2>How CSS Variables Work</h2>
+  <pre>
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --font-size: 18px;
+  --box-size: 150px;
+}
 
-        <p><strong>2. Where should global variables be defined?</strong></p>
-        <label><input type="radio" name="q2" value="a"> Inside `:root`</label><br>
-        <label><input type="radio" name="q2" value="b"> Inside `body`</label><br>
-        <label><input type="radio" name="q2" value="c"> Inside `html`</label><br>
+.box {
+  background-color: var(--secondary-color);
+  font-size: var(--font-size);
+  width: var(--box-size);
+  height: var(--box-size);
+}
+  </pre>
 
-        <p><strong>3. How do you use a variable in CSS?</strong></p>
-        <label><input type="radio" name="q3" value="a"> `var(--variable-name);`</label><br>
-        <label><input type="radio" name="q3" value="b"> `--variable-name;`</label><br>
-        <label><input type="radio" name="q3" value="c"> `use(--variable-name);`</label><br>
+  <h2>Responsive Variables Example</h2>
+  <pre>
+@media (max-width: 600px) {
+  :root {
+    --box-size: 100px;
+    --font-size: 14px;
+  }
+}
+  </pre>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
-        <div id="quiz-result"></div>
-    </div>
+  <!-- Quiz Section -->
+  <div class="quiz-section">
+    <h2>Quiz: Test Your Knowledge</h2>
 
-    <script>
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
+    <p><strong>1. How do you declare a CSS variable?</strong></p>
+    <label><input type="radio" name="q1" value="a" /> <code>var(--my-variable)</code></label><br />
+    <label><input type="radio" name="q1" value="b" /> <code>--my-variable: value;</code></label><br />
+    <label><input type="radio" name="q1" value="c" /> let my-variable = value;</label><br />
 
-            if (document.querySelector('input[name="q1"]:checked')?.value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked')?.value === 'a') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked')?.value === 'a') {
-                score++;
-            }
+    <p><strong>2. Where should global variables be defined?</strong></p>
+    <label><input type="radio" name="q2" value="a" /> Inside <code>:root</code></label><br />
+    <label><input type="radio" name="q2" value="b" /> Inside <code>body</code></label><br />
+    <label><input type="radio" name="q2" value="c" /> Inside <code>html</code></label><br />
 
-            let resultText = score === totalQuestions
-                ? "🎉 Perfect! You got all questions right!"
-                : `✅ You got ${score} out of ${totalQuestions} correct.`;
+    <p><strong>3. How do you use a variable in CSS?</strong></p>
+    <label><input type="radio" name="q3" value="a" /> <code>var(--variable-name);</code></label><br />
+    <label><input type="radio" name="q3" value="b" /> <code>--variable-name;</code></label><br />
+    <label><input type="radio" name="q3" value="c" /> use(--variable-name);</label><br />
 
-            document.getElementById('quiz-result').innerText = resultText;
-        }
-    </script>
+    <button onclick="checkQuiz()">Submit Quiz</button>
+    <div id="quiz-result"></div>
+  </div>
 
+  <script>
+    function checkQuiz() {
+      let score = 0;
+      let totalQuestions = 3;
+
+      if (document.querySelector('input[name="q1"]:checked')?.value === "b") score++;
+      if (document.querySelector('input[name="q2"]:checked')?.value === "a") score++;
+      if (document.querySelector('input[name="q3"]:checked')?.value === "a") score++;
+
+      const resultText =
+        score === totalQuestions
+          ? "🎉 Perfect! You got all questions right!"
+          : `✅ You got ${score} out of ${totalQuestions} correct.`;
+
+      const resultDiv = document.getElementById("quiz-result");
+      resultDiv.textContent = resultText;
+      resultDiv.style.color = score === totalQuestions ? "green" : "black";
+    }
+  </script>
 </body>
 </html>

@@ -1,130 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSS Dark Mode Lesson</title>
-    <style>
-        :root {
-            --bg-color: white;
-            --text-color: black;
-        }
+  <meta charset="UTF-8">
+  <title>CSS Dark Mode Lesson</title>
+  <style>
+    :root {
+      --bg-color: #fcfcfc;
+      --text-color: #333;
+      --accent-color: #3f51b5;
+      --card-bg: #f1f1f1;
+      --button-bg: #3f51b5;
+      --button-hover: #303f9f;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            transition: background 0.3s, color 0.3s;
-        }
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      transition: background 0.3s, color 0.3s;
+    }
 
-        .dark-mode {
-            --bg-color: black;
-            --text-color: white;
-        }
+    h1, h2 {
+      color: var(--accent-color);
+    }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+    .tip {
+      background: #fff8e1;
+      padding: 0.8rem 1.2rem;
+      border-left: 5px solid #ffb300;
+      margin: 1.5rem 0;
+      border-radius: 6px;
+    }
 
-        .quiz-section {
-            background: #f4f4f4;
-            padding: 20px;
-            margin-top: 30px;
-            border-radius: 5px;
-        }
+    code {
+      background: #eceff1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    button {
+      padding: 0.6rem 1.2rem;
+      background: var(--button-bg);
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 1rem;
+    }
 
-        .quiz-section button {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    button:hover {
+      background: var(--button-hover);
+    }
 
-        #quiz-result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-    </style>
+    .quiz-section {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-top: 2.5rem;
+    }
+
+    .quiz-section label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+
+    #quiz-result {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    /* Dark Mode Theme */
+    .dark-mode {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --accent-color: #90caf9;
+      --card-bg: #1e1e1e;
+      --button-bg: #90caf9;
+      --button-hover: #64b5f6;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>CSS Dark Mode</h1>
-    <p>Click the button below to switch between Light and Dark Mode.</p>
-    
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <h1>🌓 CSS Dark Mode Lesson</h1>
+  <p>Toggle the button below to switch between Light and Dark Mode!</p>
+  
+  <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
+  <div class="tip">
+    💡 Tip: You can store a user's Dark Mode preference using <code>localStorage</code> so it sticks when they refresh the page!
+  </div>
 
-        <p><strong>1. What is the main purpose of Dark Mode?</strong></p>
-        <label><input type="radio" name="q1" value="a"> To make the website slower.</label><br>
-        <label><input type="radio" name="q1" value="b"> To reduce eye strain and save battery.</label><br>
-        <label><input type="radio" name="q1" value="c"> To remove all colors from a website.</label><br>
+  <h2>How It Works</h2>
+  <ul>
+    <li>CSS variables like <code>--bg-color</code> and <code>--text-color</code> control the colors.</li>
+    <li>Toggling the <code>.dark-mode</code> class changes these variables’ values.</li>
+    <li>Preferences get saved to <code>localStorage</code> to persist on reload.</li>
+  </ul>
 
-        <p><strong>2. Which CSS property helps define dark mode variables?</strong></p>
-        <label><input type="radio" name="q2" value="a"> `--custom-mode`</label><br>
-        <label><input type="radio" name="q2" value="b"> `--bg-color` and `--text-color`</label><br>
-        <label><input type="radio" name="q2" value="c"> `background-dark`</label><br>
+  <div class="quiz-section">
+    <h2>📝 Quiz: Test Your Knowledge</h2>
 
-        <p><strong>3. How can we store the user's dark mode preference?</strong></p>
-        <label><input type="radio" name="q3" value="a"> Using Local Storage</label><br>
-        <label><input type="radio" name="q3" value="b"> Using a database</label><br>
-        <label><input type="radio" name="q3" value="c"> By asking the user every time</label><br>
+    <p><strong>1. What is the main purpose of Dark Mode?</strong></p>
+    <label><input type="radio" name="q1" value="a"> To make the website slower.</label>
+    <label><input type="radio" name="q1" value="b"> To reduce eye strain and save battery.</label>
+    <label><input type="radio" name="q1" value="c"> To remove all colors from a website.</label>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
-        <div id="quiz-result"></div>
-    </div>
+    <p><strong>2. Which CSS property helps define dark mode variables?</strong></p>
+    <label><input type="radio" name="q2" value="a"> <code>--custom-mode</code></label>
+    <label><input type="radio" name="q2" value="b"> <code>--bg-color</code> and <code>--text-color</code></label>
+    <label><input type="radio" name="q2" value="c"> <code>background-dark</code></label>
 
-    <script>
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
+    <p><strong>3. How can we store the user's dark mode preference?</strong></p>
+    <label><input type="radio" name="q3" value="a"> Using Local Storage</label>
+    <label><input type="radio" name="q3" value="b"> Using a database</label>
+    <label><input type="radio" name="q3" value="c"> By asking the user every time</label>
 
-            // Save preference in local storage
-            if (document.body.classList.contains("dark-mode")) {
-                localStorage.setItem("theme", "dark");
-            } else {
-                localStorage.setItem("theme", "light");
-            }
-        }
+    <button onclick="checkQuiz()">✅ Submit Quiz</button>
+    <div id="quiz-result"></div>
+  </div>
 
-        // Load the saved theme preference
-        if (localStorage.getItem("theme") === "dark") {
-            document.body.classList.add("dark-mode");
-        }
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
 
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
+      // Save preference
+      localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    }
 
-            if (document.querySelector('input[name="q1"]:checked')?.value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked')?.value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked')?.value === 'a') {
-                score++;
-            }
+    // Load saved preference
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+    }
 
-            let resultText = score === totalQuestions
-                ? "🎉 Perfect! You got all questions right!"
-                : `✅ You got ${score} out of ${totalQuestions} correct.`;
+    function checkQuiz() {
+      let score = 0;
+      const total = 3;
 
-            document.getElementById('quiz-result').innerText = resultText;
-        }
-    </script>
+      if (document.querySelector('input[name="q1"]:checked')?.value === 'b') score++;
+      if (document.querySelector('input[name="q2"]:checked')?.value === 'b') score++;
+      if (document.querySelector('input[name="q3"]:checked')?.value === 'a') score++;
+
+      const message = score === total 
+        ? "🎉 Perfect score — you got it all right!"
+        : `✅ You got ${score} out of ${total} correct.`;
+
+      document.getElementById("quiz-result").innerText = message;
+    }
+  </script>
 
 </body>
 </html>

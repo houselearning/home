@@ -1,197 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSS Selectors and Specificity</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-        }
-        .container {
-            margin-top: 30px;
-            padding: 20px;
-        }
-        h2 {
-            color: #333;
-        }
-        p {
-            font-size: 18px;
-        }
-        .selector-box {
-            margin: 20px auto;
-            padding: 20px;
-            width: 80%;
-            background-color: lightblue;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-        .button-box {
-            margin-top: 40px;
-        }
-        .button-box button {
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .button-box button:hover {
-            background-color: #555;
-        }
-        .quiz-section {
-            background-color: #e9e9e9;
-            padding: 20px;
-            border-radius: 5px;
-            margin-top: 40px;
-        }
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-        #quiz-result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CSS Selectors and Specificity</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9fafb;
+    color: #222;
+    text-align: center;
+  }
+  header {
+    background-color: #222;
+    color: white;
+    padding: 1.25rem 1rem;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  }
+  h1 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h2, h3 {
+    color: #2c3e50;
+  }
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  pre code {
+    display: block;
+    background: #e3e8ef;
+    padding: 0.75rem 1rem;
+    margin: 1rem auto;
+    border-radius: 8px;
+    font-family: 'Source Code Pro', monospace, monospace;
+    font-size: 0.9rem;
+    max-width: 600px;
+    white-space: pre-wrap;
+  }
+  .selector-box {
+    background-color: #a3cef1;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    box-shadow: 0 6px 12px rgb(0 0 0 / 0.1);
+    color: #222;
+  }
+  .selector-box h3 {
+    margin-top: 0;
+  }
+  ul {
+    text-align: left;
+    max-width: 600px;
+    margin: 1rem auto 2rem;
+    padding-left: 1.25rem;
+  }
+  ul li {
+    margin-bottom: 0.5rem;
+  }
+  .quiz-section {
+    background-color: #f0f3f7;
+    padding: 1.5rem;
+    border-radius: 12px;
+    max-width: 650px;
+    margin: 3rem auto 2rem;
+    box-shadow: 0 4px 15px rgb(0 0 0 / 0.05);
+    text-align: left;
+  }
+  .quiz-section h2 {
+    text-align: center;
+    margin-top: 0;
+  }
+  label {
+    display: block;
+    margin: 0.75rem 0;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  input[type="radio"] {
+    margin-right: 0.6rem;
+    cursor: pointer;
+  }
+  button {
+    display: block;
+    margin: 1.5rem auto 0;
+    padding: 0.9rem 2rem;
+    background-color: #222;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #444;
+  }
+  #quiz-result {
+    margin-top: 1.5rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-align: center;
+    min-height: 1.4em;
+    color: #2c3e50;
+  }
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>CSS Selectors and Specificity</h1>
-    </header>
+<header>
+  <h1>CSS Selectors and Specificity</h1>
+</header>
 
-    <div class="container">
-        <h2>What are CSS Selectors?</h2>
-        <p>CSS selectors are used to select HTML elements on the page that you want to style. There are different types of selectors, including:</p>
+<div class="container">
+  <h2>What are CSS Selectors?</h2>
+  <p>CSS selectors are used to select HTML elements on the page that you want to style. There are different types of selectors, including:</p>
 
-        <h3>1. Element Selectors</h3>
-        <p>These target HTML tags directly. For example, <code>p</code> targets all paragraph elements.</p>
-        <pre><code>p { color: red; }</code></pre>
+  <h3>1. Element Selectors</h3>
+  <p>These target HTML tags directly. For example, <code>p</code> targets all paragraph elements.</p>
+  <pre><code>p { color: red; }</code></pre>
 
-        <h3>2. Class Selectors</h3>
-        <p>These target elements with a specific class attribute. Class selectors are prefixed with a <code>.</code>.</p>
-        <pre><code>.example { color: blue; }</code></pre>
+  <h3>2. Class Selectors</h3>
+  <p>These target elements with a specific class attribute. Class selectors are prefixed with a <code>.</code>.</p>
+  <pre><code>.example { color: blue; }</code></pre>
 
-        <h3>3. ID Selectors</h3>
-        <p>These target elements with a specific ID attribute. ID selectors are prefixed with a <code>#</code>.</p>
-        <pre><code>#unique { color: green; }</code></pre>
+  <h3>3. ID Selectors</h3>
+  <p>These target elements with a specific ID attribute. ID selectors are prefixed with a <code>#</code>.</p>
+  <pre><code>#unique { color: green; }</code></pre>
 
-        <h3>4. Universal Selector</h3>
-        <p>The universal selector targets all elements on the page. It is represented by <code>*</code>.</p>
-        <pre><code>* { margin: 0; padding: 0; }</code></pre>
+  <h3>4. Universal Selector</h3>
+  <p>The universal selector targets all elements on the page. It is represented by <code>*</code>.</p>
+  <pre><code>* { margin: 0; padding: 0; }</code></pre>
 
-        <h3>5. Attribute Selectors</h3>
-        <p>These target elements based on their attributes. For example, to target links with the <code>href</code> attribute:</p>
-        <pre><code>a[href] { color: orange; }</code></pre>
+  <h3>5. Attribute Selectors</h3>
+  <p>These target elements based on their attributes. For example, to target links with the <code>href</code> attribute:</p>
+  <pre><code>a[href] { color: orange; }</code></pre>
 
-        <h3>6. Pseudo-class Selectors</h3>
-        <p>These select elements based on their state or position. For example, <code>:hover</code> targets an element when the user hovers over it.</p>
-        <pre><code>a:hover { color: purple; }</code></pre>
+  <h3>6. Pseudo-class Selectors</h3>
+  <p>These select elements based on their state or position. For example, <code>:hover</code> targets an element when the user hovers over it.</p>
+  <pre><code>a:hover { color: purple; }</code></pre>
 
-        <h3>7. Pseudo-element Selectors</h3>
-        <p>These allow you to style part of an element. For example, <code>::before</code> adds content before an element.</p>
-        <pre><code>p::before { content: "Prefix: "; }</code></pre>
+  <h3>7. Pseudo-element Selectors</h3>
+  <p>These allow you to style part of an element. For example, <code>::before</code> adds content before an element.</p>
+  <pre><code>p::before { content: "Prefix: "; }</code></pre>
 
-        <h2>CSS Specificity</h2>
-        <p>Specificity is how the browser decides which styles to apply when multiple CSS rules match the same element. The more specific a selector, the higher its priority.</p>
+  <h2>CSS Specificity</h2>
+  <p>Specificity is how the browser decides which styles to apply when multiple CSS rules match the same element. The more specific a selector, the higher its priority.</p>
 
-        <h3>How Specificity Works:</h3>
-        <ul>
-            <li><strong>Inline styles:</strong> These have the highest specificity.</li>
-            <li><strong>ID selectors:</strong> These are more specific than class or element selectors.</li>
-            <li><strong>Class selectors:</strong> These are more specific than element selectors but less specific than ID selectors.</li>
-            <li><strong>Element selectors:</strong> These have the lowest specificity.</li>
-        </ul>
+  <h3>How Specificity Works:</h3>
+  <ul>
+    <li><strong>Inline styles:</strong> These have the highest specificity.</li>
+    <li><strong>ID selectors:</strong> These are more specific than class or element selectors.</li>
+    <li><strong>Class selectors:</strong> These are more specific than element selectors but less specific than ID selectors.</li>
+    <li><strong>Element selectors:</strong> These have the lowest specificity.</li>
+  </ul>
 
-        <h4>Example of Specificity:</h4>
-        <div class="selector-box" id="test">
-            <h3>This box will be styled based on CSS specificity.</h3>
-            <p>The color of the text below will depend on which CSS rule has higher specificity.</p>
-        </div>
+  <h4>Example of Specificity:</h4>
+  <div class="selector-box" id="test">
+    <h3>This box will be styled based on CSS specificity.</h3>
+    <p>The color of the text below will depend on which CSS rule has higher specificity.</p>
+  </div>
 
-        <h3>Example Styles (Order of application):</h3>
-        <pre><code>
-            /* Style 1: Element selector */
-            div {
-                color: yellow;
-            }
-            
-            /* Style 2: ID selector */
-            #test {
-                color: red;
-            }
-            
-            /* Style 3: Class selector */
-            .selector-box {
-                color: blue;
-            }
-        </code></pre>
+  <h3>Example Styles (Order of application):</h3>
+  <pre><code>
+/* Style 1: Element selector */
+div {
+  color: yellow;
+}
 
-        <p>The final color of the text in the box will be red because the ID selector has higher specificity than the class and element selectors.</p>
-    </div>
+/* Style 2: ID selector */
+#test {
+  color: red;
+}
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-        <p><strong>1. Which CSS selector targets an element with a specific class?</strong></p>
-        <label><input type="radio" name="q1" value="a"> <code>p</code></label><br>
-        <label><input type="radio" name="q1" value="b"> <code>.myClass</code></label><br>
-        <label><input type="radio" name="q1" value="c"> <code>#myId</code></label><br>
+/* Style 3: Class selector */
+.selector-box {
+  color: blue;
+}
+  </code></pre>
 
-        <p><strong>2. Which selector has the highest specificity?</strong></p>
-        <label><input type="radio" name="q2" value="a"> Element selector</label><br>
-        <label><input type="radio" name="q2" value="b"> ID selector</label><br>
-        <label><input type="radio" name="q2" value="c"> Inline styles</label><br>
+  <p>The final color of the text in the box will be <strong>red</strong> because the ID selector has higher specificity than the class and element selectors.</p>
+</div>
 
-        <p><strong>3. What happens when two CSS rules with the same specificity conflict?</strong></p>
-        <label><input type="radio" name="q3" value="a"> The last rule applied will be used.</label><br>
-        <label><input type="radio" name="q3" value="b"> The first rule applied will be used.</label><br>
-        <label><input type="radio" name="q3" value="c"> The browser will throw an error.</label><br>
+<div class="quiz-section" aria-label="CSS Selectors Quiz">
+  <h2>Quiz: Test Your Knowledge</h2>
+  <p><strong>1. Which CSS selector targets an element with a specific class?</strong></p>
+  <label><input type="radio" name="q1" value="a" /> <code>p</code></label>
+  <label><input type="radio" name="q1" value="b" /> <code>.myClass</code></label>
+  <label><input type="radio" name="q1" value="c" /> <code>#myId</code></label>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
+  <p><strong>2. Which selector has the highest specificity?</strong></p>
+  <label><input type="radio" name="q2" value="a" /> Element selector</label>
+  <label><input type="radio" name="q2" value="b" /> ID selector</label>
+  <label><input type="radio" name="q2" value="c" /> Inline styles</label>
 
-        <div id="quiz-result"></div>
-    </div>
+  <p><strong>3. What happens when two CSS rules with the same specificity conflict?</strong></p>
+  <label><input type="radio" name="q3" value="a" /> The last rule applied will be used.</label>
+  <label><input type="radio" name="q3" value="b" /> The first rule applied will be used.</label>
+  <label><input type="radio" name="q3" value="c" /> The browser will throw an error.</label>
 
-    <script>
-        // Quiz checking logic
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
+  <button onclick="checkQuiz()">Submit Quiz</button>
+  <div id="quiz-result" role="alert" aria-live="polite"></div>
+</div>
 
-            // Check answers for each question
-            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'c') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
-                score++;
-            }
+<script>
+  function checkQuiz() {
+    let score = 0;
+    const totalQuestions = 3;
 
-            // Display result
-            let resultText = "";
-            if (score === totalQuestions) {
-                resultText = "Awesome! You got all questions right!";
-            } else if (score >= totalQuestions / 2) {
-                resultText = "Great job! You answered " + score + " out of " + totalQuestions + " correctly.";
-            } else {
-                resultText = "Keep learning! You got " + score + " out of " + totalQuestions + " correct.";
-            }
+    if (document.querySelector('input[name="q1"]:checked')?.value === 'b') score++;
+    if (document.querySelector('input[name="q2"]:checked')?.value === 'c') score++;
+    if (document.querySelector('input[name="q3"]:checked')?.value === 'a') score++;
 
-            document.getElementById('quiz-result').innerText = resultText;
-        }
-    </script>
+    let msg = '';
+    let color = '';
+
+    if (score === totalQuestions) {
+      msg = '🔥 Awesome! You got all questions right!';
+      color = 'green';
+    } else if (score >= totalQuestions / 2) {
+      msg = `👍 Great job! You answered ${score} out of ${totalQuestions} correctly.`;
+      color = '#444';
+    } else {
+      msg = `😅 Keep learning! You got ${score} out of ${totalQuestions} correct.`;
+      color = '#d9534f';
+    }
+
+    const result = document.getElementById('quiz-result');
+    result.textContent = msg;
+    result.style.color = color;
+  }
+</script>
 
 </body>
 </html>

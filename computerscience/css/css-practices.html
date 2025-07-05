@@ -1,131 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSS Best Practices</title>
-    <style>
-        /* ✅ Use CSS Variables for Easy Theme Changes */
-        :root {
-            --bg-color: white;
-            --text-color: black;
-            --btn-bg: royalblue;
-            --btn-text: white;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS Best Practices</title>
+  <style>
+    /* ✅ Use CSS Variables for Easy Theme Changes */
+    :root {
+      --bg-color: white;
+      --text-color: black;
+      --btn-bg: royalblue;
+      --btn-text: white;
+      --btn-bg-hover: darkblue;
+    }
 
-        /* ✅ Follow BEM Naming Convention */
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            transition: 0.3s;
-        }
+    /* Reset and base styles */
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
 
-        .header {
-            padding: 20px;
-            background-color: lightgray;
-        }
+    .header {
+      padding: 20px;
+      background-color: #ddd;
+      border-radius: 8px;
+    }
 
-        .header__title {
-            font-size: 24px;
-        }
+    .header__title {
+      font-size: 28px;
+      margin: 0;
+      color: #3f51b5;
+    }
 
-        .content {
-            margin-top: 20px;
-        }
+    .content {
+      margin-top: 20px;
+    }
 
-        .content__text {
-            font-size: 18px;
-        }
+    .content__text {
+      font-size: 18px;
+      margin: 1rem 0 2rem;
+    }
 
-        /* ✅ Optimize Performance (Avoid Unnecessary Selectors) */
-        button {
-            background-color: var(--btn-bg);
-            color: var(--btn-text);
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
+    /* Buttons */
+    button {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 12px 24px;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 1rem;
+      margin: 6px;
+      transition: background-color 0.3s ease;
+    }
 
-        button:hover {
-            background-color: darkblue;
-        }
+    button:hover {
+      background-color: var(--btn-bg-hover);
+    }
 
-        /* ✅ Implement Dark Mode */
-        .dark-mode {
-            --bg-color: black;
-            --text-color: white;
-            --btn-bg: gray;
-        }
+    /* Dark Mode Variables */
+    .dark-mode {
+      --bg-color: #121212;
+      --text-color: #eee;
+      --btn-bg: #666;
+      --btn-text: #fff;
+      --btn-bg-hover: #444;
+    }
 
-        /* ✅ Quiz Styling */
-        .quiz {
-            margin-top: 20px;
-        }
+    /* Quiz Section */
+    .quiz {
+      margin-top: 20px;
+    }
 
-        .quiz button {
-            margin-top: 10px;
-        }
-    </style>
+    #quizResult {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    #quizResult.visible {
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <h1 class="header__title">CSS Best Practices</h1>
-    </header>
+  <header class="header">
+    <h1 class="header__title">CSS Best Practices</h1>
+  </header>
 
-    <main class="content">
-        <button id="themeToggle">Toggle Dark Mode</button>
-        <p class="content__text">This is an example of well-structured CSS using BEM naming conventions.</p>
+<main class="content">
+  <button id="themeToggle">Toggle Dark Mode</button>
+  <p class="content__text">This is an example of well-structured CSS using BEM naming conventions.</p>
 
-        <!-- ✅ Quiz Section -->
-        <div class="quiz">
-            <h2>📌 Quick Quiz</h2>
-            <p>Why should you avoid using <code>!important</code> in CSS?</p>
-            <button onclick="checkAnswer(true)"> It makes debugging harder</button>
-            <button onclick="checkAnswer(false)"> It speeds up CSS execution</button>
-            <button onclick="checkAnswer(false)"> It's required in every CSS file</button>
-            <p id="quizResult"></p>
-        </div>
-    </main>
+  <!-- New Best Practices paragraphs -->
+  <section class="content__best-practices" style="max-width:600px; margin: 0 auto 2rem; text-align:left;">
+    <p><strong>1. Use CSS Variables for Maintainability:</strong> Define reusable values like colors, fonts, and spacing using <code>--variables</code> inside <code>:root</code>. This way, you can change your theme colors globally just by tweaking variables, instead of hunting down every instance in your CSS.</p>
+    <p><strong>Example:</strong></p>
+    <pre style="background:#f1f1f1; padding:10px; border-radius:6px;">:root {
+  --primary-color: #3f51b5;
+  --font-stack: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.button {
+  background-color: var(--primary-color);
+  font-family: var(--font-stack);
+}</pre>
 
-    <script>
-        const themeToggleButton = document.getElementById("themeToggle");
+    <p><strong>2. Follow Consistent Naming Conventions:</strong> Use BEM (Block Element Modifier) or similar conventions to keep your CSS organized and avoid clashes. It’s easier to read and maintain, especially when your project grows big.</p>
+    <p><strong>Example:</strong></p>
+    <pre style="background:#f1f1f1; padding:10px; border-radius:6px;">.card { /* Block */
+  padding: 1rem;
+}
+.card__title { /* Element */
+  font-weight: bold;
+}
+.card--featured { /* Modifier */
+  border-color: gold;
+}</pre>
+  </section>
 
-        // Function to toggle dark mode
-        function toggleTheme() {
-            document.body.classList.toggle("dark-mode");
+  <!-- ✅ Quiz Section -->
+  <div class="quiz">
+    <h2>📌 Quick Quiz</h2>
+    <p>Why should you avoid using <code>!important</code> in CSS?</p>
+    <button onclick="checkAnswer(true)">It makes debugging harder</button>
+    <button onclick="checkAnswer(false)">It speeds up CSS execution</button>
+    <button onclick="checkAnswer(false)">It's required in every CSS file</button>
+    <p id="quizResult"></p>
+  </div>
+</main>
 
-            // Store the preference in local storage
-            if (document.body.classList.contains("dark-mode")) {
-                localStorage.setItem("theme", "dark");
-            } else {
-                localStorage.setItem("theme", "light");
-            }
-        }
 
-        // Load the theme preference
-        if (localStorage.getItem("theme") === "dark") {
-            document.body.classList.add("dark-mode");
-        }
+  <script>
+    const themeToggleButton = document.getElementById("themeToggle");
+    const quizResult = document.getElementById("quizResult");
 
-        // Event listener for button click
-        themeToggleButton.addEventListener("click", toggleTheme);
+    // Toggle dark mode & save preference
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
 
-        // Quiz function
-        function checkAnswer(isCorrect) {
-            const result = document.getElementById("quizResult");
-            if (isCorrect) {
-                result.textContent = "✅ Correct! Avoiding !important makes debugging easier.";
-                result.style.color = "green";
-            } else {
-                result.textContent = "❌ Incorrect! !important can cause specificity issues.";
-                result.style.color = "red";
-            }
-        }
-    </script>
+      if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("theme", "dark");
+      } else {
+        localStorage.setItem("theme", "light");
+      }
+    }
+
+    // Load theme preference on load
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+    }
+
+    themeToggleButton.addEventListener("click", toggleTheme);
+
+    // Quiz answer handler
+    function checkAnswer(isCorrect) {
+      if (isCorrect) {
+        quizResult.textContent = "✅ Correct! Avoiding !important makes debugging easier.";
+        quizResult.style.color = "green";
+      } else {
+        quizResult.textContent = "❌ Incorrect! !important can cause specificity issues.";
+        quizResult.style.color = "red";
+      }
+      quizResult.classList.add("visible");
+      setTimeout(() => {
+        quizResult.classList.remove("visible");
+      }, 2600);
+    }
+  </script>
 </body>
 </html>
