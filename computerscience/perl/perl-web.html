@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Perl Web Development Tutorial</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0E0F1A;
+      color: #E0E0E0;
+      line-height: 1.6;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1, h2 {
+      color: #7DF9AA;
+    }
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      color: #C7F4D9;
+    }
+    pre {
+      background: #1C1F33;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      color: #C57BFF;
+      margin-bottom: 1rem;
+    }
+    code {
+      background: #15172A;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #7DF9AA;
+      font-weight: 600;
+    }
+    .section {
+      margin-bottom: 3rem;
+      clear: both; /* to keep sections clean with floated video */
+    }
+    .images {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+    .images img {
+      width: 40%;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(125, 249, 170, 0.4);
+      object-fit: contain;
+    }
+    .caption {
+      color: #7DF9AA;
+      font-size: 0.9rem;
+      margin-top: 0.4rem;
+      text-align: center;
+    }
+    .tip {
+      background-color: #1A1C2C;
+      padding: 0.8rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #99FFCC;
+    }
+    a {
+      color: #7DF9AA;
+      text-decoration: none;
+      border-bottom: 1px dashed #7DF9AA;
+    }
+    a:hover {
+      color: #99FFCC;
+      border-bottom: 1px solid #99FFCC;
+    }
+    /* Video container floats right with margin */
+    .video-container {
+      float: right;
+      width: 350px;
+      margin-left: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 15px rgba(125, 249, 170, 0.5);
+    }
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    /* Run button style */
+    button.run-btn {
+      margin-top: 0.8rem;
+      padding: 0.5rem 1rem;
+      background-color: #7DF9AA;
+      color: #0E0F1A;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button.run-btn:hover {
+      background-color: #5fc68f;
+    }
+    .output {
+      background: #15172A;
+      color: #7DF9AA;
+      font-family: Consolas, monospace;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      min-height: 60px;
+      white-space: pre-wrap;
+      font-size: 1rem;
+    }
+    @media (max-width: 800px) {
+      .video-container {
+        float: none;
+        width: 100%;
+        margin-left: 0;
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐪 Perl Web Development: A Beginner's Guide</h1>
+
+  <div class="section">
+    <p>
+      Perl was one of the first languages to fuel dynamic web pages in the early internet days, mainly through CGI scripts — simple programs your web server runs to generate HTML on the fly. Although newer tech has taken the spotlight, Perl still powers tons of legacy systems and shines in rapid prototyping, automation, and backend tasks.
+    </p>
+    <p>
+      Today, Perl web development thrives with modern frameworks like <code>Mojolicious</code> and <code>Dancer</code>, making building REST APIs, web apps, and even real-time features surprisingly smooth. And don’t forget CPAN, Perl’s huge library of modules, which gives you tools for almost anything web-related — templating, database access, user sessions, and way more.
+    </p>
+  </div>
+
+  <div class="images">
+    <div>
+      <img src="img/perl-icon.png" alt="Perl Logo" />
+      <div class="caption">Perl's iconic Camel logo 🐪</div>
+    </div>
+    <div>
+      <img src="img/mojolicious.png" alt="Mojolicious Logo" />
+      <div class="caption">Mojolicious – Modern Perl Web Framework</div>
+    </div>
+  </div>
+
+<div class="section">
+  <h2>⚙️ CGI: The Classic Perl Web Script</h2>
+  <p>
+    Common Gateway Interface (CGI) scripts were Perl's first claim to web fame. Your server executes Perl scripts that output HTML. Here’s a simple "Hello World" CGI script:
+  </p>
+  <pre><code>#!/usr/bin/perl
+use strict;
+use warnings;
+
+print "Content-type: text/html\n\n";
+print "&lt;html&gt;&lt;body&gt;";
+print "&lt;h1&gt;Hello from Perl CGI!&lt;/h1&gt;";
+print "&lt;img src=&quot;https://example.com/image.png&quot;&gt;";
+print "&lt;/body&gt;&lt;/html&gt;";
+</code></pre>
+
+  <!-- Run simulation button -->
+  <button class="run-btn" onclick="runCgiSimulation()">▶️ Run Simulation</button>
+
+  <!-- iframe to show output -->
+  <iframe id="cgiOutputFrame" style="width:100%; height:120px; border:1px solid #7DF9AA; border-radius:8px; margin-top:10px;"></iframe>
+
+  <p>
+    Save this as <code>hello.cgi</code>, upload to your server's cgi-bin, and make it executable. Visiting that URL runs the script, sending back the generated HTML.
+  </p>
+</div>
+
+
+  <div class="section">
+    <h2>🚀 Mojolicious: Perl’s Modern Web Framework</h2>
+    <p>
+      Mojolicious makes Perl web apps fast and fun. It’s super easy to spin up a web server, handle routes, and manage JSON APIs. Here’s a tiny example that runs a web server and responds with "Hello World" on the homepage:
+    </p>
+    <pre><code>use Mojolicious::Lite;
+
+get '/' => {text => 'Hello from Mojolicious!'};
+
+app->start;</code></pre>
+    <p>
+      Run this with <code>perl app.pl daemon</code> and hit <code>http://localhost:3000</code> in your browser to see the magic. It’s minimal but powerful — Mojolicious also supports WebSockets, templates, sessions, and tons more.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>📦 Using CPAN Modules for Web Dev</h2>
+    <p>
+      CPAN is like the ultimate Perl toolbox. You can find modules for templating (e.g., <code>Template</code>), session management, form processing, database interfaces (<code>DBI</code>), and more. To install, just run:
+    </p>
+    <pre><code>cpan install Mojolicious
+cpan install CGI</code></pre>
+    <p>
+      Most Perl web apps leverage CPAN for extending functionality without reinventing the wheel.
+    </p>
+  </div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always run your Perl web scripts with <code>use strict;</code> and <code>use warnings;</code> to catch issues early and write clean, bug-resistant code.
+  </div>
+
+  <div class="section">
+    <h2>🔗 Useful Resources</h2>
+    <ul>
+      <li><a href="https://metacpan.org/pod/Mojolicious" target="_blank" rel="noopener noreferrer">Mojolicious Documentation</a></li>
+      <li><a href="https://perldoc.perl.org/perlfaq8" target="_blank" rel="noopener noreferrer">Perl Web Programming FAQ</a></li>
+      <li><a href="https://metacpan.org/pod/CGI" target="_blank" rel="noopener noreferrer">CGI.pm Module</a></li>
+      <li><a href="https://www.perl.org/books/beginning-perl" target="_blank" rel="noopener noreferrer">Beginning Perl (Book)</a></li>
+    </ul>
+  </div>
+
+
+
+<script>
+function runCgiSimulation() {
+    const iframe = document.getElementById('cgiOutputFrame');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head><title>CGI Output</title></head>
+      <body style="font-family:Segoe UI, sans-serif; background:#0E0F1A; color:#7DF9AA; margin:1rem;">
+        <h1>Hello from Perl CGI!</h1>
+        <img src="data:image/png;base64,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" alt="Image" width="60.1" height="100">
+      </body>
+      </html>
+    `;
+
+    // Write the content into the iframe
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Perl Regular Expressions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0E0F1A;
+      color: #E0E0E0;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #C57BFF;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7DF9AA;
+      color: #0E0F1A;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #5CE299;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1C1F33;
+      color: #C57BFF;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    code {
+      background: #15172A;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+
+    .tip {
+      background-color: #1A1C2C;
+      padding: 0.6rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #99FFCC;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐪 Perl Regular Expressions (<i>regex</i>)</h1>
+  <p>Regex is one of Perl's strongest weapons. Pattern matching is baked into the language with the <code>=~</code> operator and regex literals <code>//</code>.</p>
+
+  <h2>🖥️ Example 1: Simple Match</h2>
+  <textarea id="demo1Code">
+my $text = "I love Perl!";
+if ($text =~ /Perl/) {
+  print "Match found!\n";
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <h2>🖥️ Example 2: Match with Capture Group</h2>
+  <textarea id="demo2Code">
+my $text = "Name: Alex";
+if ($text =~ /Name: (\w+)/) {
+  print "Hello, $1!\n";
+}
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+  <div class="output" id="demo2Output">Output will appear here...</div>
+
+  <h2>🖥️ Example 3: Substitution</h2>
+  <textarea id="demo3Code">
+my $text = "I love Ruby!";
+$text =~ s/Ruby/Perl/;
+print "$text\n";
+  </textarea>
+  <button onclick="runDemo3()">▶️ Run Code</button>
+  <div class="output" id="demo3Output">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Capture groups in Perl are accessed via <code>$1</code>, <code>$2</code>, etc., based on order.
+  </div>
+
+<script>
+  function runDemo1() {
+    const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demo1Output");
+    const expected = `my $text = "I love Perl!";
+if ($text =~ /Perl/) {
+  print "Match found!\\n";
+}`;
+    if (code === expected) {
+      output.textContent = "Match found!";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+
+  function runDemo2() {
+    const code = document.getElementById("demo2Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demo2Output");
+    const expected = `my $text = "Name: Alex";
+if ($text =~ /Name: (\\w+)/) {
+  print "Hello, $1!\\n";
+}`;
+    if (code === expected) {
+      output.textContent = "Hello, Alex!";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+
+  function runDemo3() {
+    const code = document.getElementById("demo3Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demo3Output");
+    const expected = `my $text = "I love Ruby!";
+$text =~ s/Ruby/Perl/;
+print "$text\\n";`;
+    if (code === expected) {
+      output.textContent = "I love Perl!";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+</script>
+
+</body>
+</html>

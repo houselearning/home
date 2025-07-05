@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Perl Control Structures</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0E0F1A;
+      color: #E0E0E0;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #C57BFF;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7DF9AA;
+      color: #0E0F1A;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #5CE299;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1C1F33;
+      color: #C57BFF;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    code {
+      background: #15172A;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+
+    ul {
+      background: #15172A;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+      color: #CCC;
+    }
+
+    .tip {
+      background-color: #1A1C2C;
+      padding: 0.6rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #99FFCC;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐪 Perl Control Structures</h1>
+  <p>Control structures guide the flow of your Perl program: decisions, loops, and conditional logic.</p>
+
+  <h2>🖥️ Example 1: if / elsif / else</h2>
+  <p>Basic conditional branching.</p>
+  <textarea id="demo1Code">
+my $score = 85;
+if ($score >= 90) {
+  print "A\n";
+}
+elsif ($score >= 80) {
+  print "B\n";
+}
+else {
+  print "C or lower\n";
+}
+  </textarea>
+  <button onclick="runDemo1()">▶️ Run Code</button>
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <h2>🖥️ Example 2: unless</h2>
+  <p><code>unless</code> runs a block only if a condition is false — kinda like a reversed <code>if</code>.</p>
+  <textarea id="demo2Code">
+my $logged_in = 0;
+unless ($logged_in) {
+  print "Access denied.\n";
+}
+  </textarea>
+  <button onclick="runDemo2()">▶️ Run Code</button>
+  <div class="output" id="demo2Output">Output will appear here...</div>
+
+  <h2>🖥️ Example 3: while Loop</h2>
+  <p>Repeats a block while a condition is true.</p>
+  <textarea id="demo3Code">
+my $count = 0;
+while ($count < 3) {
+  print "Count: $count\n";
+  $count++;
+}
+  </textarea>
+  <button onclick="runDemo3()">▶️ Run Code</button>
+  <div class="output" id="demo3Output">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always use <code>my</code> when declaring loop variables to keep scope clean.
+  </div>
+
+<script>
+  function runDemo1() {
+    const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demo1Output");
+    const expected = `my $score = 85;
+if ($score >= 90) {
+  print "A\\n";
+}
+elsif ($score >= 80) {
+  print "B\\n";
+}
+else {
+  print "C or lower\\n";
+}`;
+    if (code === expected) {
+      output.textContent = "B";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+
+  function runDemo2() {
+    const code = document.getElementById("demo2Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demo2Output");
+    const expected = `my $logged_in = 0;
+unless ($logged_in) {
+  print "Access denied.\\n";
+}`;
+    if (code === expected) {
+      output.textContent = "Access denied.";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+
+  function runDemo3() {
+    const code = document.getElementById("demo3Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demo3Output");
+    const expected = `my $count = 0;
+while ($count < 3) {
+  print "Count: $count\\n";
+  $count++;
+}`;
+    if (code === expected) {
+      output.textContent = "Count: 0\nCount: 1\nCount: 2";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+</script>
+
+</body>
+</html>

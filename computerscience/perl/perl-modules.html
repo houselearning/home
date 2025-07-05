@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Perl Modules</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0E0F1A;
+      color: #E0E0E0;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #C57BFF;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7DF9AA;
+      color: #0E0F1A;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #5CE299;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #1C1F33;
+      color: #C57BFF;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    code {
+      background: #15172A;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+
+    .tip {
+      background-color: #1A1C2C;
+      padding: 0.6rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #99FFCC;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐪 Perl Modules</h1>
+  <p>Modules let you package reusable code into files that you can <code>use</code> elsewhere. They typically return a true value at the end.</p>
+
+  <h2>🖥️ Example 1: Creating a Module</h2>
+  <p>Save this as <code>MyMath.pm</code>:</p>
+  <textarea id="demo1Code">
+package MyMath;
+use strict;
+use warnings;
+use Exporter 'import';
+
+our @EXPORT_OK = qw(add);
+
+sub add {
+  my ($x, $y) = @_;
+  return $x + $y;
+}
+
+1;  # Module must return true
+  </textarea>
+
+  <h2>🖥️ Example 2: Using the Module</h2>
+  <p>In your script:</p>
+  <textarea id="demo2Code">
+use strict;
+use warnings;
+use MyMath qw(add);
+
+my $sum = add(5, 7);
+print "Sum is: $sum\n";
+  </textarea>
+
+  <button onclick="runDemo()">▶️ Run Code</button>
+  <div class="output" id="demoOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> The <code>@EXPORT_OK</code> array controls what your module exports. Always <code>1;</code> at the end or Perl will puke.
+  </div>
+
+<script>
+  function runDemo() {
+    const code1 = document.getElementById("demo1Code").value.trim().replace(/\r\n/g,'\n');
+    const code2 = document.getElementById("demo2Code").value.trim().replace(/\r\n/g,'\n');
+    const output = document.getElementById("demoOutput");
+    
+    const expectedModule = `package MyMath;
+use strict;
+use warnings;
+use Exporter 'import';
+
+our @EXPORT_OK = qw(add);
+
+sub add {
+  my ($x, $y) = @_;
+  return $x + $y;
+}
+
+1;  # Module must return true`;
+
+    const expectedScript = `use strict;
+use warnings;
+use MyMath qw(add);
+
+my $sum = add(5, 7);
+print "Sum is: $sum\\n";`;
+
+    if (code1 === expectedModule && code2 === expectedScript) {
+      output.textContent = "Sum is: 12";
+    } else {
+      output.textContent = "[Simulation] Output not recognized.";
+    }
+  }
+</script>
+
+</body>
+</html>

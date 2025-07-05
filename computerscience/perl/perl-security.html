@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🐪 Perl Security Essentials</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0E0F1A;
+      color: #7DF9AA;
+      line-height: 1.6;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1, h2 {
+      color: #55C57A;
+    }
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      color: #A4E7BB;
+    }
+    pre {
+      background: #1C1F33;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      color: #FFD580;
+      margin-bottom: 1rem;
+    }
+    code {
+      background: #15172A;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #7DF9AA;
+      font-weight: 600;
+    }
+    .tip {
+      background-color: #163c24;
+      padding: 1rem 1.2rem;
+      border-left: 5px solid #55C57A;
+      margin: 1.5rem 0;
+      font-style: italic;
+      color: #A4E7BB;
+    }
+    ul {
+      margin-left: 1.5rem;
+      color: #B2FFCA;
+    }
+    li {
+      margin-bottom: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔐 Perl Security Essentials</h1>
+
+  <p>
+    Writing secure Perl code is a must, especially for web applications where user input is king. Always assume that input can be malicious, so sanitize, validate, and escape everything. Perl has built-in pragmas and modules that help keep your code clean and safe.
+  </p>
+
+  <p>
+    Some common security pitfalls in Perl include injection attacks (SQL injection, command injection), cross-site scripting (XSS), and unsafe file handling. Understanding and mitigating these risks will save your apps from getting pwned.
+  </p>
+
+  <h2>🛡️ Use <code>strict</code> and <code>warnings</code></h2>
+  <p>Start every Perl script with these pragmas to catch errors early and avoid sloppy code that could lead to security holes.</p>
+  <pre><code>use strict;
+use warnings;
+</code></pre>
+
+  <h2>🔍 Validate and Sanitize User Input</h2>
+  <p>Never trust user input! Use regex or modules like <code>Scalar::Util</code> to verify input matches expected patterns.</p>
+  <pre><code>my $username = param('username');
+if ($username =~ /^[a-zA-Z0-9_]{3,20}$/) {
+  # safe to use
+} else {
+  die "Invalid username!";
+}
+</code></pre>
+
+  <h2>🛠️ Avoid Shell Injection</h2>
+  <p>When calling external programs, use the list form of <code>system</code> or <code>exec</code> to avoid shell interpolation.</p>
+  <pre><code># BAD: vulnerable to injection
+system("rm -rf $user_input");
+
+# GOOD: safer approach
+system('rm', '-rf', $user_input);
+</code></pre>
+
+  <h2>🗄️ Use Placeholders for Database Queries</h2>
+  <p>Never directly interpolate variables into SQL statements. Use <code>DBI</code>’s placeholders to prevent SQL injection.</p>
+  <pre><code>my $sth = $dbh->prepare("SELECT * FROM users WHERE username = ?");
+$sth->execute($username);
+</code></pre>
+
+  <h2>🌐 Prevent Cross-Site Scripting (XSS)</h2>
+  <p>Escape HTML output using modules like <code>HTML::Entities</code> before displaying user data in web pages.</p>
+  <pre><code>use HTML::Entities;
+my $safe_output = encode_entities($user_input);
+print "&lt;p&gt;$safe_output&lt;/p&gt;";
+</code></pre>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Always keep your Perl modules up to date, and monitor CPAN security advisories for patches and vulnerabilities.
+  </div>
+
+  <h2>🔗 Helpful Modules</h2>
+  <ul>
+    <li><code>CGI::Carp</code> – redirects errors to the browser or logs for debugging.</li>
+    <li><code>Data::Dumper</code> – safely inspect data structures.</li>
+    <li><code>Params::Validate</code> – validates function and user input parameters.</li>
+    <li><code>Crypt::Eksblowfish::Bcrypt</code> – secure password hashing.</li>
+    <li><code>Try::Tiny</code> – safer exception handling.</li>
+  </ul>
+
+</body>
+</html>
