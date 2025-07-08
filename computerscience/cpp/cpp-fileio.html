@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>C++ File I/O (Input/Output)</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0f111a;
+      color: #e0e0e0;
+    }
+    h1, h2 {
+      color: #ff6b6b;
+    }
+    textarea {
+      width: 100%;
+      height: 360px;
+      font-family: Consolas, monospace;
+      background: #1c1f2d;
+      color: #a8d1ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #cc5656;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #1c1f2d;
+      color: #89c4f4;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+    .tip {
+      background-color: #262b3f;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff6b6b;
+      margin: 1rem 0;
+    }
+    code {
+      background: #262b3f;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #1c1f2d;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 C++ File I/O (Input/Output)</h1>
+  <p>C++ can write to and read from files using <code>&lt;fstream&gt;</code>.  
+  We use <code>ofstream</code> to write, <code>ifstream</code> to read.</p>
+
+  <h2>📚 Example: Writing & Reading a File</h2>
+  <textarea id="cppFileIOCode">
+// fileio-demo.cpp
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+int main() {
+    ofstream outFile("example.txt");
+    outFile &lt;&lt; "Hello, C++ File I/O!";
+    outFile.close();
+
+    string text;
+    ifstream inFile("example.txt");
+    getline(inFile, text);
+    inFile.close();
+
+    cout &lt;&lt; "File says: " &lt;&lt; text &lt;&lt; endl;
+    return 0;
+}
+  </textarea>
+  <button onclick="simulateCppFileIO()">▶️ Run File I/O Example</button>
+
+  <div class="output" id="fileIOOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateCppFileIO() {
+      const output = document.getElementById("fileIOOutput");
+      output.innerText = "File says: Hello, C++ File I/O!";
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Always close your file streams after you're done. Open files lock resources until they're closed.
+  </div>
+
+  <h2>🔧 Syntax Breakdown</h2>
+  <ul>
+    <li><code>#include &lt;fstream&gt;</code> — gives access to file streams</li>
+    <li><code>ofstream outFile("filename.txt")</code> — creates/open file to write</li>
+    <li><code>outFile &lt;&lt; "text";</code> — writes to file</li>
+    <li><code>ifstream inFile("filename.txt")</code> — opens file for reading</li>
+    <li><code>getline(inFile, var)</code> — reads one line into a string variable</li>
+    <li><code>close()</code> — closes the file stream</li>
+  </ul>
+
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>C++ Console Games</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0f111a;
+      color: #e0e0e0;
+    }
+    h1, h2 {
+      color: #ff6b6b;
+    }
+    textarea {
+      width: 100%;
+      height: 360px;
+      font-family: Consolas, monospace;
+      background: #1c1f2d;
+      color: #a8d1ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #cc5656;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #1c1f2d;
+      color: #89c4f4;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+    }
+    .tip {
+      background-color: #262b3f;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff6b6b;
+      margin: 1rem 0;
+    }
+    code {
+      background: #262b3f;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #1c1f2d;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    .game-img {
+      float: right;
+      margin: 0 0 1rem 1.5rem;
+      border-radius: 10px;
+      width: 365px;
+      height: 512px;
+      object-fit: cover;
+      box-shadow: 0 0 12px rgba(255, 107, 107, 0.35);
+    }
+    @media(max-width: 900px) {
+      .game-img {
+        float: none;
+        width: 100%;
+        height: auto;
+        margin: 1rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎮 C++ Console Games</h1>
+
+<img src="img/cpp-snake.gif" alt="Console Game Example" class="game-img">
+
+<p>Even with no graphics library, you can build awesome games inside the console window using characters, numbers, loops, and logic.</p>
+<h2>🔧 Concepts Used</h2>
+<ul>
+  <li><strong>Random Number Generation</strong></li>
+  <li><strong>Loops & Conditions</strong></li>
+  <li><strong>ASCII UI & Console Output</strong></li>
+  <li><strong>User Input Handling</strong></li>
+  <li><strong>Game Loops</strong></li>
+</ul>
+
+<div class="tip">💡 Console games teach core logic structure — perfect before you move to SDL2, SFML, or Unreal.</div>
+
+<h2>🎮 Play: Guess the Number 🎲</h2>
+
+<div class="output" id="gameOutput">
+  Guess a number between 1 and 100!
+</div>
+
+<input type="number" id="userGuess" placeholder="Enter your guess..." style="margin-top:10px; padding:8px; border-radius:5px; border:none;"/>
+<br>
+<button onclick="submitGuess()">Submit Guess</button>
+<button onclick="resetGame()" style="background:#555;margin-left:10px;">Reset Game</button>
+
+<script>
+  let secretNumber = Math.floor(Math.random() * 100) + 1;
+  let attempts = 0;
+
+  function submitGuess() {
+    const guess = parseInt(document.getElementById("userGuess").value);
+    const output = document.getElementById("gameOutput");
+    attempts++;
+
+    if (isNaN(guess) || guess < 1 || guess > 100) {
+      output.innerText += `\nPlease enter a valid number between 1 and 100.`;
+      return;
+    }
+
+    if (guess > secretNumber) {
+      output.innerText += `\n${guess} is too high.`;
+    } else if (guess < secretNumber) {
+      output.innerText += `\n${guess} is too low.`;
+    } else {
+      output.innerText += `\n🎉 You got it in ${attempts} attempts!`;
+      document.getElementById("userGuess").disabled = true;
+    }
+
+    document.getElementById("userGuess").value = '';
+    document.getElementById("userGuess").focus();
+  }
+
+  function resetGame() {
+    secretNumber = Math.floor(Math.random() * 100) + 1;
+    attempts = 0;
+    document.getElementById("gameOutput").innerText = "Guess a number between 1 and 100!";
+    document.getElementById("userGuess").disabled = false;
+    document.getElementById("userGuess").value = '';
+    document.getElementById("userGuess").focus();
+  }
+</script>
+
+
+<script>
+  function simulateGuessGame() {
+    const output = document.getElementById("gameOutput");
+    output.innerText =
+      "Guess the number (1-100):\nEnter your guess: 50\nToo high!\nEnter your guess: 20\nToo low!\nEnter your guess: 32\nYou got it in 3 tries!";
+  }
+</script>
+
+<h2>🖥️ Run This In:</h2>
+<ul>
+  <li>Visual Studio (New Console App Project → paste code)</li>
+  <li>g++ command line:
+    <pre>g++ guess-number.cpp -o game && ./game</pre>
+  </li>
+</ul>
+
+<h2>🧠 Ideas for More Console Games:</h2>
+<ul>
+  <li>Tic Tac Toe</li>
+  <li>Snake (with ASCII art grid)</li>
+  <li>Text Adventure RPG</li>
+  <li>Hangman</li>
+  <li>Console Blackjack</li>
+</ul>
+<h2>🧰 Open-Source Console Game Projects (GitHub)</h2>
+<ul>
+  <li><a href="https://github.com/TheCherno/Hazel" target="_blank">Hazel Game Engine</a> — C++ engine core (with console utilities built-in)</li>
+  <li><a href="https://github.com/bramdont/tictactoe_itla" target="_blank">C++ Tic Tac Toe</a> — Clean console implementation of classic tic-tac-toe</li>
+  <li><a href="https://github.com/ARMoir/Snake" target="_blank">Snake Game (Console)</a> — Console snake clone using ASCII grid</li>
+  <li><a href="https://github.com/parthp1808/BlackJack-Console-Game" target="_blank">Console Blackjack</a> — C++ blackjack card game playable in the console</li>
+  <li><a href="https://github.com/ertugrul013/ConsoleGame" target="_blank">Text Adventure RPG</a> — Console-based RPG story with stats and choices</li>
+</ul>
+
+<div class="tip">💡 Fork and play with these — or clone them for reference when building your own C++ console games!</div>
+<div class="tip">💡 Add <code>system("cls")</code> or <code>system("clear")</code> to clean the screen between turns (platform-dependent).</div>
+
+</body>
+</html>

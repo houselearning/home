@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>C++ Inheritance + Polymorphism</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0f111a;
+      color: #e0e0e0;
+    }
+    h1, h2 {
+      color: #ff6b6b;
+    }
+    textarea {
+      width: 100%;
+      height: 340px;
+      font-family: Consolas, monospace;
+      background: #1c1f2d;
+      color: #a8d1ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #cc5656;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #1c1f2d;
+      color: #89c4f4;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+    .tip {
+      background-color: #262b3f;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff6b6b;
+      margin: 1rem 0;
+    }
+    code {
+      background: #262b3f;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #1c1f2d;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🦄 C++ Inheritance + Polymorphism</h1>
+  <p>This example shows how a base class passes properties to derived classes through inheritance, and how polymorphism lets a base pointer call overridden methods at runtime.</p>
+
+  <h2>📚 Example: Combined Inheritance & Polymorphism</h2>
+  <textarea id="cppInheritancePolyCode">
+// inheritance-polymorphism-demo.cpp
+#include &lt;iostream&gt;
+using namespace std;
+
+// Base class
+class Animal {
+public:
+    virtual void speak() {
+        cout &lt;&lt; "Animal sound" &lt;&lt; endl;
+    }
+};
+
+// Derived classes
+class Dog : public Animal {
+public:
+    void speak() override {
+        cout &lt;&lt; "Woof!" &lt;&lt; endl;
+    }
+};
+
+class Cat : public Animal {
+public:
+    void speak() override {
+        cout &lt;&lt; "Meow!" &lt;&lt; endl;
+    }
+};
+
+int main() {
+    Animal* a;
+    Dog d;
+    Cat c;
+
+    a = &d;
+    a-&gt;speak();  // Woof!
+
+    a = &c;
+    a-&gt;speak();  // Meow!
+
+    return 0;
+}
+  </textarea>
+  <button onclick="simulateInheritancePolymorphism()">▶️ Run Combined Example</button>
+
+  <div class="output" id="inheritancePolyOutput">Console output will appear here...</div>
+
+  <script>
+    function simulateInheritancePolymorphism() {
+      const output = document.getElementById("inheritancePolyOutput");
+      output.innerText = "Woof!\nMeow!";
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Always declare the base method as <code>virtual</code> to enable runtime method overriding. Otherwise, base class methods get called no matter the object type.
+  </div>
+
+  <h2>🔧 Syntax Breakdown</h2>
+  <ul>
+    <li><code>class Dog : public Animal</code> — Inherits publicly from Animal</li>
+    <li><code>virtual void speak();</code> — Declares method for polymorphism</li>
+    <li><code>void speak() override;</code> — Derived class overrides the method</li>
+    <li><code>Animal* ptr = &amp;derivedObject;</code> — Base pointer to derived object</li>
+    <li><code>ptr-&gt;method();</code> — Calls overridden method at runtime</li>
+  </ul>
+
+</body>
+</html>
