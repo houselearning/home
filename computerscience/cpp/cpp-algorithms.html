@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>C++ Algorithms</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0f111a;
+      color: #e0e0e0;
+    }
+    h1, h2 {
+      color: #ff6b6b;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #1c1f2d;
+      color: #a8d1ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    .tip {
+      background-color: #262b3f;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff6b6b;
+      margin: 1rem 0;
+    }
+    code {
+      background: #262b3f;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #1c1f2d;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>⚙️ C++ Algorithms</h1>
+<p>Let’s explore some core algorithms you’ll use constantly when building software in C++.</p>
+
+<h2>🔍 Linear Search</h2>
+<p>Searches for a value by checking every element in a list.</p>
+<textarea>
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    int arr[] = {4, 7, 12, 3, 9};
+    int n = 5, key = 12;
+    bool found = false;
+
+    for (int i = 0; i &lt; n; i++) {
+        if (arr[i] == key) {
+            cout &lt;&lt; "Found at index " &lt;&lt; i;
+            found = true;
+            break;
+        }
+    }
+    if (!found) cout &lt;&lt; "Not found";
+}
+</textarea>
+
+<h2>🔍 Binary Search (Sorted Array)</h2>
+<p>Efficiently searches a sorted array by dividing search space in half.</p>
+<textarea>
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    int arr[] = {2, 4, 6, 8, 10};
+    int n = 5, key = 8;
+    int low = 0, high = n-1;
+
+    while (low &lt;= high) {
+        int mid = (low + high) / 2;
+        if (arr[mid] == key) {
+            cout &lt;&lt; "Found at index " &lt;&lt; mid;
+            return 0;
+        }
+        else if (arr[mid] &lt; key) low = mid + 1;
+        else high = mid - 1;
+    }
+    cout &lt;&lt; "Not found";
+}
+</textarea>
+
+<h2>↩️ Recursion (Factorial)</h2>
+<textarea>
+#include &lt;iostream&gt;
+using namespace std;
+
+int factorial(int n) {
+    if (n == 0) return 1;
+    return n * factorial(n - 1);
+}
+
+int main() {
+    int num = 5;
+    cout &lt;&lt; "Factorial of " &lt;&lt; num &lt;&lt; " is " &lt;&lt; factorial(num);
+}
+</textarea>
+
+<h2>📊 Bubble Sort</h2>
+<textarea>
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    int arr[] = {5, 2, 9, 1, 5};
+    int n = 5;
+
+    for (int i = 0; i &lt; n-1; i++) {
+        for (int j = 0; j &lt; n-i-1; j++) {
+            if (arr[j] &gt; arr[j+1]) {
+                swap(arr[j], arr[j+1]);
+            }
+        }
+    }
+
+    for (int i = 0; i &lt; n; i++)
+        cout &lt;&lt; arr[i] &lt;&lt; " ";
+}
+</textarea>
+
+<h2>🧮 Fibonacci Sequence</h2>
+<p>Generate numbers where each is the sum of the two before it.</p>
+<textarea>
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    int n = 10, a = 0, b = 1;
+    cout &lt;&lt; a &lt;&lt; " " &lt;&lt; b &lt;&lt; " ";
+
+    for (int i = 2; i &lt; n; i++) {
+        int next = a + b;
+        cout &lt;&lt; next &lt;&lt; " ";
+        a = b;
+        b = next;
+    }
+}
+</textarea>
+
+<div class="tip">💡 Learn to implement these manually first — but in production, use STL functions like <code>sort()</code>, <code>binary_search()</code>, and <code>find()</code> for speed and safety.</div>
+
+</body>
+</html>
