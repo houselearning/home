@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JSON Parsing Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #60a3bc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #60a3bc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3e7995;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+
+    .tip {
+      background-color: #d9f1f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #60a3bc;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 JSON Parsing</h1>
+  <p>
+    <strong>Parsing</strong> means converting a JSON string into a usable JavaScript object using <code>JSON.parse()</code>.  
+    You can also turn an object back into a JSON string with <code>JSON.stringify()</code>.
+  </p>
+
+  <h2>📜 Example: Parse a JSON String</h2>
+  <textarea readonly>
+const jsonString = '{"name":"Alex","age":22,"skills":["C++","JSON"]}';
+const obj = JSON.parse(jsonString);
+console.log(obj.name); // Outputs: Alex
+  </textarea>
+
+  <h2>📜 Example: Stringify a JS Object</h2>
+  <textarea readonly>
+const person = {
+  name: "Alex",
+  age: 22
+};
+const jsonText = JSON.stringify(person);
+console.log(jsonText); // Outputs: {"name":"Alex","age":22}
+  </textarea>
+
+  <h2>📝 Try Parsing JSON Yourself</h2>
+  <textarea id="jsonParsePractice">
+{
+  "language": "JSON",
+  "valid": true,
+  "year": 2024
+}
+  </textarea>
+  <button onclick="simulateJsonParse()">▶️ Parse JSON</button>
+
+  <div class="output" id="jsonParseOutput">Parsing result will appear here...</div>
+
+  <script>
+    function simulateJsonParse() {
+      const code = document.getElementById("jsonParsePractice").value;
+      const outputEl = document.getElementById("jsonParseOutput");
+
+      try {
+        const parsed = JSON.parse(code);
+        let result = "✅ JSON Parsed Successfully!\n\n";
+        for (let key in parsed) {
+          result += `${key}: ${parsed[key]}\n`;
+        }
+        outputEl.innerText = result;
+      } catch (e) {
+        outputEl.innerText = "❌ Invalid JSON. " + e.message;
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 Pro Tip: Use <code>JSON.stringify(obj, null, 2)</code> for pretty-printing with indentation.
+  </div>
+
+  <h2>📌 Quick Notes</h2>
+  <ul>
+    <li><code>JSON.parse()</code> converts a JSON string into a JS object.</li>
+    <li><code>JSON.stringify()</code> turns a JS object back into a JSON string.</li>
+    <li>Parsed JSON can be used just like any other JS object.</li>
+  </ul>
+
+</body>
+</html>
