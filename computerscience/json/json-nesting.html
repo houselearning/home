@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JSON Nesting Explained</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #eef6f9;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #00a8cc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00a8cc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #007d99;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #d4f3f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00a8cc;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧩 JSON Nesting</h1>
+  <p>JSON nesting is when objects or arrays are placed inside other objects or arrays. This lets you represent more complex structured data.</p>
+
+  <h2>📦 Example: Nested JSON Object</h2>
+  <textarea readonly id="jsonNestingExample">
+{
+  "user": {
+    "name": "Alex",
+    "age": 22,
+    "address": {
+      "street": "123 Main St",
+      "city": "Cooltown"
+    },
+    "skills": ["JavaScript", "C++", "JSON"]
+  }
+}
+  </textarea>
+
+  <button onclick="simulateJsonNesting()">▶️ Access Nested Data</button>
+
+  <div class="output" id="jsonNestingOutput">Parsed output will appear here...</div>
+
+  <div class="tip">
+    💡 Use dot notation like <code>user.address.city</code> or array index like <code>skills[0]</code> to access nested values.
+  </div>
+
+  <h2>🔍 What’s Going On Here?</h2>
+  <ul>
+    <li><code>"user"</code> is an object containing other values</li>
+    <li><code>"address"</code> is another object nested inside <code>"user"</code></li>
+    <li><code>"skills"</code> is an array of strings nested in <code>"user"</code></li>
+  </ul>
+
+  <script>
+    function simulateJsonNesting() {
+      const jsonData = {
+        user: {
+          name: "Alex",
+          age: 22,
+          address: {
+            street: "123 Main St",
+            city: "Cooltown"
+          },
+          skills: ["JavaScript", "C++", "JSON"]
+        }
+      };
+
+      const output = `
+User Name: ${jsonData.user.name}
+City: ${jsonData.user.address.city}
+First Skill: ${jsonData.user.skills[0]}
+`;
+
+      document.getElementById("jsonNestingOutput").innerText = output;
+    }
+  </script>
+
+</body>
+</html>
