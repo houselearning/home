@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSON APIs Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #00a8cc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00a8cc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #007d99;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #d0f4f7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00a8cc;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌐 JSON APIs</h1>
+  <p>
+    A JSON API is a web service that responds with data in JSON format. You request data from a URL (an API endpoint) and it sends back structured data your app can work with.
+  </p>
+
+  <h2>📚 Example: Fetch Data from an API</h2>
+  <textarea readonly>
+fetch("https://api.example.com/user")
+  .then(response => response.json())
+  .then(data => {
+    console.log(data.name);
+  })
+  .catch(error => console.error("Error fetching API:", error));
+  </textarea>
+
+  <h2>📝 Try a Fake JSON API Fetch</h2>
+  <button onclick="simulateApiFetch()">▶️ Fetch Fake API</button>
+
+  <div class="output" id="apiOutput">API response will appear here...</div>
+
+  <script>
+    function simulateApiFetch() {
+      const fakeApiResponse = {
+        name: "Alex",
+        age: 22,
+        skills: ["C++", "JavaScript", "JSON APIs"]
+      };
+
+      const result = `✅ API Fetched!\n\nName: ${fakeApiResponse.name}\nAge: ${fakeApiResponse.age}\nSkills: ${fakeApiResponse.skills.join(", ")}`;
+
+      document.getElementById("apiOutput").innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Always handle errors when using <code>fetch()</code> — networks are unpredictable.
+  </div>
+
+  <h2>📌 Quick Notes</h2>
+  <ul>
+    <li><code>fetch()</code> requests data from a URL</li>
+    <li><code>response.json()</code> converts the response to a JS object</li>
+    <li>Use <code>.then()</code> to handle the resolved data</li>
+    <li>Use <code>.catch()</code> for errors (like bad URLs or network problems)</li>
+  </ul>
+
+  <h2>🚀 Real API Ideas to Try</h2>
+  <ul>
+    <li><a href="https://jsonplaceholder.typicode.com/users" target="_blank">JSONPlaceholder Users API</a></li>
+    <li><a href="https://pokeapi.co/api/v2/pokemon/pikachu" target="_blank">PokéAPI (Get Pokémon Data)</a></li>
+    <li><a href="https://api.publicapis.org/entries" target="_blank">Public APIs Directory API</a></li>
+  </ul>
+
+</body>
+</html>
