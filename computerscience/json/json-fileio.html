@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSON File I/O Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0fbff;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #00a8cc;
+    }
+
+    input[type="file"] {
+      padding: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #00a8cc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
+
+    button:hover {
+      background-color: #007d99;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #d4f3f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00a8cc;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📄 JSON File I/O in JavaScript</h1>
+  <p>Since browsers don’t have direct filesystem access, we use <code>FileReader</code> to read JSON files, and generate downloadable blobs to save JSON files.</p>
+
+  <h2>📥 Read JSON File</h2>
+  <input type="file" id="fileInput" accept=".json">
+  <button onclick="loadJson()">▶️ Load File</button>
+
+  <h2>📝 JSON Data</h2>
+  <textarea id="jsonData" placeholder="Loaded JSON will appear here..."></textarea>
+  <button onclick="saveJson()">💾 Save as JSON</button>
+
+  <div class="output" id="output">Console output will appear here...</div>
+
+  <div class="tip">
+    💡 Pro Tip: Always validate JSON before trying to parse or save it.
+  </div>
+
+  <script>
+    function loadJson() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      const output = document.getElementById("output");
+      if (!file) {
+        output.textContent = "⚠️ No file selected!";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById("jsonData").value = e.target.result;
+        output.textContent = "✅ JSON file loaded successfully!";
+      };
+      reader.onerror = function() {
+        output.textContent = "❌ Error reading file.";
+      };
+      reader.readAsText(file);
+    }
+
+    function saveJson() {
+      const jsonText = document.getElementById("jsonData").value;
+      try {
+        const jsonObj = JSON.parse(jsonText);
+        const blob = new Blob([JSON.stringify(jsonObj, null, 2)], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "output.json";
+        link.click();
+        document.getElementById("output").textContent = "✅ JSON file saved as 'output.json'!";
+      } catch (err) {
+        document.getElementById("output").textContent = "❌ Invalid JSON data.";
+      }
+    }
+  </script>
+
+</body>
+</html>

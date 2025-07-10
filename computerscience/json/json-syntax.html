@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JSON Syntax Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #60a3bc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #60a3bc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3e7995;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+
+    .tip {
+      background-color: #d9f1f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #60a3bc;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📄 JSON Syntax</h1>
+  <p>JSON is built on two main structures: objects and arrays. Here's what makes valid JSON syntax:</p>
+
+  <h2>📜 Rules of JSON</h2>
+  <ul>
+    <li>Data is in <code>name/value</code> pairs.</li>
+    <li>Data is separated by commas.</li>
+    <li>Curly braces <code>{ }</code> hold objects.</li>
+    <li>Square brackets <code>[ ]</code> hold arrays.</li>
+    <li>Keys <strong>must</strong> be in double quotes <code>" "</code>.</li>
+    <li>Only these value types allowed: string, number, object, array, boolean, or null.</li>
+  </ul>
+
+  <h2>✅ Valid JSON Example</h2>
+  <textarea readonly>
+{
+  "name": "Alex",
+  "age": 22,
+  "isMember": true,
+  "skills": ["C++", "Python", "JSON"],
+  "address": {
+    "city": "New York",
+    "zip": "10001"
+  }
+}
+  </textarea>
+
+  <h2>❌ Invalid JSON Example</h2>
+  <textarea readonly>
+{
+  name: "Alex",        // ❌ Keys need double quotes
+  "age": 22,
+  "skills": ["C++", "Python", "JSON",],  // ❌ Trailing comma
+}
+  </textarea>
+
+  <div class="tip">
+    💡 Pro Tip: Always run your JSON through a linter like <a href="https://jsonlint.com" target="_blank">JSONLint</a> to catch errors fast.
+  </div>
+
+  <h2>📝 Practice — Try Parsing Your Own JSON</h2>
+  <textarea id="jsonSyntaxPractice">
+{
+  "language": "JSON",
+  "valid": true
+}
+  </textarea>
+  <button onclick="simulateJsonSyntax()">▶️ Parse JSON</button>
+
+  <div class="output" id="jsonSyntaxOutput">Parsing result will appear here...</div>
+
+  <script>
+    function simulateJsonSyntax() {
+      const code = document.getElementById("jsonSyntaxPractice").value;
+      const outputEl = document.getElementById("jsonSyntaxOutput");
+
+      try {
+        const parsed = JSON.parse(code);
+        let result = "✅ Valid JSON!\n";
+        for (let key in parsed) {
+          result += `${key}: ${parsed[key]}\n`;
+        }
+        outputEl.innerText = result;
+      } catch (e) {
+        outputEl.innerText = "❌ Invalid JSON syntax.";
+      }
+    }
+  </script>
+
+</body>
+</html>

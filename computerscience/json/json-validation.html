@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JSON Validation Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #eef6f9;
+      color: #222;
+    }
+
+    h1, h2 {
+      color: #00a8cc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00a8cc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #007d99;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #d4f3f9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #00a8cc;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✅ JSON Validation</h1>
+  <p>Validation means checking if your JSON syntax is correct and properly formatted — for example: no trailing commas, all keys in double quotes, proper nesting, etc.</p>
+
+  <h2>📦 Example JSON (try breaking it)</h2>
+  <textarea id="jsonInput">
+{
+  "name": "Alex",
+  "age": 22,
+  "skills": ["C++", "JSON", "Python"]
+}
+  </textarea>
+
+  <button onclick="validateJson()">▶️ Validate JSON</button>
+
+  <div class="output" id="validationOutput">Validation result will show here...</div>
+
+  <div class="tip">
+    💡 JSON must be <strong>valid syntax</strong> before your app or API can use it. Use <code>JSON.parse()</code> in JavaScript to test validity.
+  </div>
+
+  <h2>🔴 Common Errors That Break JSON:</h2>
+  <ul>
+    <li>Missing or extra commas</li>
+    <li>Single quotes instead of double quotes</li>
+    <li>Trailing commas after the last property</li>
+    <li>Unescaped special characters</li>
+  </ul>
+
+  <script>
+    function validateJson() {
+      const input = document.getElementById("jsonInput").value;
+      const output = document.getElementById("validationOutput");
+
+      try {
+        JSON.parse(input);
+        output.style.color = "#7CFC00";
+        output.innerText = "✅ JSON is valid!";
+      } catch (e) {
+        output.style.color = "#FF4C4C";
+        output.innerText = "❌ Invalid JSON:\n" + e.message;
+      }
+    }
+  </script>
+
+</body>
+</html>
