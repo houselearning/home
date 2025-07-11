@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell Loops Basics</title>
+  <style>
+    body {
+      font-family: Consolas, monospace;
+      background: #012456;
+      color: #C7FCEC;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #5DFDCB;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: #001C3D;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #5DFDCB;
+      color: #012456;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3BC3A2;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #000C26;
+      color: #5DFDCB;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #001F4D;
+      padding: 0.8rem;
+      border-left: 5px solid #5DFDCB;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #A8FBE0;
+    }
+    code {
+      background: #013360;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+    /* Canvas container styling */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      overflow-y: auto;
+      border: 2px solid #5DFDCB;
+      border-radius: 8px;
+      background: #001C3D;
+      margin-top: 1rem;
+      float: right;
+    }
+    canvas {
+      display: block;
+    }
+    .download-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #5DFDCB;
+      color: #011627;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: Consolas, monospace;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: background 0.25s ease;
+      z-index: 10;
+    }
+    .download-btn:hover {
+      background: #00FFC6;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔁 PowerShell Loops Cheat Sheet</h1>
+<p>PowerShell supports several types of loops: <code>for</code>, <code>foreach</code>, <code>while</code>, and <code>do-while</code>. Let’s break 'em down:</p>
+
+<h2>📚 Common Loop Examples</h2>
+
+<textarea readonly>
+# For Loop Example
+for ($i = 1; $i -le 5; $i++) {
+  Write-Output "Count: $i"
+}
+
+# Foreach Loop Example
+$colors = @("Red", "Blue", "Green")
+foreach ($color in $colors) {
+  Write-Output "Color: $color"
+}
+
+# While Loop Example
+$counter = 0
+while ($counter -lt 3) {
+  Write-Output "Number: $counter"
+  $counter++
+}
+</textarea>
+
+<h2>📝 Test a Loop Script</h2>
+<textarea id="psLoopInput" placeholder="Type your PowerShell loop code here..."></textarea>
+<button onclick="simulateLoop()">▶️ Run Simulation</button>
+
+<div class="output" id="loopOutput">Loop output will appear here...</div>
+
+<div class="tip">
+💡 Pro Tip: Prefer <code>foreach</code> for iterating arrays, <code>for</code> for numeric counters, and <code>while</code>/<code>do-while</code> for unknown iteration counts.
+</div>
+
+<!-- Canvas container on right -->
+<div class="canvas-container" id="canvasContainer">
+  <button class="download-btn" onclick="downloadCanvas()">⬇️ Download</button>
+  <canvas id="loopsCanvas" width="720" height="900"></canvas>
+</div>
+
+<script>
+  // Simulation of user input running
+  function simulateLoop() {
+    const input = document.getElementById("psLoopInput").value.trim();
+    const output = document.getElementById("loopOutput");
+
+    if (!input) {
+      output.textContent = "⚠️ Type a loop to simulate output.";
+      return;
+    }
+
+    let result = "";
+
+    if (input.includes("for (")) {
+      result += "Count: 1\nCount: 2\nCount: 3\nCount: 4\nCount: 5\n";
+    } else if (input.includes("foreach (")) {
+      result += "Color: Red\nColor: Blue\nColor: Green\n";
+    } else if (input.includes("while (")) {
+      result += "Number: 0\nNumber: 1\nNumber: 2\n";
+    } else {
+      result += "[Simulation] Loop type not recognized.\n";
+    }
+
+    output.textContent = result;
+  }
+
+  // Canvas drawing code for PowerShell Loops Cheat Sheet
+  const canvas = document.getElementById("loopsCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // Colors & styles
+  const titleColor = "#5DFDCB";
+  const headerColor = "#7DF9AA";
+  const textColor = "#C7FCEC";
+  const bgColor = "#001C3D";
+  const codeColor = "#00FFAB";
+
+  // Clear & fill background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Common function to write lines with vertical spacing
+  let y = 40;
+  function write(text, color = textColor, size = 18, bold = false) {
+    ctx.fillStyle = color;
+    ctx.font = (bold ? "700 " : "") + size + "px Consolas, monospace";
+    ctx.fillText(text, 15, y);
+    y += size + 10;
+  }
+
+  // Draw the cheat sheet content
+  write("🔁 PowerShell Loops Cheat Sheet", titleColor, 26, true);
+  y += 10;
+  write("For Loop", headerColor, 22, true);
+  write("for ($i = 1; $i -le 5; $i++) {", codeColor, 16);
+  write('  Write-Output "Count: $i"', codeColor, 16);
+  write("}", codeColor, 16);
+  y += 10;
+
+  write("Foreach Loop", headerColor, 22, true);
+  write('$colors = @("Red", "Blue", "Green")', codeColor, 16);
+  write("foreach ($color in $colors) {", codeColor, 16);
+  write('  Write-Output "Color: $color"', codeColor, 16);
+  write("}", codeColor, 16);
+  y += 10;
+
+  write("While Loop", headerColor, 22, true);
+  write("$counter = 0", codeColor, 16);
+  write("while ($counter -lt 3) {", codeColor, 16);
+  write('  Write-Output "Number: $counter"', codeColor, 16);
+  write("  $counter++", codeColor, 16);
+  write("}", codeColor, 16);
+  y += 20;
+
+  write("💡 Pro Tips", headerColor, 20, true);
+  write("- Use foreach for arrays.", textColor, 16);
+  write("- Use for for numeric counters.", textColor, 16);
+  write("- Use while or do-while for unknown loops.", textColor, 16);
+
+  // Download function
+  function downloadCanvas() {
+    const link = document.createElement('a');
+    link.download = 'safelibrary-loops-cheat-sheet.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+</script>
+
+</body>
+</html>
