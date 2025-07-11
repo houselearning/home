@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell Functions Basics</title>
+  <style>
+    body {
+      font-family: Consolas, monospace;
+      background: #012456;
+      color: #C7FCEC;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #5DFDCB;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: #001C3D;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #5DFDCB;
+      color: #012456;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3BC3A2;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #000C26;
+      color: #5DFDCB;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #001F4D;
+      padding: 0.8rem;
+      border-left: 5px solid #5DFDCB;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #A8FBE0;
+    }
+    code {
+      background: #013360;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+    /* Canvas container styling */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 520px;
+      overflow-y: auto;
+      border: 2px solid #5DFDCB;
+      border-radius: 8px;
+      background: #001C3D;
+      margin-top: 1rem;
+      float: right;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 520px; /* fixed height */
+    }
+    .download-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #5DFDCB;
+      color: #011627;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: Consolas, monospace;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: background 0.25s ease;
+      z-index: 10;
+    }
+    .download-btn:hover {
+      background: #00FFC6;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔧 PowerShell Functions Cheat Sheet</h1>
+<p>Functions let you group code you want to reuse — super handy for modular scripts.</p>
+
+<h2>📚 Basic Examples</h2>
+
+<textarea readonly>
+# Define a simple function
+function Greet {
+    param([string]$name)
+    Write-Output "Hello, $name!"
+}
+
+# Call the function
+Greet -name "Alex"
+
+# Function with return
+function Add-Numbers {
+    param($a, $b)
+    return $a + $b
+}
+$result = Add-Numbers 5 7
+Write-Output "Sum is $result"
+</textarea>
+
+<h2>📝 Try Your Own Functions</h2>
+<textarea id="psFuncInput" placeholder="Type PowerShell function code here..."></textarea>
+<button onclick="simulateFunc()">▶️ Run Simulation</button>
+
+<div class="output" id="funcOutput">Function output will appear here...</div>
+
+<div class="tip">
+💡 Pro Tip: Use <code>param()</code> to define function parameters and <code>return</code> to output values.
+</div>
+<!--
+<div class="canvas-container" id="canvasContainer">
+  <button class="download-btn" onclick="downloadCanvas()">⬇️ Download</button>
+  <canvas id="funcCanvas" width="720" height="880"></canvas>
+</div>
+
+<script>
+  const canvas = document.getElementById("funcCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // Resize canvas internal resolution to match display size for sharpness
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  resizeCanvas();
+
+  // Colors
+  const titleColor = "#5DFDCB";
+  const headerColor = "#7DF9AA";
+  const textColor = "#C7FCEC";
+  const bgColor = "#001C3D";
+  const codeColor = "#00FFAB";
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  let y = 40;
+  function write(text, color = textColor, size = 18, bold = false) {
+    ctx.fillStyle = color;
+    ctx.font = (bold ? "700 " : "") + size + "px Consolas, monospace";
+    ctx.fillText(text, 15, y);
+    y += size + 10;
+  }
+
+  // Draw content
+  write("🔧 PowerShell Functions Cheat Sheet", titleColor, 26, true);
+  y += 10;
+
+  write("Defining a Function", headerColor, 22, true);
+  write("function FunctionName {", codeColor, 16);
+  write("  # code block", codeColor, 16);
+  write("}", codeColor, 16);
+  y += 10;
+
+  write("With Parameters", headerColor, 22, true);
+  write("function Greet {", codeColor, 16);
+  write("  param([string]$name)", codeColor, 16);
+  write('  Write-Output "Hello, $name!"', codeColor, 16);
+  write("}", codeColor, 16);
+  y += 10;
+
+  write("Calling Functions", headerColor, 22, true);
+  write("Greet -name \"Alex\"", codeColor, 16);
+  y += 10;
+
+  write("Returning Values", headerColor, 22, true);
+  write("function Add-Numbers {", codeColor, 16);
+  write("  param($a, $b)", codeColor, 16);
+  write("  return $a + $b", codeColor, 16);
+  write("}", codeColor, 16);
+  write("$result = Add-Numbers 5 7", codeColor, 16);
+  write('Write-Output "Sum is $result"', codeColor, 16);
+  y += 20;
+
+  write("💡 Pro Tips", headerColor, 20, true);
+  write("- Use param() for parameters.", textColor, 16);
+  write("- Use return to output values.", textColor, 16);
+  write("- Functions help keep scripts DRY and organized.", textColor, 16);
+
+  // Download function
+  function downloadCanvas() {
+    const link = document.createElement('a');
+    link.download = 'safelibrary-func-cheat-sheet.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  // Simulate running user input
+  function simulateFunc() {
+    const input = document.getElementById("psFuncInput").value.trim();
+    const output = document.getElementById("funcOutput");
+
+    if (!input) {
+      output.textContent = "⚠️ Type some PowerShell function code to simulate output.";
+      return;
+    }
+
+    let result = "";
+
+    if (/function\s+Greet/i.test(input)) {
+      result += "Hello, Alex!\n";
+    }
+    if (/Add-Numbers/i.test(input)) {
+      result += "Sum is 12\n";
+    }
+    if (!result) {
+      result = "[Simulation] Function output not recognized.\n";
+    }
+
+    output.textContent = result;
+  }
+</script>
+-->
+
+</body>
+</html>
