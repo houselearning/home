@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PowerShell Networking Basics</title>
+  <title>PowerShell Networking Essentials</title>
   <style>
     body {
-      font-family: Consolas, monospace;
-      background: #012456;
-      color: #7DF9AA;
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
       padding: 2rem;
-      user-select: none;
     }
     h1, h2 {
-      color: #5DFDCB;
+      color: #00bcd4;
     }
     textarea {
       width: 100%;
       height: 180px;
       font-family: Consolas, monospace;
-      background: #001C3D;
-      color: #7DF9AA;
+      background: #252526;
+      color: #f0f0f0;
       padding: 1rem;
       border: none;
       border-radius: 6px;
@@ -29,134 +28,104 @@
     button {
       margin-top: 1rem;
       padding: 0.6rem 1.2rem;
-      background-color: #5DFDCB;
-      color: #012456;
+      background-color: #00bcd4;
+      color: white;
       border: none;
       font-size: 1rem;
       border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s ease;
-      user-select: none;
     }
     button:hover {
-      background-color: #3BC3A2;
+      background-color: #0097a7;
     }
     .output {
       margin-top: 1rem;
-      background: #000C26;
-      color: #5DFDCB;
+      background: #333;
+      color: #80deea;
       padding: 1rem;
       border-radius: 6px;
       white-space: pre-wrap;
       min-height: 140px;
       font-family: Consolas, monospace;
       font-size: 1rem;
-      line-height: 1.3em;
-      user-select: text;
     }
     .tip {
-      background: #001F4D;
+      background: #004d40;
       padding: 0.8rem;
-      border-left: 5px solid #5DFDCB;
+      border-left: 5px solid #00bcd4;
       margin: 1rem 0;
       font-style: italic;
-      color: #A8FBE0;
-      user-select: none;
+      color: #b2ebf2;
     }
     code {
-      background: #013360;
+      background: #263238;
       padding: 2px 6px;
       border-radius: 4px;
-      color: #7DF9AA;
+      color: #80deea;
     }
   </style>
 </head>
 <body>
 
-  <h1>💻 PowerShell Networking Basics</h1>
-  <p>PowerShell makes networking tasks a breeze — ping, port checks, DNS lookups, and more. Let’s dive in!</p>
+  <h1>🌐 PowerShell Networking Essentials</h1>
 
-  <h2>📚 Example Cmdlets</h2>
+  <p>Networking in PowerShell refers to using built-in cmdlets and commands to interact with devices, services, and resources over a network. From checking if a remote server is reachable to resolving domain names, downloading files, or testing open ports — PowerShell gives you a full toolbox for managing and troubleshooting network connections directly from the terminal. Unlike older tools like <code>ping</code> and <code>tracert</code> in CMD, PowerShell’s networking commands are object-based, meaning their results can be further filtered, piped, or used inside scripts for automation.</p>
+
+  <p>This makes it incredibly useful for sysadmins, developers, or security pros who need to automate network tests, monitor infrastructure, or deploy scripts across many machines. Whether you're verifying internet access, diagnosing connection issues, or downloading logs from a remote server — PowerShell networking commands let you do it all without leaving the shell. Plus, with tools like <code>Invoke-RestMethod</code> and <code>Invoke-WebRequest</code>, you can also work with web APIs, automate data retrieval, or even build your own simple monitoring dashboards. It’s an essential skillset if you're working in Windows environments.</p>
+
+  <h2>📶 Basic Networking Commands</h2>
   <textarea readonly>
-# Ping google.com 3 times
-Test-Connection -ComputerName google.com -Count 3
+# Test network connection to a site
+Test-Connection google.com
 
-# Get your IP configuration
+# Download a web page's HTML content
+Invoke-WebRequest -Uri "https://example.com"
+
+# Get local IP configuration
 Get-NetIPAddress
 
-# Test if port 80 on example.com is open
-Test-NetConnection -ComputerName example.com -Port 80
-
-# Get DNS client info
-Get-DnsClient
-
-# Resolve google.com IP address
-Resolve-DnsName google.com
+# Resolve a DNS hostname
+Resolve-DnsName github.com
   </textarea>
 
-  <button onclick="runPowerShellNetSim()">▶️ Run Simulation</button>
+  <h2>📝 Try a command below:</h2>
+  <textarea id="psNetScript" placeholder="Type a PowerShell networking command here...&#10;Example: Test-Connection 8.8.8.8"></textarea>
+  <button onclick="runNetSim()">▶️ Simulate</button>
 
-  <div class="output" id="psNetOutput">Output will appear here...</div>
+  <div class="output" id="netOutput">Network output will appear here...</div>
 
   <div class="tip">
-    💡 Pro Tip: Use <code>Test-Connection</code> for ping, and <code>Test-NetConnection</code> for advanced network tests like ports.
+    💡 Tip: Use <code>Test-Connection</code> to check network reachability, or <code>Invoke-WebRequest</code> to fetch pages and files right from the terminal.
   </div>
 
   <script>
-    const output = document.getElementById("psNetOutput");
-
-    function wait(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async function runPowerShellNetSim() {
-      output.textContent = "Starting PowerShell network commands...\n\n";
-
-      output.textContent += "PS> Test-Connection -ComputerName google.com -Count 3\n";
-      await wait(900);
-      for(let i = 1; i <= 3; i++) {
-        output.textContent += `Reply from 172.217.10.78: bytes=32 time=${Math.floor(Math.random()*40)+20}ms TTL=115\n`;
-        await wait(700);
+    function runNetSim() {
+      const input = document.getElementById("psNetScript").value.trim();
+      const output = document.getElementById("netOutput");
+      if (!input) {
+        output.textContent = "Type a PowerShell networking command to simulate output.";
+        return;
       }
-      output.textContent += "\nPing statistics for 172.217.10.78:\n  Packets: Sent = 3, Received = 3, Lost = 0 (0% loss)\n\n";
 
-      output.textContent += "PS> Get-NetIPAddress\n";
-      await wait(1000);
-      output.textContent += `
-ifIndex  : 12
-IPAddress: 192.168.1.101
-PrefixLength : 24
-AddressFamily: IPv4
-InterfaceAlias: Ethernet
-`;
+      let result = "";
+      const lines = input.split('\n');
 
-      output.textContent += "\nPS> Test-NetConnection -ComputerName example.com -Port 80\n";
-      await wait(900);
-      output.textContent += `
-ComputerName     : example.com
-RemoteAddress    : 93.184.216.34
-RemotePort       : 80
-TcpTestSucceeded : True
-`;
+      lines.forEach(line => {
+        if (line.startsWith("Test-Connection")) {
+          result += "Reply from 8.8.8.8: time=10ms TTL=120\nReply from 8.8.8.8: time=11ms TTL=120\n";
+        } else if (line.startsWith("Invoke-WebRequest")) {
+          result += "StatusCode        : 200\nStatusDescription : OK\nContentLength     : 1024 bytes\n";
+        } else if (line.startsWith("Get-NetIPAddress")) {
+          result += "InterfaceAlias   IPAddress\nEthernet0        192.168.1.101\nLoopback Pseudo  127.0.0.1\n";
+        } else if (line.startsWith("Resolve-DnsName")) {
+          result += "Name      Type   TTL   Section    IPAddress\n--------  ----   ---   -------    ---------\ngithub.com A      299   Answer     20.200.245.247\n";
+        } else {
+          result += "[Simulation] Command not recognized.\n";
+        }
+      });
 
-      output.textContent += "\nPS> Get-DnsClient\n";
-      await wait(800);
-      output.textContent += `
-InterfaceAlias           : Ethernet
-ConnectionSpecificSuffix : localdomain
-DnsServers              : {192.168.1.1}
-`;
-
-      output.textContent += "\nPS> Resolve-DnsName google.com\n";
-      await wait(800);
-      output.textContent += `
-Name       : google.com
-Type       : A
-TTL        : 300
-IPAddress  : 172.217.10.78
-`;
-
-      output.textContent += "\n✅ All done! Your network checks out.\n";
+      output.textContent = result;
     }
   </script>
 
