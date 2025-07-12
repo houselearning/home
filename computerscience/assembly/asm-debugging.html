@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Debugging Assembly Programs | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #ff9800;
+    }
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #f5f5f5;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #fb8c00;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+    }
+    .tip {
+      background-color: #333;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff9800;
+      margin: 1rem 0;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #ffc107;
+    }
+    ul {
+      background: #2c2c2c;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐛 Debugging Assembly Programs</h1>
+  <p>Debugging Assembly means knowing exactly what the CPU’s doing at every step. You track registers, flags, memory, and instructions to catch bugs or weird behavior.</p>
+  <p>Since Assembly is low-level, even small mistakes can cause big headaches. Using tools and techniques to trace execution is key to avoid going insane.</p>
+
+  <h2>🛠️ Common Debugging Techniques</h2>
+  <ul>
+    <li><code>step through instructions</code> — execute line-by-line to watch changes</li>
+    <li><code>inspect registers</code> — check values in eax, ebx, ecx, edx, etc.</li>
+    <li><code>watch memory</code> — monitor data in buffers and stack</li>
+    <li><code>use breakpoints</code> — pause execution at specific points</li>
+    <li><code>check flags</code> — zero, carry, sign flags affect conditional jumps</li>
+  </ul>
+
+  <h2>🔍 Why Debugging Is Critical</h2>
+  <p>Assembly language is unforgiving. One wrong register or an incorrect jump can cause crashes, data corruption, or totally unpredictable behavior. Debugging helps you verify each CPU instruction does exactly what you intended. Without careful debugging, your code might run but produce subtle bugs that are insanely hard to track down later.</p>
+
+  <h2>📚 Example: Simple Add with Debug Comments</h2>
+  <textarea readonly>
+section .text
+    global _start
+
+_start:
+    mov eax, 10       ; Load 10 into eax
+    mov ebx, 5        ; Load 5 into ebx
+    add eax, ebx      ; eax = eax + ebx (should be 15)
+    ; Debug: Check eax here
+
+    mov ecx, eax      ; Move result to ecx
+    sub ecx, 3        ; ecx = ecx - 3 (should be 12)
+    ; Debug: Check ecx here
+
+    mov eax, 1        ; sys_exit
+    int 0x80
+  </textarea>
+
+  <h2>⚠️ Example: Faulty Code with Bug</h2>
+  <textarea readonly>
+section .text
+    global _start
+
+_start:
+    mov eax, 10
+    mov ebx, 0
+    div ebx          ; BUG: Division by zero crash
+    mov eax, 1
+    int 0x80
+  </textarea>
+
+  <button onclick="simulateDebug()">▶️ Simulate Debug Trace</button>
+
+  <div class="output" id="debugOutput">Debug trace will appear here...</div>
+
+  <div class="tip">
+    💡 Pro Tip: Use tools like <code>gdb</code>, <code>edb-debugger</code>, or <code>radare2</code> to step through Assembly code interactively.
+  </div>
+
+  <script>
+    function simulateDebug() {
+      const output = document.getElementById("debugOutput");
+      const trace = [
+        "Instruction: mov eax, 10",
+        "Registers: eax=10, ebx=?, ecx=?, edx=?",
+        "Instruction: mov ebx, 0",
+        "Registers: eax=10, ebx=0, ecx=?, edx=?",
+        "Instruction: div ebx",
+        "ERROR: Division by zero! Program crashed.",
+        "Execution stopped."
+      ];
+      output.textContent = trace.join("\n");
+    }
+  </script>
+
+</body>
+</html>
