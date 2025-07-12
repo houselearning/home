@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ARM Assembly Intro | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #4caf50;
+    }
+    p {
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #a5d6a7;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1.1rem;
+    }
+    .tip {
+      background-color: #2e7d32;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+      color: #c8e6c9;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #81c784;
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🤖 ARM Assembly Introduction</h1>
+
+  <p>
+    ARM (Advanced RISC Machine) Assembly is the low-level language used to program ARM processors, which power most smartphones, tablets, and many embedded devices today. It’s designed to be efficient and simple, based on the RISC (Reduced Instruction Set Computing) philosophy — meaning it uses fewer, simpler instructions that usually execute in one clock cycle.
+  </p>
+
+  <p>
+    ARM Assembly is different from x86 or Intel-style assembly: it uses fixed 32-bit instructions (in classic ARM) or 16-bit in Thumb mode, a load/store architecture (data must be loaded into registers before operating), and a large set of registers (R0 to R15). Familiarity with ARM assembly is great for embedded programming, OS development, or optimizing performance-critical code.
+  </p>
+
+  <h2>📚 Example Code: Simple Addition</h2>
+  <textarea readonly id="armCode">
+// ARM assembly: add two numbers and store result
+
+    AREA Reset, CODE, READONLY
+    ENTRY
+
+start
+    MOV R0, #10       ; Load 10 into register R0
+    MOV R1, #5        ; Load 5 into register R1
+    ADD R2, R0, R1    ; R2 = R0 + R1 (15)
+
+stop
+    B stop            ; Infinite loop
+
+    END
+  </textarea>
+
+  <button onclick="simulateARM()">▶️ Simulate</button>
+
+  <div class="output" id="armOutput">
+    <!-- Simulation output -->
+  </div>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> ARM’s conditional execution and flexible operands make it powerful. Don’t skip learning about condition flags and shifting operands!
+  </div>
+
+  <script>
+    function simulateARM() {
+      const output = document.getElementById("armOutput");
+      output.textContent = "Simulating ARM registers...\n\n" +
+        "R0 = 10\n" +
+        "R1 = 5\n" +
+        "ADD R2, R0, R1\n" +
+        "=> R2 = 15\n\n" +
+        "Program loops infinitely at label 'stop'.";
+    }
+  </script>
+
+</body>
+</html>

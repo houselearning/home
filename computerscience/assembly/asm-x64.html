@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>64-bit Assembly & Registers | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #9c27b0;
+    }
+    p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #ce93d8;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #9c27b0;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #7b1fa2;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1.1rem;
+    }
+    .tip {
+      background-color: #4a148c;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #9c27b0;
+      margin: 1rem 0;
+      color: #e1bee7;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ce93d8;
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🖥️ 64-bit Assembly & Registers (x86-64)</h1>
+
+  <p>
+    Modern desktop and server CPUs use the 64-bit extension of the x86 architecture, often called x86-64 or AMD64. It vastly expands register sizes and count compared to 32-bit (x86), letting programs work with larger data and address more memory directly.
+  </p>
+
+  <p>
+    In 64-bit assembly, you’ll mostly use registers like <code>rax</code>, <code>rbx</code>, <code>rcx</code>, and so on — these are 64-bit registers that replace the old 32-bit <code>eax</code>, <code>ebx</code>, <code>ecx</code>, etc. You can still access lower 32, 16, and 8-bit parts of these registers for backwards compatibility, but the 64-bit parts are the main deal now.
+  </p>
+
+  <h2>📚 Example Code: Simple Addition</h2>
+  <textarea readonly>
+section .text
+global _start
+
+_start:
+    mov rax, 10       ; Load 10 into rax (64-bit register)
+    mov rbx, 5        ; Load 5 into rbx
+    add rax, rbx      ; rax = rax + rbx (15)
+
+    ; Exit syscall (Linux x86-64)
+    mov rdi, 0        ; status code 0
+    mov rax, 60       ; sys_exit
+    syscall
+  </textarea>
+
+  <button onclick="simulate64bit()">▶️ Simulate</button>
+
+  <div class="output" id="output64bit">
+    <!-- Output shows here -->
+  </div>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Registers like <code>rax</code> are versatile — used for return values, math, and syscalls. Mastering them is key to 64-bit asm.
+  </div>
+
+  <script>
+    function simulate64bit() {
+      const output = document.getElementById("output64bit");
+      output.textContent = 
+        "Simulating x86-64 registers:\n\n" +
+        "rax = 10\n" +
+        "rbx = 5\n" +
+        "add rax, rbx\n" +
+        "=> rax = 15\n\n" +
+        "System call: exit with status 0";
+    }
+  </script>
+
+</body>
+</html>
