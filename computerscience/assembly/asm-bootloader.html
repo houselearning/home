@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assembly Bootloader Basics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #ff9800;
+    }
+    p {
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #ffc107;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #fb8c00;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1.1rem;
+    }
+    .tip {
+      background-color: #333;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff9800;
+      margin: 1rem 0;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffc107;
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠️ Creating a Custom Bootloader</h1>
+  <p>
+    A bootloader is the tiny program that runs right after your PC powers on — it’s what wakes up your hardware and starts loading your operating system. It’s stored in the first sector of the boot device (usually the first 512 bytes), known as the Master Boot Record (MBR). Since the bootloader runs in a super-limited environment (16-bit real mode, tiny memory, no OS features), writing one means you have to be precise and efficient with assembly code. Your bootloader’s job is to load the next stage (like a kernel or second-stage loader) into memory and transfer control to it.
+  </p>
+  <p>
+    Writing a custom bootloader gives you full control over the startup process — you can create a custom splash screen, load your OS your way, or even chainload other bootloaders. It’s a foundational step if you’re building your own OS from scratch. Bootloader code must end with the special signature <code>0x55AA</code> in the last two bytes to tell the BIOS it’s valid and bootable. Because you only have 512 bytes, every instruction counts. Tools like NASM (Netwide Assembler) and emulators like QEMU help you develop and test bootloaders without messing with your actual hardware.
+  </p>
+
+  <h2>📚 Example Bootloader Code</h2>
+  <textarea id="bootloaderCode" readonly>
+; Simple bootloader example (512 bytes)
+; NASM syntax
+
+[org 0x7c00]       ; BIOS loads boot sector here
+
+start:
+    mov si, msg    ; Load message address into si
+    call print_string
+
+hang:
+    jmp hang      ; Infinite loop
+
+print_string:
+    lodsb         ; Load byte at si into al, advance si
+    or al, al
+    jz done       ; If zero (end of string), return
+    mov ah, 0x0e  ; BIOS teletype output
+    int 0x10
+    jmp print_string
+done:
+    ret
+
+msg db "Bootloader loaded!", 0
+
+times 510 - ($ - $$) db 0  ; Fill rest with zeros
+dw 0xAA55                  ; Boot signature
+  </textarea>
+  <button onclick="simulateBootloader()">▶️ Simulate Bootloader</button>
+
+  <div class="output" id="bootloaderOutput">
+    <!-- Progress bar & output here -->
+  </div>
+
+  <div class="tip">
+    💡 Pro Tip: Always test your bootloader code in an emulator like QEMU before trying it on real hardware.
+  </div>
+
+  <script>
+    async function simulateBootloader() {
+      const output = document.getElementById("bootloaderOutput");
+      output.textContent = ""; // Clear output
+
+      const totalLength = 70; // width of the bar
+      let progressBar = "";
+      for(let i = 0; i <= totalLength; i++) {
+        progressBar = "[" + "|".repeat(i) + " ".repeat(totalLength - i) + `] ${Math.floor((i/totalLength)*100)}%`;
+        output.textContent = progressBar;
+        await new Promise(r => setTimeout(r, 50)); // 50ms delay for each step
+      }
+
+      output.textContent += "\n\nBootloader runs:\n\nBootloader loaded!\n\nPress any key to continue...";
+    }
+  </script>
+
+</body>
+</html>
