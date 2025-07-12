@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Building a Bootable Floppy Disk Image with NASM & QEMU - Expanded</title>
-  <script src="asm-canvas.js"></script>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -215,7 +214,7 @@ dw 0xAA55              ; Boot sector signature
     <li><code>dw 0xAA55</code> - mandatory boot signature</li>
   </ul>
 
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/BIOS_booting.svg/800px-BIOS_booting.svg.png" alt="BIOS boot flow diagram" />
+  <img src="img/flow-diagram.png" alt="BIOS boot flow diagram" />
 
   <h2>🖥️ Step 2: Assemble the Bootloader</h2>
   <p>Use NASM to assemble the bootloader into a raw binary:</p>
@@ -233,7 +232,7 @@ dd if=boot.img of=floppy.img conv=notrunc</pre>
 
   <p><code>floppy.img</code> is now a full floppy disk image with your bootloader in the first sector.</p>
 
-  <img src="https://i.imgur.com/BQzIbLM.png" alt="Floppy disk image structure" />
+  <img src="img/floppy-disk-structure.png" alt="Floppy disk image structure" />
 
   <h2>🚀 Step 4: Boot the Image with QEMU</h2>
   <p>
@@ -242,7 +241,7 @@ dd if=boot.img of=floppy.img conv=notrunc</pre>
 
   <pre>qemu-system-x86_64 -fda floppy.img</pre>
 
-  <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/QEMU_2.0_screenshot.png" alt="QEMU running bootloader" />
+  <img src="img/qemu-bootloader.png" alt="QEMU running bootloader" />
 
   <h2>🛠️ Step 5: Next Steps — Reading Sectors & Multi-sector Bootloader</h2>
   <p>
@@ -489,6 +488,7 @@ dw 0xAA55
     </div>
   </div>
 
+  <script src="asm-canvas.js"></script>
 
 
 </body>
