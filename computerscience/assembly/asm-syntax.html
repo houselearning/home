@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assembly Syntax & Structure | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+
+    h1, h2 {
+      color: #ff9800;
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #f5f5f5;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #fb8c00;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #333;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff9800;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #2a2a2a;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #ffc107;
+    }
+
+    ul {
+      background: #2c2c2c;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📜 Assembly Syntax & Structure</h1>
+  <p>Assembly is all about precision. You tell the CPU *exactly what to do*, one instruction at a time. Here’s what makes up a typical Assembly program:</p>
+
+  <h2>📝 Sections & Directives</h2>
+  <ul>
+    <li><code>section .data</code> — stores initialized data and constants</li>
+    <li><code>section .bss</code> — stores uninitialized data</li>
+    <li><code>section .text</code> — holds your actual code</li>
+    <li><code>global _start</code> — declares your program’s entry point for the linker</li>
+  </ul>
+
+  <h2>⚙️ Registers & Instructions</h2>
+  <ul>
+    <li><code>mov</code> — move data into a register</li>
+    <li><code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code> — math operations</li>
+    <li><code>int 0x80</code> — makes a Linux syscall (older Linux systems)</li>
+  </ul>
+
+  <h2>📚 Example Code: Basic Math</h2>
+  <textarea id="asmCode">
+section .text
+    global _start
+
+_start:
+    mov eax, 10      ; Load 10 into eax
+    mov ebx, 5       ; Load 5 into ebx
+    add eax, ebx     ; eax = eax + ebx
+
+    mov eax, 1       ; sys_exit
+    int 0x80
+  </textarea>
+
+  <button onclick="simulateAsm()">▶️ Simulate</button>
+
+  <h2>🖥️ Simulated Output</h2>
+  <div class="output" id="asmOutput">
+  Waiting for simulation...
+  </div>
+
+  <div class="tip">
+    💡 Pro Tip: Always comment your code. Assembly gets unreadable fast.
+  </div>
+
+  <script>
+    function simulateAsm() {
+      const code = document.getElementById("asmCode").value;
+      const lines = code.split("\n");
+      let eax = 0;
+      let ebx = 0;
+
+      lines.forEach(line => {
+        const cleanLine = line.trim().toLowerCase();
+
+        if (cleanLine.startsWith("mov eax,")) {
+          eax = parseInt(cleanLine.split(",")[1]);
+        } else if (cleanLine.startsWith("mov ebx,")) {
+          ebx = parseInt(cleanLine.split(",")[1]);
+        } else if (cleanLine.startsWith("add eax, ebx")) {
+          eax += ebx;
+        }
+      });
+
+      const outputBox = document.getElementById("asmOutput");
+      outputBox.textContent = `Final value in EAX = ${eax}`;
+    }
+  </script>
+
+</body>
+</html>
