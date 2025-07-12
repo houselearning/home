@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell JSON Handling - Advanced</title>
+  <style>
+    body {
+      font-family: Consolas, monospace;
+      background: #012456;
+      color: #7DF9AA;
+      padding: 2rem;
+      user-select: none;
+    }
+    a
+    {
+          color: #7DF9AA;
+
+    }
+    h1, h2 {
+      color: #5DFDCB;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #001C3D;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+      margin-bottom: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #5DFDCB;
+      color: #012456;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:hover {
+      background-color: #3BC3A2;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #000C26;
+      color: #5DFDCB;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 180px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      line-height: 1.3em;
+      user-select: text;
+    }
+    .tip {
+      background: #001F4D;
+      padding: 0.8rem;
+      border-left: 5px solid #5DFDCB;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #A8FBE0;
+      user-select: none;
+    }
+    code {
+      background: #013360;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 PowerShell JSON Handling — Advanced</h1>
+  <p>JSON is everywhere, and PowerShell’s got you covered for reading, manipulating, and writing JSON data. Here’s how to master it.</p>
+  <div class="tip">
+    💡 Pro Tip: Use our JSON lessons to get a intro to this lesson <a href="https://houselearning.github.io/home/computerscience/json/index.html">here.</a>
+  </div>
+  <h2>📚 Basic JSON Parsing</h2>
+  <textarea readonly>
+$json = '{
+  "name": "Alex",
+  "age": 25,
+  "skills": ["C#", "PowerShell", "JSON"]
+}'
+$obj = $json | ConvertFrom-Json
+
+$obj.name        # "Alex"
+$obj.skills[1]   # "PowerShell"
+  </textarea>
+
+  <h2>📂 Parsing JSON from a File</h2>
+  <textarea readonly>
+# Assume data.json contains JSON content
+$content = Get-Content -Raw -Path "data.json"
+$obj = $content | ConvertFrom-Json
+
+Write-Output $obj.name
+  </textarea>
+
+  <h2>🛠️ Creating Nested Objects & Accessing Properties</h2>
+  <textarea readonly>
+$json = '{
+  "person": {
+    "name": "Alex",
+    "contacts": {
+      "email": "alex@example.com",
+      "phone": "123-456-7890"
+    }
+  }
+}'
+$obj = $json | ConvertFrom-Json
+
+Write-Output $obj.person.contacts.email   # alex@example.com
+  </textarea>
+
+  <h2>⚠️ Handling Malformed JSON</h2>
+  <textarea readonly>
+$json = '{ "name": "Alex", "age": 25, }'   # Notice the extra comma!
+
+try {
+  $obj = $json | ConvertFrom-Json
+} catch {
+  Write-Output "❌ Error parsing JSON: $_"
+}
+  </textarea>
+
+  <h2>🌐 Using JSON with REST APIs</h2>
+  <textarea readonly>
+$response = Invoke-RestMethod -Uri "https://api.example.com/users/1"
+# $response is already an object parsed from JSON
+
+Write-Output $response.name
+Write-Output $response.email
+  </textarea>
+
+  <button onclick="runJsonSim()">▶️ Run Simulation</button>
+  <div class="output" id="jsonOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 <code>ConvertFrom-Json</code> is your friend for turning JSON text into PowerShell objects, and <code>ConvertTo-Json</code> helps serialize back. Use <code>try/catch</code> to catch malformed JSON errors!
+  </div>
+
+<script>
+  const output = document.getElementById("jsonOutput");
+
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function runJsonSim() {
+    output.textContent = "Starting PowerShell JSON handling simulation...\n\n";
+
+    // Basic parsing
+    output.textContent += "PS> $json = '{...}'\n";
+    await wait(700);
+
+    output.textContent += "PS> $obj = $json | ConvertFrom-Json\n";
+    await wait(700);
+
+    output.textContent += "PS> $obj.name\n";
+    await wait(500);
+    output.textContent += "Alex\n";
+
+    output.textContent += "PS> $obj.skills[1]\n";
+    await wait(500);
+    output.textContent += "PowerShell\n\n";
+
+    // Parsing from file
+    output.textContent += "PS> $content = Get-Content -Raw -Path \"data.json\"\n";
+    await wait(800);
+    output.textContent += "PS> $obj = $content | ConvertFrom-Json\n";
+    await wait(700);
+    output.textContent += "PS> Write-Output $obj.name\n";
+    await wait(500);
+    output.textContent += "Alex\n\n";
+
+    // Nested objects
+    output.textContent += "PS> $json = '{\"person\":{\"name\":\"Alex\",\"contacts\":{\"email\":\"alex@example.com\",\"phone\":\"123-456-7890\"}}}'\n";
+    await wait(800);
+    output.textContent += "PS> $obj = $json | ConvertFrom-Json\n";
+    await wait(700);
+    output.textContent += "PS> Write-Output $obj.person.contacts.email\n";
+    await wait(500);
+    output.textContent += "alex@example.com\n\n";
+
+    // Malformed JSON error handling
+    output.textContent += "PS> $json = '{ \"name\": \"Alex\", \"age\": 25, }'\n";
+    await wait(700);
+    output.textContent += "PS> try { $obj = $json | ConvertFrom-Json } catch { Write-Output \"Error: $_\" }\n";
+    await wait(1000);
+    output.textContent += "❌ Error parsing JSON: Unexpected character after JSON object property.\n\n";
+
+    // REST API example
+    output.textContent += "PS> $response = Invoke-RestMethod -Uri \"https://api.example.com/users/1\"\n";
+    await wait(800);
+    output.textContent += "# $response is already an object parsed from JSON\n";
+    await wait(700);
+    output.textContent += "PS> Write-Output $response.name\n";
+    await wait(500);
+    output.textContent += "Alex\n";
+    output.textContent += "PS> Write-Output $response.email\n";
+    await wait(500);
+    output.textContent += "alex@example.com\n\n";
+
+    output.textContent += "✅ JSON handling mastered like a PowerShell pro!";
+  }
+</script>
+
+</body>
+</html>
