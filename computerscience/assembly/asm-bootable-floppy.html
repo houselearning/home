@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Building a Bootable Floppy Disk Image with NASM & QEMU - Expanded</title>
+  <script src="asm-canvas.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #121212;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      color: #ff6f61;
+    }
+    code, pre {
+      background: #1e1e1e;
+      color: #ffd966;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre {
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 1rem 0;
+      box-shadow: 0 0 8px #ff6f61aa;
+    }
+    ul {
+      margin-left: 1.2rem;
+    }
+    .tip {
+      background-color: #ff6f61aa;
+      padding: 0.8rem;
+      margin: 1rem 0;
+      border-left: 6px solid #ff6f61;
+      font-style: italic;
+      color: #2b2b2b;
+    }
+    .note {
+      background-color: #333;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #ffd966;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff6f61;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #e85c4d;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    /* Additional styles for asm OS simulation */
+    #asmOsWrapper {
+      margin-top: 3rem;
+      border: 2px solid #ff6f61;
+      border-radius: 10px;
+      padding: 1rem;
+      background: #1a1a1a;
+    }
+    #asmCodeArea {
+      width: 100%;
+      height: 280px;
+      background: #222;
+      color: #ffd966;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      white-space: pre;
+      overflow: auto;
+      user-select: text;
+    }
+    #asmOutput {
+      margin-top: 1rem;
+      background: #111;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      white-space: pre-wrap;
+      min-height: 220px;
+      overflow-y: auto;
+      line-height: 1.3;
+    }
+    #progressBar {
+      margin-top: 1rem;
+      background: #444;
+      border-radius: 12px;
+      height: 24px;
+      width: 100%;
+      overflow: hidden;
+      font-family: Consolas, monospace;
+      font-weight: bold;
+      color: #0f0;
+      text-align: center;
+      line-height: 24px;
+      user-select: none;
+    }
+    #progressBarInner {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6f61, #ff9e94);
+      width: 0;
+      transition: width 0.3s ease;
+    }
+    #buttonsRow {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+      #asmOutput {
+    margin-top: 1rem;
+    background: #111;
+    color: #0f0;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    white-space: pre-wrap;
+    min-height: 220px;
+    overflow-y: auto;
+    line-height: 1.3;
+  }
+  </style>
+</head>
+<body>
+
+  <!-- Your existing content here -->
+
+  <h1>💾 Building a Bootable Floppy Disk Image with NASM & QEMU</h1>
+
+  <p>
+    This expanded guide will show you how to build a simple bootloader, create a floppy disk image with it, and run it using QEMU.
+    We’ll go deeper into the code, setup tools, and next steps for extending your bootloader skills.
+  </p>
+
+  <h2>🧱 Step 1: Writing Your Bootloader</h2>
+  <p>
+    Your bootloader is the first code the BIOS executes after loading it into memory at <code>0x7c00</code>.
+    Here’s a simple example that prints a message using BIOS interrupts:
+  </p>
+
+  <textarea id="bootloaderCode" readonly>
+[BITS 16]
+[ORG 0x7c00]
+
+start:
+    mov si, msg         ; Point SI to the message string
+    call print_string   ; Print the message
+
+    jmp $               ; Infinite loop to halt
+
+print_string:
+    mov ah, 0x0e        ; BIOS teletype function
+.next_char:
+    lodsb               ; Load byte at DS:SI into AL, increment SI
+    cmp al, 0
+    je .done
+    int 0x10            ; Call BIOS video interrupt
+    jmp .next_char
+.done:
+    ret
+
+msg db "Hello from your bootloader! Press Ctrl+C to quit.", 0
+
+times 510-($-$$) db 0  ; Pad up to 510 bytes
+dw 0xAA55              ; Boot sector signature
+  </textarea>
+  <button onclick="simulateBootloader()">▶️ Simulate Bootloader</button>
+  <div class="output" id="simOutput">Simulation output will appear here...</div>
+
+  <h3>Understanding the Code</h3>
+  <ul>
+    <li><code>[BITS 16]</code> - tells NASM to assemble for 16-bit mode (real mode)</li>
+    <li><code>[ORG 0x7c00]</code> - sets code origin, where BIOS loads the bootloader</li>
+    <li><code>mov si, msg</code> - loads message string pointer</li>
+    <li><code>print_string</code> - loop that prints each character using BIOS <code>int 0x10</code></li>
+    <li><code>times 510-($-$$) db 0</code> - pads the bootloader to 510 bytes (total boot sector size is 512 bytes)</li>
+    <li><code>dw 0xAA55</code> - mandatory boot signature</li>
+  </ul>
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/BIOS_booting.svg/800px-BIOS_booting.svg.png" alt="BIOS boot flow diagram" />
+
+  <h2>🖥️ Step 2: Assemble the Bootloader</h2>
+  <p>Use NASM to assemble the bootloader into a raw binary:</p>
+  <pre>nasm -f bin boot.asm -o boot.img</pre>
+
+  <p>This creates a 512-byte file named <code>boot.img</code>, which represents a floppy disk boot sector.</p>
+
+  <h2>💽 Step 3: Create a Floppy Disk Image</h2>
+  <p>
+    A floppy disk image is a raw file that represents a floppy disk’s data. You can create a blank 1.44MB floppy image and copy your bootloader onto it:
+  </p>
+
+  <pre>dd if=/dev/zero of=floppy.img bs=512 count=2880
+dd if=boot.img of=floppy.img conv=notrunc</pre>
+
+  <p><code>floppy.img</code> is now a full floppy disk image with your bootloader in the first sector.</p>
+
+  <img src="https://i.imgur.com/BQzIbLM.png" alt="Floppy disk image structure" />
+
+  <h2>🚀 Step 4: Boot the Image with QEMU</h2>
+  <p>
+    Use QEMU to boot your floppy disk image in a virtual machine:
+  </p>
+
+  <pre>qemu-system-x86_64 -fda floppy.img</pre>
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/1/13/QEMU_2.0_screenshot.png" alt="QEMU running bootloader" />
+
+  <h2>🛠️ Step 5: Next Steps — Reading Sectors & Multi-sector Bootloader</h2>
+  <p>
+    Your bootloader is limited to 512 bytes — that’s why you might want to load more sectors from disk to expand functionality.
+    You can use BIOS interrupt <code>int 0x13</code> to read sectors from the floppy, and chain-load other code.
+  </p>
+
+  <p>
+    This unlocks possibilities for simple OS loaders, or even tiny games.
+  </p>
+
+  <pre>
+// Example BIOS disk read (in NASM)
+mov ah, 0x02        ; read sectors function
+mov al, 1           ; number of sectors to read
+mov ch, 0           ; track 0
+mov cl, 2           ; sector 2 (first after boot sector)
+mov dh, 0           ; head 0
+mov dl, 0           ; drive 0 (floppy)
+mov bx, buffer      ; segment:offset where data will be loaded
+int 0x13            ; BIOS disk service
+  </pre>
+
+  <div class="tip">
+    ⚠️ Keep your code under 512 bytes or load additional sectors carefully to avoid overwriting important data.
+  </div>
+
+  <!-- ================== ASSEMBLY OS SIMULATION ================== -->
+  <div id="asmOsWrapper">
+    <h2>🖥️ TinyASM OS Bootloader Simulation</h2>
+    <button id="downloadAsmBtn">Download asm file</button>
+
+
+    <pre id="asmCodeArea" readonly>
+[BITS 16]
+[ORG 0x7c00]
+
+start:
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    sti
+
+    call print_dashboard
+
+main_loop:
+    mov ah, 0x00
+    int 0x16
+    cmp al, 'W'
+    je write_app
+    cmp al, 'w'
+    je write_app
+    cmp al, 'P'
+    je paint_app
+    cmp al, 'p'
+    je paint_app
+    cmp al, 'S'
+    je shutdown
+    cmp al, 's'
+    je shutdown
+    jmp main_loop
+
+print_dashboard:
+    mov si, dash_msg
+    call print_string
+    ret
+
+write_app:
+    call clear_screen
+    mov si, write_header
+    call print_string
+    mov cx, 0
+    mov dx, 5
+
+write_loop:
+    call set_cursor_pos
+    mov ah, 0x00
+    int 0x16
+    cmp al, 0x1B
+    je return_dashboard
+    cmp al, 0x08
+    je write_backspace
+    cmp al, 0x20
+    jb write_loop
+    cmp al, 0x7E
+    ja write_loop
+    push ax
+    mov ah, 0x0E
+    int 0x10
+    pop ax
+    inc cx
+    cmp cx, 80
+    jne write_loop
+    mov cx, 0
+    inc dx
+    cmp dx, 24
+    jne write_loop
+    jmp write_loop
+
+write_backspace:
+    cmp cx, 0
+    je write_loop
+    dec cx
+    call set_cursor_pos
+    mov ah, 0x0E
+    mov al, ' '
+    int 0x10
+    call set_cursor_pos
+    jmp write_loop
+
+paint_app:
+    call clear_screen
+    mov si, paint_header
+    call print_string
+    mov cx, 40
+    mov dx, 12
+
+paint_loop:
+    call set_cursor_pos
+    mov ah, 0x00
+    int 0x16
+    cmp al, 0x1B
+    je return_dashboard
+    cmp al, 0x20
+    jne paint_check_arrows
+
+    mov ah, 0x08
+    mov bh, 0
+    mov dh, dl
+    mov dl, cl
+    int 0x10
+    mov bl, al
+
+    cmp bl, 0xDB
+    je paint_erase_block
+
+    mov ah, 0x0E
+    mov al, 0xDB
+    int 0x10
+    jmp paint_loop
+
+paint_erase_block:
+    mov ah, 0x0E
+    mov al, ' '
+    int 0x10
+    jmp paint_loop
+
+paint_check_arrows:
+    cmp al, 0
+    jne paint_loop
+    mov ah, 0
+    int 0x16
+    mov ah, 0x00
+    int 0x16
+    mov ah, 0x00
+
+    cmp ah, 0x48
+    jne paint_right_check
+    cmp dx, 5
+    jle paint_loop
+    dec dx
+    jmp paint_loop
+
+paint_right_check:
+    cmp ah, 0x4B
+    jne paint_down_check
+    cmp cx, 0
+    jle paint_loop
+    dec cx
+    jmp paint_loop
+
+paint_down_check:
+    cmp ah, 0x50
+    jne paint_left_check
+    cmp dx, 23
+    jge paint_loop
+    inc dx
+    jmp paint_loop
+
+paint_left_check:
+    cmp ah, 0x4D
+    jne paint_loop
+    cmp cx, 79
+    jge paint_loop
+    inc cx
+    jmp paint_loop
+
+set_cursor_pos:
+    mov ah, 0x02
+    mov bh, 0
+    mov dh, dl
+    mov dl, cl
+    int 0x10
+    ret
+
+print_string:
+    lodsb
+    cmp al, 0
+    je print_done
+    mov ah, 0x0E
+    int 0x10
+    jmp print_string
+print_done:
+    ret
+
+clear_screen:
+    mov ax, 0x0600
+    mov bh, 0x07
+    mov cx, 0
+    mov dx, 0x184F
+    int 0x10
+    ret
+
+return_dashboard:
+    jmp start
+
+shutdown:
+    mov si, shutdown_msg
+    call print_string
+    cli
+    hlt
+    jmp shutdown
+
+dash_msg db 0x0D,0x0A, "=== TinyASM OS Dashboard ===", 0x0D,0x0A
+         db "W: Write App", 0x0D,0x0A
+         db "P: Paint App", 0x0D,0x0A
+         db "S: Shut Down", 0x0D,0x0A, 0
+
+write_header db 0x0D,0x0A, "Write App (type your text, ESC to return):", 0x0D,0x0A, 0
+paint_header db 0x0D,0x0A, "Paint App (use arrows, SPACE to toggle block, ESC to return):", 0x0D,0x0A, 0
+shutdown_msg db 0x0D,0x0A, "Shutting down... Goodbye!", 0x0D,0x0A, 0
+
+times 510-($-$$) db 0
+dw 0xAA55
+    </pre>
+
+    <div id="buttonsRow">
+      <button id="downloadPaintBtn" style="display:none;">Download Paint Image</button>
+    </div>
+<h2>🖥️ Simmulated Output </h2>
+    <div id="asmOutput" tabindex="0" aria-live="polite" aria-label="TinyASM OS Output">
+      Welcome to TinyASM OS Dashboard! Press W for Write, P for Paint, S to Shutdown.
+    </div>
+  </div>
+
+
+
+</body>
+</html>
