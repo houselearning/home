@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assembly File I/O | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #ff9800;
+    }
+    textarea {
+      width: 100%;
+      height: 360px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #f5f5f5;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #fb8c00;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+    }
+    .tip {
+      background-color: #333;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff9800;
+      margin: 1rem 0;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #ffc107;
+    }
+    ul {
+      background: #2c2c2c;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 Assembly File I/O Basics</h1>
+  <p>Working with files in Assembly means using Linux syscalls directly. You manually open, read/write, and close files using registers and interrupts.</p>
+
+  <h2>🔑 Key Syscalls</h2>
+  <ul>
+    <li><code>sys_open (eax=5)</code> — open a file</li>
+    <li><code>sys_read (eax=3)</code> — read data from a file descriptor</li>
+    <li><code>sys_write (eax=4)</code> — write data to a file descriptor</li>
+    <li><code>sys_close (eax=6)</code> — close a file descriptor</li>
+  </ul>
+
+  <h2>📚 Example Code: Open, Read, Write, Close</h2>
+  <textarea readonly>
+section .data
+    filename db "test.txt",0
+    buffer   times 128 db 0
+
+section .text
+    global _start
+
+_start:
+    ; Open file (read-only)
+    mov eax, 5           ; sys_open
+    mov ebx, filename    ; filename pointer
+    mov ecx, 0           ; flags = O_RDONLY
+    int 0x80
+    mov ebp, eax         ; save file descriptor
+
+    ; Read file
+    mov eax, 3           ; sys_read
+    mov ebx, ebp         ; fd
+    mov ecx, buffer      ; buffer to read into
+    mov edx, 128         ; bytes to read
+    int 0x80
+
+    ; Write to stdout
+    mov eax, 4           ; sys_write
+    mov ebx, 1           ; stdout fd
+    mov ecx, buffer      ; buffer to write
+    mov edx, 128         ; bytes to write
+    int 0x80
+
+    ; Close file
+    mov eax, 6           ; sys_close
+    mov ebx, ebp
+    int 0x80
+
+    ; Exit
+    mov eax, 1           ; sys_exit
+    mov ebx, 0
+    int 0x80
+  </textarea>
+
+  <button onclick="simulateFileIO()">▶️ Simulate File I/O</button>
+
+  <div class="output" id="output">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Pro Tip: You must pass pointers to buffers and filenames, and carefully manage registers during syscalls.
+  </div>
+
+  <script>
+    function simulateFileIO() {
+      const output = document.getElementById("output");
+      const fakeFileContent = "Hello from test.txt! This is Assembly File I/O.\n";
+      output.textContent = fakeFileContent.repeat(2).slice(0,128);
+    }
+  </script>
+
+</body>
+</html>
