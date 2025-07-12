@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assembly Language Introduction | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #ff9800;
+    }
+    p {
+      line-height: 1.6;
+    }
+    code {
+      background: #2d2d2d;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffc107;
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      font-family: Consolas, monospace;
+      background: #2a2a2a;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      margin-top: 1rem;
+    }
+    .tip {
+      background: #333;
+      padding: 0.8rem;
+      border-left: 5px solid #ff9800;
+      margin: 1rem 0;
+      color: #ffecb3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 Introduction to Assembly Language</h1>
+
+  <p>Assembly language is a low-level programming language that communicates directly with a computer’s hardware. Unlike high-level languages like Python, C#, or Java, Assembly provides fine-grained control over the CPU and memory — perfect for operating system kernels, embedded systems, or situations where you need raw speed and direct hardware access.</p>
+
+  <p>Each Assembly instruction corresponds directly to a machine code operation that the processor executes. It's highly specific to each CPU architecture (like x86, ARM, or MIPS). Programmers often write Assembly when high performance is critical or when working on system-level projects like BIOS firmware, bootloaders, or device drivers.</p>
+
+  <h2>📄 Example: Simple NASM Program</h2>
+
+  <textarea readonly>
+section .data
+    message db 'Hello, Assembly!',0Ah  ; our message with newline
+
+section .text
+    global _start
+
+_start:
+    mov edx, 17           ; length of the message
+    mov ecx, message      ; message to write
+    mov ebx, 1            ; file descriptor 1 = stdout
+    mov eax, 4            ; system call number (sys_write)
+    int 0x80              ; call kernel
+
+    mov eax, 1            ; system call number (sys_exit)
+    int 0x80              ; exit
+  </textarea>
+
+  <h2>📌 Breakdown</h2>
+  <ul>
+    <li><code>section .data</code>: Holds variables and static data.</li>
+    <li><code>section .text</code>: Contains executable code.</li>
+    <li><code>mov</code>: Moves data between registers and memory.</li>
+    <li><code>int 0x80</code>: Triggers a software interrupt to the Linux kernel (syscall in older Linux systems).</li>
+  </ul>
+
+  <div class="tip">
+    💡 Tip: Assembly can feel intimidating at first, but start by understanding how CPU registers and memory interact — that's 80% of the battle.
+  </div>
+
+</body>
+</html>
