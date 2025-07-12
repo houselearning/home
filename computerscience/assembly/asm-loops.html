@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assembly Loops & Branching | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1e1e1e;
+      color: #eee;
+    }
+    h1, h2 {
+      color: #ff9800;
+    }
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #f5f5f5;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    .tip {
+      background-color: #333;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff9800;
+      margin: 1rem 0;
+    }
+    ul {
+      background: #2c2c2c;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #fb8c00;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #ffc107;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔁 Assembly Loops & Branching</h1>
+  <p>In Assembly, controlling flow is manual and precise. You’ll jump around labels and use conditional instructions to make loops and decisions.</p>
+
+  <h2>⏩ Branching Instructions</h2>
+  <ul>
+    <li><code>jmp label</code> — unconditional jump</li>
+    <li><code>je label</code> — jump if equal (zero flag set)</li>
+    <li><code>jne label</code> — jump if not equal</li>
+    <li><code>jg label</code> — jump if greater (signed)</li>
+    <li><code>jl label</code> — jump if less (signed)</li>
+  </ul>
+
+  <h2>🔄 Looping with Labels</h2>
+  <p>You manually create loops by jumping back to labels until a condition breaks the loop.</p>
+
+  <h2>📚 Example Code: Loop Counting Down</h2>
+  <textarea readonly>
+section .text
+    global _start
+
+_start:
+    mov ecx, 5          ; Set counter to 5
+
+loop_start:
+    ; Here you’d do some work — we'll just decrement counter
+    dec ecx             ; Decrement counter by 1
+    cmp ecx, 0          ; Compare ecx with 0
+    jne loop_start      ; Jump back if ecx != 0
+
+    mov eax, 1          ; sys_exit
+    int 0x80
+  </textarea>
+
+  <div class="tip">
+    💡 Pro Tip: Flags are your control signals — after <code>cmp</code>, they decide which jump happens.
+  </div>
+
+  <h2>🖥️ Simulated Output</h2>
+  <div class="output" id="output">
+    Loop ran 5 times, ecx reached 0 and stopped.
+  </div>
+
+</body>
+</html>
