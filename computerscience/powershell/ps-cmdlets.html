@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell Cmdlets Basics</title>
+  <style>
+    body {
+      font-family: Consolas, monospace;
+      background: #012456;
+      color: #C7FCEC;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #5DFDCB;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: #001C3D;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #5DFDCB;
+      color: #012456;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3BC3A2;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #000C26;
+      color: #5DFDCB;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #001F4D;
+      padding: 0.8rem;
+      border-left: 5px solid #5DFDCB;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #A8FBE0;
+    }
+    code {
+      background: #013360;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💠 PowerShell Cmdlets Basics</h1>
+  <p>PowerShell uses tiny command-line tools called <strong>cmdlets</strong> to manage systems and automate tasks — all in a clean <code>Verb-Noun</code> format like <code>Get-Process</code> or <code>Start-Service</code>.</p>
+
+  <h2>📚 Example Cmdlets</h2>
+  <textarea readonly>
+# List running processes
+Get-Process
+
+# Get list of services
+Get-Service
+
+# Create a new folder
+New-Item -Path "C:\Logs" -ItemType Directory
+
+# Show current system date & time
+Get-Date
+  </textarea>
+
+  <h2>🔍 How Cmdlets Work</h2>
+  <p>Cmdlets return objects you can <strong>pipe</strong> into other cmdlets for processing:</p>
+  <textarea readonly>
+# Show top 5 processes sorted by memory
+Get-Process | Sort-Object WS -Descending | Select-Object -First 5
+  </textarea>
+
+  <h2>📝 Test Some Cmdlets:</h2>
+  <textarea id="psCmdlets" placeholder="Type PowerShell commands here...&#10;Example: Get-Process"></textarea>
+  <button onclick="runCmdlets()">▶️ Run Simulation</button>
+
+  <div class="output" id="cmdletOutput">Cmdlet output will appear here...</div>
+
+  <div class="tip">
+    💡 Pro Tip: Cmdlets always follow a <strong>Verb-Noun</strong> structure — <code>Get-Item</code>, <code>Stop-Process</code>, <code>Restart-Service</code>.
+  </div>
+
+  <script>
+    function runCmdlets() {
+      const input = document.getElementById("psCmdlets").value.trim();
+      const output = document.getElementById("cmdletOutput");
+      if (!input) {
+        output.textContent = "⚠️ Type some PowerShell cmdlets to simulate output.";
+        return;
+      }
+
+      let result = "";
+      const lines = input.split('\n');
+
+      lines.forEach(line => {
+        if (line.startsWith("Get-Process")) {
+          result += "chrome       11472  Running  148 MB\npowershell   4221   Running  90 MB\nexplorer     6548   Running  78 MB\n\n";
+        } else if (line.startsWith("Get-Service")) {
+          result += "Name              Status\n----              ------\nSpooler           Running\nW32Time           Stopped\n\n";
+        } else if (line.startsWith("Get-Date")) {
+          result += new Date().toString() + "\n\n";
+        } else if (line.startsWith("New-Item")) {
+          result += "Directory: C:\\Logs created successfully.\n\n";
+        } else {
+          result += "[Simulation] Cmdlet not recognized.\n\n";
+        }
+      });
+
+      output.textContent = result;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell Scheduled Tasks Tutorial</title>
+  <style>
+    body {
+      font-family: Consolas, monospace;
+      background: #012456;
+      color: #7DF9AA;
+      padding: 2rem;
+      user-select: none;
+    }
+    h1, h2 {
+      color: #5DFDCB;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #001C3D;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+      margin-bottom: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #5DFDCB;
+      color: #012456;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:hover {
+      background-color: #3BC3A2;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #000C26;
+      color: #5DFDCB;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      line-height: 1.3em;
+      user-select: text;
+    }
+    .tip {
+      background: #001F4D;
+      padding: 0.8rem;
+      border-left: 5px solid #5DFDCB;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #A8FBE0;
+      user-select: none;
+    }
+    code {
+      background: #013360;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⏰ PowerShell Scheduled Tasks</h1>
+  <p>Automate your scripts or commands by creating scheduled tasks with PowerShell — no need to open Task Scheduler GUI!</p>
+
+  <h2>📚 Common Commands</h2>
+  <textarea readonly>
+# Create a daily scheduled task to run a PowerShell script at 9 AM
+$action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument '-File C:\Scripts\backup.ps1'
+$trigger = New-ScheduledTaskTrigger -Daily -At 9am
+Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "DailyBackup" -Description "Daily backup script"
+
+# View all scheduled tasks
+Get-ScheduledTask
+
+# Run a scheduled task immediately
+Start-ScheduledTask -TaskName "DailyBackup"
+
+# Delete a scheduled task
+Unregister-ScheduledTask -TaskName "DailyBackup" -Confirm:$false
+  </textarea>
+
+  <button onclick="simulateScheduledTasks()">▶️ Simulate Commands</button>
+  <div class="output" id="taskOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Pro Tip: Use <code>Register-ScheduledTask</code> to create tasks, and <code>Get-ScheduledTask</code> to list them. Always remember to <code>Unregister-ScheduledTask</code> to clean up!
+  </div>
+
+  <script>
+    const output = document.getElementById("taskOutput");
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function simulateScheduledTasks() {
+      output.textContent = "Starting PowerShell Scheduled Tasks simulation...\n\n";
+
+      output.textContent += "PS> $action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument '-File C:\\Scripts\\backup.ps1'\n";
+      await wait(800);
+      output.textContent += "PS> $trigger = New-ScheduledTaskTrigger -Daily -At 9am\n";
+      await wait(800);
+      output.textContent += "PS> Register-ScheduledTask -Action $action -Trigger $trigger -TaskName \"DailyBackup\" -Description \"Daily backup script\"\n";
+      await wait(1000);
+      output.textContent += "Task 'DailyBackup' registered successfully.\n\n";
+
+      output.textContent += "PS> Get-ScheduledTask\n";
+      await wait(1000);
+      output.textContent += `
+TaskName        State  
+--------        -----  
+DailyBackup     Ready  
+MyOtherTask     Disabled  
+\n`;
+
+      output.textContent += "PS> Start-ScheduledTask -TaskName \"DailyBackup\"\n";
+      await wait(800);
+      output.textContent += "Task 'DailyBackup' started.\n\n";
+
+      output.textContent += "PS> Unregister-ScheduledTask -TaskName \"DailyBackup\" -Confirm:$false\n";
+      await wait(800);
+      output.textContent += "Task 'DailyBackup' deleted successfully.\n\n";
+
+      output.textContent += "✅ You crushed the Scheduled Tasks game!";
+    }
+  </script>
+
+</body>
+</html>

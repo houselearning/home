@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell Networking Essentials</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00bcd4;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bcd4;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0097a7;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #80deea;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #004d40;
+      padding: 0.8rem;
+      border-left: 5px solid #00bcd4;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #b2ebf2;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌐 PowerShell Networking Essentials</h1>
+
+  <p>Networking in PowerShell refers to using built-in cmdlets and commands to interact with devices, services, and resources over a network. From checking if a remote server is reachable to resolving domain names, downloading files, or testing open ports — PowerShell gives you a full toolbox for managing and troubleshooting network connections directly from the terminal. Unlike older tools like <code>ping</code> and <code>tracert</code> in CMD, PowerShell’s networking commands are object-based, meaning their results can be further filtered, piped, or used inside scripts for automation.</p>
+
+  <p>This makes it incredibly useful for sysadmins, developers, or security pros who need to automate network tests, monitor infrastructure, or deploy scripts across many machines. Whether you're verifying internet access, diagnosing connection issues, or downloading logs from a remote server — PowerShell networking commands let you do it all without leaving the shell. Plus, with tools like <code>Invoke-RestMethod</code> and <code>Invoke-WebRequest</code>, you can also work with web APIs, automate data retrieval, or even build your own simple monitoring dashboards. It’s an essential skillset if you're working in Windows environments.</p>
+
+  <h2>📶 Basic Networking Commands</h2>
+  <textarea readonly>
+# Test network connection to a site
+Test-Connection google.com
+
+# Download a web page's HTML content
+Invoke-WebRequest -Uri "https://example.com"
+
+# Get local IP configuration
+Get-NetIPAddress
+
+# Resolve a DNS hostname
+Resolve-DnsName github.com
+  </textarea>
+
+  <h2>📝 Try a command below:</h2>
+  <textarea id="psNetScript" placeholder="Type a PowerShell networking command here...&#10;Example: Test-Connection 8.8.8.8"></textarea>
+  <button onclick="runNetSim()">▶️ Simulate</button>
+
+  <div class="output" id="netOutput">Network output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Use <code>Test-Connection</code> to check network reachability, or <code>Invoke-WebRequest</code> to fetch pages and files right from the terminal.
+  </div>
+
+  <script>
+    function runNetSim() {
+      const input = document.getElementById("psNetScript").value.trim();
+      const output = document.getElementById("netOutput");
+      if (!input) {
+        output.textContent = "Type a PowerShell networking command to simulate output.";
+        return;
+      }
+
+      let result = "";
+      const lines = input.split('\n');
+
+      lines.forEach(line => {
+        if (line.startsWith("Test-Connection")) {
+          result += "Reply from 8.8.8.8: time=10ms TTL=120\nReply from 8.8.8.8: time=11ms TTL=120\n";
+        } else if (line.startsWith("Invoke-WebRequest")) {
+          result += "StatusCode        : 200\nStatusDescription : OK\nContentLength     : 1024 bytes\n";
+        } else if (line.startsWith("Get-NetIPAddress")) {
+          result += "InterfaceAlias   IPAddress\nEthernet0        192.168.1.101\nLoopback Pseudo  127.0.0.1\n";
+        } else if (line.startsWith("Resolve-DnsName")) {
+          result += "Name      Type   TTL   Section    IPAddress\n--------  ----   ---   -------    ---------\ngithub.com A      299   Answer     20.200.245.247\n";
+        } else {
+          result += "[Simulation] Command not recognized.\n";
+        }
+      });
+
+      output.textContent = result;
+    }
+  </script>
+
+</body>
+</html>

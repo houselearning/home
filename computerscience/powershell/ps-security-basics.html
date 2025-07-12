@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell Security Basics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00bcd4;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00bcd4;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0097a7;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #80deea;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background: #004d40;
+      padding: 0.8rem;
+      border-left: 5px solid #00bcd4;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #b2ebf2;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔐 PowerShell Security Basics</h1>
+
+  <p>PowerShell is a powerful tool for managing Windows environments, but with great power comes great responsibility. Because it can modify system settings, access sensitive data, and execute remote commands, properly managing security within your PowerShell scripts and environment is absolutely critical. Windows enforces execution policies to control how (or if) scripts can run, and offers cmdlets for auditing, managing file permissions, and monitoring user activity.</p>
+
+  <p>Security-minded admins use PowerShell not just for automation, but to detect threats, limit risky behavior, and enforce compliance across their networks. From checking script execution policies to reviewing event logs and setting precise file ACL permissions, PowerShell can lock down a system, audit suspicious activity, and even manage Windows Defender. Learning these core security commands and practices makes your scripts safer and your systems harder to breach.</p>
+
+  <h2>📝 Common Security Commands</h2>
+  <textarea readonly>
+# Check current script execution policy
+Get-ExecutionPolicy
+
+# Set policy to allow all scripts (use with caution!)
+Set-ExecutionPolicy Unrestricted
+
+# Get file permissions for a file
+Get-Acl "C:\Important\File.txt"
+
+# Grant full control to a user
+$acl = Get-Acl "C:\Important\File.txt"
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Alex","FullControl","Allow")
+$acl.AddAccessRule($rule)
+Set-Acl "C:\Important\File.txt" $acl
+
+# List local admin users
+Get-LocalGroupMember -Group "Administrators"
+
+# List Windows Defender status
+Get-MpComputerStatus
+  </textarea>
+
+  <h2>📝 Try a command below:</h2>
+  <textarea id="psSecScript" placeholder="Type a PowerShell security command here...&#10;Example: Get-ExecutionPolicy"></textarea>
+  <button onclick="runSecSim()">▶️ Simulate</button>
+
+  <div class="output" id="secOutput">Security output will appear here...</div>
+
+  <div class="tip">
+    💡 Tip: Never lower execution policies on production systems without full understanding of the risks.
+  </div>
+
+  <script>
+    function runSecSim() {
+      const input = document.getElementById("psSecScript").value.trim();
+      const output = document.getElementById("secOutput");
+      if (!input) {
+        output.textContent = "Type a PowerShell security command to simulate output.";
+        return;
+      }
+
+      let result = "";
+      const lines = input.split('\n');
+
+      lines.forEach(line => {
+        if (line === "Get-ExecutionPolicy") {
+          result += "Restricted\n";
+        } else if (line === "Set-ExecutionPolicy Unrestricted") {
+          result += "ExecutionPolicy         : Unrestricted\nScope                   : LocalMachine\n";
+        } else if (line.startsWith("Get-Acl")) {
+          result += "Path          : C:\\Important\\File.txt\nOwner         : BUILTIN\\Administrators\nAccess        : NT AUTHORITY\\SYSTEM Allow FullControl\n";
+        } else if (line.startsWith("Get-LocalGroupMember")) {
+          result += "Name               ObjectClass\n----               -----------\nAlex               User\nAdmin              User\n";
+        } else if (line.startsWith("Get-MpComputerStatus")) {
+          result += "AMServiceEnabled      : True\nAntispywareEnabled     : True\nAntivirusEnabled       : True\nRealTimeProtection     : True\n";
+        } else {
+          result += "[Simulation] Command not recognized.\n";
+        }
+      });
+
+      output.textContent = result;
+    }
+  </script>
+
+</body>
+</html>

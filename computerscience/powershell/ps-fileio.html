@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PowerShell File I/O Basics</title>
+  <style>
+    body {
+      font-family: Consolas, monospace;
+      background: #012456;
+      color: #C7FCEC;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1, h2 {
+      color: #5DFDCB;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: #001C3D;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #5DFDCB;
+      color: #012456;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-bottom: 1rem;
+    }
+    button:hover {
+      background-color: #3BC3A2;
+    }
+    .output {
+      background: #000C26;
+      color: #5DFDCB;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    .tip {
+      background: #001F4D;
+      padding: 0.8rem;
+      border-left: 5px solid #5DFDCB;
+      font-style: italic;
+      color: #A8FBE0;
+      margin-bottom: 2rem;
+    }
+    code {
+      background: #013360;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #7DF9AA;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 PowerShell File I/O Basics</h1>
+  <p>Reading and writing files is a core skill. PowerShell makes this easy with simple cmdlets.</p>
+
+  <h2>📚 Example: File Reading & Writing</h2>
+  <textarea readonly>
+# Write content to a file
+"Hello, PowerShell!" | Out-File -FilePath "example.txt"
+
+# Append a line to the file
+"Appended line." | Add-Content -Path "example.txt"
+
+# Read the file content
+Get-Content -Path "example.txt"
+
+# Check if file exists
+Test-Path "example.txt"
+  </textarea>
+  <button id="runBtn">▶️ Run Simulation</button>
+
+  <div class="output" id="fileioOutput">Output will appear here...</div>
+
+  <div class="tip">
+    💡 Pro Tip: Use <code>Out-File</code> to write or overwrite files, <code>Add-Content</code> to append, and <code>Get-Content</code> to read files.
+  </div>
+
+<script>
+  const runBtn = document.getElementById('runBtn');
+  const output = document.getElementById('fileioOutput');
+
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function runFileIO() {
+    runBtn.disabled = true;
+    output.textContent = "Powershell...\n";
+
+    await wait(800);
+    output.textContent += "# Writing to example.txt...\n";
+
+    await wait(1200);
+    output.textContent += "# Appending line to example.txt...\n";
+
+    await wait(1000);
+    output.textContent += "# Reading example.txt content:\nHello, PowerShell!\nAppended line.\n\n";
+
+    await wait(700);
+    output.textContent += "# Checking if example.txt exists:\nTrue";
+
+    runBtn.disabled = false;
+  }
+
+  runBtn.addEventListener('click', runFileIO);
+</script>
+
+</body>
+</html>
