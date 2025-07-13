@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell File I/O Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell File I/O Lesson</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>echo "text" > file.txt</code> — Write text to a file (overwrite)</li>
+    <li><code>echo "more" >> file.txt</code> — Append text to file</li>
+    <li><code>cat file.txt</code> — View file content</li>
+    <li><code>rm file.txt</code> — Delete file</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="fileScript">
+echo "Hello World" > hello.txt
+cat hello.txt
+echo "More text" >> hello.txt
+cat hello.txt
+rm hello.txt
+cat hello.txt
+  </textarea>
+  <button onclick="runFileIO()">▶️ Run Simulation</button>
+
+  <div class="output" id="fileOutput">Output will appear here...</div>
+
+  <script>
+    function runFileIO() {
+      const input = document.getElementById("fileScript").value.trim();
+      const output = document.getElementById("fileOutput");
+      if (!input) {
+        output.textContent = "Type some file commands to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const files = {};
+      const results = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed === '') return;
+
+        // echo > overwrite
+        if (trimmed.match(/^echo\s+"[^"]*"\s+>\s+\S+/)) {
+          const parts = trimmed.match(/^echo\s+"([^"]*)"\s+>\s+(\S+)/);
+          const text = parts[1];
+          const filename = parts[2];
+          files[filename] = text;
+          return;
+        }
+
+        // echo >> append
+        if (trimmed.match(/^echo\s+"[^"]*"\s+>>\s+\S+/)) {
+          const parts = trimmed.match(/^echo\s+"([^"]*)"\s+>>\s+(\S+)/);
+          const text = parts[1];
+          const filename = parts[2];
+          files[filename] = (files[filename] || '') + text;
+          return;
+        }
+
+        // cat
+        if (trimmed.startsWith('cat ')) {
+          const filename = trimmed.split(' ')[1];
+          if (files[filename] !== undefined) {
+            results.push(files[filename]);
+          } else {
+            results.push(`cat: ${filename}: No such file`);
+          }
+          return;
+        }
+
+        // rm
+        if (trimmed.startsWith('rm ')) {
+          const filename = trimmed.split(' ')[1];
+          if (files[filename] !== undefined) {
+            delete files[filename];
+          } else {
+            results.push(`rm: cannot remove '${filename}': No such file`);
+          }
+          return;
+        }
+
+        // unrecognized
+        results.push('[Unrecognized command]: ' + trimmed);
+      });
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
