@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAML Testing & Validation | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #f0c674;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f0c674;
+      color: #111;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d8b651;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #f0e6b6;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #fff5c2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f0c674;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #fdf8d5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠️ YAML Testing & Validation</h1>
+  <p>Testing YAML means verifying that your files are properly formatted, error-free, and follow the expected structure. This is done with YAML linters and schema validators.</p>
+
+  <h2>📝 Example YAML Config to Test</h2>
+
+  <textarea id="yamlTestCode">
+server:
+  host: "localhost"
+  port: 8080
+
+database:
+  type: mysql
+  user: admin
+  password: "pa$$word"
+  # Uncomment below to enable SSL
+  #ssl: true
+
+features:
+  - login
+  - register
+  - dashboard
+  </textarea>
+
+  <button onclick="simulateYAMLTest()">✅ Validate YAML</button>
+
+  <div class="output" id="yamlTestOutput">Validation result will appear here...</div>
+
+  <script>
+    function simulateYAMLTest() {
+      const code = document.getElementById("yamlTestCode").value;
+      const output = document.getElementById("yamlTestOutput");
+
+      if (code.includes("server:") && code.includes("database:") && code.includes("features:")) {
+        if (code.includes("\t")) {
+          output.innerText = "❌ Error: YAML uses spaces for indentation, no tabs allowed.";
+        } else {
+          output.innerText = "✅ YAML syntax looks valid. No obvious formatting errors detected.";
+        }
+      } else {
+        output.innerText = "❌ Invalid YAML structure. Missing required keys.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> YAML relies on consistent spaces. <strong>No tabs</strong>. Ever.
+  </div>
+
+  <h2>📑 Popular YAML Linters & Validators</h2>
+  <ul>
+    <li><strong>yamllint</strong> — CLI tool to check YAML files locally. Install via <code>pip install yamllint</code>.</li>
+    <li><strong>YAML Lint (online)</strong> — <a href="https://www.yamllint.com/" target="_blank">yamllint.com</a></li>
+    <li><strong>GitHub Actions YAML Validator</strong> — Built into GitHub CI pipelines for YAML workflows.</li>
+    <li><strong>Kubernetes Schema Validator</strong> — For testing K8s manifests against schemas.</li>
+  </ul>
+
+  <h2>📌 Common YAML Errors to Test For</h2>
+  <ul>
+    <li>Inconsistent indentation (use 2 or 4 spaces, never mix)</li>
+    <li>Missing colons</li>
+    <li>Tabs instead of spaces</li>
+    <li>Incorrectly formatted lists</li>
+    <li>Unquoted strings containing special characters</li>
+  </ul>
+
+  <h2>📚 Conclusion</h2>
+  <p>Testing YAML is all about clean, valid syntax. Use linters like <code>yamllint</code>, CI validators, or online tools to verify your files. Never ship configs without linting them first!</p>
+
+</body>
+</html>
