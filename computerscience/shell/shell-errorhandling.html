@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Error Handling</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Error Handling</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>$?</code> — Gets the exit status of the last command (0 = success, non-zero = failure)</li>
+    <li><code>||</code> — Run a command *if previous command fails*</li>
+    <li><code>&&</code> — Run a command *if previous command succeeds*</li>
+    <li><code>trap</code> — Catch signals (like <code>CTRL+C</code> or errors) and run cleanup code</li>
+    <li><code>exit</code> — Exit script with a status code</li>
+  </ul>
+
+  <h2>💻 Try Error Handling Code</h2>
+
+  <textarea id="errorScript">
+echo "Starting script"
+false
+echo "Exit code was $?"
+false || echo "Previous command failed"
+true && echo "This runs because 'true' succeeded"
+trap 'echo "Caught interrupt!"' INT
+exit 0
+  </textarea>
+
+  <button onclick="runErrors()">▶️ Run Simulation</button>
+
+  <div class="output" id="errorOutput">Output will appear here...</div>
+
+  <script>
+    function runErrors() {
+      const input = document.getElementById("errorScript").value.trim();
+      const output = document.getElementById("errorOutput");
+      if (!input) {
+        output.textContent = "Type some shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      let lastExit = 0;
+      const results = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed === '' || trimmed.startsWith('#')) return;
+
+        if (trimmed.startsWith('echo ')) {
+          let message = trimmed.slice(5).replace(/"/g, '');
+          message = message.replace('$?', lastExit);
+          results.push(message);
+          lastExit = 0;
+          return;
+        }
+
+        if (trimmed === 'true') {
+          lastExit = 0;
+          return;
+        }
+
+        if (trimmed === 'false') {
+          lastExit = 1;
+          return;
+        }
+
+        if (trimmed.includes('||')) {
+          const [cmd1, cmd2] = trimmed.split('||').map(s => s.trim());
+          if (cmd1 === 'false') {
+            lastExit = 1;
+            if (cmd2.startsWith('echo ')) {
+              results.push(cmd2.slice(5).replace(/"/g, ''));
+              lastExit = 0;
+            }
+          } else {
+            lastExit = 0;
+          }
+          return;
+        }
+
+        if (trimmed.includes('&&')) {
+          const [cmd1, cmd2] = trimmed.split('&&').map(s => s.trim());
+          if (cmd1 === 'true') {
+            lastExit = 0;
+            if (cmd2.startsWith('echo ')) {
+              results.push(cmd2.slice(5).replace(/"/g, ''));
+            }
+          } else {
+            lastExit = 1;
+          }
+          return;
+        }
+
+        if (trimmed.startsWith('trap ')) {
+          results.push('[Trap set for INT (Ctrl+C)]');
+          return;
+        }
+
+        if (trimmed.startsWith('exit')) {
+          let code = parseInt(trimmed.split(' ')[1]) || 0;
+          results.push(`[Script exited with code ${code}]`);
+          lastExit = code;
+          return;
+        }
+
+        results.push('[Unrecognized command]: ' + trimmed);
+      });
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>

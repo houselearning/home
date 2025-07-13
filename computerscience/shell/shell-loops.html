@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Loops Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Loops Lesson</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>for var in list; do ... done</code> — Loop through a list of items</li>
+    <li><code>while [ condition ]; do ... done</code> — Run while a condition is true</li>
+    <li><code>break</code> — Exit the loop</li>
+    <li><code>continue</code> — Skip to next iteration</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="loopScript">
+#!/bin/bash
+
+for color in red blue green; do
+  echo "Color: $color"
+done
+
+num=1
+while [ $num -le 3 ]; do
+  echo "Number: $num"
+  num=$((num + 1))
+done
+  </textarea>
+  <button onclick="runLoops()">▶️ Run Simulation</button>
+
+  <div class="output" id="loopOutput">Output will appear here...</div>
+
+  <script>
+    function runLoops() {
+      const input = document.getElementById("loopScript").value.trim();
+      const output = document.getElementById("loopOutput");
+      if (!input) {
+        output.textContent = "Type some shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const vars = {};
+      const results = [];
+
+      let i = 0;
+      while (i < lines.length) {
+        let line = lines[i].trim();
+        if (line.startsWith('#') || line.startsWith('#!') || line === '') {
+          i++;
+          continue;
+        }
+
+        // Variable assignment
+        if (/^\w+=/.test(line)) {
+          const [key, ...val] = line.split('=');
+          vars[key] = val.join('=');
+          i++;
+          continue;
+        }
+
+        // for loop
+        if (line.startsWith('for ')) {
+          const match = line.match(/for (\w+) in (.+); do/);
+          if (match) {
+            const loopVar = match[1];
+            const items = match[2].split(' ');
+            i++;
+            const body = [];
+            while (lines[i].trim() !== 'done') {
+              body.push(lines[i].trim());
+              i++;
+            }
+            i++; // skip 'done'
+
+            items.forEach(item => {
+              vars[loopVar] = item;
+              body.forEach(cmd => {
+                if (cmd.startsWith('echo ')) {
+                  let str = cmd.slice(5);
+                  Object.keys(vars).forEach(v => {
+                    str = str.replace(new RegExp('\\$' + v, 'g'), vars[v]);
+                  });
+                  results.push(str.replace(/"/g, ''));
+                }
+              });
+            });
+            continue;
+          }
+        }
+
+        // while loop
+        if (line.startsWith('while ')) {
+          const condition = line.match(/\[ (.+) \]/)[1];
+          i++;
+          const body = [];
+          while (lines[i].trim() !== 'done') {
+            body.push(lines[i].trim());
+            i++;
+          }
+          i++; // skip 'done'
+
+          let loopGuard = 0;
+          while (evalCondition(condition, vars)) {
+            body.forEach(cmd => {
+              if (cmd.startsWith('echo ')) {
+                let str = cmd.slice(5);
+                Object.keys(vars).forEach(v => {
+                  str = str.replace(new RegExp('\\$' + v, 'g'), vars[v]);
+                });
+                results.push(str.replace(/"/g, ''));
+              }
+              // Simple arithmetic $((x + 1))
+              if (/^\w+=\$\(.*\)$/.test(cmd)) {
+                const [key, expr] = cmd.split('=');
+                const mathExpr = expr.replace('$((','').replace('))','').trim();
+                const newVal = eval(mathExpr.replace(/\b(\w+)\b/g, (_,v) => vars[v] || v));
+                vars[key] = newVal;
+              }
+            });
+            loopGuard++;
+            if (loopGuard > 20) {
+              results.push("[Infinite loop detected — breaking]");
+              break;
+            }
+          }
+          continue;
+        }
+
+        // echo command
+        if (line.startsWith('echo ')) {
+          let str = line.slice(5);
+          Object.keys(vars).forEach(v => {
+            str = str.replace(new RegExp('\\$' + v, 'g'), vars[v]);
+          });
+          results.push(str.replace(/"/g, ''));
+          i++;
+          continue;
+        }
+
+        // unknown command
+        results.push('[Unrecognized command]: ' + line);
+        i++;
+      }
+
+      output.textContent = results.join('\n');
+    }
+
+    function evalCondition(cond, vars) {
+      Object.keys(vars).forEach(v => {
+        cond = cond.replace(new RegExp('\\$' + v, 'g'), vars[v]);
+      });
+      const parts = cond.split(/\s+/);
+      if (parts.length !== 3) return false;
+
+      const [left, op, right] = parts;
+      switch (op) {
+        case '-eq': return parseInt(left) === parseInt(right);
+        case '-ne': return parseInt(left) !== parseInt(right);
+        case '-gt': return parseInt(left) > parseInt(right);
+        case '-lt': return parseInt(left) < parseInt(right);
+        case '-ge': return parseInt(left) >= parseInt(right);
+        case '-le': return parseInt(left) <= parseInt(right);
+        default: return false;
+      }
+    }
+  </script>
+
+</body>
+</html>

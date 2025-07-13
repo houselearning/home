@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Processes</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Processes</h1>
+
+  <h2>📖 What are Processes?</h2>
+  <p>Processes are programs currently running on your system. You can view, manage, and kill them using shell commands.</p>
+
+  <h2>📦 Common Commands</h2>
+  <ul>
+    <li><code>ps aux</code> — List running processes</li>
+    <li><code>top</code> — Interactive process monitor (not simulated here)</li>
+    <li><code>kill PID</code> — Terminate a process by its ID</li>
+    <li><code>sleep N</code> — Pause for N seconds</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="processScript" placeholder="Example commands:\nps aux\nsleep 3\nkill 2"></textarea>
+  <button onclick="runProcesses()">▶️ Run Simulation</button>
+
+  <div class="output" id="processOutput">Output will appear here...</div>
+
+  <script>
+    // Simulated process list
+    const fakeProcesses = [
+      { pid: 1, user: "root", cpu: "0.0", mem: "0.1", command: "init" },
+      { pid: 2, user: "alex", cpu: "0.1", mem: "0.2", command: "bash" },
+      { pid: 3, user: "alex", cpu: "1.5", mem: "5.0", command: "chrome" },
+      { pid: 4, user: "alex", cpu: "0.0", mem: "0.1", command: "code" },
+      { pid: 5, user: "alex", cpu: "0.0", mem: "0.0", command: "sleep" },
+    ];
+
+    // Copy processes to simulate "running" state
+    let processes = JSON.parse(JSON.stringify(fakeProcesses));
+
+    function formatProcesses(procs) {
+      return procs.map(p =>
+        `${p.user.padEnd(8)} ${p.pid.toString().padStart(5)}  ${p.cpu.padStart(4)}  ${p.mem.padStart(4)}  ${p.command}`
+      ).join('\n');
+    }
+
+    function runProcesses() {
+      const input = document.getElementById("processScript").value.trim();
+      const output = document.getElementById("processOutput");
+      if (!input) {
+        output.textContent = "Type some shell process commands to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      let results = [];
+
+      for (let line of lines) {
+        const trimmed = line.trim();
+
+        if (trimmed === '' || trimmed.startsWith('#')) continue;
+
+        if (trimmed === 'ps aux') {
+          results.push('USER     PID   %CPU  %MEM COMMAND');
+          results.push(formatProcesses(processes));
+          continue;
+        }
+
+        if (trimmed.startsWith('kill ')) {
+          const pidToKill = parseInt(trimmed.split(' ')[1]);
+          const index = processes.findIndex(p => p.pid === pidToKill);
+          if (index !== -1) {
+            results.push(`Process ${pidToKill} (${processes[index].command}) terminated.`);
+            processes.splice(index, 1);
+          } else {
+            results.push(`kill: (${pidToKill}) - No such process.`);
+          }
+          continue;
+        }
+
+        if (trimmed.startsWith('sleep ')) {
+          const seconds = parseInt(trimmed.split(' ')[1]);
+          if (isNaN(seconds) || seconds < 0) {
+            results.push('sleep: invalid time interval');
+          } else {
+            results.push(`[Simulated sleep for ${seconds} second(s)]`);
+          }
+          continue;
+        }
+
+        results.push(`[Unrecognized command]: ${trimmed}`);
+      }
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>

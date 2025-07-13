@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Functions Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Functions Lesson</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>functionName() { ... }</code> — Define a function</li>
+    <li><code>$1, $2, $3</code> — Function arguments</li>
+    <li><code>return</code> — Exit a function</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="funcScript">
+#!/bin/bash
+
+greet() {
+  echo "Hello $1"
+}
+
+greet Alex
+greet World
+  </textarea>
+  <button onclick="runFunctions()">▶️ Run Simulation</button>
+
+  <div class="output" id="funcOutput">Output will appear here...</div>
+
+  <script>
+    function runFunctions() {
+      const input = document.getElementById("funcScript").value.trim();
+      const output = document.getElementById("funcOutput");
+      if (!input) {
+        output.textContent = "Type some shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const functions = {};
+      const vars = {};
+      const results = [];
+
+      let i = 0;
+      while (i < lines.length) {
+        let line = lines[i].trim();
+        if (line.startsWith('#') || line.startsWith('#!') || line === '') {
+          i++;
+          continue;
+        }
+
+        // Function definition
+        if (line.match(/^\w+\(\)\s*\{/)) {
+          const funcName = line.split('(')[0];
+          i++;
+          const body = [];
+          while (lines[i].trim() !== '}') {
+            body.push(lines[i].trim());
+            i++;
+          }
+          functions[funcName] = body;
+          i++;
+          continue;
+        }
+
+        // Function call
+        if (functions[line.split(' ')[0]]) {
+          const callParts = line.split(' ');
+          const funcName = callParts[0];
+          const args = callParts.slice(1);
+
+          const body = functions[funcName];
+          body.forEach(cmd => {
+            if (cmd.startsWith('echo ')) {
+              let str = cmd.slice(5);
+              args.forEach((a, idx) => {
+                str = str.replace(new RegExp('\\$' + (idx+1), 'g'), a);
+              });
+              results.push(str.replace(/"/g, ''));
+            }
+          });
+          i++;
+          continue;
+        }
+
+        // echo command
+        if (line.startsWith('echo ')) {
+          let str = line.slice(5);
+          results.push(str.replace(/"/g, ''));
+          i++;
+          continue;
+        }
+
+        // unknown command
+        results.push('[Unrecognized command]: ' + line);
+        i++;
+      }
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
