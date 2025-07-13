@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAML Nesting | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #f0c674;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f0c674;
+      color: #111;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d8b651;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #f0e6b6;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #fff5c2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f0c674;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #fdf8d5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📂 YAML Nesting</h1>
+  <p>YAML is all about clean, readable nested structures. You can nest lists inside mappings, mappings inside mappings, and lists inside lists. It makes complex data feel simple and tidy.</p>
+
+  <h2>📝 Example: Nested YAML Config</h2>
+
+  <textarea id="yamlNestingCode">
+app:
+  name: CoolMathTime
+  version: 2.1
+  author:
+    name: Alex Dev
+    email: alex@example.com
+  features:
+    - lessons
+    - projects
+    - quizzes
+  server:
+    host: localhost
+    ports:
+      http: 8080
+      https: 8443
+  </textarea>
+
+  <button onclick="simulateYAMLNesting()">📖 Parse Nested Data</button>
+
+  <div class="output" id="yamlNestingOutput">Parsed nested values will appear here...</div>
+
+  <script>
+    function simulateYAMLNesting() {
+      const code = document.getElementById("yamlNestingCode").value;
+      const output = document.getElementById("yamlNestingOutput");
+
+      if (code.includes("app:") && code.includes("features:") && code.includes("server:")) {
+        output.innerText = 
+          "app.name → CoolMathTime\n" +
+          "app.author.name → Alex Dev\n" +
+          "app.features → lessons, projects, quizzes\n" +
+          "server.ports.http → 8080\n" +
+          "server.ports.https → 8443";
+      } else {
+        output.innerText = "❌ Invalid YAML structure. Key paths missing.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Use consistent <strong>2-space</strong> or <strong>4-space</strong> indentation — no tabs — for clean nested structures.
+  </div>
+
+  <h2>📑 How Nesting Works</h2>
+  <ul>
+    <li><strong>Mapping inside mapping:</strong> Indent under a key to nest a dictionary</li>
+    <li><strong>List inside mapping:</strong> Use <code>-</code> under a key to list items</li>
+    <li><strong>Mapping inside list:</strong> Indent key-value pairs under a <code>-</code> to nest mappings inside lists</li>
+  </ul>
+
+  <h2>🧠 Example: Mapping Inside List</h2>
+  <textarea readonly>
+servers:
+  - name: main
+    ip: 192.168.1.10
+  - name: backup
+    ip: 192.168.1.20
+  </textarea>
+
+  <div class="tip">
+    📌 This lets you build arrays of objects cleanly. Super useful for things like server configs, user profiles, etc.
+  </div>
+
+  <h2>📚 Conclusion</h2>
+  <p>YAML nesting is what makes it clean, minimal, and way easier to read than JSON. Use it for configs, manifests, and structured data whenever possible.</p>
+
+</body>
+</html>
