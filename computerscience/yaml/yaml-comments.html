@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAML Comments | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #f0c674;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f0c674;
+      color: #111;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d8b651;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #f0e6b6;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+
+    .tip {
+      background-color: #fff5c2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f0c674;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #fdf8d5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📝 YAML Comments</h1>
+  <p>Comments in YAML start with a <code>#</code> and continue to the end of the line. They're ignored when parsing the file, but perfect for explaining your config or disabling certain lines.</p>
+
+  <h2>📝 Example: Adding Comments</h2>
+
+  <textarea id="yamlCommentCode">
+# This is a comment explaining the config
+user:
+  name: Alex  # Inline comment about the user's name
+  age: 22     # User's age
+  admin: true
+
+# End of user section
+  </textarea>
+
+  <button onclick="simulateYAMLComments()">📖 Parse (Ignoring Comments)</button>
+
+  <div class="output" id="yamlCommentOutput">Cleaned config (without comments) will appear here...</div>
+
+  <script>
+    function simulateYAMLComments() {
+      const code = document.getElementById("yamlCommentCode").value;
+      const lines = code.split("\n");
+      const cleanLines = lines.filter(line => !line.trim().startsWith("#"));
+      const output = document.getElementById("yamlCommentOutput");
+      output.innerText = cleanLines.join("\n").replace(/#.*$/gm, "").trim();
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Use comments to explain tricky config options or temporarily disable lines while debugging.
+  </div>
+
+  <h2>📚 Summary</h2>
+  <ul>
+    <li>Comments start with a <code>#</code></li>
+    <li>You can put them on their own line or after a key-value pair</li>
+    <li>Comments are ignored by YAML parsers</li>
+    <li>Use them liberally to make your YAML readable and safe</li>
+  </ul>
+
+  <h2>🧠 Bonus: YAML Comment Example</h2>
+  <textarea readonly>
+# Database configuration
+database:
+  host: localhost
+  port: 5432
+  # password: secret123  ← temporarily disabled line
+  </textarea>
+
+  <p>Comments like this can prevent accidental server mishaps and clarify weird config choices for your future self.</p>
+
+</body>
+</html>
