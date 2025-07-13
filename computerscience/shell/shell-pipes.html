@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Pipes</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Pipes</h1>
+
+  <h2>📖 What is a Pipe?</h2>
+  <p>A <code>|</code> (pipe) takes the output of one command and sends it as input to the next command.</p>
+
+  <h2>📦 Examples</h2>
+  <ul>
+    <li><code>echo "hello world" | tr 'a-z' 'A-Z'</code> — Converts text to uppercase</li>
+    <li><code>cat file.txt | grep "error"</code> — Finds lines containing "error"</li>
+    <li><code>ps aux | sort -nrk 3 | head -5</code> — Top 5 CPU processes</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="pipeScript">
+echo "hello world" | tr 'a-z' 'A-Z'
+echo "apples bananas oranges" | wc -w
+  </textarea>
+  <button onclick="runPipes()">▶️ Run Simulation</button>
+
+  <div class="output" id="pipeOutput">Output will appear here...</div>
+
+  <script>
+    function runPipes() {
+      const input = document.getElementById("pipeScript").value.trim();
+      const output = document.getElementById("pipeOutput");
+      if (!input) {
+        output.textContent = "Type some piped shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const results = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed === '' || trimmed.startsWith('#')) return;
+
+        const parts = trimmed.split('|').map(s => s.trim());
+        let data = '';
+
+        parts.forEach((cmd, idx) => {
+          if (idx === 0) {
+            // initial command
+            if (cmd.startsWith('echo ')) {
+              data = cmd.slice(5).replace(/"/g, '');
+            } else {
+              data = '[Unsupported initial command]';
+            }
+          } else {
+            // process command
+            if (cmd.startsWith('tr ')) {
+              const trArgs = cmd.match(/tr '(.+)' '(.+)'/);
+              if (trArgs) {
+                const from = trArgs[1];
+                const to = trArgs[2];
+                const regex = new RegExp('[' + from + ']', 'g');
+                data = data.replace(regex, c => {
+                  const index = from.indexOf(c);
+                  return index !== -1 ? to[index] : c;
+                });
+              }
+            } else if (cmd === 'wc -w') {
+              data = data.split(/\s+/).filter(w => w).length.toString();
+            } else {
+              data = '[Unsupported pipe command]';
+            }
+          }
+        });
+
+        results.push(data);
+      });
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
