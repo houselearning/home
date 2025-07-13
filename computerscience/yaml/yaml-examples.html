@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YAML Real-World Example</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #007acc;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #61dafb;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+
+    .tip {
+      background-color: #e0f0ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #007acc;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #004a7f;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+
+    .image-section {
+      margin-top: 2rem;
+      background-color: #e0f0ff;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .image-section img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    .caption {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+  text-align: center;
+}
+
+  </style>
+</head>
+<body>
+
+  <h1>📄 YAML Real-World Example</h1>
+  <p>YAML is a human-friendly data serialization format often used for configuration files, data exchange, and more. It’s all about readability and simplicity.</p>
+
+  <h2>🖥️ Example 1: Simple Configuration File</h2>
+  <p>This YAML file configures a fictional web app's server and database settings.</p>
+  <textarea id="demo1Code">
+server:
+  host: localhost
+  port: 8080
+
+database:
+  user: admin
+  password: secret123
+  name: myappdb
+  timeout: 30
+  replicas:
+    - db1.example.com
+    - db2.example.com
+  </textarea>
+  <button onclick="runDemo1()">▶️ Show Parsed Data</button>
+  <div class="output" id="demo1Output">Output will appear here...</div>
+
+  <script>
+    function runDemo1() {
+      const code = document.getElementById("demo1Code").value.trim().replace(/\r\n/g, '\n');
+      const output = document.getElementById("demo1Output");
+      const expected = `server:
+  host: localhost
+  port: 8080
+
+database:
+  user: admin
+  password: secret123
+  name: myappdb
+  timeout: 30
+  replicas:
+    - db1.example.com
+    - db2.example.com`;
+      if (code === expected) {
+        output.textContent =
+`Parsed YAML to JSON-like object:
+
+{
+  "server": {
+    "host": "localhost",
+    "port": 8080
+  },
+  "database": {
+    "user": "admin",
+    "password": "secret123",
+    "name": "myappdb",
+    "timeout": 30,
+    "replicas": [
+      "db1.example.com",
+      "db2.example.com"
+    ]
+  }
+}`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🖥️ Example 2: Nested Data & Lists</h2>
+  <p>Here's a YAML file describing a team roster with nested roles and a list of members.</p>
+  <textarea id="demo2Code">
+team:
+  name: Dev Squad
+  leader:
+    name: Alice
+    role: Team Lead
+  members:
+    - name: Bob
+      role: Backend Dev
+    - name: Carol
+      role: Frontend Dev
+    - name: Dave
+      role: QA Engineer
+  active: true
+  </textarea>
+  <button onclick="runDemo2()">▶️ Show Parsed Data</button>
+  <div class="output" id="demo2Output">Output will appear here...</div>
+
+  <script>
+    function runDemo2() {
+      const code = document.getElementById("demo2Code").value.trim().replace(/\r\n/g, '\n');
+      const output = document.getElementById("demo2Output");
+      const expected = `team:
+  name: Dev Squad
+  leader:
+    name: Alice
+    role: Team Lead
+  members:
+    - name: Bob
+      role: Backend Dev
+    - name: Carol
+      role: Frontend Dev
+    - name: Dave
+      role: QA Engineer
+  active: true`;
+      if (code === expected) {
+        output.textContent =
+`Parsed YAML to JSON-like object:
+
+{
+  "team": {
+    "name": "Dev Squad",
+    "leader": {
+      "name": "Alice",
+      "role": "Team Lead"
+    },
+    "members": [
+      {
+        "name": "Bob",
+        "role": "Backend Dev"
+      },
+      {
+        "name": "Carol",
+        "role": "Frontend Dev"
+      },
+      {
+        "name": "Dave",
+        "role": "QA Engineer"
+      }
+    ],
+    "active": true
+  }
+}`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <h2>🖥️ Example 3: Using Anchors & Aliases</h2>
+  <p>YAML anchors let you reuse repeated data easily — check out how the <code>&amp;default</code> anchor is used below.</p>
+  <textarea id="demo3Code">
+defaults: &default
+  adapter: postgres
+  host: localhost
+  pool: 5
+  timeout: 5000
+
+development:
+  <<: *default
+  database: dev_db
+
+test:
+  <<: *default
+  database: test_db
+  timeout: 10000
+  </textarea>
+  <button onclick="runDemo3()">▶️ Show Parsed Data</button>
+  <div class="output" id="demo3Output">Output will appear here...</div>
+
+  <script>
+    function runDemo3() {
+      const code = document.getElementById("demo3Code").value.trim().replace(/\r\n/g, '\n');
+      const output = document.getElementById("demo3Output");
+      const expected = `defaults: &default
+  adapter: postgres
+  host: localhost
+  pool: 5
+  timeout: 5000
+
+development:
+  <<: *default
+  database: dev_db
+
+test:
+  <<: *default
+  database: test_db
+  timeout: 10000`;
+      if (code === expected) {
+        output.textContent =
+`Parsed YAML with anchors:
+
+{
+  "defaults": {
+    "adapter": "postgres",
+    "host": "localhost",
+    "pool": 5,
+    "timeout": 5000
+  },
+  "development": {
+    "adapter": "postgres",
+    "host": "localhost",
+    "pool": 5,
+    "timeout": 5000,
+    "database": "dev_db"
+  },
+  "test": {
+    "adapter": "postgres",
+    "host": "localhost",
+    "pool": 5,
+    "timeout": 10000,
+    "database": "test_db"
+  }
+}`;
+      } else {
+        output.textContent = "[Simulation] Output not recognized.";
+      }
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> YAML’s whitespace sensitivity makes indentation crucial! Use spaces, never tabs. Also, anchors (<code>&amp;</code>) and aliases (<code>*</code>) help DRY up your config files.
+  </div>
+
+  <div class="image-section">
+    <h2>📷 YAML Real-World Examples</h2>
+    <img src="img/yaml-kubernetes.png" alt="YAML Logo" />
+    <div class="caption">YAML Official Logo</div>
+    <img src="img/github-dependencies.png" alt="YAML example tree structure" />
+    <div class="caption">YAML Github Dependencies</div>
+  </div>
+
+
+</body>
+</html>
