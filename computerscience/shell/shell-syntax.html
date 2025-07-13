@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Scripting Syntax</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Scripting Syntax Lesson</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>#!/bin/bash</code> — Shebang to specify interpreter</li>
+    <li><code>#</code> — Comment lines</li>
+    <li><code>var=value</code> — Declare variables (no spaces)</li>
+    <li><code>$var</code> — Access variable values</li>
+    <li><code>echo "text"</code> — Print output</li>
+    <li><code>for i in 1 2 3; do ... done</code> — Simple loops</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="shellScript">
+#!/bin/bash
+name=Alex
+echo "Hello $name"
+
+for i in 1 2 3; do
+  echo "Number: $i"
+done
+  </textarea>
+  <button onclick="runShell()">▶️ Run Simulation</button>
+
+  <div class="output" id="shellOutput">Output will appear here...</div>
+
+  <script>
+    function runShell() {
+      const input = document.getElementById("shellScript").value.trim();
+      const output = document.getElementById("shellOutput");
+      if (!input) {
+        output.textContent = "Type some shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const vars = {};
+      const results = [];
+      let inForLoop = false;
+      let forVar = '', forValues = [], forBody = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#!') || trimmed.startsWith('#') || trimmed === '') return;
+
+        // Variable assignment
+        if (/^\w+=/.test(trimmed)) {
+          const [key, ...val] = trimmed.split('=');
+          vars[key] = val.join('=');
+          return;
+        }
+
+        // Echo command
+        if (trimmed.startsWith('echo ')) {
+          let str = trimmed.slice(5);
+          Object.keys(vars).forEach(v => {
+            str = str.replace(new RegExp('\\$' + v, 'g'), vars[v]);
+          });
+          results.push(str.replace(/"/g, ''));
+          return;
+        }
+
+        // For loop start
+        if (trimmed.startsWith('for ')) {
+          const parts = trimmed.match(/for (\w+) in (.+); do/);
+          if (parts) {
+            inForLoop = true;
+            forVar = parts[1];
+            forValues = parts[2].split(' ');
+            forBody = [];
+          } else {
+            results.push('[Error] Malformed for loop syntax.');
+          }
+          return;
+        }
+
+        // Loop body
+        if (inForLoop && trimmed !== 'done') {
+          forBody.push(trimmed);
+          return;
+        }
+
+        // End of for loop
+        if (inForLoop && trimmed === 'done') {
+          forValues.forEach(val => {
+            vars[forVar] = val;
+            forBody.forEach(cmd => {
+              if (cmd.startsWith('echo ')) {
+                let str = cmd.slice(5);
+                Object.keys(vars).forEach(v => {
+                  str = str.replace(new RegExp('\\$' + v, 'g'), vars[v]);
+                });
+                results.push(str.replace(/"/g, ''));
+              } else {
+                results.push('[Unrecognized command in loop]: ' + cmd);
+              }
+            });
+          });
+          inForLoop = false;
+          return;
+        }
+
+        // Unknown command
+        results.push('[Unrecognized command]: ' + trimmed);
+      });
+
+      if (inForLoop) {
+        results.push('[Error] Missing done for for loop.');
+      }
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
