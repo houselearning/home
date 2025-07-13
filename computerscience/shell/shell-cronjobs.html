@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Cron Jobs</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⏰ Shell Cron Jobs</h1>
+
+  <h2>📖 What is Cron?</h2>
+  <p>Cron is a time-based job scheduler in Unix-like systems. It lets you run commands/scripts automatically at scheduled times.</p>
+
+  <h2>📦 Common Commands</h2>
+  <ul>
+    <li><code>crontab -l</code> — List your cron jobs</li>
+    <li><code>crontab -e</code> — Edit your cron jobs</li>
+    <li><code>crontab -r</code> — Remove your cron jobs</li>
+    <li><code>* * * * * command</code> — Cron schedule syntax</li>
+  </ul>
+
+  <h2>🕒 Cron Syntax</h2>
+  <p><code>MIN HOUR DAY MONTH WEEKDAY command</code></p>
+  <ul>
+    <li><code>*</code> — Any value</li>
+    <li><code>0-59</code> — Minutes</li>
+    <li><code>0-23</code> — Hours</li>
+    <li><code>1-31</code> — Day of month</li>
+    <li><code>1-12</code> — Month</li>
+    <li><code>0-7</code> — Day of week (0 or 7 = Sunday)</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="cronScript" placeholder="Commands:\ncrontab -l\ncrontab -e\ncrontab -r\nAdd cron jobs by typing lines like:\n* * * * * echo Hello"></textarea>
+  <button onclick="runCron()">▶️ Run Simulation</button>
+
+  <div class="output" id="cronOutput">Output will appear here...</div>
+
+  <script>
+    let cronJobs = [];
+
+    function runCron() {
+      const input = document.getElementById("cronScript").value.trim();
+      const output = document.getElementById("cronOutput");
+      if (!input) {
+        output.textContent = "Type some cron commands or cron job lines.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      let results = [];
+
+      for (let line of lines) {
+        const trimmed = line.trim();
+
+        if (trimmed === '' || trimmed.startsWith('#')) continue;
+
+        if (trimmed === 'crontab -l') {
+          if (cronJobs.length === 0) {
+            results.push("no crontab for user");
+          } else {
+            results.push("Current crontab:");
+            results.push(...cronJobs);
+          }
+          continue;
+        }
+
+        if (trimmed === 'crontab -r') {
+          cronJobs = [];
+          results.push("crontab removed");
+          continue;
+        }
+
+        if (trimmed === 'crontab -e') {
+          results.push("Open your editor to edit cron jobs (simulation).");
+          results.push("Current jobs:");
+          results.push(...cronJobs);
+          continue;
+        }
+
+        // Add new cron job (simple validation)
+        if (/^(\*|[0-9,-\/]+)\s+(\*|[0-9,-\/]+)\s+(\*|[0-9,-\/]+)\s+(\*|[0-9,-\/]+)\s+(\*|[0-9,-\/]+)\s+.+/.test(trimmed)) {
+          cronJobs.push(trimmed);
+          results.push("Added cron job: " + trimmed);
+          continue;
+        }
+
+        results.push(`[Unrecognized command or invalid cron job format]: ${trimmed}`);
+      }
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
