@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Variables Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Variables Lesson</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>var=value</code> — Declare a variable (no spaces around <code>=</code>)</li>
+    <li><code>$var</code> — Access the value of a variable</li>
+    <li><code>unset var</code> — Delete a variable</li>
+    <li><code>readonly var</code> — Make a variable read-only</li>
+    <li><code>export var</code> — Export a variable to child processes</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="varScript">
+#!/bin/bash
+name=Alex
+echo "Name is $name"
+
+age=25
+echo "Age is $age"
+
+name=Jordan
+echo "New name: $name"
+
+unset age
+echo "Age after unset: $age"
+  </textarea>
+  <button onclick="runVars()">▶️ Run Simulation</button>
+
+  <div class="output" id="varOutput">Output will appear here...</div>
+
+  <script>
+    function runVars() {
+      const input = document.getElementById("varScript").value.trim();
+      const output = document.getElementById("varOutput");
+      if (!input) {
+        output.textContent = "Type some shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const vars = {};
+      const readonlyVars = new Set();
+      const exportedVars = new Set();
+      const results = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#!') || trimmed.startsWith('#') || trimmed === '') return;
+
+        // unset var
+        if (trimmed.startsWith('unset ')) {
+          const varName = trimmed.split(' ')[1];
+          if (readonlyVars.has(varName)) {
+            results.push(`bash: unset: ${varName}: cannot unset: readonly variable`);
+          } else if (vars.hasOwnProperty(varName)) {
+            delete vars[varName];
+          }
+          return;
+        }
+
+        // readonly var
+        if (trimmed.startsWith('readonly ')) {
+          const varName = trimmed.split(' ')[1];
+          if (vars.hasOwnProperty(varName)) {
+            readonlyVars.add(varName);
+          } else {
+            results.push(`bash: readonly: ${varName}: not found`);
+          }
+          return;
+        }
+
+        // export var
+        if (trimmed.startsWith('export ')) {
+          const varName = trimmed.split(' ')[1];
+          if (vars.hasOwnProperty(varName)) {
+            exportedVars.add(varName);
+            results.push(`${varName} exported`);
+          } else {
+            results.push(`bash: export: ${varName}: not found`);
+          }
+          return;
+        }
+
+        // Variable assignment (var=value)
+        if (/^\w+=/.test(trimmed)) {
+          const [key, ...val] = trimmed.split('=');
+          if (readonlyVars.has(key)) {
+            results.push(`bash: ${key}: readonly variable`);
+          } else {
+            vars[key] = val.join('=');
+          }
+          return;
+        }
+
+        // echo command
+        if (trimmed.startsWith('echo ')) {
+          let str = trimmed.slice(5);
+          Object.keys(vars).forEach(v => {
+            const regex = new RegExp('\\$' + v, 'g');
+            str = str.replace(regex, vars[v]);
+          });
+          results.push(str.replace(/"/g, ''));
+          return;
+        }
+
+        // unknown command
+        results.push('[Unrecognized command]: ' + trimmed);
+      });
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
