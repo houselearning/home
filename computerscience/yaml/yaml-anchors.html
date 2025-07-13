@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAML Anchors & Aliases | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #f0c674;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f0c674;
+      color: #111;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d8b651;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #f0e6b6;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #fff5c2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f0c674;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #fdf8d5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔗 YAML Anchors & Aliases</h1>
+  <p>Anchors (<code>&</code>) and aliases (<code>*</code>) let you define a value once and reuse it anywhere in your YAML file. They’re insanely useful for keeping big configs DRY (Don’t Repeat Yourself).</p>
+
+  <h2>📝 Example: Anchors & Aliases</h2>
+
+  <textarea id="yamlAnchorCode">
+defaults: &defaults
+  app_name: CoolMathTime
+  version: 1.0
+  theme: dark
+
+prod:
+  <<: *defaults
+  server: prod.coolmathtime.com
+
+dev:
+  <<: *defaults
+  server: localhost
+  </textarea>
+
+  <button onclick="simulateYAMLAnchors()">📖 Simulate Expand</button>
+
+  <div class="output" id="yamlAnchorOutput">Expanded config will appear here...</div>
+
+  <script>
+    function simulateYAMLAnchors() {
+      const output = document.getElementById("yamlAnchorOutput");
+      output.innerText = 
+`prod:
+  app_name: CoolMathTime
+  version: 1.0
+  theme: dark
+  server: prod.coolmathtime.com
+
+dev:
+  app_name: CoolMathTime
+  version: 1.0
+  theme: dark
+  server: localhost`;
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> You can also reference single values like:
+    <code>title: &title "Dashboard"</code> then reuse with <code>main_title: *title</code>.
+  </div>
+
+  <h2>📚 Summary</h2>
+  <ul>
+    <li><code>&</code> creates an anchor (like a reusable template)</li>
+    <li><code>*</code> references (aliases) the anchor wherever needed</li>
+    <li><code>&&</code> optional, but you can merge whole mappings with <code>&&defaults</code> or <code>&defaults</code></li>
+    <li><code>&lt;&lt;: *anchor</code> merges the whole block at that point</li>
+    <li>Great for config defaults, database settings, or repeating values</li>
+  </ul>
+
+  <h2>🧠 Bonus: Reusing a Single Value</h2>
+
+  <textarea readonly>
+welcome_msg: &welcome "Hello, YAML World!"
+home_msg: *welcome
+about_msg: *welcome
+  </textarea>
+
+  <p>Both <code>home_msg</code> and <code>about_msg</code> would get <code>Hello, YAML World!</code>.</p>
+
+</body>
+</html>

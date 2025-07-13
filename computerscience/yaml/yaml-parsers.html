@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YAML Parsers | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+    h1, h2 {
+      color: #6a4c93;
+    }
+    pre, code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #6a4c93;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #573b74;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #a0f0f7;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    .tip {
+      background-color: #dcd6f7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #6a4c93;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #4b3e78;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 YAML Parsers</h1>
+  <p>YAML parsers transform your YAML text into usable data structures like objects, dictionaries, or arrays in your programming language. Different languages have popular libraries you should know.</p>
+
+  <h2>🔥 Popular YAML Parsers by Language</h2>
+  <ul>
+    <li><strong>JavaScript/Node.js:</strong> <code>js-yaml</code> — super popular and easy to use.</li>
+    <li><strong>Python:</strong> <code>PyYAML</code> — the classic go-to for YAML parsing and emitting.</li>
+    <li><strong>C# (.NET):</strong> <code>YamlDotNet</code> — solid, well-maintained, perfect for your C# projects.</li>
+    <li><strong>Java:</strong> <code>SnakeYAML</code> — the standard YAML library for Java.</li>
+    <li><strong>Ruby:</strong> Built-in support with <code>Psych</code> (based on libyaml).</li>
+  </ul>
+
+  <h2>👀 Example: Parsing YAML in C# with YamlDotNet</h2>
+  <pre><code>using System;
+using System.Collections.Generic;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
+class Program
+{
+    static void Main()
+    {
+        var yaml = @"
+app: CoolMathTime
+version: 1.0
+features:
+  - lessons
+  - quizzes
+  - games
+";
+
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var result = deserializer.Deserialize&lt;Dictionary&lt;string, object&gt;&gt;(yaml);
+
+        foreach (var entry in result)
+        {
+            Console.WriteLine($"{entry.Key}: {entry.Value}");
+        }
+    }
+}
+</code></pre>
+
+
+  <h2>🛠️ How to Use in JS (js-yaml)</h2>
+  <pre><code>const yaml = require('js-yaml');
+const fs   = require('fs');
+
+try {
+  const doc = yaml.load(fs.readFileSync('config.yaml', 'utf8'));
+  console.log(doc);
+} catch (e) {
+  console.log(e);
+}
+  </code></pre>
+
+  <h2>🐍 Python PyYAML Sample</h2>
+  <pre><code>import yaml
+
+with open('config.yaml', 'r') as f:
+    data = yaml.safe_load(f)
+
+print(data)
+  </code></pre>
+
+  <button onclick="showOutput()">▶️ Show C# Output Simulation</button>
+  <div class="output" id="parserOutput">Output will appear here...</div>
+
+  <script>
+    function showOutput() {
+      const output = document.getElementById('parserOutput');
+      output.textContent =
+`app: CoolMathTime
+version: 1.0
+features:
+- lessons
+- quizzes
+- games`;
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> When choosing a parser, pick one that’s actively maintained and fits your language ecosystem. For C#, <code>YamlDotNet</code> is your best bet.
+  </div>
+
+</body>
+</html>
