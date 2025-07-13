@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell File Permissions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell File Permissions</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>ls -l</code> — View file permissions</li>
+    <li><code>chmod +x file</code> — Add execute permission</li>
+    <li><code>chmod -x file</code> — Remove execute permission</li>
+    <li><code>chmod 755 file</code> — Set specific permissions (rwxr-xr-x)</li>
+  </ul>
+
+  <h2>💻 Try Some Commands</h2>
+
+  <textarea id="permScript">
+ls -l
+chmod +x script.sh
+ls -l
+chmod 644 script.sh
+ls -l
+  </textarea>
+
+  <button onclick="runPerms()">▶️ Run Simulation</button>
+
+  <div class="output" id="permOutput">Output will appear here...</div>
+
+  <script>
+    function runPerms() {
+      const input = document.getElementById("permScript").value.trim();
+      const output = document.getElementById("permOutput");
+      if (!input) {
+        output.textContent = "Type some commands to simulate.";
+        return;
+      }
+
+      let filePerms = 'rw-r--r--';
+      const lines = input.split('\n');
+      const results = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed === '') return;
+
+        if (trimmed === 'ls -l') {
+          results.push(`-` + filePerms + ` 1 user user 1024 Jul 13 09:30 script.sh`);
+          return;
+        }
+
+        if (trimmed === 'chmod +x script.sh') {
+          if (filePerms[2] !== 'x') {
+            filePerms = filePerms.slice(0, 2) + 'x' + filePerms.slice(3);
+            results.push(`[OK] Execute permission added to script.sh`);
+          } else {
+            results.push(`[Already has execute permission]`);
+          }
+          return;
+        }
+
+        if (trimmed === 'chmod -x script.sh') {
+          if (filePerms[2] === 'x') {
+            filePerms = filePerms.slice(0, 2) + '-' + filePerms.slice(3);
+            results.push(`[OK] Execute permission removed from script.sh`);
+          } else {
+            results.push(`[Already no execute permission]`);
+          }
+          return;
+        }
+
+        if (trimmed.startsWith('chmod ')) {
+          const match = trimmed.match(/chmod (\d{3}) script\.sh/);
+          if (match) {
+            const permMap = {
+              '7': 'rwx',
+              '6': 'rw-',
+              '5': 'r-x',
+              '4': 'r--',
+              '0': '---'
+            };
+            const perms = match[1].split('').map(n => permMap[n] || '---').join('');
+            filePerms = perms;
+            results.push(`[OK] Permissions set to ${match[1]} (${filePerms})`);
+          } else {
+            results.push(`[Invalid chmod syntax]`);
+          }
+          return;
+        }
+
+        results.push('[Unrecognized command]: ' + trimmed);
+      });
+
+      output.textContent = results.join('\n');
+    }
+  </script>
+
+</body>
+</html>
