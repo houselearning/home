@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAML Multi-Document Files | CoolMathTime</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #f0c674;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #f0c674;
+      color: #111;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d8b651;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #f0e6b6;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 120px;
+    }
+
+    .tip {
+      background-color: #fff5c2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f0c674;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #fdf8d5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 YAML Multi-Document Files</h1>
+  <p>YAML lets you store multiple separate documents inside a single file using <code>---</code> to split them. Perfect for configs with different environments, or bulk configs like Docker Compose & Kubernetes.</p>
+
+  <h2>📝 Example: Multi-Document YAML</h2>
+
+  <textarea id="yamlMultiDocCode">
+# First document
+---
+app: CoolMathTime
+version: 1.0
+
+# Second document
+---
+app: FunWithYAML
+version: 2.0
+
+# Optional explicit end
+...
+  </textarea>
+
+  <button onclick="simulateYAMLMultiDocs()">📖 Split & Display</button>
+
+  <div class="output" id="yamlMultiDocOutput">Split documents will appear here...</div>
+
+  <script>
+    function simulateYAMLMultiDocs() {
+      const code = document.getElementById("yamlMultiDocCode").value;
+      const docs = code.split(/---\s*/g).filter(doc => doc.trim() && !doc.trim().startsWith("#"));
+      const output = document.getElementById("yamlMultiDocOutput");
+      output.innerText = docs.map((d, i) => `📄 Document ${i+1}:\n${d.trim()}\n`).join("\n");
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Use multi-docs when dealing with systems like Docker Compose, Kubernetes manifests, or bulk config setups.
+  </div>
+
+  <h2>📚 Summary</h2>
+  <ul>
+    <li><code>---</code> separates documents inside a YAML file</li>
+    <li><code>...</code> (optional) marks the end of a document</li>
+    <li>Each document can be a totally separate YAML config</li>
+    <li>Ideal for bundling related configs in one clean file</li>
+  </ul>
+
+  <h2>🧠 Bonus: Multi-Document Docker Compose</h2>
+
+  <textarea readonly>
+# Docker Compose v1
+---
+services:
+  web:
+    image: nginx
+
+# Docker Compose v2
+---
+services:
+  app:
+    image: node
+  </textarea>
+
+  <p>One file, multiple environments/configs. 👌</p>
+
+</body>
+</html>
