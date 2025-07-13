@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YAML Cheatsheet Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: #007acc;
+      margin-bottom: 1rem;
+    }
+
+    .content-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      max-width: 900px;
+    }
+
+    .yaml-logo {
+      flex-shrink: 0;
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .description {
+      flex: 1;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    canvas {
+      background: #222;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: block;
+      margin-bottom: 1rem;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .canvas-container {
+      max-width: 900px;
+    }
+
+    button {
+      background-color: #007acc;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>📋 YAML Cheatsheet</h1>
+
+  <div class="content-wrapper">
+    <img
+      src="img/yaml-logo.png"
+      alt="YAML Logo"
+      class="yaml-logo"
+    />
+    <div class="description">
+      <p>
+        YAML (YAML Ain’t Markup Language) is a human-readable data serialization format widely used for configuration files and data exchange between languages with different data structures. Its syntax emphasizes simplicity and readability by using indentation, minimal punctuation, and plain text. This makes it super popular for DevOps configs, CI/CD pipelines, Kubernetes manifests, and much more.
+      </p>
+      <p>
+        Unlike JSON or XML, YAML supports comments, anchors for reuse, and multi-line strings, making it flexible yet clean. It’s whitespace-sensitive, so indentation matters—always use spaces, never tabs! This cheatsheet covers the core syntax and basics you’ll need to write and understand most YAML files without sweating the details.
+      </p>
+    </div>
+  </div>
+
+  <div class="canvas-container">
+    <canvas id="yamlCheatCanvas" width="900" height="1000"></canvas>
+    <button onclick="downloadCanvas()">⬇️ Download Cheatsheet as Image</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('yamlCheatCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set basic styles
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#61dafb';
+    ctx.font = '28px Consolas, monospace';
+    ctx.fillText('YAML Syntax Cheatsheet', 20, 40);
+
+    ctx.fillStyle = '#eee';
+    ctx.font = '18px Consolas, monospace';
+
+    const lines = [
+      '---                         # Document start',
+      'key: value                  # Simple key-value pair',
+      '',
+      '- item1                     # List item',
+      '- item2',
+      '',
+      'nested:', 
+      '  key: value                # Nested key (indent 2 spaces)',
+      '',
+      'list_of_maps:',
+      '  - name: Alice',
+      '    age: 30',
+      '  - name: Bob',
+      '    age: 25',
+      '',
+      '# Data types:',
+      'string: "Hello, world!"     # Double quoted string',
+      "literal_block: |            # Multi-line literal block",
+      '  line 1',
+      '  line 2',
+      'folded_block: >             # Folded multi-line block',
+      '  This is',
+      '  a folded',
+      '  line.',
+      '',
+      'boolean_true: true',
+      'boolean_false: false',
+      'null_value: null',
+      '',
+      '# Anchors & Aliases:',
+      '&anchor_name anchor_key: &myAnchor value',
+      'alias_key: *myAnchor         # Alias reusing anchor value',
+      '',
+      '# Comments start with # and are ignored',
+      '',
+      '# Use spaces for indentation, NOT tabs!',
+    ];
+
+    const lineHeight = 26;
+    let y = 80;
+
+    for (const line of lines) {
+      ctx.fillText(line, 20, y);
+      y += lineHeight;
+    }
+
+    // Draw a subtle grid for spacing reference (optional)
+    ctx.strokeStyle = 'rgba(97, 218, 251, 0.15)';
+    ctx.lineWidth = 1;
+    for (let i = 60; i < canvas.height; i += lineHeight) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    // Download function
+    function downloadCanvas() {
+      const link = document.createElement('a');
+      link.download = 'yaml_cheatsheet.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
