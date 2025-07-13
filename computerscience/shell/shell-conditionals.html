@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shell Conditionals Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #00e676;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #252526;
+      color: #f0f0f0;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #00e676;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00c853;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #333;
+      color: #b9f6ca;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+    }
+    code {
+      background: #263238;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #80deea;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐚 Shell Conditionals Lesson</h1>
+
+  <h2>📝 Basics</h2>
+  <ul>
+    <li><code>if [ condition ]; then ... fi</code> — Basic if statement</li>
+    <li><code>else</code> — Executes if condition is false</li>
+    <li><code>elif [ condition ]</code> — Else if for multiple checks</li>
+    <li>Use <code>-eq</code>, <code>-ne</code>, <code>-gt</code>, <code>-lt</code>, <code>-ge</code>, <code>-le</code> for number comparisons</li>
+    <li>Use <code>=</code> or <code>!=</code> for strings</li>
+  </ul>
+
+  <h2>💻 Try It Yourself</h2>
+
+  <textarea id="condScript">
+#!/bin/bash
+num=5
+
+if [ $num -gt 10 ]; then
+  echo "Number is greater than 10"
+elif [ $num -eq 5 ]; then
+  echo "Number is exactly 5"
+else
+  echo "Number is less than 10"
+fi
+  </textarea>
+  <button onclick="runConditionals()">▶️ Run Simulation</button>
+
+  <div class="output" id="condOutput">Output will appear here...</div>
+
+  <script>
+    function runConditionals() {
+      const input = document.getElementById("condScript").value.trim();
+      const output = document.getElementById("condOutput");
+      if (!input) {
+        output.textContent = "Type some shell code to simulate.";
+        return;
+      }
+
+      const lines = input.split('\n');
+      const vars = {};
+      const results = [];
+
+      let i = 0;
+      while (i < lines.length) {
+        let line = lines[i].trim();
+        if (line.startsWith('#') || line.startsWith('#!') || line === '') {
+          i++;
+          continue;
+        }
+
+        // Variable assignment
+        if (/^\w+=/.test(line)) {
+          const [key, ...val] = line.split('=');
+          vars[key] = val.join('=');
+          i++;
+          continue;
+        }
+
+        // if statement
+        if (line.startsWith('if ')) {
+          let condition = line.match(/\[ (.+) \]/)[1];
+          let isTrue = evalCondition(condition, vars);
+          i++;
+
+          let blockLines = [];
+          let elifBlocks = [];
+          let elseBlock = [];
+          let inElse = false;
+          let inElif = false;
+          let currentElifCond = '';
+          let currentElifBlock = [];
+
+          while (i < lines.length && lines[i].trim() !== 'fi') {
+            let innerLine = lines[i].trim();
+            if (innerLine.startsWith('elif ')) {
+              if (currentElifCond) {
+                elifBlocks.push({cond: currentElifCond, body: currentElifBlock});
+              }
+              currentElifCond = innerLine.match(/\[ (.+) \]/)[1];
+              currentElifBlock = [];
+              inElif = true;
+              inElse = false;
+            } else if (innerLine === 'else') {
+              if (currentElifCond) {
+                elifBlocks.push({cond: currentElifCond, body: currentElifBlock});
+              }
+              inElse = true;
+              inElif = false;
+            } else {
+              if (inElse) elseBlock.push(innerLine);
+              else if (inElif) currentElifBlock.push(innerLine);
+              else blockLines.push(innerLine);
+            }
+            i++;
+          }
+
+          if (isTrue) {
+            execBlock(blockLines, vars, results);
+          } else {
+            let executed = false;
+            for (let e of elifBlocks) {
+              if (evalCondition(e.cond, vars)) {
+                execBlock(e.body, vars, results);
+                executed = true;
+                break;
+              }
+            }
+            if (!executed && elseBlock.length > 0) {
+              execBlock(elseBlock, vars, results);
+            }
+          }
+          i++;
+          continue;
+        }
+
+        // echo command
+        if (line.startsWith('echo ')) {
+          let str = line.slice(5);
+          Object.keys(vars).forEach(v => {
+            const regex = new RegExp('\\$' + v, 'g');
+            str = str.replace(regex, vars[v]);
+          });
+          results.push(str.replace(/"/g, ''));
+          i++;
+          continue;
+        }
+
+        // unknown command
+        results.push('[Unrecognized command]: ' + line);
+        i++;
+      }
+
+      output.textContent = results.join('\n');
+    }
+
+    function evalCondition(cond, vars) {
+      Object.keys(vars).forEach(v => {
+        const regex = new RegExp('\\$' + v, 'g');
+        cond = cond.replace(regex, vars[v]);
+      });
+
+      const parts = cond.split(/\s+/);
+      if (parts.length !== 3) return false;
+
+      const [left, op, right] = parts;
+      switch (op) {
+        case '-eq': return parseInt(left) === parseInt(right);
+        case '-ne': return parseInt(left) !== parseInt(right);
+        case '-gt': return parseInt(left) > parseInt(right);
+        case '-lt': return parseInt(left) < parseInt(right);
+        case '-ge': return parseInt(left) >= parseInt(right);
+        case '-le': return parseInt(left) <= parseInt(right);
+        case '=': return left === right;
+        case '!=': return left !== right;
+        default: return false;
+      }
+    }
+
+    function execBlock(block, vars, results) {
+      block.forEach(line => {
+        if (line.startsWith('echo ')) {
+          let str = line.slice(5);
+          Object.keys(vars).forEach(v => {
+            const regex = new RegExp('\\$' + v, 'g');
+            str = str.replace(regex, vars[v]);
+          });
+          results.push(str.replace(/"/g, ''));
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
