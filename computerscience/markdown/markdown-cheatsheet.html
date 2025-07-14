@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Markdown Cheatsheet Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: #d32f2f;
+      margin-bottom: 1rem;
+    }
+
+    .content-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      max-width: 900px;
+    }
+
+    .logo {
+      flex-shrink: 0;
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .description {
+      flex: 1;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    canvas {
+      background: #222;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: block;
+      margin-bottom: 1rem;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .canvas-container {
+      max-width: 900px;
+    }
+
+    button {
+      background-color: #d32f2f;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    button:hover {
+      background-color: #9a0007;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>📋 Markdown Cheatsheet</h1>
+
+  <div class="content-wrapper">
+    <img
+      src="img/markdown-logo.png"
+      alt="Markdown Logo"
+      class="logo"
+    />
+    <div class="description">
+      <p>
+        Markdown is a lightweight markup language that lets you format plain text documents using simple syntax rules. It was created to be both human-readable in raw form and easily convertible to HTML for display on the web. Markdown is used everywhere — from README files on GitHub to blog posts, wikis, and documentation.
+      </p>
+      <p>
+        With syntax for headings, bold/italic text, lists, links, images, code blocks, and tables, Markdown keeps things clean and minimalist. Its simplicity makes it perfect for writers, developers, and anyone who needs structured, styled documents without complicated tools. This cheatsheet covers all the core syntax you’ll need to write and format Markdown files like a pro.
+      </p>
+    </div>
+  </div>
+
+  <div class="canvas-container">
+    <canvas id="mdCheatCanvas" width="900" height="1050"></canvas>
+    <button onclick="downloadCanvas()">⬇️ Download Cheatsheet as Image</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mdCheatCanvas');
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#ff7961';
+    ctx.font = '28px Consolas, monospace';
+    ctx.fillText('Markdown Syntax Cheatsheet', 20, 40);
+
+    ctx.fillStyle = '#eee';
+    ctx.font = '18px Consolas, monospace';
+
+    const lines = [
+      '# Heading 1',
+      '## Heading 2',
+      '### Heading 3',
+      '',
+      '**Bold Text**',
+      '*Italic Text*',
+      '~~Strikethrough~~',
+      '',
+      '[Link Text](http://example.com)',
+      '![Alt Text](image.png)',
+      '',
+      '- Unordered item',
+      '- Another item',
+      '  - Nested item',
+      '',
+      '1. Ordered item',
+      '2. Second item',
+      '',
+      '`Inline code`',
+      '',
+      '```',
+      'Block code',
+      'goes here',
+      '```',
+      '',
+      '> Blockquote',
+      '',
+      '| Table | Example |',
+      '|:-------|:----------|',
+      '| Cell 1 | Cell 2    |',
+      '',
+      '- [x] Completed Task',
+      '- [ ] Pending Task',
+      '',
+      '[TOC] (Manual links to headings)',
+      '',
+      '---  (Horizontal Rule)',
+      '',
+      '# Comments use HTML:',
+      '<!-- This is a comment -->',
+    ];
+
+    const lineHeight = 26;
+    let y = 80;
+
+    for (const line of lines) {
+      ctx.fillText(line, 20, y);
+      y += lineHeight;
+    }
+
+    // Optional grid lines for visual spacing
+    ctx.strokeStyle = 'rgba(255, 121, 97, 0.1)';
+    ctx.lineWidth = 1;
+    for (let i = 60; i < canvas.height; i += lineHeight) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    function downloadCanvas() {
+      const link = document.createElement('a');
+      link.download = 'markdown_cheatsheet.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
