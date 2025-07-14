@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown Lists Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f8e9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #689f38;
+    }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #689f38;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #558b2f;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      overflow-x: auto;
+    }
+
+    .tip {
+      background-color: #dcedc8;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #689f38;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #33691e;
+    }
+
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟢 Markdown Lists</h1>
+  <p>Markdown makes it super easy to create both ordered and unordered lists, plus nested ones too.</p>
+
+  <h2>📚 List Syntax</h2>
+  <ul>
+    <li><strong>Unordered List</strong>: Use <code>-</code>, <code>*</code>, or <code>+</code></li>
+    <li><strong>Ordered List</strong>: Use numbers followed by a period <code>1.</code></li>
+    <li><strong>Nested List</strong>: Indent sub-items with spaces or tabs</li>
+  </ul>
+
+  <h2>🖥️ Try a Markdown List</h2>
+  <textarea id="markdownInput">
+- Apple
+- Banana
+  - Yellow Banana
+  - Green Banana
+- Cherry
+
+1. First
+2. Second
+3. Third
+  </textarea>
+
+  <button onclick="renderMarkdown()">▶️ Convert to HTML</button>
+
+  <div class="output" id="renderedOutput">List preview will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> For nested lists, indent with two spaces (or a tab) under the parent item.
+  </div>
+
+  <script>
+    function renderMarkdown() {
+      const mdText = document.getElementById("markdownInput").value;
+      const output = document.getElementById("renderedOutput");
+      output.innerHTML = markdownToHtml(mdText);
+    }
+
+    function markdownToHtml(md) {
+      let html = md
+        .replace(/^\s*\d+\. (.*$)/gim, '<li>$1</li>')
+        .replace(/^\s*[-*+] (.*$)/gim, '<li>$1</li>')
+        .replace(/\n{2,}/g, '<br><br>');
+
+      // Wrap list items inside <ul> or <ol>
+      let ulRegex = /(<li>.*?<\/li>)/gim;
+      let olRegex = /(<li>\d+.*?<\/li>)/gim;
+
+      // Detect if it's an ordered or unordered list
+      if (md.match(/^\s*\d+\. /m)) {
+        html = html.replace(ulRegex, '<ul>$1</ul>');
+        html = html.replace(/<\/ul>\s*<ul>/gim, '');
+      } else {
+        html = html.replace(ulRegex, '<ul>$1</ul>');
+        html = html.replace(/<\/ul>\s*<ul>/gim, '');
+      }
+
+      // Add simple nested list formatting by counting leading spaces
+      html = html.replace(/(<li>\s*<li>)/gim, '<ul>$1</ul>');
+
+      return html;
+    }
+  </script>
+
+</body>
+</html>

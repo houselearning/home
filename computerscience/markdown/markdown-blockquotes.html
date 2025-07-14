@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown: Blockquotes</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4c3;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #827717;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #827717;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #5f5f17;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      overflow-x: auto;
+    }
+
+    blockquote {
+      border-left: 5px solid #c0ca33;
+      margin: 1rem 0;
+      padding: 0.6rem 1rem;
+      background-color: #f9fbe7;
+      color: #333;
+    }
+
+    .tip {
+      background-color: #f0f4c3;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #827717;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5f5f17;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟡 Markdown Blockquotes</h1>
+  <p>Blockquotes are a great way to highlight quotes or important notes in your Markdown docs.</p>
+
+  <h2>📚 Markdown Syntax</h2>
+  <pre>
+> This is a blockquote.
+
+> You can also
+> split it across multiple lines.
+
+>> Nested blockquote.
+  </pre>
+
+  <h2>🖥️ Try it Yourself</h2>
+  <textarea id="markdownInput">
+> "The greatest glory in living lies not in never falling, but in rising every time we fall."  
+> — Nelson Mandela
+
+>> Stay hungry, stay foolish.
+  </textarea>
+
+  <button onclick="renderMarkdown()">▶️ Convert to HTML</button>
+
+  <div class="output" id="renderedOutput">Preview will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>&gt;</code> for each new blockquote line. Double it <code>&gt;&gt;</code> for nested quotes!
+  </div>
+
+  <script>
+    function renderMarkdown() {
+      const md = document.getElementById("markdownInput").value.trim();
+      const output = document.getElementById("renderedOutput");
+
+      const lines = md.split("\n");
+      let html = "";
+      let currentQuote = "";
+
+      lines.forEach(line => {
+        if (line.startsWith(">>")) {
+          currentQuote += "<blockquote style='margin-left:1.5rem;'>" + line.replace(/^>>\s?/, '') + "</blockquote>";
+        } else if (line.startsWith(">")) {
+          currentQuote += "<blockquote>" + line.replace(/^>\s?/, '') + "</blockquote>";
+        } else {
+          currentQuote += line + "<br>";
+        }
+      });
+
+      output.innerHTML = currentQuote;
+    }
+  </script>
+
+</body>
+</html>

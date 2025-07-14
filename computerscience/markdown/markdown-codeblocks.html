@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown: Code Blocks & Inline Code</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #ede7f6;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #7b1fa2;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7b1fa2;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #4a0072;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      overflow-x: auto;
+    }
+
+    .tip {
+      background-color: #d1c4e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7b1fa2;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #4a0072;
+    }
+
+    code {
+      background: #333;
+      color: #ffcc80;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: #333;
+      color: #ffcc80;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟣 Markdown Code Blocks & Inline Code</h1>
+  <p>Markdown lets you show code snippets easily using <code>`inline code`</code> or code blocks using triple backticks.</p>
+
+  <h2>📚 Markdown Syntax</h2>
+  <ul>
+    <li><strong>Inline Code:</strong> <code>`your code`</code></li>
+    <li><strong>Code Block:</strong> <code>```</code> above and below your code</li>
+    <li><strong>Indented Code Block:</strong> 4 spaces before each line</li>
+  </ul>
+
+  <h2>🖥️ Try it Yourself</h2>
+  <textarea id="markdownInput">
+This is `inline code`.
+def hello():
+print("Hello, World!")
+
+    # Indented code block
+    echo "Hello Bash"
+  </textarea>
+
+  <button onclick="renderMarkdown()">▶️ Convert to HTML</button>
+
+  <div class="output" id="renderedOutput">Preview will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use backticks <code>`</code> for inline code and triple backticks <code>```</code> for multi-line code blocks.
+  </div>
+
+  <script>
+    function renderMarkdown() {
+      const mdText = document.getElementById("markdownInput").value;
+      const output = document.getElementById("renderedOutput");
+      output.innerHTML = markdownToHtml(mdText);
+    }
+
+    function markdownToHtml(md) {
+      // Convert code blocks (``` blocks)
+      let html = md.replace(/```([\s\S]*?)```/gim, '<pre>$1</pre>');
+
+      // Convert inline code `text`
+      html = html.replace(/`([^`]+)`/gim, '<code>$1</code>');
+
+      // Convert indented code (4 spaces)
+      html = html.replace(/^ {4}(.*)/gim, '<pre>$1</pre>');
+
+      // Convert new lines to <br>
+      html = html.replace(/\n/g, '<br>');
+
+      return html;
+    }
+  </script>
+
+</body>
+</html>

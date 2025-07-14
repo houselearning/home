@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown Formatting Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #e3f2fd;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #1976d2;
+    }
+
+    textarea {
+      width: 100%;
+      height: 250px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #004ba0;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 100px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      overflow-x: auto;
+    }
+
+    .tip {
+      background-color: #bbdefb;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #1976d2;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #0d47a1;
+    }
+
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔵 Markdown Formatting</h1>
+  <p>Let’s learn how to format text using Markdown. It makes your text bold, italic, quoted, or even adds code snippets with just plain characters!</p>
+
+  <h2>📚 Common Formatting</h2>
+  <ul>
+    <li><code>**bold**</code> → <strong>bold</strong></li>
+    <li><code>*italic*</code> → <em>italic</em></li>
+    <li><code>~~strikethrough~~</code> → <s>strikethrough</s></li>
+    <li><code>&gt; Blockquote</code> → <blockquote>Blockquote</blockquote></li>
+    <li><code>`inline code`</code> → <code>inline code</code></li>
+    <li><code>``` code block ```</code> → code block section</li>
+    <li><code>![alt text](image-url)</code> → image embed</li>
+    <li><code>[Link Text](URL)</code> → hyperlink</li>
+  </ul>
+
+  <h2>🖥️ Markdown Preview Simulator</h2>
+  <textarea id="markdownInput">
+**Bold Text**
+
+*Italic Text*
+
+~~Strikethrough~~
+
+> This is a blockquote.
+
+`Inline code`
+
+
+[Open Google](https://google.com)
+
+![Kitten](img/kitten.png)
+  </textarea>
+  <button onclick="renderMarkdown()">▶️ Convert to HTML</button>
+
+  <div class="output" id="renderedOutput">Formatted HTML will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Markdown formatting keeps your writing clean, readable, and easy to turn into HTML later.
+  </div>
+
+  <script>
+    function renderMarkdown() {
+      const mdText = document.getElementById("markdownInput").value;
+      const output = document.getElementById("renderedOutput");
+      output.innerHTML = markdownToHtml(mdText);
+    }
+
+    function markdownToHtml(md) {
+      let html = md
+        .replace(/^###### (.*$)/gim, '<h6>$1</h6>')
+        .replace(/^##### (.*$)/gim, '<h5>$1</h5>')
+        .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+        .replace(/~~(.*?)~~/gim, '<s>$1</s>')
+        .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
+        .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img alt="$1" src="$2" style="max-width:100%;border-radius:8px;">')
+        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>')
+        .replace(/`([^`]+)`/gim, '<code>$1</code>')
+        .replace(/```([^`]+)```/gims, '<pre><code>$1</code></pre>')
+        .replace(/^\- (.*$)/gim, '<li>$1</li>')
+        .replace(/\n/gim, '<br>');
+      
+      if (html.includes('<li>')) {
+        html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+        html = html.replace(/<\/ul>\s*<ul>/gim, '');
+      }
+      return html;
+    }
+  </script>
+
+</body>
+</html>
