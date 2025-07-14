@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown: TOC & Task Lists</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #ede7f6;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #512da8;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #512da8;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #311b92;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 120px;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      overflow-x: auto;
+    }
+
+    a {
+      color: #b39ddb;
+      text-decoration: underline;
+    }
+
+    .tip {
+      background-color: #d1c4e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #512da8;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #311b92;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🟣 Advanced Markdown: TOC & Task Lists</h1>
+  <p>Learn how to create clickable Table of Contents links and interactive task lists in Markdown.</p>
+
+  <h2>📚 TOC Syntax</h2>
+  <pre>
+[Introduction](#introduction)
+[Features](#features)
+
+## Introduction
+Some text...
+
+## Features
+More text...
+  </pre>
+
+  <h2>📚 Task Lists Syntax</h2>
+  <pre>
+- [x] Completed item
+- [ ] Incomplete item
+  </pre>
+
+  <h2>🖥️ Try it Yourself</h2>
+  <textarea id="markdownInput">
+[Go to Introduction](#introduction)
+[Jump to Tasks](#tasks)
+
+## Introduction
+Welcome to this advanced Markdown example!
+
+## Tasks
+- [x] Build TOC links
+- [ ] Add task list
+- [ ] Test preview
+  </textarea>
+
+  <button onclick="renderMarkdown()">▶️ Convert to HTML</button>
+
+  <div class="output" id="renderedOutput">Preview will appear here...</div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Task lists render as interactive checkboxes on platforms like GitHub, and TOC links work by linking to matching <code>## heading</code> IDs.
+  </div>
+
+  <script>
+    function renderMarkdown() {
+      const md = document.getElementById("markdownInput").value.trim();
+      const output = document.getElementById("renderedOutput");
+
+      const lines = md.split("\n");
+      let html = "";
+
+      lines.forEach(line => {
+        // TOC links
+        if (line.match(/^\[.*\]\(.*\)$/)) {
+          const parts = line.match(/^\[(.*?)\]\((.*?)\)$/);
+          html += `<a href="${parts[2]}">${parts[1]}</a><br>`;
+        }
+        // Headings
+        else if (line.startsWith("##")) {
+          html += `<h2 id="${line.slice(3).toLowerCase().replace(/\s/g, '-')}">${line.slice(3)}</h2>`;
+        }
+        // Task lists
+        else if (line.startsWith("- [x]")) {
+          html += `<input type="checkbox" checked disabled> ${line.slice(5)}<br>`;
+        }
+        else if (line.startsWith("- [ ]")) {
+          html += `<input type="checkbox" disabled> ${line.slice(5)}<br>`;
+        }
+        // Plain text
+        else {
+          html += line + "<br>";
+        }
+      });
+
+      output.innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
