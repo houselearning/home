@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Advanced Bootstrap Features</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #fff3e0;
+      color: #4e342e;
+    }
+
+    h1, h2 {
+      color: #e65100;
+    }
+
+    textarea {
+      width: 100%;
+      height: 520px;
+      font-family: Consolas, monospace;
+      background: #212121;
+      color: #eee;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #e65100;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #bf360c;
+    }
+
+    iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      background: #fff;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    .tip {
+      background-color: #ffe0b2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #e65100;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #bf360c;
+    }
+
+    a {
+      color: #e65100;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 Advanced Bootstrap Components</h1>
+  <p>Explore some of Bootstrap’s most powerful UI elements like modals, tooltips, accordions, and offcanvas menus.</p>
+
+  <p>Docs: <a href="https://getbootstrap.com/docs/5.3/components/" target="_blank">Bootstrap Components</a></p>
+
+  <h2>⚙️ Advanced Preview</h2>
+  <p>Edit and play with advanced Bootstrap features below:</p>
+
+  <textarea id="formInput">
+<div class="container my-4">
+  <h3>Accordion</h3>
+  <div class="accordion" id="exampleAccordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+          Section 1
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#exampleAccordion">
+        <div class="accordion-body">
+          This is the first section of the accordion.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+          Section 2
+        </button>
+      </h2>
+      <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#exampleAccordion">
+        <div class="accordion-body">
+          This is the second section of the accordion.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <h3>Modal</h3>
+  <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#myModal">
+    Launch Modal
+  </button>
+
+  <div class="modal fade" id="myModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Bootstrap Modal</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          This is a Bootstrap modal. You can close it by clicking outside or the "X".
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <h3>Tooltip & Offcanvas</h3>
+  <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="This is a tooltip!">
+    Hover Me
+  </button>
+
+  <button class="btn btn-dark ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight">
+    Open Offcanvas
+  </button>
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Offcanvas Panel</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      You can slide in side menus like this one using <code>.offcanvas</code>.
+    </div>
+  </div>
+</div>
+  </textarea>
+
+  <button onclick="renderAdvanced()">▶️ Render Advanced Features</button>
+
+  <iframe id="renderedOutput"></iframe>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Some components like tooltips require JavaScript to initialize after page load. Bootstrap handles that via its bundle.
+  </div>
+
+  <script>
+    function renderAdvanced() {
+      const input = document.getElementById("formInput").value;
+      const output = document.getElementById("renderedOutput");
+      const content = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bootstrap Advanced</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="margin:1rem; background:#fff8e1; color:#3e2723;">
+${input}
+<scr` + `ipt src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></sc` + `ript>
+<scr` + `ipt>
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+</sc` + `ript>
+</body>
+</html>
+      `;
+      output.srcdoc = content;
+    }
+  </script>
+
+</body>
+</html>
