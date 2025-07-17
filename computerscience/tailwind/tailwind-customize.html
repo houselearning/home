@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tailwind Customizing</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+    h1, h2 {
+      color: #7c3aed; /* Tailwind violet-600 */
+    }
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #1f2937;
+      color: #e0e7ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7c3aed;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #5b21b6;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+      background: #fff;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .tip {
+      background-color: #ede9fe;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7c3aed;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5b21b6;
+    }
+    code {
+      background: #ddd6fe;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎨 Tailwind Customizing</h1>
+  <p>Tailwind is super flexible because you can customize its default styles by tweaking the <code>tailwind.config.js</code> file. You can add custom colors, fonts, spacing, and even extend core utilities.</p>
+
+  <h2>🔧 Custom Config Example</h2>
+  <p>Here’s a typical <code>tailwind.config.js</code> that adds custom colors and fonts:</p>
+
+  <textarea id="tailwindConfigInput">
+// tailwind.config.js
+module.exports = {
+  content: [
+    "./src/**/*.{html,js}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        "brand-purple": "#7c3aed",
+        "brand-green": "#10b981",
+      },
+      fontFamily: {
+        "custom": ["'Poppins'", "sans-serif"],
+      },
+      spacing: {
+        "72": "18rem",
+        "84": "21rem",
+        "96": "24rem",
+      },
+    },
+  },
+  plugins: [],
+}
+  </textarea>
+
+  <button onclick="renderConfig()">▶️ Show How to Use It</button>
+
+  <iframe id="renderedConfigOutput"></iframe>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> After editing your config, don’t forget to restart your build tool (like <code>npm run dev</code>) so Tailwind picks up your changes.
+  </div>
+
+  <h2>🖥️ Usage Example</h2>
+  <p>Once customized, use your new styles in HTML like this:</p>
+
+  <textarea id="usageExampleInput">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "brand-purple": "#7c3aed",
+            "brand-green": "#10b981",
+          },
+          fontFamily: {
+            "custom": ["'Poppins'", "sans-serif"],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brand-green font-custom min-h-screen flex items-center justify-center">
+
+  <button class="bg-brand-purple text-white px-6 py-3 rounded-md hover:bg-purple-700 transition">
+    Custom Button
+  </button>
+
+</body>
+</html>
+  </textarea>
+
+  <button onclick="renderUsage()">▶️ Render Custom Styles</button>
+
+  <iframe id="usageOutput" style="margin-bottom: 2rem;"></iframe>
+
+  <script>
+    function renderConfig() {
+      const code = document.getElementById("tailwindConfigInput").value;
+      const iframe = document.getElementById("renderedConfigOutput");
+      iframe.srcdoc = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Tailwind Config Example</title></head>
+<body style="font-family: monospace; white-space: pre-wrap; background:#111; color:#eee; padding:1rem;">
+${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+</body>
+</html>
+      `;
+    }
+
+    function renderUsage() {
+      const code = document.getElementById("usageExampleInput").value;
+      const iframe = document.getElementById("usageOutput");
+      iframe.srcdoc = code;
+    }
+  </script>
+
+</body>
+</html>

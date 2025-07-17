@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tailwind Dark Mode</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+    h1, h2 {
+      color: #7c3aed; /* Tailwind violet-600 */
+    }
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #1f2937;
+      color: #e0e7ff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7c3aed;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #5b21b6;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+      background: #fff;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .tip {
+      background-color: #ede9fe;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7c3aed;
+      margin: 1rem 0;
+      font-style: italic;
+      color: #5b21b6;
+    }
+    code {
+      background: #ddd6fe;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌑 Tailwind Dark Mode</h1>
+  <p>Tailwind supports dark mode out of the box! You just add the <code>dark</code> variant to your classes and toggle dark mode by adding <code>class="dark"</code> on a parent element (usually <code>&lt;html&gt;</code> or <code>&lt;body&gt;</code>).</p>
+  
+  <p>Tailwind has two popular dark mode strategies: <code>'media'</code> (auto based on user system preferences) and <code>'class'</code> (manual toggle). The <code>'class'</code> strategy gives you full control over when dark mode activates.</p>
+
+  <h2>⚙️ Example Dark Mode Setup</h2>
+  <p>This snippet uses the <code>'class'</code> strategy and toggles dark mode on the <code>html</code> tag:</p>
+
+  <textarea id="darkModeInput">
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Enable class strategy
+    }
+  </script>
+  <title>Tailwind Dark Mode Example</title>
+</head>
+<body class="bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center transition-colors duration-500">
+
+  <button id="toggleBtn" class="px-6 py-3 rounded-md bg-gray-800 text-white dark:bg-yellow-400 dark:text-black font-semibold transition-colors duration-300">
+    Toggle Dark Mode
+  </button>
+
+  <script>
+    const html = document.documentElement;
+    const btn = document.getElementById('toggleBtn');
+    btn.addEventListener('click', () => {
+      html.classList.toggle('dark');
+    });
+  </script>
+
+</body>
+</html>
+  </textarea>
+
+  <button onclick="renderDarkMode()">▶️ Render Dark Mode Demo</button>
+
+  <iframe id="darkModeOutput"></iframe>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Use <code>dark:</code> prefix on any Tailwind class to apply styles only in dark mode, like <code>dark:bg-gray-800</code> or <code>dark:text-yellow-400</code>.
+  </div>
+
+  <script>
+    function renderDarkMode() {
+      const code = document.getElementById("darkModeInput").value;
+      const iframe = document.getElementById("darkModeOutput");
+      iframe.srcdoc = code;
+    }
+  </script>
+
+</body>
+</html>
