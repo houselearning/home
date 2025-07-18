@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tone.js Synths</title>
+  <script src="https://unpkg.com/tone@latest/build/Tone.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0C0C0C;
+      color: #EDEDED;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7DF9AA;
+      color: #000;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #5fe399;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #1a1a1a;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #333;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #FFDD57;
+    }
+
+    ul {
+      background: #111;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎹 Tone.js Synths</h1>
+  <p>Let's explore how to create different types of synths in <strong>Tone.js</strong>. Synths are used to generate sound using oscillators and envelopes. Tone.js provides many types like <code>Synth</code>, <code>AMSynth</code>, <code>FMSynth</code>, and <code>MonoSynth</code>.</p>
+
+  <h2>🎶 Example: Basic Synth</h2>
+  <textarea id="toneSynthCode">
+// Create a basic synth and connect it to the speakers
+const synth = new Tone.Synth().toDestination();
+synth.triggerAttackRelease("C4", "8n");
+  </textarea>
+  <button onclick="runSynth()">▶️ Play Synth</button>
+
+  <div class="output" id="synthOutput">Synth playback will show here...</div>
+
+  <script>
+    function runSynth() {
+      const synth = new Tone.Synth().toDestination();
+      Tone.start();
+      synth.triggerAttackRelease("C4", "8n");
+      document.getElementById("synthOutput").innerText = "Playing Synth: C4 (8n)";
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> You must call <code>Tone.start()</code> on user interaction (like a button click) to unlock audio playback in most browsers.
+  </div>
+
+  <h2>🎛️ Common Synth Types</h2>
+  <ul>
+    <li><strong>Synth</strong>: Basic synth with one oscillator and envelope</li>
+    <li><strong>AMSynth</strong>: Amplitude Modulation synth</li>
+    <li><strong>FMSynth</strong>: Frequency Modulation synth</li>
+    <li><strong>MonoSynth</strong>: Monophonic synth with filter + envelope</li>
+    <li><strong>MembraneSynth</strong>: Perfect for drums/kicks</li>
+  </ul>
+
+  <h2>💥 Example: FM Synth</h2>
+  <textarea id="toneFMSynthCode">
+// FM Synth with different modulation
+const fm = new Tone.FMSynth().toDestination();
+fm.triggerAttackRelease("A3", "4n");
+  </textarea>
+  <button onclick="runFMSynth()">▶️ Play FM Synth</button>
+
+  <div class="output" id="fmOutput">FM Synth playback will show here...</div>
+
+  <script>
+    function runFMSynth() {
+      const fm = new Tone.FMSynth().toDestination();
+      Tone.start();
+      fm.triggerAttackRelease("A3", "4n");
+      document.getElementById("fmOutput").innerText = "Playing FM Synth: A3 (4n)";
+    }
+  </script>
+
+  <div class="tip">
+    🧠 Experiment with <code>oscillator.type</code>, <code>envelope</code> settings, and chaining effects like <code>delay</code> or <code>reverb</code>!
+  </div>
+
+  <h2>🔗 Learn More</h2>
+  <p>Explore the full API on the <a href="https://tonejs.github.io" target="_blank" style="color:#7DF9AA;">official Tone.js site</a> or try building a mini drum machine with <code>MembraneSynth</code>.</p>
+</body>
+</html>
