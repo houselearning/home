@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌌 Intro to THREE.js</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0c0c1f;
+      color: #e0e0ff;
+      padding: 2rem;
+    }
+    h1 {
+      color: #9AE1FF;
+    }
+    canvas {
+      display: block;
+      margin: 2rem auto;
+      border: 2px solid #303080;
+      border-radius: 12px;
+      background-color:white;
+    }
+    .tip {
+      margin-top: 2rem;
+      background: #161640;
+      padding: 1rem;
+      border-left: 4px solid #9AE1FF;
+      border-radius: 8px;
+      color: #bbb;
+    }
+    code {
+      background: #202060;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+        textarea.code-sample {
+      width: 100%;
+      height: 320px;
+      margin-top: 1rem;
+      background: #0d0d2b;
+      color: #7DF9AA;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: monospace;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌌 Intro to THREE.js</h1>
+  <p>THREE.js is a JavaScript library that makes working with WebGL easier. With just a few lines of code, you can create and render 3D scenes right in the browser.</p>
+
+  <canvas id="threeCanvas" width="600" height="400"></canvas>
+
+  <div class="tip">
+    💡 This scene sets up a renderer, camera, and cube. You can rotate it, move the camera, and expand with lights, models, and physics later.
+  </div>
+<h3 style="margin-top: 2rem; color: #FFD86B;">🎬 Sample THREE.js Code</h3>
+      <textarea class="code-sample" readonly>
+// Basic THREE.js Scene
+import * as THREE from 'https://cdn.skypack.dev/three@0.154.0';
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
+
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(2, 2, 5);
+scene.add(light);
+
+camera.position.z = 5;
+
+function animate() {
+  requestAnimationFrame(animate);
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+
+animate();
+      </textarea>
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.160.1/build/three.module.js';
+
+    const canvas = document.getElementById('threeCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas });
+    renderer.setSize(canvas.width, canvas.height);
+    renderer.setClearColor('#0f0f2f');
+
+    const scene = new THREE.Scene();
+    
+    const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+    camera.position.z = 4;
+
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshStandardMaterial({ color: 0x80deea });
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    const light = new THREE.PointLight(0xffffff, 1, 100);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

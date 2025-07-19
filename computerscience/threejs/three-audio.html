@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>THREE.js Lesson: Spatial Audio & 3D Sound</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 2rem;
+      background-color: #121212;
+      color: #a0f0e0;
+    }
+    h1, h2 {
+      color: #5efacb;
+    }
+    #audioCanvas {
+      width: 100%;
+      max-width: 900px;
+      height: 400px;
+      display: block;
+      border: 2px solid #5efacb;
+      border-radius: 10px;
+      margin-top: 1rem;
+      background-color: #1e1e2e;
+    }
+    .tip {
+      background-color: #1a1a2e;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #5efacb;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔊 THREE.js Lesson: Spatial Audio & 3D Sound</h1>
+  <p>This lesson teaches how to add 3D positional audio to your scene using THREE.js. Spatial audio allows sounds to come from a position in space, making experiences more immersive.</p>
+
+  <h2>🎮 Live Demo</h2>
+  <canvas id="audioCanvas"></canvas>
+
+  <div class="tip">
+    💡 <strong>Pro Tips:</strong>
+    <ul>
+      <li>Use <code>THREE.AudioListener</code> on the camera.</li>
+      <li>Use <code>THREE.PositionalAudio</code> for 3D audio effects.</li>
+      <li>Sounds must be loaded asynchronously using <code>THREE.AudioLoader</code>.</li>
+      <li>Ensure browser permissions are granted to autoplay audio or interact via click first.</li>
+    </ul>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+  <script>
+    const canvas = document.getElementById('audioCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+    camera.position.z = 5;
+
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    const sound = new THREE.PositionalAudio(listener);
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load('https://threejs.org/examples/sounds/358232_j_s_song.ogg', function(buffer) {
+      sound.setBuffer(buffer);
+      sound.setRefDistance(1);
+      sound.setLoop(true);
+      sound.setVolume(0.5);
+      sound.play();
+    });
+
+    const sphere = new THREE.SphereGeometry(0.5, 32, 32);
+    const material = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
+    const mesh = new THREE.Mesh(sphere, material);
+    mesh.position.set(0, 0, 0);
+    scene.add(mesh);
+
+    mesh.add(sound);
+
+    const light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      mesh.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+  </script>
+</body>
+</html>
