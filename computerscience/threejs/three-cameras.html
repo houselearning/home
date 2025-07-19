@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>THREE.js Lesson: Cameras & Perspective</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0a0a1a;
+      color: #e0e0ff;
+    }
+    h1, h2 {
+      color: #7df9aa;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #7df9aa;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    #previewCanvas {
+      width: 100%;
+      max-width: 900px;
+      height: 400px;
+      display: block;
+      border: 2px solid #7df9aa;
+      border-radius: 10px;
+      margin-top: 1rem;
+      background-color: #ffffff;
+    }
+    .tip {
+      background-color: #1f1f3a;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7df9aa;
+      margin: 1rem 0;
+    }
+    ul {
+      background: #161640;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌍 THREE.js Lesson: Cameras & Perspective</h1>
+  <p>Learn how <code>PerspectiveCamera</code> and <code>OrthographicCamera</code> affect how your scene is viewed.</p>
+
+  <h2>📆 Perspective vs Orthographic</h2>
+  <p><strong>PerspectiveCamera</strong> mimics how we see in real life: objects farther away look smaller. <strong>OrthographicCamera</strong> keeps all sizes consistent regardless of depth.</p>
+
+  <h2>📁 Example Code: Switching Cameras</h2>
+  <textarea readonly>
+// Switch between Perspective and Orthographic views
+const isOrtho = false;
+const aspect = canvas.clientWidth / canvas.clientHeight;
+let camera;
+
+if (isOrtho) {
+  camera = new THREE.OrthographicCamera(-aspect*5, aspect*5, 5, -5, 0.1, 100);
+} else {
+  camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100);
+}
+camera.position.z = 10;
+scene.add(camera);
+  </textarea>
+
+  <h2>🎮 Live Preview</h2>
+  <canvas id="previewCanvas"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+  <script>
+    const canvas = document.getElementById('previewCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setClearColor(0xffffff);
+
+    const scene = new THREE.Scene();
+
+    const aspect = canvas.clientWidth / canvas.clientHeight;
+    const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100);
+    camera.position.z = 10;
+
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshNormalMaterial();
+    const cubes = [];
+
+    for (let i = -2; i <= 2; i++) {
+      const cube = new THREE.Mesh(geometry, material);
+      cube.position.x = i * 2.5;
+      scene.add(cube);
+      cubes.push(cube);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      cubes.forEach(c => {
+        c.rotation.x += 0.01;
+        c.rotation.y += 0.01;
+      });
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+
+  <div class="tip">
+    🔗 Pro Tip: Use <code>PerspectiveCamera</code> for immersive 3D views, and <code>OrthographicCamera</code> for UI, diagrams, or isometric-style games.
+  </div>
+
+  <h2>🧠 Key Takeaways</h2>
+  <ul>
+    <li><code>PerspectiveCamera(fov, aspect, near, far)</code> uses real-world perspective.</li>
+    <li><code>OrthographicCamera(left, right, top, bottom, near, far)</code> is flat and great for 2D-style rendering.</li>
+    <li>Adjust <code>camera.position</code> and <code>lookAt()</code> to change the view.</li>
+  </ul>
+</body>
+</html>
