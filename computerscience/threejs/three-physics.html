@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>⚛️ Giant THREE.js + cannon-es Physics Lesson + Cheatsheet</title>
+<style>
+  /* Basic page layout */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #4ef57a;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+  #mainContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+  h1, h2 {
+    color: #27ae60;
+    margin-bottom: 0.3rem;
+  }
+  #previewContainer {
+    flex-grow: 1;
+    border: 3px solid #27ae60;
+    border-radius: 12px;
+    background: #1b1b1b;
+    position: relative;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  #controls {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+  }
+  button {
+    background-color: #27ae60;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #121212;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #1f8f45;
+  }
+
+  /* Cheatsheet styles */
+  #cheatsheetContainer {
+    width: 400px;
+    background: #0a0a0a;
+    border-left: 4px solid #27ae60;
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+  #cheatsheetContainer h2 {
+    color: #4ef57a;
+    margin-top: 0;
+  }
+  #cheatsheetText {
+    font-family: monospace;
+    white-space: pre-wrap;
+    color: #7ef59f;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #27ae60;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #121d12;
+  }
+  #downloadCheatsheetBtn {
+    margin-top: 1rem;
+    width: 100%;
+  }
+
+  /* Scrollbar for cheatsheet */
+  #cheatsheetContainer::-webkit-scrollbar {
+    width: 8px;
+  }
+  #cheatsheetContainer::-webkit-scrollbar-thumb {
+    background-color: #27ae60;
+    border-radius: 4px;
+  }
+
+  /* Responsive: hide cheatsheet on narrow screens */
+  @media (max-width: 900px) {
+    #cheatsheetContainer {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="mainContainer">
+  <h1>⚛️ THREE.js + cannon-es Physics Lesson</h1>
+  <p>Explore a 3D physics simulation with a box falling onto a plane using <code>cannon-es</code>. Reset the physics anytime!</p>
+
+  <canvas id="previewContainer"></canvas>
+
+  <div id="controls">
+    <button id="restartBtn">Restart Animation</button>
+    <button id="downloadCheatsheetBtn">Download Cheatsheet as PNG</button>
+  </div>
+      <h2>Lesson: Building a Physics Simulation</h2>
+    <p>In this lesson, we will create a simple physics simulation using THREE.js for rendering and cannon-es for physics calculations.</p>
+    
+    <h3>Step 1: Setting Up the Scene</h3>
+    <p>We start by creating a THREE.js scene, adding a camera, and setting up lighting. This provides the foundation for rendering 3D objects.</p>
+    <pre><code>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 6, 12);
+    camera.lookAt(0, 0, 0);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 15, 10);
+    scene.add(directionalLight);
+    </code></pre>
+
+    <h3>Step 2: Adding Physics with cannon-es</h3>
+    <p>Next, we set up a physics world using cannon-es. This includes defining gravity, materials, and creating physics bodies for the ground and a box.</p>
+    <pre><code>
+    const world = new CANNON.World({
+      gravity: new CANNON.Vec3(0, -9.82, 0)
+    });
+
+    const groundBody = new CANNON.Body({
+      mass: 0,
+      shape: new CANNON.Plane()
+    });
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(groundBody);
+
+    const boxBody = new CANNON.Body({
+      mass: 5,
+      shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
+      position: new CANNON.Vec3(0, 10, 0)
+    });
+    world.addBody(boxBody);
+    </code></pre>
+
+    <h3>Step 3: Synchronizing Physics and Rendering</h3>
+    <p>We synchronize the physics world with the THREE.js scene by updating the positions and rotations of the 3D objects based on the physics bodies.</p>
+    <pre><code>
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+
+      boxMesh.position.copy(boxBody.position);
+      boxMesh.quaternion.copy(boxBody.quaternion);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+    </code></pre>
+
+    <h3>Step 4: Adding Interactivity</h3>
+    <p>We add a button to reset the simulation, allowing users to restart the physics world and reposition the box.</p>
+    <pre><code>
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      world.removeBody(boxBody);
+      boxBody.position.set(0, 10, 0);
+      world.addBody(boxBody);
+    });
+    </code></pre>
+
+    <h3>Step 5: Enhancing the Scene</h3>
+    <p>Finally, we add materials, textures, and additional objects to make the scene more visually appealing.</p>
+
+    <h3>Step 6: Collision Detection</h3>
+    <p>We can detect collisions between objects in the physics world using event listeners. For example, we can log a message when the box hits the ground:</p>
+    <pre><code>
+    boxBody.addEventListener('collide', (event) => {
+      console.log('Box collided with:', event.body);
+    });
+    </code></pre>
+    <p>This is useful for triggering game logic or visual effects when objects interact.</p>
+
+    <h3>Step 7: Debugging the Physics World</h3>
+    <p>To debug the physics world, we can use a helper library like <code>cannon-es-debugger</code> to visualize physics bodies:</p>
+    <pre><code>
+    import CannonDebugger from 'https://cdn.jsdelivr.net/npm/cannon-es-debugger/dist/cannon-es-debugger.js';
+
+    const cannonDebugger = new CannonDebugger(scene, world);
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+      cannonDebugger.update(); // Update the debugger
+      renderer.render(scene, camera);
+    }
+    </code></pre>
+    <p>This helps identify issues like incorrect body positions or shapes.</p>
+
+    <h3>Step 8: Adding More Objects</h3>
+    <p>We can add more objects to the scene and physics world, such as spheres or custom shapes:</p>
+    <pre><code>
+    const sphereShape = new CANNON.Sphere(1);
+    const sphereBody = new CANNON.Body({
+      mass: 3,
+      shape: sphereShape,
+      position: new CANNON.Vec3(2, 8, 0),
+    });
+    world.addBody(sphereBody);
+
+    const sphereGeo = new THREE.SphereGeometry(1, 32, 32);
+    const sphereMat = new THREE.MeshStandardMaterial({ color: 0xff5733 });
+    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+    scene.add(sphereMesh);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+
+      sphereMesh.position.copy(sphereBody.position);
+      sphereMesh.quaternion.copy(sphereBody.quaternion);
+
+      renderer.render(scene, camera);
+    }
+    </code></pre>
+
+    <h3>Step 9: Optimizing Performance</h3>
+    <p>For better performance, we can reduce the number of physics steps or use simpler shapes for collision detection:</p>
+    <pre><code>
+    world.step(1 / 30); // Reduce physics update frequency
+    </code></pre>
+    <p>Additionally, avoid adding too many high-polygon meshes to the scene.</p>
+
+    <h3>Step 10: Exporting the Scene</h3>
+    <p>We can export the scene or physics data for use in other applications:</p>
+    <pre><code>
+  // Export scene to JSON
+  const sceneData = scene.toJSON();
+  console.log(JSON.stringify(sceneData));
+
+  // Export physics world
+  const physicsData = world.bodies.map(body => ({
+    position: body.position,
+    velocity: body.velocity,
+    shape: body.shapes[0].type,
+  }));
+  console.log(JSON.stringify(physicsData));
+    </code></pre>
+    <p>This allows us to save and reload simulations.</p>
+</div>
+
+<div id="cheatsheetContainer">
+  <h2>Cannon.js Cheatsheet</h2>
+  <div id="cheatsheetText"></div>
+</div>
+
+<script type="module">
+
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.module.js';
+  import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+
+  // Container elements
+  const container = document.getElementById('previewContainer');
+  const cheatsheetText = document.getElementById('cheatsheetText');
+
+  // Ensure the preview container is styled correctly
+  const previewContainer = document.getElementById('previewContainer');
+  previewContainer.style.display = 'block';
+  previewContainer.style.width = '100%';
+  previewContainer.style.height = '100%';
+  previewContainer.style.background = '#000'; // Add a default background for visibility
+
+  // Renderer setup
+  const renderer = new THREE.WebGLRenderer({ canvas: previewContainer, antialias: true });
+  renderer.setSize(previewContainer.clientWidth, previewContainer.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio); // Ensure high DPI support
+  renderer.setClearColor(0x121212);
+
+  // Handle resize to keep canvas size consistent
+  window.addEventListener('resize', () => {
+    const w = previewContainer.clientWidth;
+    const h = previewContainer.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  });
+
+  // Scene + Camera
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, container.clientWidth/container.clientHeight, 0.1, 1000);
+  camera.position.set(0, 6, 12);
+  camera.lookAt(0,0,0);
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(10, 15, 10);
+  scene.add(directionalLight);
+
+  // Physics world setup
+  let world;
+  let boxBody, groundBody;
+  let boxMesh, groundMesh;
+
+  function initPhysics() {
+    world = new CANNON.World({
+      gravity: new CANNON.Vec3(0, -9.82, 0)
+    });
+
+    // Materials (friction & restitution)
+    const defaultMaterial = new CANNON.Material('default');
+    const contactMaterial = new CANNON.ContactMaterial(defaultMaterial, defaultMaterial, {
+      friction: 0.4,
+      restitution: 0.6,
+    });
+    world.defaultContactMaterial = contactMaterial;
+
+    // Ground physics body
+    groundBody = new CANNON.Body({
+      mass: 0,
+      shape: new CANNON.Plane(),
+      material: defaultMaterial,
+    });
+    groundBody.quaternion.setFromEuler(-Math.PI/2, 0, 0);
+    world.addBody(groundBody);
+
+    // Ground mesh
+    const groundGeo = new THREE.PlaneGeometry(20, 20);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+    groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    groundMesh.rotation.x = -Math.PI / 2;
+    scene.add(groundMesh);
+
+    // Box physics body
+    const boxShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+    boxBody = new CANNON.Body({
+      mass: 5,
+      shape: boxShape,
+      position: new CANNON.Vec3(0, 10, 0),
+      material: defaultMaterial,
+    });
+    world.addBody(boxBody);
+
+    // Box mesh
+    const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+    const boxMat = new THREE.MeshStandardMaterial({ color: 0x4ef57a });
+    boxMesh = new THREE.Mesh(boxGeo, boxMat);
+    scene.add(boxMesh);
+
+    // Ensure canvas resizes properly
+    window.addEventListener('resize', () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    });
+  }
+
+  initPhysics();
+
+  // Animation loop
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+    world.step(1/60, delta, 3);
+
+    // Sync mesh with physics body
+    boxMesh.position.copy(boxBody.position);
+    boxMesh.quaternion.copy(boxBody.quaternion);
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  // Restart Animation — reset physics world and reposition box
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    // Remove old bodies & meshes
+    world.bodies.forEach(b => world.removeBody(b));
+    scene.remove(boxMesh);
+    scene.remove(groundMesh);
+
+    // Re-initialize physics & meshes
+    initPhysics();
+  });
+
+  // Cheatsheet data — about 60% Cannon.js core syntax with descriptions
+  const cheatsheetContent = `
+  // Cannon.js Cheatsheet - Core Syntax & Concepts
+
+  // World & Gravity
+  const world = new CANNON.World();
+  world.gravity.set(0, -9.82, 0);
+
+  // Materials & Contact
+  const material = new CANNON.Material('matName');
+  const contactMat = new CANNON.ContactMaterial(material, material, {
+    friction: 0.3,
+    restitution: 0.6
+  });
+  world.addContactMaterial(contactMat);
+  world.defaultContactMaterial = contactMat;
+
+  // Shapes
+  new CANNON.Box(new CANNON.Vec3(1,1,1));
+  new CANNON.Sphere(1);
+  new CANNON.Plane();
+  new CANNON.Cylinder(radiusTop, radiusBottom, height, numSegments);
+  new CANNON.ConvexPolyhedron(vertices, faces);
+  new CANNON.Trimesh(vertices, indices);
+
+  // Bodies
+  const body = new CANNON.Body({
+    mass: 1,
+    shape: new CANNON.Box(new CANNON.Vec3(1,1,1)),
+    position: new CANNON.Vec3(0, 10, 0),
+    velocity: new CANNON.Vec3(0, 0, 0),
+    angularVelocity: new CANNON.Vec3(0, 0, 0),
+    material: material
+  });
+  world.addBody(body);
+
+  // Body properties & methods
+  body.position.set(x, y, z);
+  body.velocity.set(x, y, z);
+  body.angularVelocity.set(x, y, z);
+  body.applyForce(new CANNON.Vec3(fx, fy, fz), new CANNON.Vec3(px, py, pz));
+  body.applyImpulse(new CANNON.Vec3(ix, iy, iz), new CANNON.Vec3(px, py, pz));
+  body.quaternion.setFromEuler(alpha, beta, gamma);
+  body.updateMassProperties();
+
+  // Constraints (Joints)
+  new CANNON.DistanceConstraint(bodyA, bodyB, distance, maxForce);
+  new CANNON.HingeConstraint(bodyA, bodyB, options);
+  new CANNON.LockConstraint(bodyA, bodyB);
+
+  // Raycasting
+  const ray = new CANNON.Ray(origin, direction);
+  ray.intersectBodies(world.bodies);
+
+  // Stepping the simulation
+  world.step(fixedTimeStep, deltaTime, maxSubSteps);
+
+  // Utilities
+  new CANNON.Vec3(x, y, z);
+  CANNON.Quaternion.identity();
+  `;
+
+  cheatsheetText.textContent = cheatsheetContent.trim();
+
+  // Download Cheatsheet as PNG
+  document.getElementById('downloadCheatsheetBtn').addEventListener('click', () => {
+    const cheatsheetElement = cheatsheetText;
+
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const padding = 20;
+    const fontSize = 16;
+    const lineHeight = fontSize * 1.3;
+    const lines = cheatsheetElement.textContent.split('\n');
+
+    // Calculate canvas size based on text lines
+    canvas.width = 800;
+    canvas.height = lineHeight * lines.length + padding * 2;
+
+    // Background
+    ctx.fillStyle = '#121d12';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Text style
+    ctx.font = `${fontSize}px monospace`;
+    ctx.fillStyle = '#7ef59f';
+    ctx.textBaseline = 'top';
+
+    // Draw each line
+    lines.forEach((line, idx) => {
+      ctx.fillText(line, padding, padding + idx * lineHeight);
+    });
+
+    // Save image
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cannonjs-safelibrary.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  });
+
+  // Add lesson content
+  const lessonContent = `
+    <h2>Lesson: Building a Physics Simulation</h2>
+    <p>In this lesson, we will create a simple physics simulation using THREE.js for rendering and cannon-es for physics calculations.</p>
+    
+    <h3>Step 1: Setting Up the Scene</h3>
+    <p>We start by creating a THREE.js scene, adding a camera, and setting up lighting. This provides the foundation for rendering 3D objects.</p>
+    <pre><code>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 6, 12);
+    camera.lookAt(0, 0, 0);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 15, 10);
+    scene.add(directionalLight);
+    </code></pre>
+
+    <h3>Step 2: Adding Physics with cannon-es</h3>
+    <p>Next, we set up a physics world using cannon-es. This includes defining gravity, materials, and creating physics bodies for the ground and a box.</p>
+    <pre><code>
+    const world = new CANNON.World({
+      gravity: new CANNON.Vec3(0, -9.82, 0)
+    });
+
+    const groundBody = new CANNON.Body({
+      mass: 0,
+      shape: new CANNON.Plane()
+    });
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(groundBody);
+
+    const boxBody = new CANNON.Body({
+      mass: 5,
+      shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
+      position: new CANNON.Vec3(0, 10, 0)
+    });
+    world.addBody(boxBody);
+    </code></pre>
+
+    <h3>Step 3: Synchronizing Physics and Rendering</h3>
+    <p>We synchronize the physics world with the THREE.js scene by updating the positions and rotations of the 3D objects based on the physics bodies.</p>
+    <pre><code>
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+
+      boxMesh.position.copy(boxBody.position);
+      boxMesh.quaternion.copy(boxBody.quaternion);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+    </code></pre>
+
+    <h3>Step 4: Adding Interactivity</h3>
+    <p>We add a button to reset the simulation, allowing users to restart the physics world and reposition the box.</p>
+    <pre><code>
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      world.removeBody(boxBody);
+      boxBody.position.set(0, 10, 0);
+      world.addBody(boxBody);
+    });
+    </code></pre>
+
+    <h3>Step 5: Enhancing the Scene</h3>
+    <p>Finally, we add materials, textures, and additional objects to make the scene more visually appealing.</p>
+
+    <h3>Step 6: Collision Detection</h3>
+    <p>We can detect collisions between objects in the physics world using event listeners. For example, we can log a message when the box hits the ground:</p>
+    <pre><code>
+    boxBody.addEventListener('collide', (event) => {
+      console.log('Box collided with:', event.body);
+    });
+    </code></pre>
+    <p>This is useful for triggering game logic or visual effects when objects interact.</p>
+
+    <h3>Step 7: Debugging the Physics World</h3>
+    <p>To debug the physics world, we can use a helper library like <code>cannon-es-debugger</code> to visualize physics bodies:</p>
+    <pre><code>
+    import CannonDebugger from 'https://cdn.jsdelivr.net/npm/cannon-es-debugger/dist/cannon-es-debugger.js';
+
+    const cannonDebugger = new CannonDebugger(scene, world);
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+      cannonDebugger.update(); // Update the debugger
+      renderer.render(scene, camera);
+    }
+    </code></pre>
+    <p>This helps identify issues like incorrect body positions or shapes.</p>
+
+    <h3>Step 8: Adding More Objects</h3>
+    <p>We can add more objects to the scene and physics world, such as spheres or custom shapes:</p>
+    <pre><code>
+    const sphereShape = new CANNON.Sphere(1);
+    const sphereBody = new CANNON.Body({
+      mass: 3,
+      shape: sphereShape,
+      position: new CANNON.Vec3(2, 8, 0),
+    });
+    world.addBody(sphereBody);
+
+    const sphereGeo = new THREE.SphereGeometry(1, 32, 32);
+    const sphereMat = new THREE.MeshStandardMaterial({ color: 0xff5733 });
+    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+    scene.add(sphereMesh);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+
+      sphereMesh.position.copy(sphereBody.position);
+      sphereMesh.quaternion.copy(sphereBody.quaternion);
+
+      renderer.render(scene, camera);
+    }
+    </code></pre>
+
+    <h3>Step 9: Optimizing Performance</h3>
+    <p>For better performance, we can reduce the number of physics steps or use simpler shapes for collision detection:</p>
+    <pre><code>
+    world.step(1 / 30); // Reduce physics update frequency
+    </code></pre>
+    <p>Additionally, avoid adding too many high-polygon meshes to the scene.</p>
+
+    <h3>Step 10: Exporting the Scene</h3>
+    <p>We can export the scene or physics data for use in other applications:</p>
+    <pre><code>
+  // Export scene to JSON
+  const sceneData = scene.toJSON();
+  console.log(JSON.stringify(sceneData));
+
+  // Export physics world
+  const physicsData = world.bodies.map(body => ({
+    position: body.position,
+    velocity: body.velocity,
+    shape: body.shapes[0].type,
+  }));
+  console.log(JSON.stringify(physicsData));
+    </code></pre>
+    <p>This allows us to save and reload simulations.</p>
+  `;
+
+  const mainContainer = document.getElementById('mainContainer');
+  const lessonDiv = document.createElement('div');
+  lessonDiv.innerHTML = lessonContent;
+  lessonDiv.style.marginTop = '2rem';
+  lessonDiv.style.color = '#4ef57a';
+  lessonDiv.style.overflowY = 'auto'; // Add scrollbar
+  lessonDiv.style.maxHeight = '80vh'; // Limit height for scrolling
+  mainContainer.appendChild(lessonDiv);
+
+  // Add scrollbar to mainContainer
+  const mainContainerStyle = document.getElementById('mainContainer').style;
+  mainContainerStyle.overflowY = 'auto'; // Enable vertical scrolling
+  mainContainerStyle.maxHeight = '100vh'; // Limit height to viewport
+
+  // Handle resize to keep canvas size consistent
+  window.addEventListener('resize', () => {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  });
+
+</script>
+
+</body>
+</html>
+</script>
+
+</body>
+</html>
