@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎹 Tone.js MIDI Input / Output Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #0C0C0C;
+      color: #E0E0E0;
+      margin: 2rem;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    p {
+      margin: 1rem 0;
+    }
+
+    button {
+      background: #7DF9AA;
+      color: #0C0C0C;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 1rem 0;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #4ce690;
+    }
+
+    .output {
+      background: #1A1A1A;
+      border-left: 5px solid #7DF9AA;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      min-height: 150px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+
+    code {
+      background: #222;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎹 Tone.js MIDI Input / Output</h1>
+
+  <p>
+    In this lesson, you’ll learn how to use the <code>Web MIDI API</code> alongside <code>Tone.js</code> to connect to MIDI devices, receive MIDI messages, and prepare for MIDI output.
+  </p>
+
+  <h2>Why MIDI + Tone.js?</h2>
+  <p>
+    MIDI devices (like keyboards, controllers) send messages to your browser. With <code>Tone.js</code>, you can convert these MIDI messages into beautiful synthesized sounds or trigger effects. This opens up endless possibilities for web-based music creation!
+  </p>
+
+  <h2>How It Works</h2>
+  <p>
+    - First, you ask the browser for MIDI access.<br>
+    - Then, you listen to MIDI input devices for note or control change messages.<br>
+    - You can also send MIDI messages to output devices.<br>
+    - Here, we’ll focus on connecting and logging MIDI input messages.
+  </p>
+
+  <button id="connectBtn">🔌 Connect MIDI Devices</button>
+
+  <div class="output" id="midiOutput">[Click "Connect MIDI Devices" to start]</div>
+
+  <h2>Code Breakdown</h2>
+  <pre>
+<span style="color:#7DF9AA">// Request MIDI access from browser</span>
+<code>async function requestMIDI() {
+  const access = await navigator.requestMIDIAccess();
+  const inputs = [...access.inputs.values()];
+  inputs.forEach(input =&gt; {
+    input.onmidimessage = (msg) =&gt; {
+      console.log(msg.data);
+    };
+  });
+}</code>
+  </pre>
+
+  <h2>Try It Out!</h2>
+  <p>Click the button above, then play notes on your connected MIDI keyboard or controller. MIDI message data will appear below in real time.</p>
+
+  <script>
+    const outputDiv = document.getElementById("midiOutput");
+    const connectBtn = document.getElementById("connectBtn");
+
+    function log(message) {
+      outputDiv.textContent += `\n${message}`;
+      outputDiv.scrollTop = outputDiv.scrollHeight;
+    }
+
+    async function requestMIDI() {
+      outputDiv.textContent = "[Connecting to MIDI devices...]";
+
+      try {
+        const access = await navigator.requestMIDIAccess();
+
+        const inputs = [...access.inputs.values()];
+        const outputs = [...access.outputs.values()];
+
+        log(`✅ Found ${inputs.length} MIDI input(s)`);
+        inputs.forEach((input, i) => {
+          log(`Input ${i + 1}: ${input.name}`);
+          input.onmidimessage = (msg) => {
+            const [status, data1, data2] = msg.data;
+            log(`🎵 MIDI Message - Status: ${status}, Data1: ${data1}, Data2: ${data2}`);
+          };
+        });
+
+        if (outputs.length > 0) {
+          log(`✅ Found ${outputs.length} MIDI output(s)`);
+          outputs.forEach((output, i) => log(`Output ${i + 1}: ${output.name}`));
+        } else {
+          log("⚠️ No MIDI outputs detected.");
+        }
+      } catch (err) {
+        log("❌ Failed to access MIDI devices: " + err.message);
+      }
+    }
+
+    connectBtn.addEventListener("click", requestMIDI);
+  </script>
+
+</body>
+</html>
