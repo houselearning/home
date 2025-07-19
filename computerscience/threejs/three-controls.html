@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THREE.js Lesson: OrbitControls & FlyControls</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            margin: 2rem;
+            background-color: #121212;
+            color: #a0f9c5;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #7df9aa;
+            margin-bottom: 1rem;
+        }
+        p {
+            margin-bottom: 1rem;
+        }
+        textarea {
+            width: 100%;
+            height: 350px; /* Adjusted height for more code */
+            font-family: Consolas, monospace;
+            background: #111;
+            color: #7df9aa;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            resize: vertical;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        #previewCanvas {
+            width: 100%;
+            max-width: 900px;
+            height: 450px; /* Adjusted height for better preview */
+            display: block;
+            border: 2px solid #7df9aa;
+            border-radius: 10px;
+            margin-top: 1rem;
+            background-color: #222;
+        }
+        .tip {
+            background-color: #1f1f3a;
+            padding: 0.5rem 1rem;
+            border-left: 5px solid #7df9aa;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        code {
+            background: #222;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        ul {
+            background: #161640;
+            padding: 1rem 1rem 1rem 2rem; /* Adjusted padding for list items */
+            border-radius: 10px;
+            list-style-type: disc;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 THREE.js Lesson: OrbitControls & FlyControls</h1>
+    <p>Interacting with your 3D scene is crucial for development and user experience. THREE.js provides powerful camera controls to navigate your virtual world. In this lesson, we'll explore two fundamental control types: <code>OrbitControls</code> for inspecting objects and <code>FlyControls</code> for free-flight navigation.</p>
+
+    <h2>📦 Code Sample</h2>
+    <textarea readonly>
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
+import { FlyControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/FlyControls.js';
+
+const canvas = document.getElementById('previewCanvas');
+const renderer = new THREE.WebGLRenderer({ canvas });
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.setClearColor(0x222222);
+renderer.setPixelRatio(window.devicePixelRatio); // Improve rendering quality on high-DPI screens
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+camera.position.set(0, 2, 5); // Set initial camera position
+
+// Add a central object (e.g., a sphere)
+const geometry = new THREE.SphereGeometry(1, 32, 32);
+const material = new THREE.MeshNormalMaterial(); // Shows normals for better visual feedback
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
+
+// Add a grid helper for better spatial awareness
+const gridHelper = new THREE.GridHelper(10, 10);
+scene.add(gridHelper);
+
+// Add axes helper
+const axesHelper = new THREE.AxesHelper(3);
+scene.add(axesHelper);
+
+// Initialize OrbitControls
+// Uncomment this line AND the orbitControls.update() in animate() to enable OrbitControls
+const orbitControls = new OrbitControls(camera, renderer.domElement);
+orbitControls.enableDamping = true; // Animate damping (smoothness)
+orbitControls.dampingFactor = 0.05;
+orbitControls.screenSpacePanning = false; // Panning in screen space
+orbitControls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
+
+// Initialize FlyControls
+// Uncomment this line AND the flyControls.update(delta) in animate() to enable FlyControls
+// const flyControls = new FlyControls(camera, renderer.domElement);
+// flyControls.movementSpeed = 0.5; // Adjust speed
+// flyControls.rollSpeed = Math.PI / 24; // Adjust roll speed
+// flyControls.autoForward = false; // Don't move forward automatically
+// flyControls.dragToLook = true; // Only look when mouse button is pressed
+
+const clock = new THREE.Clock(); // Required for FlyControls
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const delta = clock.getDelta(); // Get time elapsed since last frame
+
+    // Update controls based on which one is active
+    // To switch, uncomment the desired control's update method and comment out the other.
+    orbitControls.update(); // Always update OrbitControls if damping is enabled
+    // flyControls.update(delta); // Update FlyControls with delta time
+
+    renderer.render(scene, camera);
+}
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+});
+
+animate();
+    </textarea>
+
+   
+
+    <div class="tip">
+        💡 <strong>Pro Tips:</strong>
+        <ul>
+            <li><code>OrbitControls</code> are ideal for examining specific objects, allowing you to rotate around them, pan (right-click drag or two-finger drag), and zoom (scroll wheel).</li>
+            <li><code>FlyControls</code> provide a "first-person" flying experience. Use <strong>W, A, S, D</strong> for movement, <strong>R/F</strong> for up/down, and <strong>mouse drag</strong> to look around (if <code>dragToLook</code> is true).</li>
+            <li>Remember to call <code>controls.update()</code> (for OrbitControls with damping) or <code>controls.update(delta)</code> (for FlyControls) in your animation loop.</li>
+            <li><code>FlyControls</code> require a <code>THREE.Clock()</code> instance to calculate the <code>delta</code> time for smooth, frame-rate independent movement.</li>
+            <li>You typically use only one control type actively at a time. Comment out or disable one if you want to test the other to avoid conflicts.</li>
+            <li>Adjust <code>movementSpeed</code> and <code>rollSpeed</code> for <code>FlyControls</code> to suit your scene's scale and desired feel.</li>
+        </ul>
+    </div>
+
+    <h2>🧠 What You Learned</h2>
+    <ul>
+        <li>How to import and initialize <code>OrbitControls</code> and <code>FlyControls</code> from the THREE.js examples.</li>
+        <li>The primary use cases and interaction methods for each control type.</li>
+        <li>The importance of calling <code>update()</code> on controls within the animation loop for proper functionality.</li>
+        <li>How to use <code>THREE.Clock</code> for time-dependent updates, especially with <code>FlyControls</code>.</li>
+        <li>Basic configuration options for both control types to customize behavior.</li>
+    </ul>
+
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
+        import { FlyControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/FlyControls.js';
+
+        const canvas = document.getElementById('previewCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setClearColor(0x222222);
+        renderer.setPixelRatio(window.devicePixelRatio); // Improve rendering quality on high-DPI screens
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        camera.position.set(0, 2, 5); // Set initial camera position
+
+        // Add a central object (e.g., a sphere)
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+        const material = new THREE.MeshNormalMaterial(); // Shows normals for better visual feedback
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        // Add a grid helper for better spatial awareness
+        const gridHelper = new THREE.GridHelper(10, 10);
+        scene.add(gridHelper);
+
+        // Add axes helper
+        const axesHelper = new THREE.AxesHelper(3);
+        scene.add(axesHelper);
+
+        // Initialize OrbitControls
+        // Uncomment this line AND the orbitControls.update() in animate() to enable OrbitControls
+        const orbitControls = new OrbitControls(camera, renderer.domElement);
+        orbitControls.enableDamping = true; // Animate damping (smoothness)
+        orbitControls.dampingFactor = 0.05;
+        orbitControls.screenSpacePanning = false; // Panning in screen space
+        orbitControls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
+
+        // Initialize FlyControls
+        // Uncomment this line AND the flyControls.update(delta) in animate() to enable FlyControls
+        const flyControls = new FlyControls(camera, renderer.domElement); // Initialize but keep commented for initial active control
+        flyControls.movementSpeed = 0.5; // Adjust speed
+        flyControls.rollSpeed = Math.PI / 24; // Adjust roll speed
+        flyControls.autoForward = false; // Don't move forward automatically
+        flyControls.dragToLook = true; // Only look when mouse button is pressed
+
+        const clock = new THREE.Clock(); // Required for FlyControls
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta(); // Get time elapsed since last frame
+
+            // Update controls based on which one is active
+            // To switch, uncomment the desired control's update method and comment out the other.
+            orbitControls.update(); // OrbitControls is active by default
+            // flyControls.update(delta); // Commented out by default to allow OrbitControls to be active
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
+```
