@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎶 Tone.js Loops & Patterns</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #0C0C0C;
+      color: #E0E0E0;
+      margin: 2rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #7DF9AA;
+    }
+    p {
+      margin: 1rem 0;
+    }
+    button {
+      background: #7DF9AA;
+      color: #0C0C0C;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 1rem 0;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #4ce690;
+    }
+    .output {
+      background: #1A1A1A;
+      border-left: 5px solid #7DF9AA;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      min-height: 100px;
+      margin-top: 1rem;
+    }
+    pre {
+      background: #222;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: Consolas, monospace;
+      color: #7DF9AA;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.39/build/Tone.min.js"></script>
+</head>
+<body>
+
+  <h1>🎶 Tone.js Loops & Patterns</h1>
+
+  <p>
+    Loops and patterns are the backbone of electronic music. <code>Tone.js</code> provides powerful tools like <code>Loop</code> and <code>Pattern</code> for scheduling repeated sounds and sequences.
+  </p>
+
+  <h2>Loop Example</h2>
+  <p>
+    The <code>Loop</code> object calls a callback at a fixed interval, great for steady beats.
+  </p>
+
+  <button id="startLoopBtn">▶️ Start Loop</button>
+  <button id="stopLoopBtn" disabled>⏹️ Stop Loop</button>
+
+  <div class="output" id="loopOutput">Loop output will appear here...</div>
+
+  <h2>Pattern Example</h2>
+  <p>
+    The <code>Pattern</code> lets you define sequences to play notes in various orders: "up", "down", "random", etc.
+  </p>
+
+  <button id="startPatternBtn">▶️ Start Pattern</button>
+  <button id="stopPatternBtn" disabled>⏹️ Stop Pattern</button>
+
+  <div class="output" id="patternOutput">Pattern output will appear here...</div>
+
+  <h2>Code Breakdown</h2>
+  <pre>
+<code>// Create a synth for sounds
+const synth = new Tone.Synth().toDestination();
+
+// Loop every quarter note
+const loop = new Tone.Loop(time => {
+  synth.triggerAttackRelease("C4", "8n", time);
+}, "4n");
+
+// Pattern playing a sequence of notes in order
+const patternNotes = ["C4", "E4", "G4", "B4"];
+const pattern = new Tone.Pattern((time, note) => {
+  synth.triggerAttackRelease(note, "8n", time);
+}, patternNotes, "up");</code>
+  </pre>
+
+  <script>
+    const loopOutput = document.getElementById("loopOutput");
+    const patternOutput = document.getElementById("patternOutput");
+
+    // Setup synth, loop, and pattern
+    const synth = new Tone.Synth().toDestination();
+
+    const loop = new Tone.Loop(time => {
+      synth.triggerAttackRelease("C4", "8n", time);
+      loopOutput.textContent = `Loop: Played C4 at ${time.toFixed(2)}s`;
+    }, "4n");
+
+    const patternNotes = ["C4", "E4", "G4", "B4"];
+    const pattern = new Tone.Pattern((time, note) => {
+      synth.triggerAttackRelease(note, "8n", time);
+      patternOutput.textContent = `Pattern: Played ${note} at ${time.toFixed(2)}s`;
+    }, patternNotes, "up");
+
+    // Buttons
+    const startLoopBtn = document.getElementById("startLoopBtn");
+    const stopLoopBtn = document.getElementById("stopLoopBtn");
+    const startPatternBtn = document.getElementById("startPatternBtn");
+    const stopPatternBtn = document.getElementById("stopPatternBtn");
+
+    // Start loop
+    startLoopBtn.addEventListener("click", async () => {
+      await Tone.start();
+      loop.start(0);
+      Tone.Transport.start();
+      startLoopBtn.disabled = true;
+      stopLoopBtn.disabled = false;
+      loopOutput.textContent = "Loop started...";
+    });
+
+    // Stop loop
+    stopLoopBtn.addEventListener("click", () => {
+      loop.stop();
+      Tone.Transport.stop();
+      startLoopBtn.disabled = false;
+      stopLoopBtn.disabled = true;
+      loopOutput.textContent = "Loop stopped.";
+    });
+
+    // Start pattern
+    startPatternBtn.addEventListener("click", async () => {
+      await Tone.start();
+      pattern.start(0);
+      Tone.Transport.start();
+      startPatternBtn.disabled = true;
+      stopPatternBtn.disabled = false;
+      patternOutput.textContent = "Pattern started...";
+    });
+
+    // Stop pattern
+    stopPatternBtn.addEventListener("click", () => {
+      pattern.stop();
+      Tone.Transport.stop();
+      startPatternBtn.disabled = false;
+      stopPatternBtn.disabled = true;
+      patternOutput.textContent = "Pattern stopped.";
+    });
+  </script>
+
+</body>
+</html>
