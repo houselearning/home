@@ -1,5 +1,5 @@
 // fetch.js
-async function fetchRepos(user = 'Tonejs') {
+async function fetchRepos(user = 'Threejs') {
   const url = `https://api.github.com/users/${user}/repos?per_page=10&sort=updated`;
   const container = document.getElementById('reposContainer');
 
