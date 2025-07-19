@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tone.js Effects</title>
+  <script src="https://unpkg.com/tone@latest/build/Tone.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #0C0C0C;
+      color: #EDEDED;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7DF9AA;
+      color: #000;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #5fe399;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #1a1a1a;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #333;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #FFDD57;
+    }
+
+    ul {
+      background: #111;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎧 Tone.js Effects</h1>
+  <p>Tone.js offers a variety of built-in audio effects that you can use to enhance your sounds. These include <code>Reverb</code>, <code>Delay</code>, <code>Distortion</code>, <code>Chorus</code>, and more. Effects can be chained between instruments and speakers.</p>
+
+  <h2>🔊 Example: Delay Effect</h2>
+  <textarea id="delayEffectCode">
+// Create a synth and delay effect
+const synth = new Tone.Synth().connect(new Tone.FeedbackDelay("8n", 0.5)).toDestination();
+Tone.start();
+synth.triggerAttackRelease("E4", "4n");
+  </textarea>
+  <button onclick="playDelayEffect()">▶️ Play Delay</button>
+
+  <div class="output" id="delayOutput">Delay effect will play here...</div>
+
+  <script>
+    function playDelayEffect() {
+      const delay = new Tone.FeedbackDelay("8n", 0.5).toDestination();
+      const synth = new Tone.Synth().connect(delay);
+      Tone.start();
+      synth.triggerAttackRelease("E4", "4n");
+      document.getElementById("delayOutput").innerText = "🎧 Played E4 with FeedbackDelay";
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>FeedbackDelay</strong> repeats the sound after a delay with feedback (looping echoes). Great for ambient effects.
+  </div>
+
+  <h2>🔥 Common Effects in Tone.js</h2>
+  <ul>
+    <li><code>Reverb</code> – Simulates space and room reflections</li>
+    <li><code>FeedbackDelay</code> – Echo with feedback</li>
+    <li><code>Distortion</code> – Adds grit and saturation</li>
+    <li><code>Chorus</code> – Modulated delay for lush sounds</li>
+    <li><code>Phaser</code> – Swirly sci-fi phase shifting</li>
+    <li><code>AutoFilter</code> – Automatic filter modulation</li>
+    <li><code>PingPongDelay</code> – Stereo delay with left/right alternation</li>
+  </ul>
+
+  <h2>💥 Example: Reverb Effect</h2>
+  <textarea id="reverbEffectCode">
+// Reverb example
+const reverb = new Tone.Reverb({ decay: 2, preDelay: 0.1 }).toDestination();
+const synth = new Tone.MonoSynth().connect(reverb);
+Tone.start();
+synth.triggerAttackRelease("G3", "2n");
+  </textarea>
+  <button onclick="playReverbEffect()">▶️ Play Reverb</button>
+
+  <div class="output" id="reverbOutput">Reverb effect will play here...</div>
+
+  <script>
+    function playReverbEffect() {
+      const reverb = new Tone.Reverb({ decay: 2, preDelay: 0.1 }).toDestination();
+      const synth = new Tone.MonoSynth().connect(reverb);
+      Tone.start();
+      synth.triggerAttackRelease("G3", "2n");
+      document.getElementById("reverbOutput").innerText = "🌌 Played G3 with Reverb";
+    }
+  </script>
+
+  <div class="tip">
+    🌊 <strong>Reverb</strong> adds space to your sound — increase <code>decay</code> for longer trails.
+  </div>
+
+  <h2>⚠️ Tip: Chaining Effects</h2>
+  <p>You can chain multiple effects together using `.connect()` like this:</p>
+  <pre style="background:#111; padding:1rem; border-radius:8px;"><code>
+synth.connect(distortion).connect(reverb).toDestination();
+  </code></pre>
+
+  <h2>🧪 Experiment Challenge</h2>
+  <p>Try combining <code>Chorus</code>, <code>Reverb</code>, and <code>AutoFilter</code> to create your own sci-fi pad sound!</p>
+</body>
+</html>

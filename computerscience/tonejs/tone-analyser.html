@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎛️ Tone.js Synth Preview & Visualizer</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    h1, h2 {
+      color: #7df9aa;
+    }
+
+    p {
+      line-height: 1.6;
+      margin: 1rem 0;
+    }
+
+    pre {
+      background: #222;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      color: #7df9aa;
+    }
+
+    button, select {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #009688;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover, select:hover {
+      background-color: #00796b;
+    }
+
+    select {
+      margin-left: 1rem;
+      min-width: 200px;
+    }
+
+    canvas {
+      display: block;
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 700px;
+      height: 200px;
+      border-radius: 8px;
+      background-color: #000;
+      box-shadow: 0 0 15px #00ff99aa;
+    }
+
+    .tip {
+      background: #0d3b2e;
+      padding: 1rem;
+      border-left: 5px solid #7df9aa;
+      margin: 1.5rem 0;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎛️ Tone.js Visualizer & Audio Analysis</h1>
+  <p>Tone.js makes it easy to analyze audio in real-time using its built-in <code>Analyzer</code> node. You can create cool visual effects by extracting frequency or waveform data from your sound source.</p>
+
+  <p>Pick your synth below, then hit play to preview the sound and watch the frequency spectrum visualization update live!</p>
+
+  <label for="synthSelect">Choose Synth Type:</label>
+  <select id="synthSelect" aria-label="Select Synth Type">
+    <option value="Synth">Synth (default)</option>
+    <option value="AMSynth">AM Synth</option>
+    <option value="FMSynth">FM Synth</option>
+    <option value="MembraneSynth">Membrane Synth (Drum)</option>
+    <option value="MetalSynth">Metal Synth (Percussive)</option>
+    <option value="DuoSynth">Duo Synth</option>
+  </select>
+
+  <button id="playButton">▶️ Play Note</button>
+
+  <canvas id="visualizer"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.39/build/Tone.min.js"></script>
+  <script>
+    let synth;
+    const fft = new Tone.FFT(64);
+    const canvas = document.getElementById("visualizer");
+    const ctx = canvas.getContext("2d");
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const synthSelect = document.getElementById("synthSelect");
+    const playButton = document.getElementById("playButton");
+
+    function createSynth(type) {
+      // Dispose old synth if exists
+      if (synth) {
+        synth.dispose();
+      }
+
+      switch (type) {
+        case "AMSynth":
+          synth = new Tone.AMSynth().toDestination();
+          break;
+        case "FMSynth":
+          synth = new Tone.FMSynth().toDestination();
+          break;
+        case "MembraneSynth":
+          synth = new Tone.MembraneSynth().toDestination();
+          break;
+        case "MetalSynth":
+          synth = new Tone.MetalSynth().toDestination();
+          break;
+        case "DuoSynth":
+          synth = new Tone.DuoSynth().toDestination();
+          break;
+        default:
+          synth = new Tone.Synth().toDestination();
+      }
+      synth.connect(fft);
+    }
+
+    // Initialize default synth
+    createSynth(synthSelect.value);
+
+    synthSelect.addEventListener("change", () => {
+      createSynth(synthSelect.value);
+    });
+
+    playButton.addEventListener("click", async () => {
+      await Tone.start();
+      synth.triggerAttackRelease("C4", "8n");
+    });
+
+    function draw() {
+      requestAnimationFrame(draw);
+      const values = fft.getValue();
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#00796b";
+      const barWidth = canvas.width / values.length;
+
+      values.forEach((val, i) => {
+        // Normalize dB value roughly from -140 to 0 dB
+        const magnitude = (val + 140) / 140;
+        const barHeight = magnitude * canvas.height;
+
+        ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth * 0.8, barHeight);
+      });
+    }
+
+    draw();
+  </script>
+
+  <div class="tip">
+    💡 <strong>Pro Tip:</strong> Try switching synth types and see how the sound and visualization change — Tone.js has tons of cool synth options!
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎤 Record Audio Output with Tone.js</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #7df9aa;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      background-color: #7df9aa;
+      border: none;
+      border-radius: 8px;
+      color: #121212;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #4ac38a;
+    }
+    .tip {
+      margin-top: 2rem;
+      background: #1a1a1a;
+      border-left: 5px solid #7df9aa;
+      padding: 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #a0f9c5;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎤 Record Audio Output with Tone.js</h1>
+
+  <p>This lesson shows how to record audio output from your Tone.js synthesizer and download it as a file.</p>
+
+  <button id="startRecording">⏺ Start Recording</button>
+  <button id="stopRecording" disabled>⏹ Stop & Download</button>
+
+  <div class="tip">
+    ✨ Pro Tip: This is useful for saving user-generated melodies, exporting practice clips, or capturing synth jams from your app.
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.39/build/Tone.min.js"></script>
+  <script>
+    const synth = new Tone.Synth().toDestination();
+    const recorder = new Tone.Recorder();
+
+    // connect synth output to recorder
+    synth.connect(recorder);
+
+    const startBtn = document.getElementById("startRecording");
+    const stopBtn = document.getElementById("stopRecording");
+
+    startBtn.addEventListener("click", async () => {
+      await Tone.start();
+      recorder.start();
+      synth.triggerAttackRelease("C4", "4n");
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    });
+
+    stopBtn.addEventListener("click", async () => {
+      const recording = await recorder.stop();
+      const url = URL.createObjectURL(recording);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "synth-recording.webm";
+      anchor.click();
+
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+  </script>
+
+</body>
+</html>

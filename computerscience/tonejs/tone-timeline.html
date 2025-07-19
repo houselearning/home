@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tone.js Scheduling & Timelines</title>
+  <script src="https://unpkg.com/tone@latest/build/Tone.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #0C0C0C;
+      color: #EDEDED;
+      margin: 2rem;
+    }
+
+    h1, h2 {
+      color: #7DF9AA;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #7DF9AA;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #7DF9AA;
+      color: #000;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #5fe399;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+
+    .tip {
+      background-color: #1a1a1a;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #7DF9AA;
+      margin: 1.5rem 0;
+    }
+
+    code {
+      background: #333;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #FFDD57;
+    }
+
+    ul {
+      background: #111;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📅 Tone.js Scheduling & Timelines</h1>
+  <p>One of the most powerful features of Tone.js is the ability to schedule musical events on a timeline. You can play notes at specific times, schedule loops, or even create full songs programmatically.</p>
+
+  <h2>⏱️ Example: Scheduling Notes</h2>
+  <textarea id="scheduleCode">
+// Create synth
+const synth = new Tone.Synth().toDestination();
+
+// Schedule notes using Transport
+Tone.Transport.schedule(time => {
+  synth.triggerAttackRelease("C4", "8n", time);
+}, "0");
+
+Tone.Transport.schedule(time => {
+  synth.triggerAttackRelease("E4", "8n", time);
+}, "0:1");
+
+Tone.Transport.schedule(time => {
+  synth.triggerAttackRelease("G4", "8n", time);
+}, "0:2");
+
+// Start
+Tone.Transport.start();
+  </textarea>
+  <button onclick="playScheduledNotes()">▶️ Play Scheduled Notes</button>
+
+  <div class="output" id="scheduleOutput">Output will display timing info here...</div>
+
+  <script>
+    function playScheduledNotes() {
+      const synth = new Tone.Synth().toDestination();
+
+      Tone.Transport.cancel(); // Clear previous schedules
+
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("C4", "8n", time);
+      }, "0");
+
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("E4", "8n", time);
+      }, "0:1");
+
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("G4", "8n", time);
+      }, "0:2");
+
+      Tone.Transport.start("+0.1");
+      document.getElementById("scheduleOutput").innerText = "🎵 Scheduled C4, E4, G4 on the timeline.";
+    }
+  </script>
+
+  <div class="tip">
+    🕒 <strong>Time Formats:</strong> You can use time strings like <code>"0:1:2"</code> for bar:beat:sixteenth.
+  </div>
+
+  <h2>📖 Useful Timeline Methods</h2>
+  <ul>
+    <li><code>Tone.Transport.schedule(callback, time)</code> — Schedule a one-time event</li>
+    <li><code>Tone.Transport.scheduleRepeat(callback, interval, startTime)</code> — Repeating events</li>
+    <li><code>Tone.Transport.start()</code> / <code>pause()</code> / <code>stop()</code></li>
+    <li><code>Tone.Transport.bpm.value</code> — Control tempo (default is 120)</li>
+    <li><code>Tone.Transport.timeSignature</code> — Set time signature</li>
+  </ul>
+
+<!-- Replace the old loop section and script with this updated toggle version -->
+
+<h2>🔁 Example: Looping Melody</h2>
+<textarea id="loopCode">
+// Create synth
+const synth = new Tone.Synth().toDestination();
+
+// Create loop
+const loop = new Tone.Loop(time => {
+  const note = ["C4", "E4", "G4", "B4"][Math.floor(Math.random() * 4)];
+  synth.triggerAttackRelease(note, "8n", time);
+}, "4n");
+
+Tone.Transport.bpm.value = 100;
+loop.start(0);
+Tone.Transport.start();
+</textarea>
+<button id="loopToggleBtn" onclick="toggleLoop()">▶️ Start Loop</button>
+
+<div class="output" id="loopOutput">Loop output will show here...</div>
+
+<script>
+  let activeLoop = null;
+  let loopRunning = false;
+
+  function toggleLoop() {
+    const btn = document.getElementById("loopToggleBtn");
+    const output = document.getElementById("loopOutput");
+
+    if (!loopRunning) {
+      // START LOOP
+      const synth = new Tone.Synth().toDestination();
+      activeLoop = new Tone.Loop(time => {
+        const note = ["C4", "E4", "G4", "B4"][Math.floor(Math.random() * 4)];
+        synth.triggerAttackRelease(note, "8n", time);
+      }, "4n");
+
+      Tone.Transport.bpm.value = 100;
+      Tone.Transport.cancel(); // Clear existing schedules
+      activeLoop.start(0);
+      Tone.Transport.start("+0.1");
+
+      btn.innerText = "⏹️ Stop Loop";
+      output.innerText = "🎶 Loop started.";
+      loopRunning = true;
+    } else {
+      // STOP LOOP
+      if (activeLoop) {
+        activeLoop.stop();
+        activeLoop.dispose();
+        Tone.Transport.stop();
+        Tone.Transport.cancel();
+      }
+
+      btn.innerText = "▶️ Start Loop";
+      output.innerText = "🛑 Loop stopped.";
+      loopRunning = false;
+    }
+  }
+</script>
+
+
+  <div class="tip">
+    💡 Use <code>Tone.Loop</code> or <code>Tone.Part</code> to create complex sequences. You can stop loops with <code>.stop()</code> or <code>.dispose()</code>.
+  </div>
+
+</body>
+</html>

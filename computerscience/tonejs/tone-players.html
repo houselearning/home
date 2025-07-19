@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎹 Tone.js Samplers & Players</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #0C0C0C;
+      color: #E0E0E0;
+      margin: 2rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #7DF9AA;
+    }
+    p {
+      margin: 1rem 0;
+    }
+    button {
+      background: #7DF9AA;
+      color: #0C0C0C;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 1rem 0;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #4ce690;
+    }
+    .output {
+      background: #1A1A1A;
+      border-left: 5px solid #7DF9AA;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      min-height: 80px;
+      margin-top: 1rem;
+    }
+    pre {
+      background: #222;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: Consolas, monospace;
+      color: #7DF9AA;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.39/build/Tone.min.js"></script>
+</head>
+<body>
+
+  <h1>🎹 Tone.js Samplers & Players</h1>
+
+  <p>
+    Samplers let you play back audio samples mapped to different notes. Players are for playing audio files directly with control over playback.
+  </p>
+
+  <h2>Sampler Example</h2>
+  <p>
+    Below is a simple sampler that maps a few piano notes to audio files. Press buttons to play notes!
+  </p>
+
+  <div>
+<button data-note="C4">Play C4</button>
+<button data-note="D#4">Play D#4</button>
+<button data-note="F#4">Play F#4</button>
+<button data-note="A4">Play A4</button>
+<button data-note="C5">Play C5</button>
+
+  </div>
+
+  <div class="output" id="samplerOutput">Sampler output will appear here...</div>
+
+  <h2>Player Example</h2>
+  <p>
+    Players play back whole audio files. Click the button below to play a sound file.
+  </p>
+
+  <button id="playAudioBtn">▶️ Play Audio</button>
+
+  <div class="output" id="playerOutput">Player output will appear here...</div>
+
+  <h2>Code Breakdown</h2>
+  <pre>
+<code>// Create a sampler mapped to audio files
+const sampler = new Tone.Sampler({
+  urls: {
+    "C4": "C4.mp3",
+    "D#4": "Ds4.mp3",  // D#4 note sample filename is usually Ds4.mp3
+    "F#4": "Fs4.mp3",
+    "A4": "A4.mp3",
+    "C5": "C5.mp3"
+  },
+  baseUrl: "https://tonejs.github.io/audio/salamander/",
+}).toDestination();
+
+// Create a player for a full audio file
+const player = new Tone.Player("https://tonejs.github.io/audio/loop/FWDL.mp3").toDestination();
+</code>
+  </pre>
+
+  <script>
+    const samplerOutput = document.getElementById("samplerOutput");
+    const playerOutput = document.getElementById("playerOutput");
+
+    const sampler = new Tone.Sampler({
+      urls: {
+    "C4": "C4.mp3",
+    "D#4": "Ds4.mp3",  // D#4 note sample filename is usually Ds4.mp3
+    "F#4": "Fs4.mp3",
+    "A4": "A4.mp3",
+    "C5": "C5.mp3"
+      },
+      baseUrl: "https://tonejs.github.io/audio/salamander/",
+    }).toDestination();
+
+    const player = new Tone.Player("https://tonejs.github.io/audio/loop/FWDL.mp3").toDestination();
+
+    // Play sampler note buttons
+    document.querySelectorAll('button[data-note]').forEach(button => {
+      button.addEventListener('click', async () => {
+        await Tone.start();
+        const note = button.getAttribute('data-note');
+        sampler.triggerAttackRelease(note, '1n');
+        samplerOutput.textContent = `Sampler played note: ${note}`;
+      });
+    });
+
+    // Play audio player button
+    document.getElementById('playAudioBtn').addEventListener('click', async () => {
+      await Tone.start();
+      player.start();
+      playerOutput.textContent = "Player started playing audio.";
+    });
+  </script>
+
+</body>
+</html>
