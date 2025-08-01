@@ -1,252 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C# Exceptions - Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>C# Exceptions - Interactive Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2 {
+      color: #4caf50;
+    }
 
-        .lesson-content {
-            padding: 20px;
-        }
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
 
-        .lesson-content h2 {
-            color: #333;
-        }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
+    button:hover {
+      background-color: #388e3c;
+    }
 
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    .tip {
+      background-color: #e8f5e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+    }
 
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
 
-        .quiz-section button:hover {
-            background-color: #555;
-        }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
 
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+    .quiz-section {
+      margin-top: 40px;
+    }
 
-        .question {
-            margin-top: 20px;
-        }
-    </style>
+    .quiz-section input[type="radio"] {
+      margin-right: 10px;
+    }
+
+    .result {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: C# Exceptions</h1>
-    </header>
+  <h1>🧨 C# Exceptions - Interactive Lesson</h1>
+  <p>Learn how to handle errors in C# using try-catch-finally blocks. You will simulate exception handling, explore common exception types, and test your knowledge with a quiz!</p>
 
-    <div class="lesson-content">
-        <h2>What Are Exceptions?</h2>
-        <p>
-            In C#, an exception is an error that occurs during the execution of a program. These errors can be caused by various reasons like invalid input, dividing by zero, or accessing null objects.
-        </p>
-
-        <h2>Try-Catch Block</h2>
-        <p>
-            C# uses the `try-catch` block to handle exceptions. The code that might throw an exception is written inside the `try` block, and if an exception occurs, the control is passed to the `catch` block, where the error can be handled.
-        </p>
-        <pre><code>try {
-    // Code that might throw an exception
+  <h2>📚 Example Code: Try-Catch Block</h2>
+  <textarea id="exceptionCode">
+try {
     int result = 10 / 0;
 } catch (DivideByZeroException ex) {
     Console.WriteLine("Error: " + ex.Message);
-}</code></pre>
-        <p>
-            In the above example, the code attempts to divide by zero, which throws a `DivideByZeroException`. The `catch` block catches the exception and prints an error message.
-        </p>
-
-        <h2>Finally Block</h2>
-        <p>
-            You can also use a `finally` block, which runs after the `try-catch` block, regardless of whether an exception was thrown or not. It is typically used to release resources like closing a file or database connection.
-        </p>
-        <pre><code>try {
-    // Code that might throw an exception
-} catch (Exception ex) {
-    Console.WriteLine("Error: " + ex.Message);
 } finally {
     Console.WriteLine("This will always run.");
-}</code></pre>
+}
+  </textarea>
+  <button onclick="simulateExceptionHandling()">▶️ Run</button>
 
-        <h2>Interactive Example: Handle Division by Zero</h2>
-        <p>Enter two numbers, and check what happens when you try to divide them:</p>
+  <div class="output" id="exceptionOutput">Console output will appear here...</div>
 
-        <div>
-            <label for="num1">Enter number 1:</label>
-            <input type="number" id="num1"><br>
-            <label for="num2">Enter number 2:</label>
-            <input type="number" id="num2"><br>
-            <button onclick="divideNumbers()">Divide</button>
-        </div>
+  <script>
+    function simulateExceptionHandling() {
+      const code = document.getElementById("exceptionCode").value;
+      const output = document.getElementById("exceptionOutput");
 
-        <p id="resultMessage"></p>
+      if (code.includes("10 / 0")) {
+        output.innerText = "Error: Attempted to divide by zero.\nThis will always run.";
+      } else {
+        output.innerText = "[Simulated Output] No division by zero detected.";
+      }
+    }
+  </script>
 
-        <script>
-            function divideNumbers() {
-                const num1 = parseFloat(document.getElementById('num1').value);
-                const num2 = parseFloat(document.getElementById('num2').value);
-                const resultMessage = document.getElementById('resultMessage');
-                
-                try {
-                    if (num2 === 0) {
-                        throw new Error('Cannot divide by zero!');
-                    }
-                    const result = num1 / num2;
-                    resultMessage.textContent = `The result is: ${result}`;
-                    resultMessage.style.color = 'green';
-                } catch (error) {
-                    resultMessage.textContent = `Error: ${error.message}`;
-                    resultMessage.style.color = 'red';
-                } finally {
-                    console.log('Division attempt completed.');
-                }
-            }
-        </script>
+  <div class="tip">
+    <strong>💡 Tip:</strong> Always wrap risky code (like file access or division) inside a <code>try-catch</code> to handle unexpected errors gracefully.
+  </div>
 
-        <h2>Types of Exceptions</h2>
-        <p>
-            C# provides various built-in exceptions that you can use to catch specific errors. Some common exceptions include:
-        </p>
-        <ul>
-            <li><strong>DivideByZeroException</strong>: Thrown when trying to divide by zero.</li>
-            <li><strong>NullReferenceException</strong>: Thrown when trying to access a null object reference.</li>
-            <li><strong>FileNotFoundException</strong>: Thrown when trying to access a file that does not exist.</li>
-            <li><strong>IndexOutOfRangeException</strong>: Thrown when an invalid index is used to access an array or collection.</li>
-        </ul>
-        
-        <h2>Interactive Demo: Handle Different Exceptions</h2>
-        <p>Click the buttons below to simulate different exceptions:</p>
+  <h2>🔍 Common C# Exceptions</h2>
+  <ul>
+    <li><strong>DivideByZeroException</strong>: Dividing a number by zero.</li>
+    <li><strong>NullReferenceException</strong>: Accessing a null object.</li>
+    <li><strong>FileNotFoundException</strong>: Trying to open a missing file.</li>
+    <li><strong>IndexOutOfRangeException</strong>: Using an invalid array index.</li>
+  </ul>
 
-        <button onclick="simulateNullReference()">Simulate NullReferenceException</button><br>
-        <button onclick="simulateFileNotFound()">Simulate FileNotFoundException</button><br>
+  <h2>🧪 Simulate Different Exceptions</h2>
+  <button onclick="simulateNullReference()">Simulate NullReferenceException</button>
+  <button onclick="simulateFileNotFound()">Simulate FileNotFoundException</button>
 
-        <p id="demoMessage"></p>
+  <div class="output" id="demoOutput">Simulation output will appear here...</div>
 
-        <script>
-            function simulateNullReference() {
-                try {
-                    let obj = null;
-                    obj.someMethod(); // This will throw a NullReferenceException
-                } catch (error) {
-                    document.getElementById('demoMessage').textContent = `Caught an exception: ${error.name} - ${error.message}`;
-                    document.getElementById('demoMessage').style.color = 'red';
-                }
-            }
+  <script>
+    function simulateNullReference() {
+      document.getElementById("demoOutput").innerText = "Caught an exception: NullReferenceException - Object reference not set to an instance of an object.";
+    }
 
-            function simulateFileNotFound() {
-                try {
-                    throw new Error("File not found."); // Simulate FileNotFoundException
-                } catch (error) {
-                    document.getElementById('demoMessage').textContent = `Caught an exception: ${error.name} - ${error.message}`;
-                    document.getElementById('demoMessage').style.color = 'red';
-                }
-            }
-        </script>
+    function simulateFileNotFound() {
+      document.getElementById("demoOutput").innerText = "Caught an exception: FileNotFoundException - Could not find the specified file.";
+    }
+  </script>
+
+  <h2>📝 Quiz: Test Your C# Exception Handling Knowledge</h2>
+  <div class="quiz-section">
+    <div class="question">
+      <p><strong>1. What is the purpose of the <code>try-catch</code> block in C#?</strong></p>
+      <label><input type="radio" name="q1" value="correct"> To handle exceptions during program execution.</label><br>
+      <label><input type="radio" name="q1" value="incorrect"> To make code run faster.</label><br>
     </div>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge on C# Exceptions</h2>
-
-        <div class="question">
-            <p><strong>1. What is the purpose of the `try-catch` block in C#?</strong></p>
-            <label><input type="radio" name="q1" value="correct"> To handle exceptions that occur during the execution of a program.</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> To speed up the execution of code.</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> To remove unnecessary code.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>2. What does the `finally` block do in C# exception handling?</strong></p>
-            <label><input type="radio" name="q2" value="correct"> It always executes after the `try-catch` block, regardless of whether an exception was thrown.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> It is executed only if no exception is thrown.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> It stops the execution of the program.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>3. What happens when you try to divide by zero in C#?</strong></p>
-            <label><input type="radio" name="q3" value="correct"> It throws a `DivideByZeroException`.</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> It returns `NaN` (Not a Number).</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> The program will crash immediately.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>4. Which exception is thrown when you try to access a null object reference in C#?</strong></p>
-            <label><input type="radio" name="q4" value="correct"> `NullReferenceException`</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> `FileNotFoundException`</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> `IndexOutOfRangeException`</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>5. Which of the following is a common C# exception?</strong></p>
-            <label><input type="radio" name="q5" value="correct"> `DivideByZeroException`</label><br>
-            <label><input type="radio" name="q5" value="incorrect"> `TimeOutException`</label><br>
-            <label><input type="radio" name="q5" value="incorrect"> `OutOfMemoryException`</label><br>
-        </div>
-
-        <button onclick="checkQuiz()">Submit Quiz</button>
-
-        <div class="result" id="quizResult"></div>
+    <div class="question">
+      <p><strong>2. What does the <code>finally</code> block do?</strong></p>
+      <label><input type="radio" name="q2" value="correct"> It always executes after try-catch, no matter what.</label><br>
+      <label><input type="radio" name="q2" value="incorrect"> It runs only when no error happens.</label><br>
     </div>
 
-    <script>
-        // Quiz handling function
-        function checkQuiz() {
-            let score = 0;
-            const totalQuestions = 5;
+    <div class="question">
+      <p><strong>3. What happens when you divide by zero in C#?</strong></p>
+      <label><input type="radio" name="q3" value="correct"> It throws a DivideByZeroException.</label><br>
+      <label><input type="radio" name="q3" value="incorrect"> It returns NaN.</label><br>
+    </div>
 
-            for (let i = 1; i <= totalQuestions; i++) {
-                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                if (question.length > 0 && question[0].value === 'correct') {
-                    score++;
-                }
-            }
+    <div class="question">
+      <p><strong>4. Which exception is thrown when accessing a null object?</strong></p>
+      <label><input type="radio" name="q4" value="correct"> NullReferenceException</label><br>
+      <label><input type="radio" name="q4" value="incorrect"> FileNotFoundException</label><br>
+    </div>
 
-            // Display result
-            const result = document.getElementById('quizResult');
-            if (score === totalQuestions) {
-                result.textContent = 'Excellent! You got all questions right.';
-                result.style.color = 'green';
-            } else if (score >= totalQuestions / 2) {
-                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'orange';
-            } else {
-                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'red';
-            }
-        }
-    </script>
+    <div class="question">
+      <p><strong>5. Which is a common C# exception?</strong></p>
+      <label><input type="radio" name="q5" value="correct"> DivideByZeroException</label><br>
+      <label><input type="radio" name="q5" value="incorrect"> TimeOutException</label><br>
+    </div>
+
+    <button onclick="checkQuiz()">Submit Quiz</button>
+    <div class="result" id="quizResult"></div>
+  </div>
+
+  <script>
+    function checkQuiz() {
+      let score = 0;
+      const total = 5;
+
+      for (let i = 1; i <= total; i++) {
+        const q = document.querySelector(`input[name='q${i}']:checked`);
+        if (q && q.value === 'correct') score++;
+      }
+
+      const result = document.getElementById("quizResult");
+      if (score === total) {
+        result.textContent = "🎉 Perfect! You got all questions right.";
+        result.style.color = "green";
+      } else if (score >= total / 2) {
+        result.textContent = `👍 Good! You scored ${score}/${total}.`;
+        result.style.color = "orange";
+      } else {
+        result.textContent = `😕 You scored ${score}/${total}. Review the lesson and try again!`;
+        result.style.color = "red";
+      }
+    }
+  </script>
+
 </body>
 </html>
