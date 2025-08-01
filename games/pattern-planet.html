@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Planet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script> <!-- Tone.js for sounds -->
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #3a1a4e, #1a1a2e); /* More engaging background */
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px; /* Add some padding around the main content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        #main-content {
+            display: flex;
+            flex-direction: row; /* Default to row for larger screens */
+            gap: 30px; /* Space between game and instructions */
+            align-items: flex-start; /* Align items at the top */
+            max-width: 1200px; /* Max width for the whole content area */
+            width: 100%;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: center; /* Center content when wrapped */
+        }
+        #game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; /* Space between game container and difficulty buttons */
+        }
+        #game-container {
+            position: relative;
+            width: 50vmin; /* Responsive width */
+            height: 50vmin; /* Responsive height to maintain aspect ratio */
+            min-width: 300px; /* Minimum width for game container */
+            min-height: 300px; /* Minimum height for game container */
+            max-width: 600px; /* Max width for larger screens */
+            max-height: 600px; /* Max height for larger screens */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #2a2a4a;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+            flex-shrink: 0; /* Prevent shrinking */
+            flex-grow: 1; /* Allow growing */
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            touch-action: none;
+        }
+        #game-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ffff;
+            z-index: 10;
+        }
+        #message-box {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 40px);
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff00ff;
+            background-color: rgba(0, 0, 0, 0.6); /* Slightly darker for better contrast */
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+        #start-button:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 255, 255, 0.7);
+        }
+        #start-button:active {
+            transform: translate(-50%, -50%) scale(0.98);
+            box-shadow: 0 2px 5px rgba(0, 255, 255, 0.3);
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        #instructions-panel {
+            background-color: #2a2a4a;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.7); /* Magenta glow for instructions */
+            color: #e0e0e0;
+            max-width: 400px; /* Max width for instructions */
+            flex-grow: 1; /* Allow growing */
+            flex-shrink: 0; /* Prevent shrinking */
+            min-width: 280px; /* Minimum width for instruction panel */
+        }
+        #instructions-panel h2 {
+            color: #ff00ff; /* Magenta heading */
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        #instructions-panel p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        #instructions-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+        #instructions-panel ul li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 1.1em;
+        }
+        #instructions-panel ul li::before {
+            content: '✨'; /* Sparkle emoji for list items */
+            position: absolute;
+            left: 0;
+            color: #00ffff;
+        }
+
+        #difficulty-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            z-index: 10; /* Ensure buttons are above canvas */
+        }
+        #difficulty-buttons button {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #0f0f4f, #4f0f4f); /* Darker gradient for difficulty buttons */
+            color: #e0e0e0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        #difficulty-buttons button:hover {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            color: #1a1a2e;
+            box-shadow: 0 5px 12px rgba(0, 255, 255, 0.5);
+        }
+        #difficulty-buttons button.selected {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            color: #1a1a2e;
+            box-shadow: 0 5px 12px rgba(0, 255, 255, 0.7);
+            border: 2px solid #e0e0e0;
+        }
+
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            width: fit-content; /* Adjust width to content */
+        }
+
+        .control-panel label {
+            font-size: 1em;
+            font-weight: bold;
+            color: #00ffff;
+        }
+
+        .control-panel input[type="range"] {
+            width: 150px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+
+        .control-panel input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        .control-panel input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            #main-content {
+                flex-direction: column; /* Stack vertically on smaller screens */
+                align-items: center; /* Center items when stacked */
+            }
+            #game-container {
+                width: 80vmin; /* Larger game area when stacked */
+                height: 80vmin;
+            }
+            #instructions-panel {
+                max-width: 80vmin; /* Adjust max-width for instructions on smaller screens */
+                width: 90%; /* Take more width on smaller screens */
+            }
+            #difficulty-buttons {
+                margin-bottom: 20px; /* Add space below buttons on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-content">
+        <div id="game-area">
+            <div id="game-container">
+                <div id="game-info">
+                    <span id="level">Level: 1</span>
+                    <span id="score">Score: 0</span>
+                </div>
+                <canvas id="gameCanvas"></canvas>
+                <div id="message-box"></div>
+                <button id="start-button">Start Game</button>
+            </div>
+            <div id="difficulty-buttons">
+                <button id="btn-tutorial" data-mode="tutorial">Tutorial</button>
+                <button id="btn-easy" data-mode="easy" class="selected">Easy</button>
+                <button id="btn-intermediate" data-mode="intermediate">Intermediate</button>
+                <button id="btn-hard" data-mode="hard">Hard</button>
+                <button id="btn-song" data-mode="song">Song</button>
+            </div>
+            <div id="brightness-control" class="control-panel">
+                <label for="brightness-slider">Brightness</label>
+                <input type="range" id="brightness-slider" min="0" max="100" value="50">
+            </div>
+            <div id="speed-control" class="control-panel">
+                <label for="speed-slider">Speed</label>
+                <input type="range" id="speed-slider" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <div id="instructions-panel">
+            <h2>How to Play Pattern Planet!</h2>
+            <p>Welcome to Pattern Planet! Your mission is to remember and repeat the sparkling light patterns on the magical planet.</p>
+            <ul>
+                <li>✨ **Watch Carefully:** The planet will show you a sequence of flashing lights. Remember the order!</li>
+                <li>✨ **Your Turn:** After the planet finishes, it's your turn to click the spots in the *exact same order*.</li>
+                <li>✨ **Rotate the Planet:** Click and drag (or touch and drag) on the planet to spin it around and see all the spots!</li>
+                <li>✨ **Zoom In/Out:** Use your mouse scroll wheel to zoom the camera!</li>
+                <li>✨ **Level Up!** Get the pattern right, and you'll go to the next level with a new, longer pattern!</li>
+                <li>✨ **Have Fun!** Let's see how many patterns you can remember!</li>
+            </ul>
+            <h3>Game Modes:</h3>
+            <ul>
+                <li>✨ **Tutorial:** The planet plays a simple pattern, then it's your turn to repeat it.</li>
+                <li>✨ **Easy:** Start with short patterns, great for beginners!</li>
+                <li>✨ **Intermediate:** Longer patterns for a good challenge!</li>
+                <li>✨ **Hard:** Test your memory with very long and fast patterns!</li>
+                <li>✨ **Song:** A boss level! Play 10 musical levels, repeating segments of a song!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        // three.js is loaded as a global object via the script tag, so we access its components directly.
+        // No import statement is needed here when using the CDN link in this manner.
+
+        // Tone.js is also loaded globally.
+        let synthFlash, synthCorrect, synthIncorrect, synthSong;
+        let songSequence = null; // To hold the Tone.Sequence for song mode
+
+        // --- Global Variables ---
+        let scene, camera, renderer;
+        let planet, patternSpots = [];
+        let raycaster, mouse;
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+        let rotationSpeed = 0.005;
+        let zoomSpeed = 0.05; // Speed for zooming
+
+        let gamePattern = []; // Stores the pattern to be displayed/repeated
+        let playerPattern = []; // Stores the player's input
+        let level = 1;
+        let score = 0;
+        let gameActive = false;
+        let playerTurn = false;
+        let flashDuration = 250; // Duration for spot flash (fixed for visual clarity)
+        let flashDelay = 400;    // Delay between flashes in sequence (will be dynamic for non-song modes)
+
+        const numPatternSpots = 6; // Number of spots on the planet
+        const spotRadius = 0.08;   // Size of each pattern spot
+        const planetRadius = 1;    // Size of the planet
+
+        let currentGameMode = 'easy'; // Default game mode
+        let currentSongLevel = 0; // Tracks the current song (0-9)
+        let currentSongSegmentIndex = 0; // Tracks the current segment within the song
+
+        // Define pattern lengths and speeds for different modes
+        const modeSettings = {
+            tutorial: { initialLength: 4, flashDuration: 500, flashDelay: 800, aiOnly: false, fixedPattern: [0, 1, 0, 2] }, // Fixed pattern for tutorial
+            easy: { initialLength: 2, flashDuration: 300, flashDelay: 500, aiOnly: false },
+            intermediate: { initialLength: 3, flashDuration: 250, flashDelay: 400, aiOnly: false },
+            hard: { initialLength: 4, flashDuration: 200, flashDelay: 300, aiOnly: false },
+            song: { initialLength: 0, flashDuration: 200, flashDelay: 0, aiOnly: false, isSong: true } // Song mode is now interactive
+        };
+
+        // Mapping spot IDs to musical notes for song mode
+        const spotNotes = ["C4", "D4", "E4", "F4", "G4", "A4"];
+
+        // Dynamically generated song patterns
+        let songPatterns = [];
+
+        // Function to generate a random song
+        function generateRandomSong(songName, numSegments, minPatternLength, maxPatternLength) {
+            const song = {
+                name: songName,
+                segments: []
+            };
+            for (let i = 0; i < numSegments; i++) {
+                const segment = {
+                    notes: [],
+                    spotSequence: []
+                };
+                // Random pattern length for this segment (e.g., 4 to 6 notes)
+                const patternLength = Math.floor(Math.random() * (maxPatternLength - minPatternLength + 1)) + minPatternLength;
+
+                for (let j = 0; j < patternLength; j++) {
+                    const randomSpotId = Math.floor(Math.random() * numPatternSpots);
+                    segment.spotSequence.push(randomSpotId);
+                    segment.notes.push(spotNotes[randomSpotId]); // Map spot ID to a specific note
+                }
+                song.segments.push(segment);
+            }
+            return song;
+        }
+
+        // Function to generate all 10 songs
+        function generateAllSongs() {
+            const totalSongs = 10;
+            // Each song is approx 2 minutes, with segments of approx 10 seconds playback.
+            // So, 12 segments per song for 120 seconds (2 minutes).
+            const numSegmentsPerSong = 12; 
+            
+            const minPatternLength = 4; // Minimum notes in a segment
+            const maxPatternLength = 6; // Maximum notes in a segment
+
+            for (let i = 0; i < totalSongs; i++) {
+                songPatterns.push(generateRandomSong(`Song ${i + 1} Melody`, numSegmentsPerSong, minPatternLength, maxPatternLength));
+            }
+        }
+
+
+        const levelElement = document.getElementById('level');
+        const scoreElement = document.getElementById('score');
+        const messageBox = document.getElementById('message-box');
+        const startButton = document.getElementById('start-button');
+        const gameContainer = document.getElementById('game-container');
+        let gameCanvas; // Will be assigned after DOM is loaded
+
+        const difficultyButtons = document.querySelectorAll('#difficulty-buttons button');
+        let brightnessSlider; // Declare brightnessSlider globally
+        let speedSlider; // Declare speedSlider globally
+
+        let pointLight; // Declare pointLight globally
+        let ambientLight; // Declare ambientLight globally
+
+        // --- Initialization ---
+        function init() {
+            gameCanvas = document.getElementById('gameCanvas');
+            brightnessSlider = document.getElementById('brightness-slider'); // Get reference to brightness slider
+            speedSlider = document.getElementById('speed-slider'); // Get reference to speed slider
+
+            // Initialize Tone.js Synths
+            synthFlash = new Tone.Synth().toDestination();
+            synthCorrect = new Tone.Synth({
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.02, decay: 0.2, sustain: 0.1, release: 0.5 }
+            }).toDestination();
+            synthIncorrect = new Tone.Synth({
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.01, decay: 0.3, sustain: 0.05, release: 0.8 }
+            }).toDestination();
+            synthSong = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 }
+            }).toDestination();
+
+
+            // Scene
+            scene = new THREE.Scene();
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, gameContainer.clientWidth / gameContainer.clientHeight, 0.1, 1000);
+            camera.position.z = 2.5; // Position camera to view the planet
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
+            renderer.setSize(gameContainer.clientWidth, gameContainer.clientHeight);
+            renderer.setClearColor(0x000000, 0); // Transparent background for canvas
+
+            // Planet
+            const planetGeometry = new THREE.SphereGeometry(planetRadius, 64, 64);
+            // Change to MeshStandardMaterial to react to lights
+            const planetMaterial = new THREE.MeshStandardMaterial({ color: 0x050515, roughness: 0.7, metalness: 0.2 });
+            planet = new THREE.Mesh(planetGeometry, planetMaterial);
+            scene.add(planet);
+
+            // Lighting
+            // Initializing lights globally so they can be accessed by the slider
+            pointLight = new THREE.PointLight(0xffffff, 4.0); // Initial intensity
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+            ambientLight = new THREE.AmbientLight(0xA0A0A0); // Initial ambient color
+            scene.add(ambientLight);
+
+            // Pattern Spots
+            // Place pattern spots evenly around the planet
+            for (let i = 0; i < numPatternSpots; i++) {
+                const angle = (i / numPatternSpots) * Math.PI * 2; // Angle for placement
+                const x = planetRadius * Math.cos(angle);
+                const y = planetRadius * Math.sin(angle);
+                const z = 0; // For simplicity, place them on the equator
+
+                const spotGeometry = new THREE.SphereGeometry(spotRadius, 32, 32);
+                // Change to MeshStandardMaterial to react to lights
+                const spotMaterial = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.7, metalness: 0.2 });
+                const spot = new THREE.Mesh(spotGeometry, spotMaterial);
+                spot.position.set(x, y, z);
+                spot.userData.id = i; // Assign a unique ID to each spot
+                planet.add(spot); // Add spots as children of the planet
+                patternSpots.push(spot);
+            }
+
+            // Raycaster for interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Event Listeners
+            gameCanvas.addEventListener('mousedown', onMouseDown);
+            gameCanvas.addEventListener('mouseup', onMouseUp);
+            gameCanvas.addEventListener('mousemove', onMouseMove);
+            gameCanvas.addEventListener('touchstart', onTouchStart, { passive: false });
+            gameCanvas.addEventListener('touchend', onTouchEnd, { passive: false });
+            gameCanvas.addEventListener('touchmove', onTouchMove, { passive: false });
+            gameCanvas.addEventListener('wheel', onMouseWheel); // New: Mouse wheel for zoom
+            window.addEventListener('resize', onWindowResize);
+            startButton.addEventListener('click', startGame);
+
+            difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => setGameMode(button.dataset.mode));
+            });
+
+            // Add event listener for brightness slider
+            brightnessSlider.addEventListener('input', onBrightnessChange);
+            // Add event listener for speed slider
+            speedSlider.addEventListener('input', onSpeedChange);
+
+            // Generate all songs at initialization
+            generateAllSongs();
+
+            // Set initial mode to easy
+            setGameMode('easy');
+            onWindowResize(); // Initial resize call
+        }
+
+        // --- Game Logic ---
+
+        function stopGame() {
+            gameActive = false;
+            playerTurn = false;
+            startButton.classList.remove('hidden');
+            startButton.textContent = "Play Again";
+            // Stop any ongoing song sequence
+            if (songSequence) {
+                songSequence.stop();
+                songSequence.dispose();
+                songSequence = null;
+            }
+            Tone.Transport.stop(); // Ensure Tone.js transport is stopped
+            // Reset all spots to default color
+            patternSpots.forEach(spot => flashSpot(spot, 0x151515));
+        }
+
+        function setGameMode(mode) {
+            stopGame(); // Stop any current game before changing mode
+            currentGameMode = mode;
+            // Update button styles
+            difficultyButtons.forEach(button => {
+                if (button.dataset.mode === mode) {
+                    button.classList.add('selected');
+                } else {
+                    button.classList.remove('selected');
+                }
+            });
+
+            // Reset game state for new mode
+            level = 1;
+            score = 0;
+            currentSongLevel = 0;
+            currentSongSegmentIndex = 0;
+            updateGameInfo();
+            showMessage(`Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`, 1000);
+        }
+
+        function startGame() {
+            // Ensure audio context is resumed for iOS/Safari
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+
+            startButton.classList.add('hidden');
+            gameActive = true;
+            playerPattern = []; // Clear player pattern for new game
+
+            // Apply mode settings
+            flashDuration = modeSettings[currentGameMode].flashDuration;
+            // flashDelay for non-song modes will be calculated based on BPM in onSpeedChange
+            if (currentGameMode !== 'song') {
+                onSpeedChange({ target: speedSlider }); // Re-calculate flashDelay based on current speed
+            }
+
+
+            if (currentGameMode === 'song') {
+                playSongSegment(); // Start the first segment of the first song
+            } else {
+                showMessage("Watch the pattern!", 1500);
+                setTimeout(generateAndShowPattern, 2000); // Start after a short delay
+            }
+        }
+
+        function generateAndShowPattern() {
+            playerTurn = false;
+            playerPattern = []; // Reset player pattern for new round
+
+            if (currentGameMode === 'tutorial') {
+                gamePattern = modeSettings.tutorial.fixedPattern;
+            } else if (currentGameMode !== 'song') {
+                gamePattern = []; // Reset game pattern for new level
+                let patternLength = modeSettings[currentGameMode].initialLength + (level - 1);
+                // Cap pattern length for extreme levels if needed, or let it grow
+                if (currentGameMode === 'hard' && patternLength > 10) patternLength = 10;
+                if (currentGameMode === 'intermediate' && patternLength > 7) patternLength = 7;
+                if (currentGameMode === 'easy' && patternLength > 5) patternLength = 5;
+
+                for (let i = 0; i < patternLength; i++) {
+                    gamePattern.push(Math.floor(Math.random() * numPatternSpots)); // Add random spot ID
+                }
+            }
+            
+            showMessage("Watch the pattern!", 1500);
+            setTimeout(() => playPatternSequence(0), 1800);
+        }
+
+        function playPatternSequence(index) {
+            if (index < gamePattern.length) {
+                const spotIdToFlash = gamePattern[index];
+                const spot = patternSpots[spotIdToFlash];
+                flashSpot(spot, 0x00FFFF); // Flash with vibrant cyan color
+                synthFlash.triggerAttackRelease("C4", "8n"); // Play a sound for flash
+
+                setTimeout(() => {
+                    flashSpot(spot, 0x151515); // Turn back to dark grey
+                    setTimeout(() => playPatternSequence(index + 1), flashDelay);
+                }, flashDuration);
+            } else {
+                // Pattern finished playing
+                playerTurn = true;
+                showMessage("Your turn! Click the pattern!", 1500);
+            }
+        }
+
+        // New function to prepare for the next song segment/song
+        function prepareNextSongSegment() {
+            playerTurn = false; // Disable player input during transition
+            // Stop and dispose of the previous song sequence
+            if (songSequence) {
+                songSequence.stop();
+                songSequence.dispose();
+                songSequence = null;
+            }
+            Tone.Transport.stop(); // Ensure Tone.js transport is stopped
+
+            // Reset all spots to default color
+            patternSpots.forEach(spot => flashSpot(spot, 0x151515));
+
+            // Now, proceed to play the next segment after a delay
+            setTimeout(playSongSegment, 2000);
+        }
+
+
+        function playSongSegment() {
+            if (currentSongLevel >= songPatterns.length) {
+                showMessage("You completed all songs! You are a Pattern Planet Master!", 5000);
+                stopGame();
+                startButton.textContent = "Play Songs Again";
+                return;
+            }
+
+            const currentSong = songPatterns[currentSongLevel];
+            if (currentSongSegmentIndex >= currentSong.segments.length) {
+                // Move to the next song
+                currentSongLevel++;
+                currentSongSegmentIndex = 0;
+                if (currentSongLevel < songPatterns.length) {
+                    showMessage(`Song Level ${currentSongLevel + 1}: ${songPatterns[currentSongLevel].name}!`, 2000);
+                    // Use prepareNextSongSegment for the transition to the next song
+                    setTimeout(prepareNextSongSegment, 2500);
+                } else {
+                    showMessage("You completed all songs! You are a Pattern Planet Master!", 5000);
+                    stopGame();
+                    startButton.textContent = "Play Songs Again";
+                }
+                return;
+            }
+
+            const segment = currentSong.segments[currentSongSegmentIndex];
+            gamePattern = segment.spotSequence; // Set gamePattern to the current segment's pattern
+            playerPattern = []; // Reset player pattern for this segment
+
+            showMessage(`Song Level ${currentSongLevel + 1}, Part ${currentSongSegmentIndex + 1}`, 1500);
+            
+            // Play the segment using Tone.Sequence
+            if (songSequence) {
+                songSequence.stop();
+                songSequence.dispose();
+            }
+
+            // Use the notes and spot sequence from the generated segment
+            songSequence = new Tone.Sequence((time, noteIndex) => {
+                const spotId = segment.spotSequence[noteIndex];
+                const note = segment.notes[noteIndex];
+                const spot = patternSpots[spotId];
+
+                flashSpot(spot, 0x00FFFF); // Vibrant cyan flash for song
+                synthSong.triggerAttackRelease(note, "8n", time);
+
+                Tone.Transport.scheduleOnce(() => {
+                    flashSpot(spot, 0x151515);
+                }, time + (flashDuration / 1000));
+            }, Array.from(segment.notes.keys()), "8n"); // Play each note as an 8th note
+
+            songSequence.loop = false;
+            Tone.Transport.start();
+            songSequence.start(0);
+
+            // Calculate segment duration based on the number of notes and the 8n interval
+            const segmentDuration = Tone.Time("8n").toSeconds() * segment.notes.length;
+
+            // Schedule player turn after the segment finishes
+            Tone.Transport.scheduleOnce(() => {
+                playerTurn = true;
+                showMessage("Your turn! Repeat this part!", 1500);
+            }, segmentDuration + 0.5); // Add a small buffer
+        }
+
+
+        function flashSpot(spot, color) {
+            spot.material.color.set(color);
+        }
+
+        function handleSpotClick(spot) {
+            if (!gameActive || !playerTurn) return; // Removed aiOnly check here, as tutorial is now interactive
+
+            const spotId = spot.userData.id;
+            playerPattern.push(spotId);
+            flashSpot(spot, 0xFF00FF); // Flash with magenta on click
+            synthFlash.triggerAttackRelease("G4", "8n"); // Play a sound for player click
+
+            setTimeout(() => {
+                flashSpot(spot, 0x151515); // Turn back to dark grey
+                checkPlayerInput();
+            }, flashDuration);
+        }
+
+        function checkPlayerInput() {
+            const currentInputIndex = playerPattern.length - 1;
+
+            // Check if the last input matches the game pattern (which is the current segment in song mode)
+            if (playerPattern[currentInputIndex] !== gamePattern[currentInputIndex]) {
+                // Mismatch - Game Over
+                synthIncorrect.triggerAttackRelease("C3", "4n"); // Play incorrect sound
+                showMessage("Oops! Game Over! Your Score: " + score, 3000);
+                stopGame();
+                return;
+            }
+
+            // If player has entered the full sequence for the current pattern/segment
+            if (playerPattern.length === gamePattern.length) {
+                score += (currentGameMode === 'song' ? 50 : level * 10); // Award more points for song segments
+                updateGameInfo();
+
+                if (currentGameMode === 'song') {
+                    synthCorrect.triggerAttackRelease("C5", "8n");
+                    synthCorrect.triggerAttackRelease("E5", "8n", "+0.1");
+                    synthCorrect.triggerAttackRelease("G5", "8n", "+0.2");
+                    showMessage("Great! Next part!", 1500);
+                    // Instead of directly incrementing and calling playSongSegment, use the new prepare function
+                    // currentSongSegmentIndex++; // This is now handled within prepareNextSongSegment's logic flow
+                    prepareNextSongSegment();
+                } else {
+                    level++;
+                    synthCorrect.triggerAttackRelease("C5", "8n"); // Play correct sound
+                    synthCorrect.triggerAttackRelease("E5", "8n", "+0.1"); // Play a chord
+                    synthCorrect.triggerAttackRelease("G5", "8n", "+0.2");
+                    showMessage("Fantastic! Next Level!", 1500);
+                    setTimeout(generateAndShowPattern, 2000); // Start next level
+                }
+            }
+            // Otherwise, wait for more player input
+        }
+
+        function updateGameInfo() {
+            levelElement.textContent = `Level: ${currentGameMode === 'song' ? `Song ${currentSongLevel + 1}` : `Level: ${level}`}`;
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        function showMessage(msg, duration) {
+            messageBox.textContent = msg;
+            messageBox.style.opacity = 1;
+            setTimeout(() => {
+                messageBox.style.opacity = 0;
+            }, duration);
+        }
+
+        // --- Event Handlers ---
+
+        function onWindowResize() {
+            // Update canvas and renderer size based on game container
+            // Ensure gameContainer dimensions are set by CSS media queries first
+            const containerWidth = gameContainer.clientWidth;
+            const containerHeight = gameContainer.clientHeight;
+
+            if (containerWidth > 0 && containerHeight > 0) {
+                renderer.setSize(containerWidth, containerHeight);
+                camera.aspect = containerWidth / containerHeight;
+                camera.updateProjectionMatrix();
+            }
+        }
+
+        function onMouseDown(event) {
+            isDragging = true;
+            previousMouseX = event.clientX;
+            previousMouseY = event.clientY;
+
+            // Check for clicks on pattern spots if it's player's turn
+            if (playerTurn) {
+                // Calculate mouse position in normalized device coordinates (-1 to +1)
+                const rect = gameCanvas.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(patternSpots);
+
+                if (intersects.length > 0) {
+                    // Only interact with the first intersected object (closest one)
+                    handleSpotClick(intersects[0].object);
+                }
+            }
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging) return;
+
+            const deltaX = event.clientX - previousMouseX;
+            const deltaY = event.clientY - previousMouseY;
+
+            // Rotate the planet based on mouse movement
+            planet.rotation.y += deltaX * rotationSpeed;
+            planet.rotation.x += deltaY * rotationSpeed;
+
+            previousMouseX = event.clientX;
+            previousMouseY = event.clientY;
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+        }
+
+        function onMouseWheel(event) {
+            event.preventDefault(); // Prevent page scrolling
+
+            // Adjust camera Z position for zoom
+            camera.position.z -= event.deltaY * zoomSpeed * 0.01; // Smaller step for smoother zoom
+
+            // Clamp zoom to reasonable limits
+            const minZoom = 1.5;
+            const maxZoom = 5;
+            camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z));
+            camera.updateProjectionMatrix();
+        }
+
+        function onTouchStart(event) {
+            event.preventDefault(); // Prevent scrolling/zooming
+
+            isDragging = true;
+            const touch = event.touches[0];
+            previousMouseX = touch.clientX;
+            previousMouseY = touch.clientY;
+
+            // Check for taps on pattern spots if it's player's turn
+            if (playerTurn) {
+                const rect = gameCanvas.getBoundingClientRect();
+                mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(patternSpots);
+
+                if (intersects.length > 0) {
+                    handleSpotClick(intersects[0].object);
+                }
+            }
+        }
+
+        function onTouchMove(event) {
+            event.preventDefault(); // Prevent scrolling/zooming
+            if (!isDragging) return;
+
+            const touch = event.touches[0];
+            const deltaX = touch.clientX - previousMouseX;
+            const deltaY = touch.clientY - previousMouseY;
+
+            planet.rotation.y += deltaX * rotationSpeed;
+            planet.rotation.x += deltaY * rotationSpeed;
+
+            previousMouseX = touch.clientX;
+            previousMouseY = touch.clientY;
+        }
+
+        function onTouchEnd() {
+            isDragging = false;
+        }
+
+        // --- Brightness Control ---
+        function onBrightnessChange(event) {
+            const sliderValue = parseFloat(event.target.value); // Get slider value (0-100)
+
+            // Map slider value to PointLight intensity (e.g., 0.5 to 8.0)
+            const pointLightMin = 0.5;
+            const pointLightMax = 8.0;
+            pointLight.intensity = pointLightMin + (sliderValue / 100) * (pointLightMax - pointLightMin);
+
+            // Map slider value to AmbientLight intensity (e.g., 0.1 to 2.0)
+            const ambientLightMinIntensity = 0.1;
+            const ambientLightMaxIntensity = 2.0;
+            ambientLight.intensity = ambientLightMinIntensity + (sliderValue / 100) * (ambientLightMaxIntensity - ambientLightMinIntensity);
+        }
+
+        // --- Speed Control ---
+        function onSpeedChange(event) {
+            const sliderValue = parseFloat(event.target.value); // Get slider value (0-100)
+
+            // Map slider value to BPM (e.g., 60 BPM to 240 BPM)
+            const minBPM = 60;
+            const maxBPM = 240;
+            const newBPM = minBPM + (sliderValue / 100) * (maxBPM - minBPM);
+            Tone.Transport.bpm.value = newBPM;
+
+            // Adjust flashDelay for non-song modes to match the new BPM
+            // An 8th note duration in milliseconds: (60 / BPM) * 1000 / 2
+            // We'll make the delay slightly less than a full 8th note for responsiveness
+            if (currentGameMode !== 'song') {
+                flashDelay = (60 / newBPM) * 1000 * 0.8; // 80% of an 8th note duration
+            }
+        }
+
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        // --- Start the game when the window loads ---
+        window.onload = function () {
+            init();
+            animate(); // Start the animation loop
+            // Set initial brightness and speed based on slider's default values
+            onBrightnessChange({ target: brightnessSlider });
+            onSpeedChange({ target: speedSlider });
+        };
+    </script>
+</body>
+</html>
