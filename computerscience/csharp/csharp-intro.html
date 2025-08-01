@@ -1,35 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intro to C# - Interactive Lesson</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        header { background-color: #333; color: white; padding: 20px; text-align: center; }
-        .lesson-content { padding: 20px; }
-        .lesson-content h2 { color: #333; }
-        .lesson-content p { font-size: 18px; line-height: 1.6; }
-        .quiz-section { margin-top: 40px; text-align: center; }
-        .quiz-section input[type="radio"] { margin-right: 10px; }
-        .quiz-section button { margin-top: 20px; padding: 10px 20px; background-color: #333; color: white; border: none; cursor: pointer; }
-        .quiz-section button:hover { background-color: #555; }
-        .result { font-size: 18px; font-weight: bold; margin-top: 20px; }
-        .question { margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Intro to C# - Interactive Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #2196f3;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1976d2;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+
+    .tip {
+      background-color: #e3f2fd;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2196f3;
+      margin: 1rem 0;
+    }
+
+    .question {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+
+    .question p {
+      margin: 0 0 0.5rem 0;
+    }
+
+    .question input[type="radio"] {
+      margin-right: 8px;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: Introduction to C#</h1>
-    </header>
+  <h1>📚 Introduction to C#</h1>
+  <p>C# (pronounced "C-Sharp") is a modern, object-oriented programming language developed by Microsoft. It's widely used for developing applications on Windows, web, and even game development with Unity.</p>
 
-    <div class="lesson-content">
-        <h2>What is C#?</h2>
-        <p>C# (pronounced "C-Sharp") is a modern, object-oriented programming language developed by Microsoft. It's widely used for developing applications on Windows, web, and even game development with Unity.</p>
-        
-        <h2>Basic Syntax</h2>
-        <pre>
-            <code>
+  <h2>📝 Example Code: Basic Syntax</h2>
+  <textarea readonly>
 using System;
 
 class Program {
@@ -37,41 +94,50 @@ class Program {
         Console.WriteLine("Hello, World!");
     }
 }
-            </code>
-        </pre>
-        <p>This is the basic structure of a C# program. It includes a namespace, a class, and a method.</p>
-    </div>
+  </textarea>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
+  <div class="tip">
+    <strong>🔑 Pro Tip:</strong> C# programs start from the <code>Main()</code> method, which is the entry point of execution.
+  </div>
 
-        <div class="question">
-            <p><strong>1. What keyword is used to print text to the console in C#?</strong></p>
-            <label><input type="radio" name="q1" value="print"> print</label><br>
-            <label><input type="radio" name="q1" value="Console.WriteLine"> Console.WriteLine</label><br>
-            <label><input type="radio" name="q1" value="echo"> echo</label><br>
-        </div>
+  <h2>🧠 Quiz: Test Your Knowledge</h2>
+  <div class="question">
+    <p><strong>1. What keyword is used to print text to the console in C#?</strong></p>
+    <label><input type="radio" name="q1" value="print"> print</label><br>
+    <label><input type="radio" name="q1" value="Console.WriteLine"> Console.WriteLine</label><br>
+    <label><input type="radio" name="q1" value="echo"> echo</label><br>
+  </div>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
-        <div class="result" id="quiz-result"></div>
-    </div>
+  <button onclick="checkQuiz()">▶️ Submit Quiz</button>
 
-    <script>
-        function checkQuiz() {
-            let answer = document.querySelector('input[name="q1"]:checked');
-            let resultText = document.getElementById("quiz-result");
-            if (answer) {
-                if (answer.value === "Console.WriteLine") {
-                    resultText.textContent = "Correct! C# uses Console.WriteLine to print text.";
-                    resultText.style.color = "green";
-                } else {
-                    resultText.textContent = "Wrong answer. Try again!";
-                    resultText.style.color = "red";
-                }
-            } else {
-                alert("Please select an answer!");
-            }
+  <div class="output" id="quiz-result">Quiz result will appear here...</div>
+
+  <script>
+    function checkQuiz() {
+      let answer = document.querySelector('input[name="q1"]:checked');
+      let resultText = document.getElementById("quiz-result");
+      if (answer) {
+        if (answer.value === "Console.WriteLine") {
+          resultText.textContent = "✅ Correct! C# uses Console.WriteLine to print text.";
+        } else {
+          resultText.textContent = "❌ Wrong answer. Try again!";
         }
-    </script>
+      } else {
+        alert("Please select an answer!");
+      }
+    }
+  </script>
+
+  <h2>📂 How This Code Works</h2>
+  <ul>
+    <li><code>using System;</code> imports the System namespace.</li>
+    <li><code>class Program</code> defines a class named Program.</li>
+    <li><code>static void Main()</code> is the program’s entry point.</li>
+    <li><code>Console.WriteLine()</code> prints text to the console.</li>
+  </ul>
+
+  <div class="tip">
+    💡 Always end C# statements with a semicolon <code>;</code> — it's required!
+  </div>
 </body>
 </html>
