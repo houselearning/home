@@ -1,175 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C# Conditional Types - Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>C# Conditional Types - Interactive Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2 {
+      color: #2196f3;
+    }
 
-        .lesson-content {
-            padding: 20px;
-        }
+    textarea {
+      width: 100%;
+      height: 120px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
 
-        .lesson-content h2 {
-            color: #333;
-        }
+    input[type="number"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 80px;
+      margin-left: 0.5rem;
+    }
 
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
 
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
+    .tip {
+      background-color: #e3f2fd;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2196f3;
+      margin: 1rem 0;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    button:hover {
+      background-color: #1976d2;
+    }
 
-        .quiz-section button:hover {
-            background-color: #555;
-        }
+    .question {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
 
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+    .question p {
+      margin: 0 0 0.5rem 0;
+    }
 
-        .question {
-            margin-top: 20px;
-        }
-    </style>
+    .quiz-output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 60px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: C# Conditional Types</h1>
-    </header>
+  <h1>🔀 C# Conditional Types</h1>
+  <p>Conditional types let you assign different values based on a condition. The most common example? The ternary operator (<code>?:</code>)</p>
 
-    <div class="lesson-content">
-        <h2>What are Conditional Types in C#?</h2>
-        <p>
-            In C#, conditional types allow you to assign different types based on certain conditions. These types are commonly used in scenarios where you want to make decisions about which type to use based on a condition.
-        </p>
+  <h2>📂 Ternary Operator Syntax</h2>
+  <textarea readonly>
+condition ? value_if_true : value_if_false;
+  </textarea>
 
-        <h2>Conditional Operator (Ternary Operator)</h2>
-        <p>
-            The ternary operator (`?:`) is the most common example of a conditional type in C#. It works as a shorthand for an `if-else` statement and is used to return one of two values based on a condition. The syntax looks like this:
-        </p>
-        <pre><code>condition ? value_if_true : value_if_false;</code></pre>
-        <p>Example:</p>
-        <pre><code>int age = 20;
-string result = (age >= 18) ? "Adult" : "Minor";</code></pre>
-        <p>In this case, the variable `result` will be set to "Adult" because `age` is 20, which is greater than or equal to 18.</p>
+  <p>Example:</p>
+  <textarea readonly>
+int age = 20;
+string result = (age >= 18) ? "Adult" : "Minor";
+  </textarea>
 
-        <h2>Conditional Types in C#</h2>
-        <p>
-            C# also supports the use of conditional types in generic methods or with type inference. You can use `if-else` conditions to determine the type a variable should be or apply specific methods based on conditions.
-        </p>
+  <div class="tip">
+    💡 Use ternary operators to write cleaner, single-line conditionals.
+  </div>
 
-        <h2>Interactive Example</h2>
-        <p>Try changing the value of the age and see how the result updates based on the condition:</p>
-        <input type="number" id="ageInput" value="20" min="0" max="100">
-        <p>Result: <span id="resultOutput">Adult</span></p>
+  <h2>🛠️ Interactive Example</h2>
+  <p>Enter an age and see if the person is an Adult or Minor:</p>
+  <input type="number" id="ageInput" value="20" min="0" max="120">
+  <button onclick="checkAge()">Check</button>
+  <div class="output" id="ageOutput">Result: Adult</div>
 
-        <script>
-            const ageInput = document.getElementById('ageInput');
-            const resultOutput = document.getElementById('resultOutput');
+  <script>
+    function checkAge() {
+      const age = parseInt(document.getElementById('ageInput').value);
+      const result = (age >= 18) ? "Adult" : "Minor";
+      document.getElementById('ageOutput').textContent = "Result: " + result;
+    }
+  </script>
 
-            ageInput.addEventListener('input', function() {
-                const age = parseInt(ageInput.value);
-                resultOutput.textContent = (age >= 18) ? "Adult" : "Minor";
-            });
-        </script>
-    </div>
+  <h2>🧠 Quiz: Test Your Knowledge</h2>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge on Conditional Types</h2>
+  <div class="question">
+    <p><strong>1. What is the correct syntax for the ternary operator?</strong></p>
+    <label><input type="radio" name="q1" value="incorrect"> condition ? value_if_true value_if_false;</label><br>
+    <label><input type="radio" name="q1" value="correct"> condition ? value_if_true : value_if_false;</label><br>
+    <label><input type="radio" name="q1" value="incorrect"> condition : value_if_true ? value_if_false;</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>1. What is the correct syntax for the ternary operator in C#?</strong></p>
-            <label><input type="radio" name="q1" value="incorrect"> condition ? value_if_true value_if_false;</label><br>
-            <label><input type="radio" name="q1" value="correct"> condition ? value_if_true : value_if_false;</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> condition : value_if_true ? value_if_false;</label><br>
-        </div>
+  <div class="question">
+    <p><strong>2. Which statement about ternary operator is true?</strong></p>
+    <label><input type="radio" name="q2" value="incorrect"> It always needs an else clause.</label><br>
+    <label><input type="radio" name="q2" value="correct"> It's a shorthand for an if-else statement.</label><br>
+    <label><input type="radio" name="q2" value="incorrect"> It cannot handle more than two conditions.</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>2. Which of the following statements about the ternary operator is true?</strong></p>
-            <label><input type="radio" name="q2" value="incorrect"> It always requires an `else` clause.</label><br>
-            <label><input type="radio" name="q2" value="correct"> It can be used as a shorthand for an `if-else` statement.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> It cannot handle more than two conditions.</label><br>
-        </div>
+  <div class="question">
+    <p><strong>3. What will this code output if age = 16?</strong></p>
+    <textarea readonly>string result = (age >= 18) ? "Adult" : "Minor";</textarea>
+    <label><input type="radio" name="q3" value="incorrect"> "Adult"</label><br>
+    <label><input type="radio" name="q3" value="correct"> "Minor"</label><br>
+    <label><input type="radio" name="q3" value="incorrect"> "Error"</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>3. What will the following code output if age = 16?</strong></p>
-            <pre><code>string result = (age >= 18) ? "Adult" : "Minor";</code></pre>
-            <label><input type="radio" name="q3" value="incorrect"> "Adult"</label><br>
-            <label><input type="radio" name="q3" value="correct"> "Minor"</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> "Error"</label><br>
-        </div>
+  <div class="question">
+    <p><strong>4. What is the purpose of conditional types?</strong></p>
+    <label><input type="radio" name="q4" value="incorrect"> To declare variables of any type.</label><br>
+    <label><input type="radio" name="q4" value="correct"> To assign values based on conditions.</label><br>
+    <label><input type="radio" name="q4" value="incorrect"> To create methods that only work with one type.</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>4. What is the purpose of conditional types in C#?</strong></p>
-            <label><input type="radio" name="q4" value="incorrect"> To declare variables of any type.</label><br>
-            <label><input type="radio" name="q4" value="correct"> To assign different values or types based on conditions.</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> To create methods that only work with one type of data.</label><br>
-        </div>
+  <button onclick="checkQuiz()">▶️ Submit Quiz</button>
+  <div class="quiz-output" id="quizResult">Quiz results will appear here...</div>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
+  <script>
+    function checkQuiz() {
+      let score = 0;
+      const totalQuestions = 4;
 
-        <div class="result" id="quizResult"></div>
-    </div>
-
-    <script>
-        // Quiz handling function
-        function checkQuiz() {
-            let score = 0;
-            const totalQuestions = 4;
-
-            for (let i = 1; i <= totalQuestions; i++) {
-                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                if (question.length > 0 && question[0].value === 'correct') {
-                    score++;
-                }
-            }
-
-            // Display result
-            const result = document.getElementById('quizResult');
-            if (score === totalQuestions) {
-                result.textContent = 'Excellent! You got all questions right.';
-                result.style.color = 'green';
-            } else if (score >= totalQuestions / 2) {
-                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'orange';
-            } else {
-                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'red';
-            }
+      for (let i = 1; i <= totalQuestions; i++) {
+        const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+        if (question.length > 0 && question[0].value === 'correct') {
+          score++;
         }
-    </script>
+      }
+
+      const result = document.getElementById('quizResult');
+      if (score === totalQuestions) {
+        result.textContent = '✅ Excellent! You got all questions right.';
+      } else if (score >= totalQuestions / 2) {
+        result.textContent = `⚠️ Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+      } else {
+        result.textContent = `❌ Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+      }
+    }
+  </script>
 </body>
 </html>
