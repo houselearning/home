@@ -1,87 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C# Multithreading - Interactive Tutorial</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>C# Multithreading - Interactive Tutorial</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2 {
+      color: #4caf50;
+    }
 
-        .lesson-content {
-            padding: 20px;
-        }
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
 
-        .lesson-content h2 {
-            color: #333;
-        }
+    code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 0.95rem;
+    }
 
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
+    pre {
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 0 0 6px #0f0a0f;
+    }
 
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
+    .quiz-section {
+      margin-top: 40px;
+      text-align: center;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    label {
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 0.7rem;
+      cursor: pointer;
+    }
 
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    input[type="radio"] {
+      margin-right: 12px;
+      transform: scale(1.2);
+      vertical-align: middle;
+    }
 
-        .quiz-section button:hover {
-            background-color: #555;
-        }
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background-color 0.25s ease;
+      display: inline-block;
+    }
 
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+    button:hover {
+      background-color: #388e3c;
+    }
 
-        .question {
-            margin-top: 20px;
-        }
-    </style>
+    .result {
+      margin-top: 1.5rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: C# Multithreading</h1>
-    </header>
+  <h1>Lesson: C# Multithreading</h1>
 
-    <div class="lesson-content">
-        <h2>What is Multithreading in C#?</h2>
-        <p>
-            Multithreading allows your program to perform multiple operations simultaneously. In C#, this is accomplished using the <code>Thread</code> class or higher-level constructs like <code>Task</code> and <code>async/await</code>.
-        </p>
-        
-        <h2>Basic Threading Example</h2>
-        <p>
-            Below is an example of a basic multithreaded application that runs two tasks in parallel:
-        </p>
-        <pre>
-using System;
+  <div>
+    <h2>What is Multithreading in C#?</h2>
+    <p>
+      Multithreading allows your program to perform multiple operations simultaneously. In C#, this is accomplished using the <code>Thread</code> class or higher-level constructs like <code>Task</code> and <code>async/await</code>.
+    </p>
+
+    <h2>Basic Threading Example</h2>
+    <p>Below is an example of a basic multithreaded application that runs two tasks in parallel:</p>
+    <pre><code>using System;
 using System.Threading;
 
 class Program
@@ -97,7 +110,7 @@ class Program
 
     static void PrintNumbers()
     {
-        for (int i = 1; i <= 5; i++)
+        for (int i = 1; i &lt;= 5; i++)
         {
             Console.WriteLine(i);
             Thread.Sleep(1000); // Pauses for 1 second
@@ -107,27 +120,21 @@ class Program
     static void PrintLetters()
     {
         char letter = 'A';
-        for (int i = 1; i <= 5; i++)
+        for (int i = 1; i &lt;= 5; i++)
         {
             Console.WriteLine(letter);
             letter++;
             Thread.Sleep(1500); // Pauses for 1.5 seconds
         }
     }
-}
-        </pre>
+}</code></pre>
 
-        <p>
-            This example creates two threads. One prints numbers, and the other prints letters. They run in parallel, and the outputs are interleaved.
-        </p>
+    <p>This example creates two threads. One prints numbers, and the other prints letters. They run in parallel, and the outputs are interleaved.</p>
 
-        <h2>Thread Synchronization</h2>
-        <p>
-            When multiple threads access shared data, synchronization is essential to avoid conflicts. You can use the <code>lock</code> keyword to ensure that only one thread can access a particular section of code at a time.
-        </p>
+    <h2>Thread Synchronization</h2>
+    <p>When multiple threads access shared data, synchronization is essential to avoid conflicts. You can use the <code>lock</code> keyword to ensure that only one thread can access a particular section of code at a time.</p>
 
-        <pre>
-class Program
+    <pre><code>class Program
 {
     static int count = 0;
     static readonly object lockObj = new object();
@@ -143,7 +150,7 @@ class Program
 
     static void IncrementCount()
     {
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i &lt; 1000; i++)
         {
             lock (lockObj)
             {
@@ -152,81 +159,78 @@ class Program
         }
         Console.WriteLine("Final count: " + count);
     }
-}
-        </pre>
+}</code></pre>
 
-        <p>
-            In the above code, <code>lock (lockObj)</code> ensures that only one thread can increment the <code>count</code> at a time, preventing race conditions.
-        </p>
+    <p>In the above code, <code>lock (lockObj)</code> ensures that only one thread can increment the <code>count</code> at a time, preventing race conditions.</p>
+  </div>
+
+  <div class="quiz-section">
+    <h2>Quiz: Test Your Knowledge</h2>
+
+    <div>
+      <p><strong>1. What is the primary advantage of multithreading?</strong></p>
+      <label><input type="radio" name="q1" value="correct" /> It allows the program to perform multiple tasks simultaneously.</label>
+      <label><input type="radio" name="q1" value="incorrect" /> It reduces the overall execution time by running on a single thread.</label>
+      <label><input type="radio" name="q1" value="incorrect" /> It simplifies the program's code by avoiding loops.</label>
     </div>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-
-        <div class="question">
-            <p><strong>1. What is the primary advantage of multithreading?</strong></p>
-            <label><input type="radio" name="q1" value="correct"> It allows the program to perform multiple tasks simultaneously.</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> It reduces the overall execution time by running on a single thread.</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> It simplifies the program's code by avoiding loops.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>2. What happens if two threads try to access the same resource at the same time without synchronization?</strong></p>
-            <label><input type="radio" name="q2" value="correct"> It can lead to a race condition and inconsistent results.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> The program will throw an error and stop.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> The threads will automatically synchronize without any issues.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>3. What is the purpose of the <code>Thread.Sleep()</code> method?</strong></p>
-            <label><input type="radio" name="q3" value="correct"> It pauses the execution of the current thread for a specified time.</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> It terminates the current thread immediately.</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> It pauses all threads in the program.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>4. How can you ensure that only one thread can access a critical section of code at a time?</strong></p>
-            <label><input type="radio" name="q4" value="correct"> By using the <code>lock</code> keyword.</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> By using the <code>Thread.Start()</code> method.</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> By calling <code>Thread.Join()</code> on the thread.</label><br>
-        </div>
-
-        <div class="question">
-            <p><strong>5. Which method is used to pause the execution of a thread for a specified amount of time?</strong></p>
-            <label><input type="radio" name="q5" value="correct"> <code>Thread.Sleep()</code></label><br>
-            <label><input type="radio" name="q5" value="incorrect"> <code>Thread.Pause()</code></label><br>
-            <label><input type="radio" name="q5" value="incorrect"> <code>Thread.Wait()</code></label><br>
-        </div>
-
-        <button onclick="checkQuiz()">Submit Quiz</button>
-
-        <div class="result" id="result"></div>
+    <div>
+      <p><strong>2. What happens if two threads try to access the same resource at the same time without synchronization?</strong></p>
+      <label><input type="radio" name="q2" value="correct" /> It can lead to a race condition and inconsistent results.</label>
+      <label><input type="radio" name="q2" value="incorrect" /> The program will throw an error and stop.</label>
+      <label><input type="radio" name="q2" value="incorrect" /> The threads will automatically synchronize without any issues.</label>
     </div>
 
-    <script>
-        function checkQuiz() {
-            let score = 0;
-            const totalQuestions = 5;
+    <div>
+      <p><strong>3. What is the purpose of the <code>Thread.Sleep()</code> method?</strong></p>
+      <label><input type="radio" name="q3" value="correct" /> It pauses the execution of the current thread for a specified time.</label>
+      <label><input type="radio" name="q3" value="incorrect" /> It terminates the current thread immediately.</label>
+      <label><input type="radio" name="q3" value="incorrect" /> It pauses all threads in the program.</label>
+    </div>
 
-            for (let i = 1; i <= totalQuestions; i++) {
-                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                if (question.length > 0 && question[0].value === 'correct') {
-                    score++;
-                }
-            }
+    <div>
+      <p><strong>4. How can you ensure that only one thread can access a critical section of code at a time?</strong></p>
+      <label><input type="radio" name="q4" value="correct" /> By using the <code>lock</code> keyword.</label>
+      <label><input type="radio" name="q4" value="incorrect" /> By using the <code>Thread.Start()</code> method.</label>
+      <label><input type="radio" name="q4" value="incorrect" /> By calling <code>Thread.Join()</code> on the thread.</label>
+    </div>
 
-            const result = document.getElementById('result');
-            if (score === totalQuestions) {
-                result.textContent = 'Excellent! You got all questions right.';
-                result.style.color = 'green';
-            } else if (score >= totalQuestions / 2) {
-                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'orange';
-            } else {
-                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'red';
-            }
+    <div>
+      <p><strong>5. Which method is used to pause the execution of a thread for a specified amount of time?</strong></p>
+      <label><input type="radio" name="q5" value="correct" /> <code>Thread.Sleep()</code></label>
+      <label><input type="radio" name="q5" value="incorrect" /> <code>Thread.Pause()</code></label>
+      <label><input type="radio" name="q5" value="incorrect" /> <code>Thread.Wait()</code></label>
+    </div>
+
+    <button onclick="checkQuiz()">Submit Quiz</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function checkQuiz() {
+      let score = 0;
+      const totalQuestions = 5;
+
+      for (let i = 1; i <= totalQuestions; i++) {
+        const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+        if (question.length > 0 && question[0].value === 'correct') {
+          score++;
         }
-    </script>
+      }
+
+      const result = document.getElementById('result');
+      if (score === totalQuestions) {
+        result.textContent = 'Excellent! You got all questions right.';
+        result.style.color = '#4caf50';
+      } else if (score >= totalQuestions / 2) {
+        result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+        result.style.color = '#ff9800';
+      } else {
+        result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+        result.style.color = '#f44336';
+      }
+    }
+  </script>
 </body>
 </html>
