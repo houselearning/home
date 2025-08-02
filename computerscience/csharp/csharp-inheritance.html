@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>C# Inheritance - Interactive Lesson</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    color: #222;
+  }
+  header {
+    background-color: #0078d7;
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+  .content {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1rem 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+  }
+  h2 {
+    color: #0078d7;
+    margin-top: 1.5rem;
+  }
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  pre {
+    background-color: #282c34;
+    color: #abb2bf;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: Consolas, monospace;
+    font-size: 1rem;
+    margin: 1rem 0 1.5rem 0;
+  }
+  .quiz {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .question {
+    margin-bottom: 1.2rem;
+    text-align: left;
+  }
+  label {
+    display: block;
+    margin: 0.3rem 0;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  input[type="radio"] {
+    margin-right: 0.8rem;
+    transform: scale(1.3);
+    vertical-align: middle;
+  }
+  button {
+    background-color: #0078d7;
+    color: white;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #005ea2;
+  }
+  .result {
+    margin-top: 1rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+</style>
+</head>
+<body>
+
+<header>C# Inheritance Lesson</header>
+
+<div class="content">
+  <h2>What is Inheritance in C#?</h2>
+  <p>
+    Inheritance is one of the core concepts of Object-Oriented Programming (OOP). It allows a class (called the <em>child</em> or <em>derived</em> class) to inherit properties and methods from another class (called the <em>parent</em> or <em>base</em> class).
+  </p>
+  <p>
+    This means the child class gets all the features of the parent class, plus it can have its own unique features. It’s like inheriting traits from your parents but adding your own style.
+  </p>
+
+  <h2>Why Use Inheritance?</h2>
+  <ul>
+    <li>Promotes <strong>code reuse</strong> — don’t repeat yourself.</li>
+    <li>Helps organize code in a natural, hierarchical way.</li>
+    <li>Enables <strong>polymorphism</strong>, where child classes can be treated as their parent type.</li>
+  </ul>
+
+  <h2>Basic Example</h2>
+  <pre><code>class Animal
+{
+    public void Eat()
+    {
+        Console.WriteLine("Eating food");
+    }
+}
+
+class Dog : Animal
+{
+    public void Bark()
+    {
+        Console.WriteLine("Woof!");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Dog dog = new Dog();
+        dog.Eat();  // inherited from Animal
+        dog.Bark(); // own method
+    }
+}
+</code></pre>
+  <p>
+    Here, <code>Dog</code> inherits from <code>Animal</code>. That means <code>Dog</code> has access to <code>Eat()</code> from <code>Animal</code>, and also its own method <code>Bark()</code>.
+  </p>
+
+  <h2>Key Points</h2>
+  <ul>
+    <li>Use the <code>:</code> symbol to specify inheritance.</li>
+    <li>Child classes inherit all <strong>public</strong> and <strong>protected</strong> members of the parent.</li>
+    <li>Private members of the parent class are <em>not</em> inherited.</li>
+  </ul>
+
+  <div class="quiz">
+    <h2>Quiz: Test Your Knowledge</h2>
+    
+    <div class="question">
+      <p><strong>1. What symbol is used to indicate inheritance in C#?</strong></p>
+      <label><input type="radio" name="q1" value="correct"> <code>:</code> colon</label>
+      <label><input type="radio" name="q1" value="incorrect"> <code>-></code> arrow</label>
+      <label><input type="radio" name="q1" value="incorrect"> <code>extends</code></label>
+    </div>
+
+    <div class="question">
+      <p><strong>2. Which class is the parent class in inheritance?</strong></p>
+      <label><input type="radio" name="q2" value="incorrect"> Child class</label>
+      <label><input type="radio" name="q2" value="correct"> Base class</label>
+      <label><input type="radio" name="q2" value="incorrect"> Derived class</label>
+    </div>
+
+    <div class="question">
+      <p><strong>3. Which members are inherited by child classes?</strong></p>
+      <label><input type="radio" name="q3" value="incorrect"> Private members</label>
+      <label><input type="radio" name="q3" value="correct"> Public and protected members</label>
+      <label><input type="radio" name="q3" value="incorrect"> None of the above</label>
+    </div>
+
+    <div class="question">
+      <p><strong>4. If class <code>Cat</code> inherits from <code>Animal</code>, which method call is valid?</strong></p>
+      <label><input type="radio" name="q4" value="incorrect"> <code>Cat.Eat()</code> if <code>Eat()</code> is private</label>
+      <label><input type="radio" name="q4" value="correct"> <code>Cat.Eat()</code> if <code>Eat()</code> is public</label>
+      <label><input type="radio" name="q4" value="incorrect"> <code>Cat.Eat()</code> is never valid</label>
+    </div>
+
+    <div class="question">
+      <p><strong>5. What happens if you create an object of the child class?</strong></p>
+      <label><input type="radio" name="q5" value="incorrect"> It can only use its own methods.</label>
+      <label><input type="radio" name="q5" value="correct"> It can use inherited and its own methods.</label>
+      <label><input type="radio" name="q5" value="incorrect"> It loses access to the parent class.</label>
+    </div>
+
+    <button onclick="checkQuiz()">Submit Quiz</button>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script>
+  function checkQuiz() {
+    let score = 0;
+    const total = 5;
+    for (let i = 1; i <= total; i++) {
+      const checked = document.querySelector(`input[name="q${i}"]:checked`);
+      if (checked && checked.value === "correct") score++;
+    }
+    const result = document.getElementById("result");
+    if (score === total) {
+      result.textContent = `🔥 Perfect! You nailed all ${total} questions!`;
+      result.style.color = "green";
+    } else if (score >= total / 2) {
+      result.textContent = `👍 Not bad! You scored ${score} out of ${total}. Keep grinding!`;
+      result.style.color = "orange";
+    } else {
+      result.textContent = `😬 Keep practicing! You scored ${score} out of ${total}.`;
+      result.style.color = "red";
+    }
+  }
+</script>
+
+</body>
+</html>
