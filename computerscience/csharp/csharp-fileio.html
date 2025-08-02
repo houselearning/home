@@ -1,86 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C# File I/O - Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>📂 C# File I/O Interactive Tutorial</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2 {
+      color: #4caf50;
+    }
 
-        .lesson-content {
-            padding: 20px;
-        }
+    textarea {
+      width: 100%;
+      height: 320px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
 
-        .lesson-content h2 {
-            color: #333;
-        }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
+    button:hover {
+      background-color: #388e3c;
+    }
 
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    .tip {
+      background-color: #e8f5e9;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #4caf50;
+      margin: 1rem 0;
+    }
 
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
 
-        .quiz-section button:hover {
-            background-color: #555;
-        }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
 
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+    .quiz-section {
+      margin-top: 3rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+    }
 
-        .question {
-            margin-top: 20px;
-        }
-    </style>
+    .question {
+      margin-top: 1rem;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: C# File I/O</h1>
-    </header>
+  <h1>📂 C# File I/O Interactive Tutorial</h1>
 
-    <div class="lesson-content">
-        <h2>Introduction to File I/O</h2>
-        <p>
-            In C#, File I/O (Input/Output) refers to reading from and writing to files. The .NET framework provides several classes in the `System.IO` namespace that allow you to perform file operations like reading, writing, and manipulating files.
-        </p>
-
-        <h2>Reading Files in C#</h2>
-        <p>
-            To read from a file, we can use the `StreamReader` class, which provides methods to read text from a file line by line or as a whole.
-        </p>
-        <pre><code>using System;
+  <h2>📖 Reading Files</h2>
+  <textarea readonly>
+using System;
 using System.IO;
 
 class Program
@@ -101,16 +114,15 @@ class Program
             Console.WriteLine("File not found: " + ex.Message);
         }
     }
-}</code></pre>
-        <p>
-            In the code above, we open the file "example.txt" and read its content using `StreamReader`. If the file does not exist, a `FileNotFoundException` is thrown.
-        </p>
+}
+  </textarea>
+  <div class="tip">
+    🔍 <strong>Tip:</strong> Always wrap file I/O operations in <code>try-catch</code> to handle exceptions like <code>FileNotFoundException</code>.
+  </div>
 
-        <h2>Writing Files in C#</h2>
-        <p>
-            To write to a file, we can use the `StreamWriter` class. This allows us to write text to a file, either by overwriting it or appending to it.
-        </p>
-        <pre><code>using System;
+  <h2>📝 Writing to Files</h2>
+  <textarea readonly>
+using System;
 using System.IO;
 
 class Program
@@ -130,16 +142,38 @@ class Program
             Console.WriteLine("Error: " + ex.Message);
         }
     }
-}</code></pre>
-        <p>
-            In this example, we use `StreamWriter` to write "Hello, world!" to the file "example.txt". If the file does not exist, it will be created. If it already exists, it will be overwritten.
-        </p>
+}
+  </textarea>
 
-        <h2>Appending to Files in C#</h2>
-        <p>
-            To append to a file, we can use the `StreamWriter` class with the second parameter set to `true`, which tells the program to append instead of overwrite.
-        </p>
-        <pre><code>using System;
+  <h2>📄 Interactive: Write & Read File</h2>
+  <label>Enter text to save:</label>
+  <textarea id="fileContentInput"></textarea>
+  <button onclick="writeFile()">Write to File</button>
+
+  <h3>📖 File Content:</h3>
+  <button onclick="readFile()">Read File</button>
+  <div class="output" id="fileOutput">File content will appear here...</div>
+
+  <script>
+    function writeFile() {
+      const content = document.getElementById('fileContentInput').value;
+      localStorage.setItem('demoFileContent', content);
+      alert('Content saved!');
+    }
+
+    function readFile() {
+      const content = localStorage.getItem('demoFileContent') || "File not found.";
+      document.getElementById('fileOutput').innerText = content;
+    }
+  </script>
+
+  <div class="tip">
+    💡 <code>StreamWriter</code> overwrites by default. To append, pass <code>true</code> as the second argument.
+  </div>
+
+  <h2>🗑️ Deleting Files</h2>
+  <textarea readonly>
+using System;
 using System.IO;
 
 class Program
@@ -147,158 +181,73 @@ class Program
     static void Main()
     {
         string filePath = "example.txt";
-        try
+        if (File.Exists(filePath))
         {
-            using (StreamWriter writer = new StreamWriter(filePath, true))
-            {
-                writer.WriteLine("Appended text.");
-            }
+            File.Delete(filePath);
+            Console.WriteLine("File deleted.");
         }
-        catch (IOException ex)
+        else
         {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine("File not found.");
         }
     }
-}</code></pre>
-        <p>
-            Here, we use `StreamWriter(filePath, true)` to append the text "Appended text." to the existing file "example.txt".
-        </p>
+}
+  </textarea>
 
-        <h2>Interactive Example: Write and Read a File</h2>
-        <p>Let's try writing and reading a file with the following input:</p>
-
-        <label for="fileContent">Enter text to save in a file:</label><br>
-        <textarea id="fileContent" rows="5" cols="30"></textarea><br>
-        <button onclick="writeToFile()">Write to File</button>
-
-        <p><br><strong>Content of the file:</strong></p>
-        <button onclick="readFile()">Read from File</button>
-        <pre id="fileContentOutput"></pre>
-
-        <script>
-            function writeToFile() {
-                const content = document.getElementById('fileContent').value;
-                if (content) {
-                    localStorage.setItem('fileContent', content);
-                    alert("Content saved to the file!");
-                } else {
-                    alert("Please enter some text to write to the file.");
-                }
-            }
-
-            function readFile() {
-                const content = localStorage.getItem('fileContent');
-                if (content) {
-                    document.getElementById('fileContentOutput').textContent = content;
-                } else {
-                    document.getElementById('fileContentOutput').textContent = "No content found in the file.";
-                }
-            }
-        </script>
-
-        <h2>Deleting Files in C#</h2>
-        <p>
-            To delete a file in C#, we can use the `File.Delete()` method. If the file does not exist, no exception will be thrown, but nothing will happen.
-        </p>
-        <pre><code>using System;
-using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        string filePath = "example.txt";
-        try
-        {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-                Console.WriteLine("File deleted.");
-            }
-            else
-            {
-                Console.WriteLine("File not found.");
-            }
-        }
-        catch (IOException ex)
-        {
-            Console.WriteLine("Error: " + ex.Message);
-        }
-    }
-}</code></pre>
-        <p>
-            In the above code, we check if the file exists and delete it using `File.Delete()`. If the file is not found, we print an appropriate message.
-        </p>
-        
-        <h2>File Operations Quiz</h2>
-        <p>Test your knowledge on C# file I/O!</p>
-
-        <div class="quiz-section">
-            <div class="question">
-                <p><strong>1. Which class is used to read from a file in C#?</strong></p>
-                <label><input type="radio" name="q1" value="incorrect"> FileReader</label><br>
-                <label><input type="radio" name="q1" value="correct"> StreamReader</label><br>
-                <label><input type="radio" name="q1" value="incorrect"> FileStream</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>2. What will happen if you try to read from a file that doesn't exist?</strong></p>
-                <label><input type="radio" name="q2" value="incorrect"> The program will crash immediately.</label><br>
-                <label><input type="radio" name="q2" value="correct"> A FileNotFoundException will be thrown.</label><br>
-                <label><input type="radio" name="q2" value="incorrect"> A message will be shown that the file is empty.</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>3. How do you append content to an existing file?</strong></p>
-                <label><input type="radio" name="q3" value="incorrect"> By using `File.Append()`. </label><br>
-                <label><input type="radio" name="q3" value="correct"> By passing `true` as the second parameter to `StreamWriter`.</label><br>
-                <label><input type="radio" name="q3" value="incorrect"> By using `StreamReader` with `Append` option.</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>4. What method do you use to delete a file in C#?</strong></p>
-                <label><input type="radio" name="q4" value="correct"> File.Delete()</label><br>
-                <label><input type="radio" name="q4" value="incorrect"> File.Remove()</label><br>
-                <label><input type="radio" name="q4" value="incorrect"> File.DeleteFile()</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>5. Which exception is thrown when attempting to open a non-existent file for reading?</strong></p>
-                <label><input type="radio" name="q5" value="correct"> FileNotFoundException</label><br>
-                <label><input type="radio" name="q5" value="incorrect"> FileAccessDeniedException</label><br>
-                <label><input type="radio" name="q5" value="incorrect"> ArgumentNullException</label><br>
-            </div>
-
-            <button onclick="checkQuiz()">Submit Quiz</button>
-
-            <div class="result" id="quizResult"></div>
-        </div>
-
-        <script>
-            function checkQuiz() {
-                let score = 0;
-                const totalQuestions = 5;
-
-                for (let i = 1; i <= totalQuestions; i++) {
-                    const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                    if (question.length > 0 && question[0].value === 'correct') {
-                        score++;
-                    }
-                }
-
-                const result = document.getElementById('quizResult');
-                if (score === totalQuestions) {
-                    result.textContent = 'Excellent! You got all questions right.';
-                    result.style.color = 'green';
-                } else if (score >= totalQuestions / 2) {
-                    result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                    result.style.color = 'orange';
-                } else {
-                    result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                    result.style.color = 'red';
-                }
-            }
-        </script>
+  <h2>🧠 File I/O Quiz</h2>
+  <div class="quiz-section">
+    <div class="question">
+      <p><strong>1. Which class is used to read from a file in C#?</strong></p>
+      <label><input type="radio" name="q1" value="correct"> StreamReader</label><br>
+      <label><input type="radio" name="q1" value="incorrect"> FileReader</label><br>
+      <label><input type="radio" name="q1" value="incorrect"> FileStream</label><br>
     </div>
+
+    <div class="question">
+      <p><strong>2. How do you append content to a file?</strong></p>
+      <label><input type="radio" name="q2" value="correct"> Use <code>StreamWriter(filePath, true)</code></label><br>
+      <label><input type="radio" name="q2" value="incorrect"> Use <code>File.Append()</code></label><br>
+      <label><input type="radio" name="q2" value="incorrect"> Use <code>StreamReader</code> with append flag</label><br>
+    </div>
+
+    <div class="question">
+      <p><strong>3. What exception is thrown when a file is not found?</strong></p>
+      <label><input type="radio" name="q3" value="correct"> FileNotFoundException</label><br>
+      <label><input type="radio" name="q3" value="incorrect"> IOException</label><br>
+      <label><input type="radio" name="q3" value="incorrect"> NullReferenceException</label><br>
+    </div>
+
+    <div class="question">
+      <p><strong>4. Which method deletes a file?</strong></p>
+      <label><input type="radio" name="q4" value="correct"> File.Delete()</label><br>
+      <label><input type="radio" name="q4" value="incorrect"> File.Remove()</label><br>
+      <label><input type="radio" name="q4" value="incorrect"> File.Erase()</label><br>
+    </div>
+
+    <button onclick="checkQuiz()">Submit Quiz</button>
+    <div class="result" id="quizResult"></div>
+  </div>
+
+  <script>
+    function checkQuiz() {
+      let score = 0;
+      const total = 4;
+      for (let i = 1; i <= total; i++) {
+        const answer = document.querySelector(`input[name="q${i}"]:checked`);
+        if (answer && answer.value === 'correct') score++;
+      }
+      const result = document.getElementById('quizResult');
+      if (score === total) {
+        result.innerText = '🎉 Perfect! You got all correct.';
+        result.style.color = 'green';
+      } else if (score >= total / 2) {
+        result.innerText = `👍 You got ${score} out of ${total}.`;
+        result.style.color = 'orange';
+      } else {
+        result.innerText = `Keep practicing! ${score} out of ${total}.`;
+        result.style.color = 'red';
+      }
+    }
+  </script>
 </body>
 </html>

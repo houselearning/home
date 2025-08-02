@@ -1,220 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C# Asynchronous Programming - Interactive Tutorial</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>C# Asynchronous Programming - Interactive Tutorial</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2 {
+      color: #9c27b0;
+    }
 
-        .lesson-content {
-            padding: 20px;
-        }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
 
-        .lesson-content h2 {
-            color: #333;
-        }
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
 
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
+    .tip {
+      background-color: #f3e5f5;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #9c27b0;
+      margin: 1rem 0;
+    }
 
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #9c27b0;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    button:hover {
+      background-color: #7b1fa2;
+    }
 
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
 
-        .quiz-section button:hover {
-            background-color: #555;
-        }
+    .question {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
 
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+    .question p {
+      margin: 0 0 0.5rem 0;
+    }
 
-        .question {
-            margin-top: 20px;
-        }
-    </style>
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: C# Asynchronous Programming</h1>
-    </header>
+  <h1>⚡ C# Asynchronous Programming</h1>
+  <p>Asynchronous programming allows the program to execute tasks without blocking the main thread. In C#, this is done using <code>async</code> and <code>await</code> keywords.</p>
 
-    <div class="lesson-content">
-        <h2>What is Asynchronous Programming?</h2>
-        <p>
-            Asynchronous programming allows the program to execute tasks without blocking the main thread. In C#, this is achieved using the <code>async</code> and <code>await</code> keywords. It helps improve the application's performance by enabling non-blocking operations, particularly for I/O-bound tasks like file handling, network requests, etc.
-        </p>
-        
-        <h2>Basic Example of Asynchronous Programming</h2>
-        <p>
-            Below is an example demonstrating how to create an asynchronous method that simulates a long-running operation:
-        </p>
-        <pre>
+  <h2>📂 Example: Async Method with Delay</h2>
+  <textarea readonly>
 using System;
 using System.Threading.Tasks;
 
-class Program
-{
-    static async Task Main(string[] args)
-    {
+class Program {
+    static async Task Main(string[] args) {
         Console.WriteLine("Starting operation...");
         await LongRunningOperation();
         Console.WriteLine("Operation completed!");
     }
 
-    static async Task LongRunningOperation()
-    {
+    static async Task LongRunningOperation() {
         Console.WriteLine("Task is running...");
-        await Task.Delay(3000); // Simulates a 3-second delay
+        await Task.Delay(3000); // Simulates 3-second delay
         Console.WriteLine("Task finished after 3 seconds.");
     }
 }
-        </pre>
+  </textarea>
 
-        <p>
-            In the above code, <code>LongRunningOperation</code> is an asynchronous method that simulates a delay using <code>Task.Delay</code>. The <code>await</code> keyword ensures that the method runs asynchronously, allowing the main thread to continue executing other tasks.
-        </p>
+  <div class="tip">
+    <strong>🔑 Pro Tip:</strong> The <code>await</code> keyword pauses the method execution until the awaited task completes, without blocking the main thread.
+  </div>
 
-        <h2>Why Use Asynchronous Programming?</h2>
-        <ul>
-            <li><strong>Non-blocking:</strong> It prevents the UI from freezing when performing time-consuming operations like file I/O, network requests, etc.</li>
-            <li><strong>Improved performance:</strong> It allows other tasks to run while waiting for a long-running operation to complete.</li>
-            <li><strong>Better user experience:</strong> In a GUI application, the UI remains responsive while waiting for an operation to complete.</li>
-        </ul>
-
-        <h2>Example: Asynchronous I/O Operations</h2>
-        <p>
-            Here's an example of an asynchronous method for reading a file without blocking the main thread:
-        </p>
-        <pre>
+  <h2>📂 Example: Asynchronous File Reading</h2>
+  <textarea readonly>
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
-class Program
-{
-    static async Task Main(string[] args)
-    {
+class Program {
+    static async Task Main(string[] args) {
         string filePath = "example.txt";
         string content = await ReadFileAsync(filePath);
         Console.WriteLine(content);
     }
 
-    static async Task<string> ReadFileAsync(string path)
-    {
-        using (StreamReader reader = new StreamReader(path))
-        {
+    static async Task<string> ReadFileAsync(string path) {
+        using (StreamReader reader = new StreamReader(path)) {
             string content = await reader.ReadToEndAsync();
             return content;
         }
     }
 }
-        </pre>
+  </textarea>
 
-        <p>
-            In this example, the <code>ReadFileAsync</code> method reads the content of a file asynchronously, preventing the main thread from blocking while waiting for the file to be read.
-        </p>
-    </div>
+  <div class="tip">
+    💡 Async file operations prevent freezing of the main thread while I/O tasks are in progress.
+  </div>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
+  <h2>🚀 Why Use Async Programming?</h2>
+  <ul>
+    <li><strong>Non-blocking:</strong> Keeps UI/apps responsive during long tasks.</li>
+    <li><strong>Improves performance:</strong> Other tasks can run while waiting.</li>
+    <li><strong>Better UX:</strong> Smooth, lag-free experiences in GUI apps.</li>
+  </ul>
 
-        <div class="question">
-            <p><strong>1. What does the <code>async</code> keyword indicate in a method?</strong></p>
-            <label><input type="radio" name="q1" value="correct"> The method will be executed asynchronously and can use <code>await</code>.</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> The method will block the main thread until it completes.</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> The method will not return any value.</label><br>
-        </div>
+  <h2>🧠 Quiz: Test Your Knowledge</h2>
 
-        <div class="question">
-            <p><strong>2. What is the purpose of the <code>await</code> keyword?</strong></p>
-            <label><input type="radio" name="q2" value="correct"> It waits for the asynchronous task to complete before continuing execution.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> It makes the task execute in parallel with other tasks.</label><br>
-            <label><input type="radio" name="q2" value="incorrect"> It pauses the execution of the program until the task finishes.</label><br>
-        </div>
+  <div class="question">
+    <p><strong>1. What does the <code>async</code> keyword indicate in a method?</strong></p>
+    <label><input type="radio" name="q1" value="correct"> The method will be executed asynchronously and can use <code>await</code>.</label><br>
+    <label><input type="radio" name="q1" value="incorrect"> The method will block the main thread until it completes.</label><br>
+    <label><input type="radio" name="q1" value="incorrect"> The method will not return any value.</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>3. How does asynchronous programming improve performance?</strong></p>
-            <label><input type="radio" name="q3" value="correct"> It allows other tasks to run while waiting for a long-running operation to complete.</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> It prevents the program from executing any code until all tasks are completed.</label><br>
-            <label><input type="radio" name="q3" value="incorrect"> It makes the program execute more tasks in a linear fashion.</label><br>
-        </div>
+  <div class="question">
+    <p><strong>2. What is the purpose of the <code>await</code> keyword?</strong></p>
+    <label><input type="radio" name="q2" value="correct"> It waits for the asynchronous task to complete before continuing execution.</label><br>
+    <label><input type="radio" name="q2" value="incorrect"> It makes the task execute in parallel with other tasks.</label><br>
+    <label><input type="radio" name="q2" value="incorrect"> It pauses the execution of the program until the task finishes.</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>4. Which of the following is a benefit of using asynchronous programming in GUI applications?</strong></p>
-            <label><input type="radio" name="q4" value="correct"> The UI remains responsive while performing time-consuming operations.</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> It prevents any errors from occurring in the program.</label><br>
-            <label><input type="radio" name="q4" value="incorrect"> It forces the program to run in a sequential manner.</label><br>
-        </div>
+  <div class="question">
+    <p><strong>3. How does asynchronous programming improve performance?</strong></p>
+    <label><input type="radio" name="q3" value="correct"> It allows other tasks to run while waiting for a long-running operation to complete.</label><br>
+    <label><input type="radio" name="q3" value="incorrect"> It prevents the program from executing any code until all tasks are completed.</label><br>
+    <label><input type="radio" name="q3" value="incorrect"> It makes the program execute more tasks in a linear fashion.</label><br>
+  </div>
 
-        <div class="question">
-            <p><strong>5. In the example of asynchronous file reading, what is returned by the <code>ReadFileAsync</code> method?</strong></p>
-            <label><input type="radio" name="q5" value="correct"> The content of the file as a string.</label><br>
-            <label><input type="radio" name="q5" value="incorrect"> The file path.</label><br>
-            <label><input type="radio" name="q5" value="incorrect"> An error message if the file is not found.</label><br>
-        </div>
+  <div class="question">
+    <p><strong>4. Which is a benefit of async programming in GUI apps?</strong></p>
+    <label><input type="radio" name="q4" value="correct"> The UI remains responsive while performing time-consuming operations.</label><br>
+    <label><input type="radio" name="q4" value="incorrect"> It prevents any errors from occurring in the program.</label><br>
+    <label><input type="radio" name="q4" value="incorrect"> It forces the program to run in a sequential manner.</label><br>
+  </div>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
+  <div class="question">
+    <p><strong>5. In the async file reading example, what does <code>ReadFileAsync</code> return?</strong></p>
+    <label><input type="radio" name="q5" value="correct"> The content of the file as a string.</label><br>
+    <label><input type="radio" name="q5" value="incorrect"> The file path.</label><br>
+    <label><input type="radio" name="q5" value="incorrect"> An error message if the file is not found.</label><br>
+  </div>
 
-        <div class="result" id="result"></div>
-    </div>
+  <button onclick="checkQuiz()">▶️ Submit Quiz</button>
+  <div class="output" id="quizResult">Quiz results will appear here...</div>
 
-    <script>
-        function checkQuiz() {
-            let score = 0;
-            const totalQuestions = 5;
+  <script>
+    function checkQuiz() {
+      let score = 0;
+      const totalQuestions = 5;
 
-            for (let i = 1; i <= totalQuestions; i++) {
-                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                if (question.length > 0 && question[0].value === 'correct') {
-                    score++;
-                }
-            }
-
-            const result = document.getElementById('result');
-            if (score === totalQuestions) {
-                result.textContent = 'Excellent! You got all questions right.';
-                result.style.color = 'green';
-            } else if (score >= totalQuestions / 2) {
-                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'orange';
-            } else {
-                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'red';
-            }
+      for (let i = 1; i <= totalQuestions; i++) {
+        const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
+        if (question.length > 0 && question[0].value === 'correct') {
+          score++;
         }
-    </script>
+      }
+
+      const result = document.getElementById('quizResult');
+      if (score === totalQuestions) {
+        result.textContent = '✅ Excellent! You got all questions right.';
+      } else if (score >= totalQuestions / 2) {
+        result.textContent = `⚠️ Good job! You answered ${score} out of ${totalQuestions} correctly.`;
+      } else {
+        result.textContent = `❌ Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
+      }
+    }
+  </script>
+
+  <div class="tip">
+    ⚡ Async/await is a must-have for modern C# applications that deal with files, APIs, or anything that takes time.
+  </div>
 </body>
 </html>
-

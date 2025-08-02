@@ -1,283 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C# Database Connectivity - Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>C# Database CRUD Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    h1, h2 {
+      color: #2196f3;
+    }
 
-        .lesson-content {
-            padding: 20px;
-        }
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
 
-        .lesson-content h2 {
-            color: #333;
-        }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
+    button:hover {
+      background-color: #0b7dda;
+    }
 
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
 
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
+    .tip {
+      background-color: #e3f2fd;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2196f3;
+      margin: 1rem 0;
+    }
 
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+      background: #fff;
+    }
 
-        .quiz-section button:hover {
-            background-color: #555;
-        }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
 
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
 
-        .question {
-            margin-top: 20px;
-        }
-    </style>
+    .crud-buttons {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: C# Database Connectivity</h1>
-    </header>
+  <h1>📂 C# Database CRUD Lesson</h1>
+  <p>Learn how to perform CRUD (Create, Read, Update, Delete) operations in C# with a SQL Server database using ADO.NET. Below is a simulation to visualize how CRUD works.</p>
 
-    <div class="lesson-content">
-        <h2>Introduction to C# Database Connectivity</h2>
-        <p>
-            In C#, you can connect to a database using ADO.NET, which provides a set of classes to interact with data sources. This lesson will teach you how to connect to a SQL Server database, execute SQL commands, and handle the results in your application.
-        </p>
+  <h2>📝 Example: C# CRUD Code (Simulated)</h2>
+  <textarea readonly>
+// C# Example: Insert User
+string query = "INSERT INTO Users (Name, Age) VALUES (@Name, @Age)";
+SqlCommand cmd = new SqlCommand(query, connection);
+cmd.Parameters.AddWithValue("@Name", "John Doe");
+cmd.Parameters.AddWithValue("@Age", 30);
+cmd.ExecuteNonQuery();
+  </textarea>
 
-        <h2>Setting Up Database Connectivity</h2>
-        <p>
-            To connect to a SQL Server database in C#, you need to import the `System.Data.SqlClient` namespace. You also need the connection string, which contains the details about the database, such as the server name, database name, user credentials, etc.
-        </p>
+  <div class="crud-buttons">
+    <button onclick="simulateInsert()">➕ Insert User</button>
+    <button onclick="simulateSelect()">📄 Select Users</button>
+    <button onclick="simulateUpdate()">✏️ Update User</button>
+    <button onclick="simulateDelete()">🗑️ Delete User</button>
+  </div>
 
-        <h3>Example: Basic Database Connection</h3>
-        <pre><code>using System;
-using System.Data.SqlClient;
+  <div class="output" id="crudOutput">Output will appear here...</div>
 
-class Program
-{
-    static void Main()
-    {
-        string connectionString = "Server=myServer;Database=myDatabase;User Id=myUsername;Password=myPassword;";
-        
-        using (SqlConnection conn = new SqlConnection(connectionString))
-        {
-            try
-            {
-                conn.Open();
-                Console.WriteLine("Connection successful.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-            }
-        }
+  <h2>📊 Current Database Table (Simulated)</h2>
+  <table id="databaseTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Age</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Simulated Data Rows Here -->
+    </tbody>
+  </table>
+
+  <script>
+    let database = [
+      { id: 1, name: 'John Doe', age: 30 },
+      { id: 2, name: 'Jane Smith', age: 25 }
+    ];
+    let nextId = 3;
+
+    function renderTable() {
+      const tbody = document.querySelector('#databaseTable tbody');
+      tbody.innerHTML = '';
+      database.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.id}</td><td>${row.name}</td><td>${row.age}</td>`;
+        tbody.appendChild(tr);
+      });
     }
-}</code></pre>
-        <p>
-            In this code, the `SqlConnection` object is used to open a connection to the database. If the connection is successful, a message will be displayed; otherwise, an error will be shown.
-        </p>
 
-        <h2>Executing SQL Commands</h2>
-        <p>
-            Once the connection is open, you can execute SQL commands like `SELECT`, `INSERT`, `UPDATE`, and `DELETE`. Here's an example of executing a `SELECT` command and reading the results.
-        </p>
-
-        <h3>Example: Executing a SELECT Query</h3>
-        <pre><code>using System;
-using System.Data.SqlClient;
-
-class Program
-{
-    static void Main()
-    {
-        string connectionString = "Server=myServer;Database=myDatabase;User Id=myUsername;Password=myPassword;";
-
-        using (SqlConnection conn = new SqlConnection(connectionString))
-        {
-            string query = "SELECT Name, Age FROM Employees";
-            
-            try
-            {
-                conn.Open();
-                SqlCommand command = new SqlCommand(query, conn);
-                SqlDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    Console.WriteLine("Name: " + reader["Name"] + ", Age: " + reader["Age"]);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-            }
-        }
+    function simulateInsert() {
+      const newUser = { id: nextId++, name: 'New User', age: 20 + Math.floor(Math.random() * 10) };
+      database.push(newUser);
+      document.getElementById('crudOutput').innerText = `INSERT INTO Users (Name, Age) VALUES ('${newUser.name}', ${newUser.age})\n\n[Simulated Output]: User inserted successfully!`;
+      renderTable();
     }
-}</code></pre>
-        <p>
-            In the code above, we execute a `SELECT` statement using `SqlCommand`. The results are retrieved using `SqlDataReader`, and we loop through the records to print the data to the console.
-        </p>
 
-        <h2>Executing INSERT, UPDATE, DELETE Commands</h2>
-        <p>
-            You can also use ADO.NET to execute `INSERT`, `UPDATE`, and `DELETE` statements. Here's how you can execute an `INSERT` statement to add a new record to a table.
-        </p>
-
-        <h3>Example: Executing an INSERT Query</h3>
-        <pre><code>using System;
-using System.Data.SqlClient;
-
-class Program
-{
-    static void Main()
-    {
-        string connectionString = "Server=myServer;Database=myDatabase;User Id=myUsername;Password=myPassword;";
-
-        using (SqlConnection conn = new SqlConnection(connectionString))
-        {
-            string query = "INSERT INTO Employees (Name, Age) VALUES ('John Doe', 30)";
-            
-            try
-            {
-                conn.Open();
-                SqlCommand command = new SqlCommand(query, conn);
-                int rowsAffected = command.ExecuteNonQuery();
-                Console.WriteLine(rowsAffected + " row(s) inserted.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-            }
-        }
+    function simulateSelect() {
+      let output = 'SELECT * FROM Users\n\n[Simulated Output]:\n';
+      database.forEach(row => {
+        output += `User: ${row.name}, Age: ${row.age}\n`;
+      });
+      document.getElementById('crudOutput').innerText = output;
     }
-}</code></pre>
-        <p>
-            In the code above, we execute an `INSERT` statement to add a new employee to the `Employees` table. The `ExecuteNonQuery` method is used because this query does not return any data, but it returns the number of rows affected.
-        </p>
 
-        <h2>Interactive Example: Execute a SELECT Query</h2>
-        <p>Let's simulate executing a `SELECT` query and displaying the results:</p>
+    function simulateUpdate() {
+      if (database.length > 0) {
+        const userToUpdate = database[0];
+        userToUpdate.age += 1;
+        document.getElementById('crudOutput').innerText = `UPDATE Users SET Age = ${userToUpdate.age} WHERE ID = ${userToUpdate.id}\n\n[Simulated Output]: User updated successfully!`;
+        renderTable();
+      } else {
+        document.getElementById('crudOutput').innerText = 'No users to update.';
+      }
+    }
 
-        <label for="selectQuery">Enter a query to execute:</label><br>
-        <input type="text" id="selectQuery" value="SELECT Name, Age FROM Employees"><br>
-        <button onclick="executeQuery()">Execute Query</button>
+    function simulateDelete() {
+      if (database.length > 0) {
+        const userToDelete = database.pop();
+        document.getElementById('crudOutput').innerText = `DELETE FROM Users WHERE ID = ${userToDelete.id}\n\n[Simulated Output]: User deleted successfully!`;
+        renderTable();
+      } else {
+        document.getElementById('crudOutput').innerText = 'No users to delete.';
+      }
+    }
 
-        <p><br><strong>Query Result:</strong></p>
-        <pre id="queryResult"></pre>
+    renderTable();
+  </script>
 
-        <script>
-            function executeQuery() {
-                const query = document.getElementById('selectQuery').value;
-                if (query.toLowerCase().startsWith("select")) {
-                    const result = "Name: John Doe, Age: 30\nName: Jane Smith, Age: 25"; // Simulated query result
-                    document.getElementById('queryResult').textContent = result;
-                } else {
-                    document.getElementById('queryResult').textContent = "Please enter a valid SELECT query.";
-                }
-            }
-        </script>
+  <div class="tip">
+    🧠 <strong>Pro Tip:</strong> Use <code>SqlCommand</code> with parameterized queries to avoid SQL Injection. Always close connections using <code>connection.Close()</code> after operations.
+  </div>
 
-        <h2>Database Connectivity Quiz</h2>
-        <p>Test your knowledge on C# database connectivity!</p>
-
-        <div class="quiz-section">
-            <div class="question">
-                <p><strong>1. Which class is used to connect to a SQL Server database in C#?</strong></p>
-                <label><input type="radio" name="q1" value="incorrect"> SqlCommand</label><br>
-                <label><input type="radio" name="q1" value="correct"> SqlConnection</label><br>
-                <label><input type="radio" name="q1" value="incorrect"> SqlDataReader</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>2. What method do you use to execute a SELECT command in C#?</strong></p>
-                <label><input type="radio" name="q2" value="incorrect"> ExecuteNonQuery</label><br>
-                <label><input type="radio" name="q2" value="correct"> ExecuteReader</label><br>
-                <label><input type="radio" name="q2" value="incorrect"> ExecuteScalar</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>3. Which method do you use for executing an INSERT, UPDATE, or DELETE command?</strong></p>
-                <label><input type="radio" name="q3" value="incorrect"> ExecuteReader</label><br>
-                <label><input type="radio" name="q3" value="correct"> ExecuteNonQuery</label><br>
-                <label><input type="radio" name="q3" value="incorrect"> ExecuteScalar</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>4. How do you handle exceptions when connecting to a database?</strong></p>
-                <label><input type="radio" name="q4" value="incorrect"> By using a `try-catch` block only in the `Main` method.</label><br>
-                <label><input type="radio" name="q4" value="correct"> By using a `try-catch` block around the database connection code.</label><br>
-                <label><input type="radio" name="q4" value="incorrect"> By using `try-catch` in the `ExecuteReader` method.</label><br>
-            </div>
-
-            <div class="question">
-                <p><strong>5. What does the `ExecuteNonQuery` method return?</strong></p>
-                <label><input type="radio" name="q5" value="correct"> The number of rows affected by the query.</label><br>
-                <label><input type="radio" name="q5" value="incorrect"> The result set of the query.</label><br>
-                <label><input type="radio" name="q5" value="incorrect"> The first value of the result set.</label><br>
-            </div>
-
-            <button onclick="checkQuiz()">Submit Quiz</button>
-
-            <div class="result" id="quizResult"></div>
-        </div>
-
-        <script>
-            function checkQuiz() {
-                let score = 0;
-                const totalQuestions = 5;
-
-                for (let i = 1; i <= totalQuestions; i++) {
-                    const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                    if (question.length > 0 && question[0].value === 'correct') {
-                        score++;
-                    }
-                }
-
-                const result = document.getElementById('quizResult');
-                if (score === totalQuestions) {
-                    result.textContent = 'Excellent! You got all questions right.';
-                    result.style.color = 'green';
-                } else if (score >= totalQuestions / 2) {
-                    result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                    result.style.color = 'orange';
-                } else {
-                    result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                    result.style.color = 'red';
-                }
-            }
-        </script>
-    </div>
+  <h2>🧰 Handling Errors in C#</h2>
+  <ul>
+    <li><strong>Connection Errors</strong> — Ensure the server name, database, and credentials are correct.</li>
+    <li><strong>SQL Exceptions</strong> — Handle using <code>try-catch</code> blocks to catch errors like constraint violations.</li>
+    <li><strong>Timeouts</strong> — Adjust <code>SqlCommand.CommandTimeout</code> for long-running queries.</li>
+  </ul>
 </body>
 </html>

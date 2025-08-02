@@ -1,77 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intro to C# - Interactive Lesson</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        header { background-color: #333; color: white; padding: 20px; text-align: center; }
-        .lesson-content { padding: 20px; }
-        .lesson-content h2 { color: #333; }
-        .lesson-content p { font-size: 18px; line-height: 1.6; }
-        .quiz-section { margin-top: 40px; text-align: center; }
-        .quiz-section input[type="radio"] { margin-right: 10px; }
-        .quiz-section button { margin-top: 20px; padding: 10px 20px; background-color: #333; color: white; border: none; cursor: pointer; }
-        .quiz-section button:hover { background-color: #555; }
-        .result { font-size: 18px; font-weight: bold; margin-top: 20px; }
-        .question { margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Intro to C# Syntax - Interactive Lesson</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #4caf50;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin-bottom: 1rem;
+      box-shadow: inset 0 0 6px #0f0a0f;
+    }
+
+    label {
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 0.7rem;
+      cursor: pointer;
+    }
+
+    input[type="radio"] {
+      margin-right: 12px;
+      transform: scale(1.2);
+      vertical-align: middle;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background-color 0.25s ease;
+      display: inline-block;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .result {
+      margin-top: 1.5rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: Introduction to C#</h1>
-    </header>
+  <h1>Lesson: Introduction to C# Syntax</h1>
 
-    <div class="lesson-content">
-        <h2>What is C#?</h2>
-        <p>C# (pronounced "C-Sharp") is a modern, object-oriented programming language developed by Microsoft. It's widely used for developing applications on Windows, web, and even game development with Unity.</p>
-        
-        <h2>Basic Syntax</h2>
-        <pre>
-            <code>
-using System;
+  <div>
+    <h2>What is C#?</h2>
+    <p>
+      C# (pronounced "C-Sharp") is a modern, object-oriented programming language developed by Microsoft. It's widely used for developing applications on Windows, web, and even game development with Unity.
+    </p>
+
+    <h2>Basic Syntax</h2>
+    <pre><code>using System;
 
 class Program {
     static void Main() {
         Console.WriteLine("Hello, World!");
     }
-}
-            </code>
-        </pre>
-        <p>This is the basic structure of a C# program. It includes a namespace, a class, and a method.</p>
+}</code></pre>
+    <p>This is the basic structure of a C# program. It includes a namespace, a class, and a method.</p>
+  </div>
+
+  <div>
+    <h2>Quiz: Test Your Knowledge</h2>
+
+    <div>
+      <p><strong>1. What keyword is used to print text to the console in C#?</strong></p>
+      <label><input type="radio" name="q1" value="print" /> print</label>
+      <label><input type="radio" name="q1" value="Console.WriteLine" /> Console.WriteLine</label>
+      <label><input type="radio" name="q1" value="echo" /> echo</label>
     </div>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
+    <button onclick="checkQuiz()">Submit Quiz</button>
+    <div class="result" id="quiz-result"></div>
+  </div>
 
-        <div class="question">
-            <p><strong>1. What keyword is used to print text to the console in C#?</strong></p>
-            <label><input type="radio" name="q1" value="print"> print</label><br>
-            <label><input type="radio" name="q1" value="Console.WriteLine"> Console.WriteLine</label><br>
-            <label><input type="radio" name="q1" value="echo"> echo</label><br>
-        </div>
+  <script>
+    function checkQuiz() {
+      const answer = document.querySelector('input[name="q1"]:checked');
+      const resultText = document.getElementById("quiz-result");
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
-        <div class="result" id="quiz-result"></div>
-    </div>
+      if (!answer) {
+        alert("Please select an answer!");
+        return;
+      }
 
-    <script>
-        function checkQuiz() {
-            let answer = document.querySelector('input[name="q1"]:checked');
-            let resultText = document.getElementById("quiz-result");
-            if (answer) {
-                if (answer.value === "Console.WriteLine") {
-                    resultText.textContent = "Correct! C# uses Console.WriteLine to print text.";
-                    resultText.style.color = "green";
-                } else {
-                    resultText.textContent = "Wrong answer. Try again!";
-                    resultText.style.color = "red";
-                }
-            } else {
-                alert("Please select an answer!");
-            }
-        }
-    </script>
+      if (answer.value === "Console.WriteLine") {
+        resultText.textContent = "Correct! C# uses Console.WriteLine to print text.";
+        resultText.style.color = "#4caf50";
+      } else {
+        resultText.textContent = "Wrong answer. Try again!";
+        resultText.style.color = "#f44336";
+      }
+    }
+  </script>
 </body>
 </html>
