@@ -1,171 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>HTML Forms & Inputs Guide</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
       margin: 2rem;
-      text-align: center;
+      background-color: #f5f5f5;
+      color: #333;
     }
-
     h1, h2 {
-      color: #f44336;
+      color: #2196f3;
     }
-
-    p {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    ul {
-      text-align: left;
-      display: inline-block;
-      margin: 1rem auto;
-    }
-
-    li {
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    iframe {
-      width: 80%;
-      height: 320px;
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
       border: none;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      margin: 1.5rem 0;
+      border-radius: 8px;
+      resize: vertical;
     }
-
-    .quiz-container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #bbb;
-      max-width: 700px;
-      margin: 3rem auto;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin: 0.5rem 0;
-      font-size: 1rem;
-    }
-
     button {
-      background-color: #f44336;
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2196f3;
       color: white;
       border: none;
-      padding: 0.8rem 1.5rem;
       font-size: 1rem;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 1rem;
     }
-
     button:hover {
-      background-color: #d32f2f;
+      background-color: #1976d2;
     }
-
-    #result {
-      margin-top: 1.5rem;
-      font-size: 1.1rem;
-      font-weight: bold;
+    .output {
+      margin-top: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      min-height: 120px;
     }
-
-    .section {
-      margin-bottom: 3rem;
+    .tip {
+      background-color: #e3f2fd;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2196f3;
+      margin: 1rem 0;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
+  <h1>📝 HTML Forms & Inputs Guide</h1>
+  <p>Forms are how you collect user input in websites — login forms, contact forms, search bars, etc. Let’s see how to build them.</p>
 
-  <h1>🎉 HTML Forms & Inputs</h1>
+  <h2>🔤 Basic Form Inputs</h2>
+  <textarea id="formInputsCode">
+<form>
+  <label>Username: <input type="text" name="username"></label><br><br>
+  <label>Password: <input type="password" name="password"></label><br><br>
+  <label>Email: <input type="email" name="email"></label><br><br>
+  <input type="submit" value="Submit">
+</form>
+  </textarea>
+  <button onclick="runEmbed('formInputsCode', 'formInputsOutput')">▶️ Show Form</button>
+  <div class="output" id="formInputsOutput"></div>
 
-  <div class="section">
-    <h2>📋 What Are Forms?</h2>
-    <p>HTML forms collect user input through different form controls like text fields, radio buttons, checkboxes, and buttons.</p>
-
-    <ul>
-      <li><strong>&lt;form&gt;</strong> — Defines an HTML form</li>
-      <li><strong>&lt;input type="text"&gt;</strong> — Text input field</li>
-      <li><strong>&lt;input type="radio"&gt;</strong> — Radio button</li>
-      <li><strong>&lt;input type="checkbox"&gt;</strong> — Checkbox</li>
-      <li><strong>&lt;button&gt;</strong> — Clickable button</li>
-    </ul>
+  <div class="tip">
+    💡 Use <code>&lt;label&gt;</code> to associate text with inputs.<br>
+    Common input types: <code>text</code>, <code>password</code>, <code>email</code>, <code>number</code>, <code>submit</code>
   </div>
 
-  <div class="section">
-    <h2>💻 Try It Yourself</h2>
-    <iframe srcdoc='
-      <form style="font-family: Segoe UI, sans-serif; text-align: left; padding: 20px;">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" style="margin-bottom:10px; width: 95%; padding:6px;"><br>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" style="margin-bottom:10px; width: 95%; padding:6px;"><br>
-        <button type="submit" style="background-color:#f44336; color:white; padding:8px 16px; border:none; border-radius:5px;" onclick="alert(&quot;Form Complete!!&quot;)">Submit</button>
-      </form>'>
-    </iframe>
+  <h2>✅ Checkboxes & 🔘 Radio Buttons</h2>
+  <textarea id="formCheckRadioCode">
+<form>
+  <p>Select your interests:</p>
+  <label><input type="checkbox" name="interest" value="coding"> Coding</label><br>
+  <label><input type="checkbox" name="interest" value="gaming"> Gaming</label><br>
+  <label><input type="checkbox" name="interest" value="music"> Music</label><br><br>
+
+  <p>Choose your gender:</p>
+  <label><input type="radio" name="gender" value="male"> Male</label><br>
+  <label><input type="radio" name="gender" value="female"> Female</label><br>
+  <label><input type="radio" name="gender" value="other"> Other</label><br><br>
+
+  <input type="submit" value="Submit">
+</form>
+  </textarea>
+  <button onclick="runEmbed('formCheckRadioCode', 'formCheckRadioOutput')">▶️ Show Checkboxes/Radio</button>
+  <div class="output" id="formCheckRadioOutput"></div>
+
+  <div class="tip">
+    ✅ Checkboxes allow multiple selections.<br>
+    🔘 Radio buttons allow only one selection within the same <code>name</code>.
   </div>
 
-  <div class="quiz-container">
-    <h2>🎯 Forms & Inputs Quiz</h2>
-    <form id="quizForm">
-      <p><strong>1. Which tag is used to create a form?</strong></p>
-      <label><input type="radio" name="q1" value="a"> &lt;input&gt;</label>
-      <label><input type="radio" name="q1" value="b"> &lt;form&gt;</label>
-      <label><input type="radio" name="q1" value="c"> &lt;div&gt;</label>
+  <h2>📋 Dropdown & Textarea</h2>
+  <textarea id="formSelectTextareaCode">
+<form>
+  <label for="country">Country:</label>
+  <select id="country" name="country">
+    <option value="usa">USA</option>
+    <option value="canada">Canada</option>
+    <option value="uk">UK</option>
+  </select><br><br>
 
-      <p><strong>2. What type of input is used for a checkbox?</strong></p>
-      <label><input type="radio" name="q2" value="a"> text</label>
-      <label><input type="radio" name="q2" value="b"> checkbox</label>
-      <label><input type="radio" name="q2" value="c"> radio</label>
+  <label for="message">Message:</label><br>
+  <textarea id="message" name="message" rows="4" cols="30">&lt;/textarea><br><br>
 
-      <p><strong>3. Which input type is used for passwords?</strong></p>
-      <label><input type="radio" name="q3" value="a"> password</label>
-      <label><input type="radio" name="q3" value="b"> text</label>
-      <label><input type="radio" name="q3" value="c"> hidden</label>
+  <input type="submit" value="Submit">
+</form>
+  </textarea>
+  <button onclick="runEmbed('formSelectTextareaCode', 'formSelectTextareaOutput')">▶️ Show Select & Textarea</button>
+  <div class="output" id="formSelectTextareaOutput"></div>
 
-      <p><strong>4. How do you submit a form?</strong></p>
-      <label><input type="radio" name="q4" value="a"> &lt;send&gt;</label>
-      <label><input type="radio" name="q4" value="b"> &lt;submit&gt;</label>
-      <label><input type="radio" name="q4" value="c"> &lt;button&gt;</label>
-
-      <p><strong>5. What attribute makes an input required?</strong></p>
-      <label><input type="radio" name="q5" value="a"> checked</label>
-      <label><input type="radio" name="q5" value="b"> required</label>
-      <label><input type="radio" name="q5" value="c"> placeholder</label>
-
-      <button type="button" onclick="checkQuiz()">Submit Answers</button>
-    </form>
-
-    <div id="result"></div>
+  <div class="tip">
+    🎯 <code>&lt;select&gt;</code> is for dropdowns.<br>
+    📝 <code>&lt;textarea&gt;</code> is for multi-line text input.
   </div>
+
+  <h2>🚀 Form Attributes</h2>
+  <ul>
+    <li><code>action</code> → URL where form data is sent.</li>
+    <li><code>method</code> → HTTP method (GET or POST).</li>
+    <li><code>required</code> → Field must be filled before submit.</li>
+    <li><code>placeholder</code> → Hint text inside input.</li>
+    <li><code>value</code> → Default input value.</li>
+  </ul>
 
   <script>
-    function checkQuiz() {
-      let score = 0;
-      const answers = { q1: "b", q2: "b", q3: "a", q4: "b", q5: "b" };
-
-      for (let q in answers) {
-        const selected = document.querySelector(`input[name="${q}"]:checked`);
-        if (selected && selected.value === answers[q]) {
-          score++;
-        }
-      }
-
-      const result = document.getElementById("result");
-      result.innerText = `📝 You scored ${score} out of 5. ${
-        score === 5 ? "🎉 Perfect!" :
-        score >= 3 ? "👍 Solid work!" : "📖 Keep practicing!"
-      }`;
+    function runEmbed(textareaId, outputId) {
+      const code = document.getElementById(textareaId).value;
+      document.getElementById(outputId).innerHTML = code;
     }
   </script>
-
 </body>
 </html>

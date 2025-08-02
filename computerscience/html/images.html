@@ -1,196 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>HTML Images & Multimedia 📸🎶</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>HTML Images & Multimedia Tutorial</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
       margin: 2rem;
-      text-align: center;
+      background-color: #fafafa;
+      color: #333;
     }
-
     h1, h2 {
-      color: #f44336;
-      margin-bottom: 1rem;
+      color: #E91E63;
     }
-
-    p {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    ul {
-      text-align: left;
-      display: inline-block;
-      margin: 1rem auto;
-      padding-left: 20px;
-    }
-
-    li {
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    img {
-      max-width: 80%;
-      margin: 1rem 0;
-      border-radius: 10px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-    }
-
-    iframe {
-      width: 90%;
-      height: 300px;
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
       border: none;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      margin: 2rem 0;
+      border-radius: 8px;
+      resize: vertical;
     }
-
-    .quiz-container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #bbb;
-      max-width: 750px;
-      margin: 3rem auto;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin: 0.5rem 0;
-      font-size: 1rem;
-    }
-
     button {
-      background-color: #f44336;
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #E91E63;
       color: white;
       border: none;
-      padding: 0.8rem 1.5rem;
       font-size: 1rem;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 1rem;
     }
-
     button:hover {
-      background-color: #d32f2f;
+      background-color: #C2185B;
     }
-
-    #result {
-      margin-top: 1.5rem;
-      font-size: 1.1rem;
-      font-weight: bold;
+    .output {
+      margin-top: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      min-height: 100px;
     }
-
-    .section {
-      margin-bottom: 3rem;
+    .tip {
+      background-color: #fce4ec;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #E91E63;
+      margin: 1rem 0;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
+  <h1>📸🎶 HTML Images & Multimedia</h1>
+  <p>HTML lets you add images, videos, and audio to spice up your pages. Let’s embed them like a pro.</p>
 
-  <h1>🖼️🎥 HTML Images & Multimedia</h1>
+  <h2>🖼️ Adding Images</h2>
+  <textarea id="imageCode">
+<img src="contact-page-image-example.jpeg" alt="Sample Image" width="300">
+<p>This is an image with an alt text.</p>
+  </textarea>
+  <button onclick="runEmbed('imageCode', 'imageOutput')">▶️ Show Image</button>
+  <div class="output" id="imageOutput"></div>
 
-  <div class="section">
-    <h2>📚 How Images & Media Work in HTML</h2>
-    <p>The <code>&lt;img&gt;</code> tag is used to display images, while videos and audio are embedded using their own tags.</p>
-
-    <ul>
-      <li><strong>&lt;img&gt;</strong> — Embeds an image</li>
-      <li><strong>src</strong> — Specifies image source (URL or file path)</li>
-      <li><strong>alt</strong> — Fallback text if image fails to load</li>
-      <li><strong>width</strong> / <strong>height</strong> — Image sizing attributes</li>
-    </ul>
+  <div class="tip">
+    📝 Always use <code>alt</code> text for accessibility and SEO.
   </div>
 
-  <div class="section">
-    <h2>✅ Example: Working Image</h2>
-    <img src="https://houselearning.github.io/home/computerscience/image.png" width="90" height="90" alt="Example Image">
+  <h2>🎥 Embedding Videos</h2>
+  <textarea id="videoCode">
+<video controls width="320">
+  <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+  Your browser does not support video.
+</video>
+  </textarea>
+  <button onclick="runEmbed('videoCode', 'videoOutput')">▶️ Show Video</button>
+  <div class="output" id="videoOutput"></div>
 
-    <h2>❌ Example: Broken Image</h2>
-    <img src="https://houselearning.github.io/" alt="Broken image">
+  <div class="tip">
+    🎬 The <code>controls</code> attribute adds play/pause UI automatically.
   </div>
 
-  <div class="section">
-    <h2>💻 Try It Yourself</h2>
-    <iframe srcdoc='
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          body { font-family: Segoe UI, sans-serif; padding: 20px; text-align: center; }
-          img { max-width: 80%; border-radius: 8px; margin: 10px 0; }
-        </style>
-      </head>
-      <body>
-        <p>Working Image:</p>
-        <img src="https://houselearning.github.io/home/computerscience/image.png" width="90" height="90" alt="Example Image">
-        <p>Broken Image:</p>
-        <img src="https://houselearning.github.io/" alt="Broken image">
-      </body>
-      </html>'>
-    </iframe>
+  <h2>🎧 Embedding Audio</h2>
+  <textarea id="audioCode">
+<audio controls>
+  <source src="https://www.w3schools.com/html/horse.mp3" type="audio/mpeg">
+  Your browser does not support audio.
+</audio>
+  </textarea>
+  <button onclick="runEmbed('audioCode', 'audioOutput')">▶️ Play Audio</button>
+  <div class="output" id="audioOutput"></div>
+
+  <div class="tip">
+    🎵 You can embed MP3, OGG, or WAV formats with <code>&lt;audio&gt;</code>.
   </div>
 
-  <div class="quiz-container">
-    <h2>🎯 HTML Images & Multimedia Quiz</h2>
-    <form id="quizForm">
-      <p><strong>1. What tag is used to display an image?</strong></p>
-      <label><input type="radio" name="q1" value="a"> &lt;image&gt;</label>
-      <label><input type="radio" name="q1" value="b"> &lt;img&gt;</label>
-      <label><input type="radio" name="q1" value="c"> &lt;src&gt;</label>
+  <h2>🌐 Embedding External Content (Iframes)</h2>
+  <textarea id="iframeCode">
+<iframe width="300" height="200" src="https://www.example.com" title="Example Website"></iframe>
+  </textarea>
+  <button onclick="runEmbed('iframeCode', 'iframeOutput')">▶️ Load Iframe</button>
+  <div class="output" id="iframeOutput"></div>
 
-      <p><strong>2. What attribute specifies the image file path?</strong></p>
-      <label><input type="radio" name="q2" value="a"> href</label>
-      <label><input type="radio" name="q2" value="b"> src</label>
-      <label><input type="radio" name="q2" value="c"> alt</label>
-
-      <p><strong>3. What does the "alt" attribute do?</strong></p>
-      <label><input type="radio" name="q3" value="a"> Provides the image title</label>
-      <label><input type="radio" name="q3" value="b"> Provides description if image fails</label>
-      <label><input type="radio" name="q3" value="c"> Sets the image size</label>
-
-      <p><strong>4. What happens if an image can’t load?</strong></p>
-      <label><input type="radio" name="q4" value="a"> The page crashes</label>
-      <label><input type="radio" name="q4" value="b"> Broken icon + alt text appears</label>
-      <label><input type="radio" name="q4" value="c"> Browser auto reloads the page</label>
-
-      <p><strong>5. How do you control image size?</strong></p>
-      <label><input type="radio" name="q5" value="a"> width & height attributes</label>
-      <label><input type="radio" name="q5" value="b"> src & alt attributes</label>
-      <label><input type="radio" name="q5" value="c"> style and id only</label>
-
-      <button type="button" onclick="checkQuiz()">Submit Answers</button>
-    </form>
-
-    <div id="result"></div>
+  <div class="tip">
+    🌍 <code>&lt;iframe&gt;</code> lets you embed other websites, maps, YouTube videos, etc.
   </div>
 
   <script>
-    function checkQuiz() {
-      let score = 0;
-      const answers = { q1: "b", q2: "b", q3: "b", q4: "b", q5: "a" };
-
-      for (let q in answers) {
-        const selected = document.querySelector(`input[name="${q}"]:checked`);
-        if (selected && selected.value === answers[q]) {
-          score++;
-        }
-      }
-
-      const result = document.getElementById("result");
-      result.innerText = `🎉 You scored ${score} out of 5! ${
-        score === 5 ? "🔥 Perfect!" :
-        score >= 3 ? "👍 Solid work!" : "📖 Keep practicing!"
-      }`;
+    function runEmbed(textareaId, outputId) {
+      const code = document.getElementById(textareaId).value;
+      document.getElementById(outputId).innerHTML = code;
     }
   </script>
-
 </body>
 </html>

@@ -1,200 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>HTML Forms & Validation Tutorial</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
       margin: 2rem;
-      text-align: center;
+      background-color: #f5f5f5;
+      color: #333;
     }
-
     h1, h2 {
-      color: #f44336;
-      margin-bottom: 1rem;
+      color: #ff5722;
     }
-
-    p {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    ul {
-      text-align: left;
-      display: inline-block;
-      margin: 1rem auto;
-      padding-left: 20px;
-    }
-
-    li {
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    iframe {
-      width: 90%;
-      height: 330px;
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
       border: none;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      margin: 2rem 0;
+      border-radius: 8px;
+      resize: vertical;
     }
-
-    .quiz-container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #bbb;
-      max-width: 750px;
-      margin: 3rem auto;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin: 0.5rem 0;
-      font-size: 1rem;
-    }
-
     button {
-      background-color: #f44336;
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff5722;
       color: white;
       border: none;
-      padding: 0.8rem 1.5rem;
       font-size: 1rem;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 1rem;
     }
-
     button:hover {
-      background-color: #d32f2f;
+      background-color: #e64a19;
     }
-
-    #result {
-      margin-top: 1.5rem;
-      font-size: 1.1rem;
-      font-weight: bold;
+    .output {
+      margin-top: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      min-height: 120px;
     }
-
-    .section {
-      margin-bottom: 3rem;
+    .tip {
+      background-color: #ffebee;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #f44336;
+      margin: 1rem 0;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
+  <h1>🛡️ HTML Forms & Validation Tutorial</h1>
+  <p>
+    HTML gives you built-in form validation with attributes like <code>required</code>, <code>pattern</code>, <code>min</code>, <code>max</code>, <code>type</code>, and more. Let's build a form that won’t let users mess up!
+  </p>
 
-  <h1>📝 HTML Forms & Validation</h1>
+  <h2>✅ Basic Required Fields</h2>
+  <textarea id="requiredFormCode">
+<form>
+  <label>Email: <input type="email" name="email" required></label><br><br>
+  <label>Password: <input type="password" name="password" required minlength="6"></label><br><br>
+  <input type="submit" value="Submit">
+</form>
+  </textarea>
+  <button onclick="runEmbed('requiredFormCode', 'requiredFormOutput')">▶️ Show Form</button>
+  <div class="output" id="requiredFormOutput"></div>
 
-  <div class="section">
-    <h2>📚 What Are Forms?</h2>
-    <p>Forms collect user input, and validation ensures that input is correct before it's submitted.</p>
-
-    <ul>
-      <li><strong>&lt;form&gt;</strong> — Defines a form</li>
-      <li><strong>&lt;input type="text"&gt;</strong> — Text input field</li>
-      <li><strong>&lt;input type="email"&gt;</strong> — Email input with validation</li>
-      <li><strong>&lt;input type="password"&gt;</strong> — Password input field</li>
-      <li><strong>&lt;input type="submit"&gt;</strong> — Button to submit the form</li>
-      <li><strong>required</strong> — Forces the field to be filled out</li>
-      <li><strong>pattern</strong> — Validates against a regex</li>
-      <li><strong>minlength & maxlength</strong> — Limits input length</li>
-    </ul>
+  <div class="tip">
+    ✨ Add <code>required</code> to inputs so they can't be left empty.<br>
+    🔒 Use <code>minlength</code> to enforce password length.
   </div>
 
-  <div class="section">
-    <h2>💻 Form Example with Validation</h2>
-    <iframe srcdoc='
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { font-family: Segoe UI, sans-serif; padding: 20px; text-align: left; }
-          label { display: block; margin: 8px 0 4px; }
-          input { padding: 6px; width: 95%; margin-bottom: 10px; }
-          button { background-color:#f44336; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; }
-          button:hover { background-color:#d32f2f; }
-        </style>
-      </head>
-      <body>
-        <form>
-          <label for="name">Name:</label>
-          <input type="text" id="name" required>
+  <h2>🔢 Number Fields with Min & Max</h2>
+  <textarea id="numberValidationCode">
+<form>
+  <label>Age (18 to 99): <input type="number" name="age" min="18" max="99" required></label><br><br>
+  <input type="submit" value="Submit">
+</form>
+  </textarea>
+  <button onclick="runEmbed('numberValidationCode', 'numberValidationOutput')">▶️ Show Number Form</button>
+  <div class="output" id="numberValidationOutput"></div>
 
-          <label for="email">Email:</label>
-          <input type="email" id="email" required>
-
-          <label for="password">Password:</label>
-          <input type="password" id="password" minlength="6" required>
-
-          <label for="age">Age:</label>
-          <input type="number" id="age" min="18" required>
-
-          <button type="submit">Submit</button>
-        </form>
-      </body>
-      </html>'>
-    </iframe>
+  <div class="tip">
+    🧮 Use <code>min</code> and <code>max</code> on number inputs to set limits.
   </div>
 
-  <div class="quiz-container">
-    <h2>🎯 Forms & Validation Quiz</h2>
-    <form id="quizForm">
-      <p><strong>1. What does the <code>required</code> attribute do?</strong></p>
-      <label><input type="radio" name="q1" value="a"> Makes the field optional</label>
-      <label><input type="radio" name="q1" value="b"> Makes the field mandatory</label>
-      <label><input type="radio" name="q1" value="c"> Makes the field read-only</label>
+  <h2>🎯 Pattern Matching (Regex)</h2>
+  <textarea id="patternValidationCode">
+<form>
+  <label>Username (only letters & numbers): 
+    <input type="text" name="username" pattern="[A-Za-z0-9]+" required>
+  </label><br><br>
+  <input type="submit" value="Submit">
+</form>
+  </textarea>
+  <button onclick="runEmbed('patternValidationCode', 'patternValidationOutput')">▶️ Show Pattern Form</button>
+  <div class="output" id="patternValidationOutput"></div>
 
-      <p><strong>2. What input type is for passwords?</strong></p>
-      <label><input type="radio" name="q2" value="a"> <code>&lt;input type="text"&gt;</code></label>
-      <label><input type="radio" name="q2" value="b"> <code>&lt;input type="password"&gt;</code></label>
-      <label><input type="radio" name="q2" value="c"> <code>&lt;input type="email"&gt;</code></label>
+  <div class="tip">
+    📝 The <code>pattern</code> attribute lets you use regex for custom input rules.
+  </div>
 
-      <p><strong>3. What does <code>minlength</code> do?</strong></p>
-      <label><input type="radio" name="q3" value="a"> Sets max input length</label>
-      <label><input type="radio" name="q3" value="b"> Sets min input length</label>
-      <label><input type="radio" name="q3" value="c"> Makes input optional</label>
+  <h2>📧 Full Example: Contact Form Validation</h2>
+  <textarea id="contactFormValidationCode">
+<form>
+  <label>Name: <input type="text" name="name" required></label><br><br>
+  <label>Email: <input type="email" name="email" required></label><br><br>
+  <label>Phone (Format: 123-456-7890): 
+    <input type="tel" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required>
+  </label><br><br>
+  <label>Message:<br>
+    <textarea name="message" required>&lt;/textarea>
+  </label><br><br>
+  <input type="submit" value="Send">
+</form>
+  </textarea>
+  <button onclick="runEmbed('contactFormValidationCode', 'contactFormValidationOutput')">▶️ Show Contact Form</button>
+  <div class="output" id="contactFormValidationOutput"></div>
 
-      <p><strong>4. Which type validates emails?</strong></p>
-      <label><input type="radio" name="q4" value="a"> <code>&lt;input type="email"&gt;</code></label>
-      <label><input type="radio" name="q4" value="b"> <code>&lt;input type="text"&gt;</code></label>
-      <label><input type="radio" name="q4" value="c"> <code>&lt;input type="password"&gt;</code></label>
-
-      <p><strong>5. What attribute ensures only numbers?</strong></p>
-      <label><input type="radio" name="q5" value="a"> <code>pattern</code></label>
-      <label><input type="radio" name="q5" value="b"> <code>min</code></label>
-      <label><input type="radio" name="q5" value="c"> <code>type="number"</code></label>
-
-      <button type="button" onclick="checkQuiz()">Submit Answers</button>
-    </form>
-
-    <div id="result"></div>
+  <div class="tip">
+    🛠️ Mix and match <code>required</code>, <code>type</code>, <code>pattern</code>, and others to build pro-level form validations.
   </div>
 
   <script>
-    function checkQuiz() {
-      let score = 0;
-      const answers = { q1: "b", q2: "b", q3: "b", q4: "a", q5: "c" };
-
-      for (let q in answers) {
-        const selected = document.querySelector(`input[name="${q}"]:checked`);
-        if (selected && selected.value === answers[q]) {
-          score++;
-        }
-      }
-
-      const result = document.getElementById("result");
-      result.innerText = `📝 You scored ${score} out of 5. ${
-        score === 5 ? "🎉 Perfect!" :
-        score >= 3 ? "👍 Well done!" : "📖 Keep practicing!"
-      }`;
+    function runEmbed(textareaId, outputId) {
+      const code = document.getElementById(textareaId).value;
+      document.getElementById(outputId).innerHTML = code;
     }
   </script>
-
 </body>
 </html>
