@@ -1,59 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Introduction to JavaScript</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        iframe { width: 100%; height: 200px; border: 1px solid #000; }
-        button { margin-top: 10px; padding: 10px 20px; cursor: pointer; background: #007BFF; color: white; border: none; }
-        button:hover { background: #0056b3; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Introduction to JavaScript 💻</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+      color: #222;
+    }
+    h1, h2 {
+      color: #2196f3;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1769aa;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 140px;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+    }
+    .tip {
+      background-color: #d0eaff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #2196f3;
+      margin: 1rem 0;
+      color: #0d47a1;
+    }
+    ul {
+      background: #e3f2fd;
+      padding: 1rem;
+      border-radius: 10px;
+      color: #0d47a1;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Introduction to JavaScript</h1>
-        <p>JavaScript is a programming language that allows you to make web pages interactive.</p>
-        <p>For example, you can use JavaScript to create alerts, change content dynamically, or respond to user actions.</p>
-        
-        <h2>Try It Yourself!</h2>
-        <p>Click the button to display an alert message:</p>
-        <button onclick="runExample()">Run JavaScript</button>
-        
-        <h2>Quiz</h2>
-        <form id="quizForm">
-            <p>1. What is JavaScript primarily used for?</p>
-            <input type="radio" name="q1" value="a"> Styling web pages<br>
-            <input type="radio" name="q1" value="b"> Making web pages interactive<br>
-            <input type="radio" name="q1" value="c"> Storing data permanently<br>
 
-            <p>2. How do you display an alert in JavaScript?</p>
-            <input type="radio" name="q2" value="a"> alert("Hello");<br>
-            <input type="radio" name="q2" value="b"> show("Hello");<br>
-            <input type="radio" name="q2" value="c"> message("Hello");<br>
+  <h1>💻 Introduction to JavaScript</h1>
+  <p>
+    JavaScript is the language that makes websites interactive. It runs in your browser and can do things like respond to clicks, change content dynamically, and communicate with servers.
+  </p>
 
-            <button type="button" onclick="checkAnswers()">Submit Quiz</button>
-        </form>
-        
-        <p id="result"></p>
-    </div>
+  <h2>📚 Example 1: Hello, World!</h2>
+  <textarea id="helloCode" readonly>
+// Log a message to the console
+console.log("Hello, World!");
 
-    <script>
-        function runExample() {
-            let frame = document.getElementById("tryItFrame").contentWindow.document;
-            frame.open();
-            frame.write("<script>alert('Hello! Welcome to JavaScript!');<\/script>");
-            frame.close();
-        }
+// Show an alert popup
+alert("Hello from JavaScript!");
+  </textarea>
+  <button onclick="runHello()">▶️ Run Hello</button>
 
-        function checkAnswers() {
-            let score = 0;
-            if (document.querySelector('input[name="q1"]:checked')?.value === "b") score++;
-            if (document.querySelector('input[name="q2"]:checked')?.value === "a") score++;
-            document.getElementById("result").innerText = "You got " + score + "/2 correct!";
-        }
-    </script>
+  <pre class="output" id="helloOutput">Output will appear here...</pre>
+
+  <h2>📂 Example 2: Variables and Types</h2>
+  <textarea id="variablesCode" readonly>
+// Declare variables
+let name = "Alex";
+const age = 22;
+let isStudent = true;
+
+// Log variables
+console.log("Name:", name);
+console.log("Age:", age);
+console.log("Is student?", isStudent);
+  </textarea>
+  <button onclick="runVariables()">▶️ Run Variables</button>
+
+  <pre class="output" id="variablesOutput">Output will appear here...</pre>
+
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li>Use <code>console.log()</code> to print messages in the browser console.</li>
+    <li><code>let</code> and <code>const</code> declare variables — use <code>const</code> for values that don’t change.</li>
+    <li>JavaScript is loosely typed: variables can hold any data type.</li>
+    <li>Alerts are good for quick popups but annoying for users — mainly use console logs for debugging.</li>
+  </ul>
+
+  <div class="tip">
+    💡 Pro Tip: Open DevTools (F12) → Console tab to see output from <code>console.log()</code>.
+  </div>
+
+  <script>
+    function runHello() {
+      const output = document.getElementById("helloOutput");
+      output.innerText = "";
+      try {
+        // Clear console to keep it fresh for demo
+        console.clear();
+
+        console.log("Hello, World!");
+        alert("Hello from JavaScript!");
+
+        output.innerText = 'Check your browser console for "Hello, World!" and an alert popup appeared.';
+      } catch (e) {
+        output.innerText = "Error: " + e.message;
+      }
+    }
+
+    function runVariables() {
+      const output = document.getElementById("variablesOutput");
+      output.innerText = "";
+      try {
+        console.clear();
+
+        let name = "Alex";
+        const age = 22;
+        let isStudent = true;
+
+        console.log("Name:", name);
+        console.log("Age:", age);
+        console.log("Is student?", isStudent);
+
+        output.innerText = `Name: ${name}\nAge: ${age}\nIs student? ${isStudent}\n\nCheck your browser console for logs too!`;
+      } catch (e) {
+        output.innerText = "Error: " + e.message;
+      }
+    }
+  </script>
+
 </body>
 </html>

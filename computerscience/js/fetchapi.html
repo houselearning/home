@@ -1,160 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Fetch API & AJAX Tutorial</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-        }
-        .content {
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .content h2 {
-            color: #333;
-        }
-        .quiz-section {
-            margin-top: 40px;
-            background-color: #e9e9e9;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        #result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>JavaScript Fetch API & AJAX Tutorial 🚀</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f9fafb;
+      color: #222;
+    }
+    h1, h2 {
+      color: #007acc;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005a99;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 140px;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+    }
+    .tip {
+      background-color: #d0ebff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #007acc;
+      margin: 1rem 0;
+      color: #003e7e;
+    }
+    ul {
+      background: #e6f0ff;
+      padding: 1rem;
+      border-radius: 10px;
+      color: #003e7e;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>JavaScript Fetch API & AJAX Tutorial</h1>
-    </header>
+  <h1>🚀 JavaScript Fetch API & AJAX Tutorial</h1>
+  <p>
+    Fetch API lets you make HTTP requests (AJAX) easily to load data dynamically without reloading the page.
+  </p>
 
-    <div class="content">
-        <h2>What is the Fetch API?</h2>
-        <p>
-            The Fetch API provides a modern and flexible way to make HTTP requests in JavaScript. It replaces older methods like `XMLHttpRequest` and provides a cleaner, promise-based approach for handling requests.
-        </p>
+  <h2>📚 Example: Fetch JSON Data</h2>
+  <textarea readonly id="fetchExampleCode">
+// Fetch data from JSONPlaceholder API
+fetch('https://jsonplaceholder.typicode.com/posts/1')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Post title:', data.title);
+    document.getElementById('fetchOutput').innerText = JSON.stringify(data, null, 2);
+  })
+  .catch(error => {
+    console.error('Fetch error:', error);
+  });
+  </textarea>
+  <button onclick="runFetchExample()">▶️ Run Fetch Example</button>
 
-        <h3>Basic Syntax of Fetch</h3>
-        <p>
-            To use the Fetch API, simply call the `fetch()` function, passing in the URL of the resource you want to fetch.
-        </p>
-        <pre><code>fetch('https://api.example.com/data') // Fetch data from an API</code></pre>
+  <pre class="output" id="fetchOutput">Output will appear here...</pre>
 
-        <h3>Example: Fetching Data</h3>
-        <p>
-            In this example, we will use the Fetch API to fetch data from a simulated API and display the result below.
-        </p>
-        <button onclick="fetchData()">Fetch Data</button>
-        <div id="output"></div>
-    </div>
+  <h2>🛠️ Example: POST Data with Fetch</h2>
+  <textarea readonly id="postExampleCode">
+// POST data to JSONPlaceholder (fake API)
+fetch('https://jsonplaceholder.typicode.com/posts', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    title: 'My New Post',
+    body: 'This is the content of the post.',
+    userId: 123
+  })
+})
+  .then(response => response.json())
+  .then(data => {
+    console.log('Created post:', data);
+    document.getElementById('postOutput').innerText = JSON.stringify(data, null, 2);
+  })
+  .catch(error => {
+    console.error('POST error:', error);
+  });
+  </textarea>
+  <button onclick="runPostExample()">▶️ Run POST Example</button>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-        <p><strong>1. What does the Fetch API do?</strong></p>
-        <label><input type="radio" name="q1" value="a"> It sends HTTP requests to a server and returns a response.</label><br>
-        <label><input type="radio" name="q1" value="b"> It performs database queries directly.</label><br>
-        <label><input type="radio" name="q1" value="c"> It is used to fetch elements from the DOM.</label><br>
+  <pre class="output" id="postOutput">Output will appear here...</pre>
 
-        <p><strong>2. How does the Fetch API handle errors?</strong></p>
-        <label><input type="radio" name="q2" value="a"> It throws an error for every HTTP request.</label><br>
-        <label><input type="radio" name="q2" value="b"> It returns a promise that resolves even if the request fails, but you can check the status with `.then()`.</label><br>
-        <label><input type="radio" name="q2" value="c"> It automatically logs errors to the console.</label><br>
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li>Use <code>fetch(url)</code> to get data. It returns a <code>Promise</code>.</li>
+    <li>Use <code>response.json()</code> to parse JSON response.</li>
+    <li>For POST/PUT requests, add options with <code>method</code>, <code>headers</code>, and <code>body</code>.</li>
+    <li>Always handle errors with <code>.catch()</code> or try-catch in async/await.</li>
+    <li>Modern browsers support Fetch natively — no extra libraries needed.</li>
+  </ul>
 
-        <p><strong>3. How do you handle the response of a Fetch API request?</strong></p>
-        <label><input type="radio" name="q3" value="a"> Use `.then(response => response.json())` to parse the response.</label><br>
-        <label><input type="radio" name="q3" value="b"> Use `.catch()` to handle the response directly.</label><br>
-        <label><input type="radio" name="q3" value="c"> Use `.parse()` to extract the response data.</label><br>
+  <script>
+    function runFetchExample() {
+      const output = document.getElementById('fetchOutput');
+      output.innerText = 'Loading...';
+      fetch('https://jsonplaceholder.typicode.com/posts/1')
+        .then(response => {
+          if (!response.ok) throw new Error('Network response not OK');
+          return response.json();
+        })
+        .then(data => {
+          console.log('Post title:', data.title);
+          output.innerText = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+          output.innerText = 'Error: ' + error.message;
+        });
+    }
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
-
-        <div id="result"></div>
-    </div>
-
-    <script>
-        // Fetching data from a simulated API using Fetch API
-        function fetchData() {
-            const outputDiv = document.getElementById("output");
-            outputDiv.innerHTML = "Loading data...";
-
-            // Fetch data from the API
-            fetch('https://jsonplaceholder.typicode.com/posts/1')
-                .then(response => {
-                    // Check if the request was successful
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch data");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Display the fetched data
-                    outputDiv.innerHTML = "Fetched Data: " + JSON.stringify(data, null, 2);
-                })
-                .catch(error => {
-                    outputDiv.innerHTML = "Error: " + error.message;
-                });
-        }
-
-        // Quiz checking logic
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
-
-            // Check the answers for each question
-            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'a') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
-                score++;
-            }
-
-            // Display result
-            let resultText = "";
-            if (score === totalQuestions) {
-                resultText = "Excellent! You got all questions right!";
-            } else if (score >= totalQuestions / 2) {
-                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
-            } else {
-                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
-            }
-
-            document.getElementById('result').innerText = resultText;
-        }
-    </script>
+    function runPostExample() {
+      const output = document.getElementById('postOutput');
+      output.innerText = 'Posting data...';
+      fetch('https://jsonplaceholder.typicode.com/posts', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          title: 'My New Post',
+          body: 'This is the content of the post.',
+          userId: 123
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response not OK');
+        return response.json();
+      })
+      .then(data => {
+        console.log('Created post:', data);
+        output.innerText = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        console.error('POST error:', error);
+        output.innerText = 'Error: ' + error.message;
+      });
+    }
+  </script>
 
 </body>
 </html>

@@ -1,203 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Local Storage & Cookies</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-        }
-        .content {
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .content h2 {
-            color: #333;
-        }
-        .quiz-section {
-            margin-top: 40px;
-            background-color: #e9e9e9;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        #result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>JavaScript Local Storage & Cookies Tutorial 🍪💾</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    h1, h2 {
+      color: #03a9f4;
+    }
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #03a9f4;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0288d1;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+    .tip {
+      background-color: #b3e5fc;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #03a9f4;
+      margin: 1rem 0;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>JavaScript Local Storage & Cookies</h1>
-    </header>
+  <h1>🍪 JavaScript Local Storage & Cookies</h1>
+  <p>
+    Local Storage and Cookies are used to store data in the browser. Local Storage is modern, larger, and easier. Cookies are old-school but still used for sessions & small data.
+  </p>
 
-    <div class="content">
-        <h2>What is Local Storage?</h2>
-        <p>
-            Local Storage allows you to store data on the client's browser with no expiration time. This data is stored as key-value pairs.
-            It can be used to store simple data like user preferences, settings, etc.
-        </p>
+  <h2>📦 Example: Local Storage</h2>
+  <textarea id="localStorageCode">
+// Save data to Local Storage
+localStorage.setItem("username", "CoolUser123");
 
-        <h3>1. Working with Local Storage</h3>
-        <p>Local Storage allows you to set, get, and remove items stored in the browser. Here's how you can use it:</p>
-        <pre><code>
-// Set a value
-localStorage.setItem("username", "JohnDoe");
+// Retrieve data from Local Storage
+let user = localStorage.getItem("username");
+console.log("Stored username:", user);
 
-// Get a value
-let username = localStorage.getItem("username");
+// Remove data
+// localStorage.removeItem("username");
+  </textarea>
+  <button onclick="runLocalStorage()">▶️ Run Local Storage</button>
 
-// Remove a value
-localStorage.removeItem("username");
+  <div class="output" id="localStorageOutput">Console output will appear here...</div>
 
-// Clear all data
-localStorage.clear();
-        </code></pre>
+  <div class="tip">
+    🔑 <strong>Local Storage</strong> stores up to 5MB of key-value pairs and persists even after closing the browser.
+  </div>
 
-        <h3>2. Working with Cookies</h3>
-        <p>Cookies are small pieces of data stored in the user's browser. They are sent with every HTTP request to the server. Cookies can have expiration dates, and they are often used for session management.</p>
-        <pre><code>
-// Set a cookie with an expiration date
-document.cookie = "user=JohnDoe; expires=Fri, 31 Dec 2025 23:59:59 UTC";
+  <h2>🍪 Example: Setting a Cookie</h2>
+  <textarea id="cookieSetCode">
+// Set a cookie that expires in 7 days
+document.cookie = "theme=dark; max-age=" + (60 * 60 * 24 * 7);
 
-// Get a cookie
-let cookies = document.cookie;
+// Check all cookies
+console.log("All Cookies:", document.cookie);
+  </textarea>
+  <button onclick="runCookieSet()">▶️ Set Cookie</button>
 
-// Remove a cookie (by setting its expiration date to the past)
-document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
-        </code></pre>
+  <div class="output" id="cookieSetOutput">Console output will appear here...</div>
 
-        <h3>Interactive Example</h3>
-        <p>Try setting a Local Storage item and a Cookie:</p>
-        <button onclick="setLocalStorage()">Set Local Storage</button>
-        <button onclick="setCookie()">Set Cookie</button>
-        <button onclick="getLocalStorage()">Get Local Storage</button>
-        <button onclick="getCookie()">Get Cookie</button>
-        <button onclick="removeLocalStorage()">Remove Local Storage</button>
-        <button onclick="removeCookie()">Remove Cookie</button>
-        <div id="output"></div>
-    </div>
+  <h2>🔍 Example: Reading a Specific Cookie</h2>
+  <textarea id="cookieReadCode">
+function getCookie(name) {
+  let cookies = document.cookie.split("; ");
+  for (let c of cookies) {
+    let [key, value] = c.split("=");
+    if (key === name) return value;
+  }
+  return null;
+}
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-        <p><strong>1. What is the primary difference between Local Storage and Cookies?</strong></p>
-        <label><input type="radio" name="q1" value="a"> Local Storage is for long-term storage, while Cookies are for short-term storage with expiration dates.</label><br>
-        <label><input type="radio" name="q1" value="b"> Local Storage stores data only for the current session, while Cookies store data permanently.</label><br>
-        <label><input type="radio" name="q1" value="c"> Local Storage can only store strings, while Cookies can store any type of data.</label><br>
+let theme = getCookie("theme");
+console.log("Theme Cookie Value:", theme);
+  </textarea>
+  <button onclick="runCookieRead()">▶️ Read Cookie</button>
 
-        <p><strong>2. How do you remove an item from Local Storage?</strong></p>
-        <label><input type="radio" name="q2" value="a"> Use `localStorage.clear()`.</label><br>
-        <label><input type="radio" name="q2" value="b"> Use `localStorage.removeItem('key')`.</label><br>
-        <label><input type="radio" name="q2" value="c"> Use `localStorage.delete('key')`.</label><br>
+  <div class="output" id="cookieReadOutput">Console output will appear here...</div>
 
-        <p><strong>3. How do you set an expiration date for a cookie?</strong></p>
-        <label><input type="radio" name="q3" value="a"> `document.cookie = 'user=John; expires=Fri, 31 Dec 2025 23:59:59 UTC';`</label><br>
-        <label><input type="radio" name="q3" value="b"> `cookies.set('user', 'John', {expires: '2025-12-31'});`</label><br>
-        <label><input type="radio" name="q3" value="c"> `setCookie('user', 'John', {expireOn: '2025-12-31'});`</label><br>
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li><strong>LocalStorage:</strong> Use for client-side data that needs to persist (user settings, progress, etc).</li>
+    <li><strong>Cookies:</strong> Small data (4KB max), often used by the server for sessions/authentication.</li>
+    <li>Cookies can have <code>expires</code> or <code>max-age</code> to control lifespan.</li>
+    <li>Cookies are sent to server with each request, Local Storage stays client-side only.</li>
+  </ul>
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
+  <script>
+    function runLocalStorage() {
+      localStorage.setItem("username", "CoolUser123");
+      let user = localStorage.getItem("username");
+      document.getElementById("localStorageOutput").innerText = `Stored username: ${user}`;
+    }
 
-        <div id="result"></div>
-    </div>
+    function runCookieSet() {
+      document.cookie = "theme=dark; max-age=" + (60 * 60 * 24 * 7);
+      document.getElementById("cookieSetOutput").innerText = `All Cookies: ${document.cookie}`;
+    }
 
-    <script>
-        // Example functions for Local Storage and Cookies
-        function setLocalStorage() {
-            localStorage.setItem("username", "JohnDoe");
-            document.getElementById("output").innerHTML = "Local Storage 'username' set to JohnDoe.";
+    function runCookieRead() {
+      function getCookie(name) {
+        let cookies = document.cookie.split("; ");
+        for (let c of cookies) {
+          let [key, value] = c.split("=");
+          if (key === name) return value;
         }
-
-        function getLocalStorage() {
-            let username = localStorage.getItem("username");
-            if (username) {
-                document.getElementById("output").innerHTML = "Local Storage 'username' is: " + username;
-            } else {
-                document.getElementById("output").innerHTML = "No 'username' found in Local Storage.";
-            }
-        }
-
-        function removeLocalStorage() {
-            localStorage.removeItem("username");
-            document.getElementById("output").innerHTML = "Local Storage 'username' has been removed.";
-        }
-
-        function setCookie() {
-            document.cookie = "user=JohnDoe; expires=Fri, 31 Dec 2025 23:59:59 UTC";
-            document.getElementById("output").innerHTML = "Cookie 'user' set to JohnDoe.";
-        }
-
-        function getCookie() {
-            let cookies = document.cookie;
-            if (cookies) {
-                document.getElementById("output").innerHTML = "Cookies: " + cookies;
-            } else {
-                document.getElementById("output").innerHTML = "No cookies found.";
-            }
-        }
-
-        function removeCookie() {
-            document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
-            document.getElementById("output").innerHTML = "Cookie 'user' has been removed.";
-        }
-
-        // Quiz checking logic
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
-
-            // Check the answers for each question
-            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'a') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
-                score++;
-            }
-
-            // Display result
-            let resultText = "";
-            if (score === totalQuestions) {
-                resultText = "Excellent! You got all questions right!";
-            } else if (score >= totalQuestions / 2) {
-                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
-            } else {
-                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
-            }
-
-            document.getElementById('result').innerText = resultText;
-        }
-    </script>
+        return null;
+      }
+      let theme = getCookie("theme");
+      document.getElementById("cookieReadOutput").innerText = `Theme Cookie Value: ${theme}`;
+    }
+  </script>
 
 </body>
 </html>
