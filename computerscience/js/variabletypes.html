@@ -1,104 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Variables & Data Types - Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .lesson-content {
-            padding: 20px;
-        }
-        .lesson-content h2 {
-            color: #333;
-        }
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
-        .editor-container {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .quiz-section button:hover {
-            background-color: #555;
-        }
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        iframe {
-            width: 100%;
-            height: 200px;
-            border: 1px solid #ddd;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>JavaScript Variables & Data Types</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+      color: #222;
+    }
+    h1, h2 {
+      color: #ff5722;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e64a19;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 120px;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+    }
+    .tip {
+      background-color: #ffe0b2;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #ff5722;
+      margin: 1rem 0;
+      color: #bf360c;
+    }
+    ul {
+      background: #fff3e0;
+      padding: 1rem;
+      border-radius: 10px;
+      color: #bf360c;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: JavaScript Variables & Data Types</h1>
-    </header>
 
-    <div class="lesson-content">
-        <h2>Introduction</h2>
-        <p>JavaScript variables are used to store data. You can declare a variable using <code>var</code>, <code>let</code>, or <code>const</code>. JavaScript supports different data types such as strings, numbers, and booleans.</p>
-        
-        <h2>Try It Yourself!</h2>
-        <div class="editor-container">
-            <iframe srcdoc='<html><body><script>function showOutput() { var myVar = "Hello, JavaScript!"; document.getElementById("output").innerText = myVar; }</script><button onclick="showOutput()">Click Me</button><p id="output"></p></body></html>'></iframe>
-        </div>
-    </div>
+  <h1>🔶 JavaScript Variables & Data Types</h1>
+  <p>
+    Variables store data. JavaScript has different data types like numbers, strings, booleans, and more. Let’s get familiar!
+  </p>
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-        <div class="question">
-            <p><strong>1. Which keyword is used to declare a constant variable?</strong></p>
-            <label><input type="radio" name="q1" value="incorrect"> var</label><br>
-            <label><input type="radio" name="q1" value="incorrect"> let</label><br>
-            <label><input type="radio" name="q1" value="correct"> const</label><br>
-        </div>
+  <h2>📚 Example 1: Declaring Variables</h2>
+  <textarea id="varCode" readonly>
+// Using let and const
+let name = "Alex";      // string
+const age = 22;         // number
+let isStudent = true;   // boolean
 
-        <button onclick="checkQuiz()">Submit Quiz</button>
-        <div class="result" id="result"></div>
-    </div>
+console.log("Name:", name);
+console.log("Age:", age);
+console.log("Student?", isStudent);
+  </textarea>
+  <button onclick="runVars()">▶️ Run Example 1</button>
+  <pre class="output" id="varOutput">Output will appear here...</pre>
 
-    <script>
-        function checkQuiz() {
-            let score = 0;
-            if (document.querySelector('input[name="q1"]:checked')?.value === "correct") {
-                score++;
-            }
-            document.getElementById("result").textContent = `You got ${score} out of 1 correct!`;
-        }
-    </script>
+  <h2>📂 Example 2: Data Types & typeof</h2>
+  <textarea id="typeCode" readonly>
+// Check data types
+console.log(typeof "Hello");       // string
+console.log(typeof 123);           // number
+console.log(typeof true);          // boolean
+console.log(typeof undefined);     // undefined
+console.log(typeof null);          // object (weird JS quirk)
+console.log(typeof {name: "Sam"}); // object
+console.log(typeof [1, 2, 3]);    // object (arrays are objects!)
+  </textarea>
+  <button onclick="runTypes()">▶️ Run Example 2</button>
+  <pre class="output" id="typeOutput">Output will appear here...</pre>
+
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li><code>let</code> is for variables you want to change later.</li>
+    <li><code>const</code> is for constants — they can’t be reassigned.</li>
+    <li>JavaScript is loosely typed, so variables can change types but avoid doing that to keep your code clean.</li>
+    <li>Arrays and objects are technically of type "object".</li>
+    <li><code>null</code> is a weird quirk — typeof null returns "object".</li>
+  </ul>
+
+  <div class="tip">
+    💡 Pro Tip: Use <code>typeof</code> to debug data types while coding.
+  </div>
+
+  <script>
+    function runVars() {
+      const output = document.getElementById("varOutput");
+      output.innerText = "";
+      try {
+        console.clear();
+
+        let name = "Alex";      
+        const age = 22;         
+        let isStudent = true;   
+
+        console.log("Name:", name);
+        console.log("Age:", age);
+        console.log("Student?", isStudent);
+
+        output.innerText = `Name: ${name}\nAge: ${age}\nStudent? ${isStudent}\n\nCheck your browser console too!`;
+      } catch (e) {
+        output.innerText = "Error: " + e.message;
+      }
+    }
+
+    function runTypes() {
+      const output = document.getElementById("typeOutput");
+      output.innerText = "";
+      try {
+        console.clear();
+
+        const lines = [
+          `typeof "Hello": ${typeof "Hello"}`,
+          `typeof 123: ${typeof 123}`,
+          `typeof true: ${typeof true}`,
+          `typeof undefined: ${typeof undefined}`,
+          `typeof null: ${typeof null}`,
+          `typeof {name: "Sam"}: ${typeof {name: "Sam"}}`,
+          `typeof [1, 2, 3]: ${typeof [1, 2, 3]}`,
+        ];
+
+        lines.forEach(line => console.log(line));
+        output.innerText = lines.join("\n") + "\n\nCheck your browser console too!";
+      } catch (e) {
+        output.innerText = "Error: " + e.message;
+      }
+    }
+  </script>
+
 </body>
 </html>
