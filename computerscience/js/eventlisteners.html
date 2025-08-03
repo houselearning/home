@@ -1,160 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Events and Event Listeners - Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .lesson-content {
-            padding: 20px;
-        }
-
-        .lesson-content h2 {
-            color: #333;
-        }
-
-        .lesson-content p {
-            font-size: 18px;
-            line-height: 1.6;
-        }
-
-        .quiz-section {
-            margin-top: 40px;
-            text-align: center;
-        }
-
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-
-        .quiz-section button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        .quiz-section button:hover {
-            background-color: #555;
-        }
-
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>JavaScript Events & Event Listeners Tutorial 🎯</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+      color: #222;
+    }
+    h1, h2 {
+      color: #005a9c;
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #005a9c;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #004080;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      min-height: 120px;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+    }
+    .tip {
+      background-color: #d9e9ff;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #005a9c;
+      margin: 1rem 0;
+      color: #003b66;
+    }
+    ul {
+      background: #e8f0fe;
+      padding: 1rem;
+      border-radius: 10px;
+      color: #003b66;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Lesson: JavaScript Events and Event Listeners</h1>
-    </header>
 
-    <div class="lesson-content">
-        <h2>What are Events in JavaScript?</h2>
-        <p>
-            In JavaScript, events are actions that occur in the browser, such as a user clicking a button, moving the mouse, or pressing a key. These events can be captured and handled using JavaScript to create interactive web pages.
-        </p>
-        <p>
-            An **event listener** is a function that waits for a specific event to occur on an HTML element, and when that event happens, the function is executed.
-        </p>
-        <h2>Example of JavaScript Events:</h2>
-        <p>
-            Here is an example where we listen for a "click" event on a button and change the text of the button when it is clicked:
-        </p>
-        <pre>
-<button id="myButton">Click me!</button>
+  <h1>🎯 JavaScript Events & Event Listeners</h1>
+  <p>
+    Events happen all the time in the browser — clicks, typing, mouse moves, you name it. You can listen and react to these with event listeners to make your page interactive.
+  </p>
 
-<script>
-    const button = document.getElementById("myButton");
+  <h2>📚 Example: Click Event Listener</h2>
+  <textarea readonly id="codeClickListener">
+// Select the button and listen for clicks
+const btn = document.getElementById('myButton');
+btn.addEventListener('click', () => {
+  console.log('Button clicked!');
+  document.getElementById('output1').innerText = 'Button was clicked 🎉';
+});
+  </textarea>
+  <button onclick="runClickListener()">▶️ Run Click Listener</button>
+  <div class="output" id="output1">Click the button after running the code.</div>
 
-    button.addEventListener("click", function() {
-        button.textContent = "You clicked me!";
-    });
-</script>
-        </pre>
+  <button id="myButton" style="margin-top: 20px; padding: 10px 20px; font-size: 1rem;">Click Me</button>
 
+  <h2>⌨️ Example: Keyboard Event Listener</h2>
+  <textarea readonly id="codeKeyListener">
+// Listen for key presses on the whole document
+document.addEventListener('keydown', (event) => {
+  console.log('Key pressed:', event.key);
+  document.getElementById('output2').innerText = `You pressed: ${event.key}`;
+});
+  </textarea>
+  <button onclick="runKeyListener()">▶️ Run Key Listener</button>
+  <div class="output" id="output2">Press any key after running the code.</div>
 
-        
-        <h2>Quiz: Test Your Knowledge</h2>
-        <div class="quiz-section">
-            <div class="question">
-                <p><strong>1. What is an event in JavaScript?</strong></p>
-                <label><input type="radio" name="q1" value="correct"> An action that occurs in the browser, like a click or key press.</label><br>
-                <label><input type="radio" name="q1" value="incorrect"> A method that is used to select HTML elements.</label><br>
-                <label><input type="radio" name="q1" value="incorrect"> A variable that stores user data.</label><br>
-            </div>
+  <h2>🖱️ Example: Mouseover Event</h2>
+  <textarea readonly id="codeMouseover">
+// Change text when hovering over this box
+const box = document.getElementById('hoverBox');
+box.addEventListener('mouseover', () => {
+  box.style.backgroundColor = '#90caf9';
+  box.innerText = 'Mouse is over me!';
+});
+box.addEventListener('mouseout', () => {
+  box.style.backgroundColor = '#e3f2fd';
+  box.innerText = 'Hover over me!';
+});
+  </textarea>
+  <button onclick="runMouseoverListener()">▶️ Run Mouseover Listener</button>
+  <div id="hoverBox" style="margin-top: 20px; padding: 20px; background: #e3f2fd; border-radius: 8px; text-align:center; font-weight: 600; cursor: pointer;">
+    Hover over me!
+  </div>
 
-            <div class="question">
-                <p><strong>2. What does an event listener do in JavaScript?</strong></p>
-                <label><input type="radio" name="q2" value="correct"> It waits for a specific event to occur and runs a function when it does.</label><br>
-                <label><input type="radio" name="q2" value="incorrect"> It stores the event in a variable for future use.</label><br>
-                <label><input type="radio" name="q2" value="incorrect"> It listens for network requests.</label><br>
-            </div>
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li>Use <code>element.addEventListener(event, handler)</code> to listen for events.</li>
+    <li>Common events: <code>click</code>, <code>keydown</code>, <code>mouseover</code>, <code>submit</code>, etc.</li>
+    <li>Event objects give you info about the event, like which key was pressed or mouse position.</li>
+    <li>Remove listeners with <code>removeEventListener</code> if needed.</li>
+    <li>Use event delegation for dynamic content to optimize performance.</li>
+  </ul>
 
-            <div class="question">
-                <p><strong>3. How do you attach an event listener to a button in JavaScript?</strong></p>
-                <label><input type="radio" name="q3" value="incorrect"> button.click("function")</label><br>
-                <label><input type="radio" name="q3" value="correct"> button.addEventListener("click", function)</label><br>
-                <label><input type="radio" name="q3" value="incorrect"> button.onClick(function)</label><br>
-            </div>
+  <script>
+    let keyListenerActive = false;
+    let mouseoverListenerActive = false;
+    let clickListenerActive = false;
 
-            <button onclick="checkQuiz()">Submit Quiz</button>
-            <div class="result" id="result"></div>
-        </div>
-    </div>
+    function runClickListener() {
+      if (clickListenerActive) return;
+      clickListenerActive = true;
 
-    <script>
-        function loadIframeCode() {
-            const iframe = document.getElementById('tryitIframe');
-            const iframeDocument = iframe.contentWindow.document;
-            
-            iframeDocument.open();
-            iframeDocument.write(`
+      const btn = document.getElementById('myButton');
+      btn.addEventListener('click', () => {
+        console.log('Button clicked!');
+        document.getElementById('output1').innerText = 'Button was clicked 🎉';
+      });
+      document.getElementById('output1').innerText = 'Click the button below!';
+    }
 
-            `);
-            iframeDocument.close();
-        }
+    function runKeyListener() {
+      if (keyListenerActive) return;
+      keyListenerActive = true;
 
-        function checkQuiz() {
-            let score = 0;
-            const totalQuestions = 3;
+      document.addEventListener('keydown', (event) => {
+        console.log('Key pressed:', event.key);
+        document.getElementById('output2').innerText = `You pressed: ${event.key}`;
+      });
+      document.getElementById('output2').innerText = 'Press any key!';
+    }
 
-            for (let i = 1; i <= totalQuestions; i++) {
-                const question = document.querySelectorAll(`input[name="q${i}"]:checked`);
-                if (question.length > 0 && question[0].value === 'correct') {
-                    score++;
-                }
-            }
+    function runMouseoverListener() {
+      if (mouseoverListenerActive) return;
+      mouseoverListenerActive = true;
 
-            const result = document.getElementById('result');
-            if (score === totalQuestions) {
-                result.textContent = 'Excellent! You got all questions right.';
-                result.style.color = 'green';
-            } else if (score >= totalQuestions / 2) {
-                result.textContent = `Good job! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'orange';
-            } else {
-                result.textContent = `Keep trying! You answered ${score} out of ${totalQuestions} correctly.`;
-                result.style.color = 'red';
-            }
-        }
-    </script>
+      const box = document.getElementById('hoverBox');
+      box.addEventListener('mouseover', () => {
+        box.style.backgroundColor = '#90caf9';
+        box.innerText = 'Mouse is over me!';
+      });
+      box.addEventListener('mouseout', () => {
+        box.style.backgroundColor = '#e3f2fd';
+        box.innerText = 'Hover over me!';
+      });
+    }
+  </script>
+
 </body>
 </html>
+			
