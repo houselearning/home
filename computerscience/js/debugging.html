@@ -1,171 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript Error Handling and Debugging</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-        }
-        .content {
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .content h2 {
-            color: #333;
-        }
-        .quiz-section {
-            margin-top: 40px;
-            background-color: #e9e9e9;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .quiz-section input[type="radio"] {
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        #result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>JavaScript Error Handling & Debugging Tutorial 🐞</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+    h1, h2 {
+      color: #e91e63;
+    }
+    textarea {
+      width: 100%;
+      height: 240px;
+      font-family: Consolas, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #c2185b;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+    .tip {
+      background-color: #f8bbd0;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #e91e63;
+      margin: 1rem 0;
+    }
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    select {
+      margin-top: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>JavaScript Error Handling and Debugging</h1>
-    </header>
+  <h1>🐞 JavaScript Error Handling & Debugging</h1>
+  <p>
+    Errors happen. You can handle them gracefully using <code>try...catch</code> blocks, and debug using <code>console</code> methods and browser DevTools.
+  </p>
 
-    <div class="content">
-        <h2>What is Error Handling?</h2>
-        <p>
-            In JavaScript, error handling is done using `try...catch` blocks. Errors can be handled gracefully without stopping the execution of the program. Debugging is the process of identifying and fixing errors in your code.
-        </p>
-
-        <h3>1. Try...Catch</h3>
-        <p>The `try...catch` statement allows you to test a block of code for errors and handle them without stopping the entire program.</p>
-        <pre><code>
+  <h2>🚨 Example: Basic Try...Catch</h2>
+  <textarea readonly>
 try {
-    let result = riskyFunction();
+  let result = 10 / 0;
+  console.log("Result is:", result);
+
+  // Simulate an error
+  nonExistentFunction();
 } catch (error) {
-    console.error("An error occurred:", error);
+  console.error("Caught an error:", error.message);
 }
-        </code></pre>
+  </textarea>
+  <button onclick="runTryCatch()">▶️ Run Try...Catch</button>
 
-        <h3>2. Throwing Errors</h3>
-        <p>You can throw custom errors using the `throw` keyword. This helps in defining your own error messages when something goes wrong in your program.</p>
-        <pre><code>
-function checkAge(age) {
-    if (age < 18) {
-        throw new Error("Age must be 18 or older!");
+  <div class="output" id="tryCatchOutput">Console output will appear here...</div>
+
+  <div class="tip">
+    ⚠️ Always handle possible errors to prevent app crashes. Use <code>console.error()</code> for debugging issues.
+  </div>
+
+  <h2>🔍 Example: Debugging with Console</h2>
+  <textarea readonly>
+// Useful console methods for debugging
+console.log("This is a log message.");
+console.warn("This is a warning!");
+console.error("This is an error!");
+console.table([{name: "Alice", age: 25}, {name: "Bob", age: 30}]);
+  </textarea>
+  <button onclick="runConsoleDebug()">▶️ Run Console Debug</button>
+
+  <div class="output" id="consoleDebugOutput">Console output will appear here...</div>
+
+  <h2>🛠️ Example: Finally Block</h2>
+  <textarea readonly>
+try {
+  console.log("Trying risky code...");
+  throw new Error("Oops, something failed!");
+} catch (err) {
+  console.error("Caught:", err.message);
+} finally {
+  console.log("Finally block always runs.");
+}
+  </textarea>
+  <button onclick="runFinally()">▶️ Run Finally</button>
+
+  <div class="output" id="finallyOutput">Console output will appear here...</div>
+
+  <h2>🚀 Playground: Custom Console Log</h2>
+  <textarea id="customConsoleInput" placeholder="Type your message here..."></textarea>
+  <br>
+  <select id="logType">
+    <option value="neutral">Neutral (console.log)</option>
+    <option value="warn">Warning (console.warn)</option>
+    <option value="error">Error (console.error)</option>
+  </select>
+  <br>
+  <button onclick="previewConsoleLog()">▶️ Preview Log</button>
+
+  <div class="output" id="customConsoleOutput">Console preview will appear here...</div>
+
+  <h2>⚡ Quick Tips</h2>
+  <ul>
+    <li>Wrap risky code in <code>try...catch</code> blocks to handle exceptions.</li>
+    <li><code>finally</code> always runs, useful for cleanup tasks.</li>
+    <li>Use <code>console.log()</code>, <code>console.warn()</code>, <code>console.error()</code>, and <code>console.table()</code> for debugging.</li>
+    <li>Open DevTools (F12) in browser → Console tab to see logs/errors live.</li>
+  </ul>
+
+  <script>
+    function runTryCatch() {
+      let log = '';
+      try {
+        let result = 10 / 0;
+        log += `Result is: ${result}\n`;
+        // Simulate error
+        nonExistentFunction();
+      } catch (error) {
+        log += `Caught an error: ${error.message}`;
+      }
+      document.getElementById("tryCatchOutput").innerText = log;
+      console.error(log);
     }
-    return "Age is valid.";
-}
-        </code></pre>
 
-        <h3>3. Debugging Tools</h3>
-        <p>Debugging JavaScript code can be done using tools like `console.log()`, `debugger`, or even browser developer tools (DevTools).</p>
-        <p>For example, you can use `console.log()` to print the value of variables to the console to understand the program's behavior.</p>
-        <pre><code>
-let x = 10;
-console.log("The value of x is:", x);
-        </code></pre>
+    function runConsoleDebug() {
+      const log = `This is a log message.
+This is a warning!
+This is an error!
+┌─────────┬───────┬─────┐
+│ (index) │ name  │ age │
+├─────────┼───────┼─────┤
+│    0    │ Alice │ 25  │
+│    1    │ Bob   │ 30  │
+└─────────┴───────┴─────┘`;
+      document.getElementById("consoleDebugOutput").innerText = log;
+      console.log("This is a log message.");
+      console.warn("This is a warning!");
+      console.error("This is an error!");
+      console.table([{name: "Alice", age: 25}, {name: "Bob", age: 30}]);
+    }
 
-        <h3>Interactive Example</h3>
-        <p>Try throwing an error and catching it:</p>
-        <button onclick="throwAndCatchError()">Try It</button>
-        <div id="output"></div>
-    </div>
+    function runFinally() {
+      const log = `Trying risky code...
+Caught: Oops, something failed!
+Finally block always runs.`;
+      document.getElementById("finallyOutput").innerText = log;
+      console.log("Trying risky code...");
+      console.error("Caught: Oops, something failed!");
+      console.log("Finally block always runs.");
+    }
 
-    <div class="quiz-section">
-        <h2>Quiz: Test Your Knowledge</h2>
-        <p><strong>1. What does the `try` block in a `try...catch` statement do?</strong></p>
-        <label><input type="radio" name="q1" value="a"> It defines the block of code to execute.</label><br>
-        <label><input type="radio" name="q1" value="b"> It defines the block of code where errors might occur.</label><br>
-        <label><input type="radio" name="q1" value="c"> It catches errors in the program.</label><br>
+    function previewConsoleLog() {
+      const message = document.getElementById("customConsoleInput").value;
+      const type = document.getElementById("logType").value;
+      let styledMessage = '';
 
-        <p><strong>2. What does the `throw` keyword do?</strong></p>
-        <label><input type="radio" name="q2" value="a"> It throws an error and stops the program.</label><br>
-        <label><input type="radio" name="q2" value="b"> It creates a new object in JavaScript.</label><br>
-        <label><input type="radio" name="q2" value="c"> It throws an exception, which can be caught in a `catch` block.</label><br>
+      if (type === 'neutral') {
+        console.log(message);
+        styledMessage = `Log: ${message}`;
+      } else if (type === 'warn') {
+        console.warn(message);
+        styledMessage = `⚠️ Warning: ${message}`;
+      } else if (type === 'error') {
+        console.error(message);
+        styledMessage = `❌ Error: ${message}`;
+      }
 
-        <p><strong>3. What is the purpose of `console.log()`?</strong></p>
-        <label><input type="radio" name="q3" value="a"> To display output in the browser's console for debugging purposes.</label><br>
-        <label><input type="radio" name="q3" value="b"> To stop the execution of the program.</label><br>
-        <label><input type="radio" name="q3" value="c"> To display a pop-up message on the screen.</label><br>
-
-        <button onclick="checkQuiz()">Submit Quiz</button>
-
-        <div id="result"></div>
-    </div>
-
-    <script>
-        // Example function for throwing and catching errors
-        function throwAndCatchError() {
-            try {
-                let age = 16;
-                if (age < 18) {
-                    throw new Error("Age must be 18 or older!");
-                }
-                document.getElementById("output").innerHTML = "Age is valid.";
-            } catch (error) {
-                document.getElementById("output").innerHTML = "Error: " + error.message;
-            }
-        }
-
-        // Quiz checking logic
-        function checkQuiz() {
-            let score = 0;
-            let totalQuestions = 3;
-
-            // Check the answers for each question
-            if (document.querySelector('input[name="q1"]:checked') && document.querySelector('input[name="q1"]:checked').value === 'b') {
-                score++;
-            }
-            if (document.querySelector('input[name="q2"]:checked') && document.querySelector('input[name="q2"]:checked').value === 'c') {
-                score++;
-            }
-            if (document.querySelector('input[name="q3"]:checked') && document.querySelector('input[name="q3"]:checked').value === 'a') {
-                score++;
-            }
-
-            // Display result
-            let resultText = "";
-            if (score === totalQuestions) {
-                resultText = "Excellent! You got all questions right!";
-            } else if (score >= totalQuestions / 2) {
-                resultText = "Good job! You answered " + score + " out of " + totalQuestions + " correctly.";
-            } else {
-                resultText = "Keep trying! You got " + score + " out of " + totalQuestions + " correct.";
-            }
-
-            document.getElementById('result').innerText = resultText;
-        }
-    </script>
+      document.getElementById("customConsoleOutput").innerText = styledMessage;
+    }
+  </script>
 
 </body>
 </html>
