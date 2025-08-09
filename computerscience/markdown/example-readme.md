@@ -45,3 +45,9 @@ Provide clear, step-by-step instructions on how to set up the development enviro
 git clone <repository_url>
 cd <project_directory>
 npm install 
+```
+## Note
+
+To see the code of this README file, click the "Code" button at the top.
+
+<img src="https://houselearning.github.io/home/computerscience/markdown/img/code-btn.png">
