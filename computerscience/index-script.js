@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
   const body = document.body;
   const dayBtn = document.getElementById('day-btn');
   const nightBtn = document.getElementById('night-btn');
@@ -2377,6 +2377,17 @@ outputCanvas.appendChild(playButton);`
       outputText.textContent = 'No console output or errors.';
     }
   });
+  const refreshSnippetBtn = document.getElementById('refresh-snippet-btn'); // Define the variable
+  if (refreshSnippetBtn) {
+    refreshSnippetBtn.addEventListener('click', () => {
+      selectRandomSnippet();
+    });
+  }
 
+  const refreshLessonBtn = document.getElementById('refresh-lesson-btn');
+  refreshLessonBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    selectRandomLesson();
+  });
   selectRandomSnippet();
 });
