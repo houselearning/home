@@ -1331,14 +1331,684 @@ outputCanvas.appendChild(playButton);`
     const currentLangData = snippetsData[langKey];
     const currentSnippet = currentLangData.snippets.find(s => s.code === codeSnippetElement.textContent);
 
-    if (currentLangData.runnable) {
+    let hasCanvasOutput = false;
+    let consoleOutput = ''; // Reset console output on each run
+
+    // Function to perform basic Markdown to HTML conversion
+    const markdownToHtml = (markdown) => {
+        let html = markdown
+            .replace(/^#\s(.*$)/gim, '<h1>$1</h1>')
+            .replace(/^##\s(.*$)/gim, '<h2>$1</h2>')
+            .replace(/^###\s(.*$)/gim, '<h3>$1</h3>')
+            .replace(/^\s*\*\s(.*$)/gim, '<li>$1</li>') // Handle unordered lists
+            .replace(/^>\s(.*$)/gim, '<blockquote>$1</blockquote>')
+            .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+            .replace(/\*(.*)\*/gim, '<em>$1</em>')
+            .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>')
+            .replace(/```(.*?)```/gims, '<pre><code>$1</code></pre>') // Code blocks
+            .replace(/\`(.*?)\`/gims, '<code>$1</code>') // Inline code
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        
+        // Wrap paragraphs in <p> tags
+        html = '<p>' + html + '</p>';
+        return html;
+    };
+
+    // Logic for HTML, CSS, Markdown, and other previews
+    const snippetCode = codeSnippetElement.textContent;
+    const isHTML = ['bootstrap', 'tailwind'].includes(langKey);
+    const isCSS = langKey === 'css';
+    const isMarkdown = langKey === 'markdown';
+    const isFileDownload = (langKey === 'powershell' && currentSnippet.description.includes('exports them to a CSV file')) || (langKey === 'bash' && currentSnippet.description.includes('backs up a directory'));
+    const isPlot = ['r', 'matlab'].includes(langKey) && currentSnippet.description.includes('plot');
+    const isUrlDownload = langKey === 'python' && currentSnippet.description.includes('download URLs concurrently');
+
+    if (isHTML) {
+      outputCanvas.innerHTML = `<style>
+        .container {
+          padding: 1rem;
+        }
+        .card {
+          border: 1px solid #ccc;
+          border-radius: 0.25rem;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* Basic Bootstrap/Tailwind card styling for a clean preview */
+        .card-body, .px-6, .py-4 { padding: 1rem; }
+        .card-title, .font-bold { font-weight: bold; }
+      </style>
+      <div class="container">${snippetCode}</div>`;
+      outputText.textContent = 'Previewing HTML/CSS output in the canvas.';
+      hasCanvasOutput = true;
+    } else if (isCSS) {
+      const styleTag = document.createElement('style');
+      styleTag.textContent = snippetCode;
+      outputCanvas.appendChild(styleTag);
+      outputCanvas.innerHTML += `<button class="btn-modern">Styled Button</button>`;
+      outputText.textContent = 'CSS preview applied to a sample element in the canvas.';
+      hasCanvasOutput = true;
+    } else if (isMarkdown) {
+      const htmlOutput = markdownToHtml(snippetCode);
+      outputCanvas.innerHTML = `<div class="markdown-preview">${htmlOutput}</div>`;
+      outputText.textContent = 'Markdown translated to HTML and previewed in the canvas.';
+      hasCanvasOutput = true;
+    } else if (isPlot) {
+        outputCanvas.innerHTML = `
+            <style>
+                .plot-canvas-wrapper {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                    height: 100%;
+                    background-color: #fff;
+                    border: 1px solid #ccc;
+                }
+            </style>
+            <div class="plot-canvas-wrapper">
+                <canvas id="plot-canvas" width="400" height="300"></canvas>
+            </div>
+        `;
+        outputText.textContent = `Generating a simulated ${langKey} plot on the canvas.`;
+
+        const plotCanvas = document.getElementById('plot-canvas');
+        const ctx = plotCanvas.getContext('2d');
+        
+        ctx.clearRect(0, 0, plotCanvas.width, plotCanvas.height);
+        
+        // Draw axes
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(30, 270);
+        ctx.lineTo(380, 270);
+        ctx.lineTo(380, 30);
+        ctx.stroke();
+
+        // Draw sine wave
+        if (langKey === 'r') {
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i <= 400; i++) {
+                const x = i;
+                const y = 100 * Math.sin((i / 400) * 2 * Math.PI) + 150;
+                if (i === 0) {
+                    ctx.moveTo(x + 30, y);
+                } else {
+                    ctx.lineTo(x + 30, y);
+                }
+            }
+            ctx.stroke();
+        } else if (langKey === 'matlab') {
+            // Draw a simulated 3D plot
+            ctx.fillStyle = '#ccc';
+            ctx.beginPath();
+            ctx.moveTo(50, 150);
+            ctx.lineTo(150, 50);
+            ctx.lineTo(350, 150);
+            ctx.lineTo(250, 250);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('Simulated 3D Plot', 150, 20);
+        }
+
+        hasCanvasOutput = true;
+    } else if (isUrlDownload) {
+        const showFileViewerWithFiles = (files) => {
+            const fileListHtml = files.map(file => `<li data-file="${file}">${file}</li>`).join('');
+            outputCanvas.innerHTML = `
+              <style>
+                .file-viewer-container {
+                  padding: 20px;
+                  font-family: sans-serif;
+                  color: #333;
+                }
+                .file-viewer-container h4 {
+                  margin-bottom: 15px;
+                }
+                .file-list {
+                  list-style-type: none;
+                  padding: 0;
+                }
+                .file-list li {
+                  padding: 8px 10px;
+                  border-bottom: 1px solid #eee;
+                  cursor: pointer;
+                  transition: background-color 0.2s ease;
+                }
+                .file-list li:hover {
+                  background-color: #f0f0f0;
+                }
+                .file-list li:last-child {
+                  border-bottom: none;
+                }
+              </style>
+              <div class="file-viewer-container">
+                <h4>File Viewer</h4>
+                <ul class="file-list">
+                  ${fileListHtml}
+                </ul>
+              </div>
+            `;
+            outputText.textContent = 'Simulated file viewer. Click a file to open.';
+        };
+        const showLoadingDialog = (fileName) => {
+            outputCanvas.innerHTML = `
+              <style>
+                .dialog-box {
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: #fff;
+                  border: 1px solid #ccc;
+                  padding: 20px;
+                  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                  width: 300px;
+                  text-align: center;
+                  border-radius: 8px;
+                }
+                .progress-bar-container {
+                  width: 100%;
+                  background-color: #e0e0e0;
+                  border-radius: 5px;
+                  margin-top: 15px;
+                }
+                .progress-bar {
+                  width: 0%;
+                  height: 20px;
+                  background-color: #4CAF50;
+                  border-radius: 5px;
+                  transition: width 0.4s ease;
+                }
+              </style>
+              <div class="dialog-box">
+                <h4>Opening ${fileName}...</h4>
+                <div class="progress-bar-container">
+                  <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <p>Loading...</p>
+              </div>
+            `;
+            const progressBar = document.getElementById('progress-bar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (progress >= 70) {
+                    clearInterval(interval);
+                    showFileErrorDialog(fileName);
+                    return;
+                }
+                progress += 10;
+                progressBar.style.width = `${progress}%`;
+            }, 300);
+        };
+        const showFileErrorDialog = (fileName) => {
+            outputCanvas.innerHTML = `
+              <style>
+                .dialog-box {
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: #fff;
+                  border: 1px solid #ccc;
+                  padding: 20px;
+                  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                  width: 300px;
+                  text-align: center;
+                  border-radius: 8px;
+                }
+                .dialog-box h4 {
+                    color: #ff6347;
+                }
+                .dialog-box button {
+                    padding: 8px 20px;
+                    margin-top: 15px;
+                    cursor: pointer;
+                }
+                .learn-more-link {
+                    display: block;
+                    margin-top: 10px;
+                    font-size: 14px;
+                }
+              </style>
+              <div class="dialog-box">
+                <h4>File Error</h4>
+                <p>There was an error opening the file: ${fileName}</p>
+                <a href="#" class="learn-more-link" id="learn-more">Learn More</a>
+                <button id="ok-btn">OK</button>
+              </div>
+            `;
+            document.getElementById('ok-btn').addEventListener('click', () => {
+              showFileViewerWithFiles(['Google.html', 'Bing.html', 'Python.html']);
+            });
+            document.getElementById('learn-more').addEventListener('click', (e) => {
+              e.preventDefault();
+              showBrowser();
+            });
+        };
+        const showBrowser = () => {
+            outputCanvas.innerHTML = `
+              <style>
+                .browser-container {
+                  border: 1px solid #ccc;
+                  height: 100%;
+                  width: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  background-color: #f1f1f1;
+                }
+                .browser-header {
+                  display: flex;
+                  align-items: center;
+                  padding: 5px 10px;
+                  background-color: #ddd;
+                  border-bottom: 1px solid #ccc;
+                  font-family: sans-serif;
+                }
+                .browser-header span {
+                  margin-right: auto;
+                  font-weight: bold;
+                }
+                .browser-header .address-bar {
+                  flex-grow: 1;
+                  padding: 3px 8px;
+                  background-color: #fff;
+                  border: 1px solid #ccc;
+                  border-radius: 5px;
+                  margin: 0 10px;
+                  font-size: 12px;
+                }
+                .browser-header button {
+                  border: none;
+                  background: #ff6347;
+                  color: #fff;
+                  padding: 3px 8px;
+                  border-radius: 5px;
+                  cursor: pointer;
+                }
+                .browser-body {
+                  flex-grow: 1;
+                  padding: 20px;
+                  background-color: #fff;
+                  overflow-y: auto;
+                }
+              </style>
+              <div class="browser-container">
+                <div class="browser-header">
+                  <span>Browser</span>
+                  <div class="address-bar">messages.cs.com/fil...</div>
+                  <button id="close-browser-btn">Close</button>
+                </div>
+                <div class="browser-body">
+                  <h4>File Error Dialog, what to do</h4>
+                  <hr>
+                  <p>This is just a simmulation, so this error is just here</p>
+                </div>
+              </div>
+            `;
+            document.getElementById('close-browser-btn').addEventListener('click', () => {
+              showFileErrorDialog('Google.html');
+            });
+        };
+        showFileViewerWithFiles(['Google.html', 'Bing.html', 'Python.html']);
+        outputCanvas.addEventListener('click', (e) => {
+            if (e.target.tagName === 'LI') {
+              const fileName = e.target.dataset.file;
+              showLoadingDialog(fileName);
+            }
+        });
+        hasCanvasOutput = true;
+    } else if (isFileDownload) {
+      if (langKey === 'powershell') {
+        outputCanvas.innerHTML = `
+            <style>
+                .csv-table-container {
+                    padding: 20px;
+                    font-family: monospace;
+                    overflow-x: auto;
+                }
+                .csv-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    border: 1px solid #ccc;
+                }
+                .csv-table th, .csv-table td {
+                    border: 1px solid #ccc;
+                    padding: 8px;
+                    text-align: left;
+                }
+                .csv-table th {
+                    background-color: #f2f2f2;
+                }
+            </style>
+            <div class="csv-table-container">
+                <h4>top_processes.csv</h4>
+                <table class="csv-table">
+                    <thead>
+                        <tr>
+                            <th>ProcessName</th>
+                            <th>Id</th>
+                            <th>CPU</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>System</td>
+                            <td>4</td>
+                            <td>12.5</td>
+                        </tr>
+                        <tr>
+                            <td>svchost</td>
+                            <td>820</td>
+                            <td>8.1</td>
+                        </tr>
+                        <tr>
+                            <td>powershell</td>
+                            <td>1234</td>
+                            <td>5.3</td>
+                        </tr>
+                        <tr>
+                            <td>chrome</td>
+                            <td>5678</td>
+                            <td>4.9</td>
+                        </tr>
+                        <tr>
+                            <td>firefox</td>
+                            <td>9101</td>
+                            <td>3.2</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+        outputText.textContent = 'Simulated CSV file displayed on the canvas.';
+        hasCanvasOutput = true;
+      } else {
+        const showFileViewer = () => {
+          outputCanvas.innerHTML = `
+            <style>
+              .file-viewer-container {
+                padding: 20px;
+                font-family: sans-serif;
+                color: #333;
+              }
+              .file-viewer-container h4 {
+                margin-bottom: 15px;
+              }
+              .file-list {
+                list-style-type: none;
+                padding: 0;
+              }
+              .file-list li {
+                padding: 8px 10px;
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+              }
+              .file-list li:hover {
+                background-color: #f0f0f0;
+              }
+              .file-list li:last-child {
+                border-bottom: none;
+              }
+            </style>
+            <div class="file-viewer-container">
+              <h4>File Viewer</h4>
+              <ul class="file-list">
+                <li data-file="top_processes.csv">top_processes.csv</li>
+                <li data-file="backup-2025-08-09_07-30-00.tar.gz">backup-2025-08-09_07-30-00.tar.gz</li>
+                <li data-file="another-file.txt">another-file.txt</li>
+              </ul>
+            </div>
+          `;
+          outputText.textContent = 'Simulated file viewer. Click a file to open.';
+        };
+  
+        const showLoadingDialog = (fileName) => {
+          outputCanvas.innerHTML = `
+            <style>
+              .dialog-box {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #fff;
+                border: 1px solid #ccc;
+                padding: 20px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                width: 300px;
+                text-align: center;
+                border-radius: 8px;
+              }
+              .progress-bar-container {
+                width: 100%;
+                background-color: #e0e0e0;
+                border-radius: 5px;
+                margin-top: 15px;
+              }
+              .progress-bar {
+                width: 0%;
+                height: 20px;
+                background-color: #4CAF50;
+                border-radius: 5px;
+                transition: width 0.4s ease;
+              }
+            </style>
+            <div class="dialog-box">
+              <h4>Opening ${fileName}...</h4>
+              <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+              </div>
+              <p>Loading...</p>
+            </div>
+          `;
+  
+          const progressBar = document.getElementById('progress-bar');
+          let progress = 0;
+          const interval = setInterval(() => {
+              if (progress >= 70) {
+                  clearInterval(interval);
+                  showFileErrorDialog(fileName);
+                  return;
+              }
+              progress += 10;
+              progressBar.style.width = `${progress}%`;
+          }, 300);
+        };
+  
+        const showFileErrorDialog = (fileName) => {
+          outputCanvas.innerHTML = `
+            <style>
+              .dialog-box {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #fff;
+                border: 1px solid #ccc;
+                padding: 20px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                width: 300px;
+                text-align: center;
+                border-radius: 8px;
+              }
+              .dialog-box h4 {
+                  color: #ff6347;
+              }
+              .dialog-box button {
+                  padding: 8px 20px;
+                  margin-top: 15px;
+                  cursor: pointer;
+              }
+              .learn-more-link {
+                  display: block;
+                  margin-top: 10px;
+                  font-size: 14px;
+              }
+            </style>
+            <div class="dialog-box">
+              <h4>File Error</h4>
+              <p>There was an error opening the file: ${fileName}</p>
+              <a href="#" class="learn-more-link" id="learn-more">Learn More</a>
+              <button id="ok-btn">OK</button>
+            </div>
+          `;
+  
+          document.getElementById('ok-btn').addEventListener('click', () => {
+            showFileViewer();
+          });
+  
+          document.getElementById('learn-more').addEventListener('click', (e) => {
+            e.preventDefault();
+            showBrowser();
+          });
+        };
+  
+        const showBrowser = () => {
+          outputCanvas.innerHTML = `
+            <style>
+              .browser-container {
+                border: 1px solid #ccc;
+                height: 100%;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                background-color: #f1f1f1;
+              }
+              .browser-header {
+                display: flex;
+                align-items: center;
+                padding: 5px 10px;
+                background-color: #ddd;
+                border-bottom: 1px solid #ccc;
+                font-family: sans-serif;
+              }
+              .browser-header span {
+                margin-right: auto;
+                font-weight: bold;
+              }
+              .browser-header .address-bar {
+                flex-grow: 1;
+                padding: 3px 8px;
+                background-color: #fff;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                margin: 0 10px;
+                font-size: 12px;
+              }
+              .browser-header button {
+                border: none;
+                background: #ff6347;
+                color: #fff;
+                padding: 3px 8px;
+                border-radius: 5px;
+                cursor: pointer;
+              }
+              .browser-body {
+                flex-grow: 1;
+                padding: 20px;
+                background-color: #fff;
+                overflow-y: auto;
+              }
+            </style>
+            <div class="browser-container">
+              <div class="browser-header">
+                <span>Browser</span>
+                <div class="address-bar">messages.cs.com/fil...</div>
+                <button id="close-browser-btn">Close</button>
+              </div>
+              <div class="browser-body">
+                <h4>File Error Dialog, what to do</h4>
+                <hr>
+                <p>This is just a simmulation, so this error is just here</p>
+              </div>
+            </div>
+          `;
+  
+          document.getElementById('close-browser-btn').addEventListener('click', () => {
+            showFileErrorDialog('top_processes.csv'); // Return to the previous state
+          });
+        };
+        showFileViewer();
+        outputCanvas.addEventListener('click', (e) => {
+          if (e.target.tagName === 'LI') {
+            const fileName = e.target.dataset.file;
+            showLoadingDialog(fileName);
+          }
+        });
+        hasCanvasOutput = true;
+      }
+    } else if (langKey === 'sql' && currentSnippet && currentSnippet.simulatedOutput) {
+        // SQL output handling
+        const lines = currentSnippet.simulatedOutput.trim().split('\n');
+        if (lines.length > 2) {
+            const headerLine = lines[0];
+            const dataLines = lines.slice(2);
+            const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
+            
+            let tableHtml = `
+                <style>
+                    .csv-table-container {
+                        padding: 20px;
+                        font-family: monospace;
+                        overflow-x: auto;
+                    }
+                    .csv-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        border: 1px solid #ccc;
+                    }
+                    .csv-table th, .csv-table td {
+                        border: 1px solid #ccc;
+                        padding: 8px;
+                        text-align: left;
+                    }
+                    .csv-table th {
+                        background-color: #f2f2f2;
+                        font-weight: bold;
+                    }
+                </style>
+                <div class="csv-table-container">
+                    <h4>SQL Query Result</h4>
+                    <table class="csv-table">
+                        <thead>
+                            <tr>
+                                ${headers.map(h => `<th>${h}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dataLines.map(line => {
+                                const cells = line.split('|').map(c => c.trim()).filter(c => c);
+                                return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            outputCanvas.innerHTML = tableHtml;
+            outputText.textContent = 'Simulated SQL query results displayed on the canvas.';
+            hasCanvasOutput = true;
+        } else {
+            // Handle cases with no data or a malformed table
+            outputText.textContent = currentSnippet.simulatedOutput;
+        }
+    } else if (currentLangData.runnable) {
+      // Use a temporary variable to capture console output
       const originalConsoleLog = console.log;
       console.log = (...args) => {
-        outputText.textContent += args.join(' ') + '\n';
+        consoleOutput += args.join(' ') + '\n';
       };
       const originalConsoleError = console.error;
       console.error = (...args) => {
-        outputText.textContent += 'Error: ' + args.join(' ') + '\n';
+        consoleOutput += `<span class="console-error">Error: ${args.join(' ')}</span>\n`;
       };
 
       try {
@@ -1355,6 +2025,8 @@ outputCanvas.appendChild(playButton);`
             const threeCode = new Function('THREE', 'document', 'outputCanvas', snippetCode);
             threeCode(window.THREE, document, outputCanvas);
           }
+          hasCanvasOutput = true;
+          outputText.textContent = 'Previewing 3D scene in the canvas.';
         } else if (langKey === 'tone.js') {
           if (typeof Tone === 'undefined') {
             const script = document.createElement('script');
@@ -1368,20 +2040,63 @@ outputCanvas.appendChild(playButton);`
             const toneCode = new Function('Tone', 'document', 'outputCanvas', snippetCode);
             toneCode(window.Tone, document, outputCanvas);
           }
+          hasCanvasOutput = true;
+          outputText.textContent = 'Interactive audio component preview in the canvas.';
         } else {
           const codeFunction = new Function('console', 'document', 'outputCanvas', currentSnippet.code);
           codeFunction(console, document, outputCanvas);
+          // Check if the runnable code has appended anything to the canvas
+          if (outputCanvas.innerHTML.trim() !== '') {
+            hasCanvasOutput = true;
+            outputText.textContent = 'Output displayed in the canvas.';
+          }
         }
       } catch (e) {
-        outputText.textContent += `Execution Error: ${e.message}\n`;
+        consoleOutput += `<span class="console-error">Execution Error: ${e.message}</span>\n`;
       } finally {
+        // Restore console.log and console.error
         console.log = originalConsoleLog;
         console.error = originalConsoleError;
       }
-    } else if (currentSnippet && currentSnippet.simulatedOutput) {
-      outputText.textContent = currentSnippet.simulatedOutput;
-    } else {
-      outputText.textContent = 'No simulated output available for this snippet.';
+    }
+
+    if (consoleOutput.trim() !== '') {
+      outputCanvas.innerHTML = `
+        <style>
+          .console-container {
+              font-family: monospace;
+              white-space: pre-wrap;
+              background-color: #2e2e2e;
+              color: #d4d4d4;
+              padding: 10px;
+              border-radius: 5px;
+              height: 100%;
+              overflow-y: auto;
+          }
+          .console-header {
+              font-weight: bold;
+              color: #ffffff;
+              border-bottom: 1px solid #555;
+              padding-bottom: 5px;
+              margin-bottom: 5px;
+          }
+          .console-error {
+              color: #ff6347;
+          }
+        </style>
+        <div class="console-container">
+          <b class="console-header">Developer Console</b>
+          <p>${consoleOutput}</p>
+        </div>
+      `;
+      outputText.textContent = 'Output displayed in Developer Console.';
+    } else if (!hasCanvasOutput && currentSnippet && currentSnippet.simulatedOutput) {
+        // Fallback for non-runnable snippets with simulated output
+        outputText.textContent = currentSnippet.simulatedOutput;
+    } else if (!hasCanvasOutput && !isMarkdown) {
+      // If there's no console output, no canvas output, and it's not a markdown file, show a generic message
+      outputCanvas.innerHTML = '';
+      outputText.textContent = 'No console output or errors.';
     }
   });
 
