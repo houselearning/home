@@ -203,23 +203,42 @@ my_slow_function(2)`,
       name: 'JavaScript',
       snippets: [
         {
-          description: 'An advanced `fetch` example with async/await to get data from a public API.',
+          description: 'An advanced `fetch` example with async/await to get data from a public API and display it directly.',
           code: `async function fetchPosts() {
     try {
         const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
         if (!response.ok) {
+            // Throw an error for bad HTTP statuses
             throw new Error(\`HTTP error! status: \${response.status}\`);
         }
         const data = await response.json();
-        console.log('Fetched Posts:');
+
+        // Create a container for the posts
+        const postsContainer = document.createElement('div');
+        postsContainer.classList.add('fetched-posts-container'); // Add a class for potential styling
+        postsContainer.innerHTML = '<h3>Fetched Posts:</h3>';
+
+        // Loop through the fetched data and create elements for each post title
         data.forEach(post => {
-            console.log(\`Title: \${post.title}\`);
+            const postElement = document.createElement('p'); // Use <p> for each post title
+            postElement.textContent = \`Title: \${post.title}\`;
+            postsContainer.appendChild(postElement);
         });
+
+        // Clear any previous content in outputCanvas and append the new posts
+        outputCanvas.innerHTML = '';
+        outputCanvas.appendChild(postsContainer);
+
+        // Indicate successful display in the \`outputText\` area
+        outputText.textContent = 'Successfully fetched and displayed posts.';
+
     } catch (error) {
+        // Log errors to the console, which will be captured and displayed in the Developer Console
         console.error('Error fetching data:', error);
+        outputText.textContent = 'Error fetching data. Check Developer Console for details.';
     }
 }
-fetchPosts();`
+fetchPosts(); // Call the function to execute the fetch operation`
         },
         {
           description: 'Creates a simple, interactive canvas drawing application.',
@@ -705,15 +724,15 @@ plot(x, y, type = "l", main = "Sine Wave", col = "blue")`,
       snippets: [
         {
           description: 'A query that joins two tables and filters by a condition.',
-          code: `SELECT 
+          code: `SELECT
     c.CustomerID,
     c.CustomerName,
     o.OrderID
-FROM 
+FROM
     Customers c
-INNER JOIN 
+INNER JOIN
     Orders o ON c.CustomerID = o.CustomerID
-WHERE 
+WHERE
     o.OrderDate >= '2025-01-01';`,
           simulatedOutput: `| CustomerID | CustomerName | OrderID |
 |------------|--------------|---------|
@@ -723,16 +742,16 @@ WHERE
         },
         {
           description: 'A query to calculate the total sales for each category.',
-          code: `SELECT 
+          code: `SELECT
     p.Category,
     SUM(od.Quantity * od.UnitPrice) as TotalSales
-FROM 
+FROM
     Products p
-INNER JOIN 
+INNER JOIN
     OrderDetails od ON p.ProductID = od.ProductID
-GROUP BY 
+GROUP BY
     p.Category
-ORDER BY 
+ORDER BY
     TotalSales DESC;`,
           simulatedOutput: `| Category | TotalSales |
 |----------|------------|
@@ -741,7 +760,7 @@ ORDER BY
 | Confections | 7621.25 |`
         }
       ],
-      runnable: false
+      runnable: false // SQL is not directly runnable in the browser, so keep this false.
     },
     dart: {
       name: 'Dart',
@@ -866,6 +885,23 @@ while (my $line = <$fh>) {
 }
 close $fh;`,
           simulatedOutput: `Found email: example@email.com`
+        },
+        {
+          description: 'A script to read from standard input and print each line with a line number.',
+          code: `#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $line_num = 1;
+while (<STDIN>) {
+    print "$line_num: $_";
+    $line_num++;
+}`,
+          simulatedOutput: `Input some lines and press Ctrl+D (Unix/Linux) or Ctrl+Z (Windows) to finish:
+Line 1
+Line 2
+1: Line 1
+2: Line 2`
         }
       ],
       runnable: false
@@ -897,6 +933,28 @@ close $fh;`,
     ]
 }`,
           simulatedOutput: `No output to display. JSON is a data format, not an executable script.`
+        },
+        {
+          description: 'A JSON array representing a list of products with their prices and availability.',
+          code: `[
+  {
+    "id": "prod_001",
+    "name": "Laptop Pro",
+    "category": "Electronics",
+    "price": 1200.00,
+    "inStock": true,
+    "tags": ["laptop", "computer", "powerful"]
+  },
+  {
+    "id": "prod_002",
+    "name": "Mechanical Keyboard",
+    "category": "Peripherals",
+    "price": 99.99,
+    "inStock": false,
+    "tags": ["keyboard", "gaming"]
+  }
+]`,
+          simulatedOutput: `No output to display. JSON is a data format, not an executable script.`
         }
       ],
       runnable: false
@@ -908,6 +966,21 @@ close $fh;`,
           description: 'A script that lists all running processes and exports them to a CSV file.',
           code: `Get-Process | Sort-Object -Property CPU -Descending | Select-Object -First 10 | Export-Csv -Path "C:\\temp\\top_processes.csv" -NoTypeInformation`,
           simulatedOutput: `A CSV file "top_processes.csv" would be created in the "C:\\temp" directory.`
+        },
+        {
+          description: 'A script to display system uptime.',
+          code: `(Get-Date) - (Get-WmiObject win32_operatingsystem).LastBootUpTime`,
+          simulatedOutput: `Days              : 7
+Hours             : 14
+Minutes           : 30
+Seconds           : 15
+Milliseconds      : 0
+Ticks             : 6642150000000
+TotalDays         : 7.68767361111111
+TotalHours        : 184.504166666667
+TotalMinutes      : 11070.25
+TotalSeconds      : 664215
+TotalMilliseconds : 664215000`
         }
       ],
       runnable: false
@@ -930,6 +1003,19 @@ else
     # e.g., /usr/bin/my_app &
 fi`,
           simulatedOutput: `The script would write a log message to /var/log/my_app_monitor.log.`
+        },
+        {
+          description: 'A script to perform a simple `ping` and report success or failure.',
+          code: `#!/bin/bash
+HOST="google.com"
+ping -c 1 "$HOST" > /dev/null 2>&1
+
+if [ $? -eq 0 ]; then
+    echo "$HOST is reachable."
+else
+    echo "$HOST is unreachable."
+fi`,
+          simulatedOutput: `google.com is reachable.`
         }
       ],
       runnable: false
@@ -967,6 +1053,28 @@ _start:
     xor rdi, rdi
     syscall`,
           simulatedOutput: `The sum is: 30`
+        },
+        {
+          description: 'A simple x86-64 assembly program to perform integer multiplication.',
+          code: `section .data
+    msg db "Result: ", 0xa
+    len equ $ - msg
+
+section .text
+    global _start
+
+_start:
+    mov al, 5   ; Load 5 into AL (lower 8 bits of RAX)
+    mov bl, 10  ; Load 10 into BL (lower 8 bits of RBX)
+    mul bl      ; Multiply AL by BL, result in AX (255 max)
+
+    ; For demonstration, we'll simulate the output as a fixed value.
+    ; In a real scenario, converting AX to string for printing is complex.
+
+    mov rax, 60 ; sys_exit
+    xor rdi, rdi ; exit code 0
+    syscall`,
+          simulatedOutput: `Result: 50`
         }
       ],
       runnable: false
@@ -1008,6 +1116,25 @@ workflows:
             branches:
               only: main`,
           simulatedOutput: `No output to display. YAML is a data format used for configuration, not an executable script.`
+        },
+        {
+          description: 'A simple YAML configuration for a web server with multiple host entries.',
+          code: `---
+server:
+  port: 8080
+  hostname: example.com
+  ssl:
+    enabled: true
+    certificate: /etc/ssl/certs/example.crt
+    key: /etc/ssl/private/example.key
+  routes:
+    - path: /api
+      method: GET
+      handler: api_handler.js
+    - path: /status
+      method: GET
+      handler: status_handler.js`,
+          simulatedOutput: `No output to display. YAML is a data format used for configuration, not an executable script.`
         }
       ],
       runnable: false
@@ -1038,6 +1165,15 @@ function hello() {
 
 [Link to Google](https://www.google.com)`,
           simulatedOutput: `No output to display. Markdown is a markup language for formatting text.`
+        },
+        {
+          description: 'A Markdown table displaying basic product information.',
+          code: `| Product   | Price   | Stock |
+|-----------|---------|-------|
+| Laptop    | $1200   | 15    |
+| Keyboard  | $75     | 50    |
+| Mouse     | $25     | 100   |`,
+          simulatedOutput: `No output to display. Markdown is a markup language for formatting text.`
         }
       ],
       runnable: false
@@ -1055,6 +1191,33 @@ function hello() {
     <a href="#" class="btn btn-primary">Go somewhere</a>
   </div>
 </div>`,
+          simulatedOutput: `No output to display. This is an HTML snippet for styling with Bootstrap.`
+        },
+        {
+          description: 'A Bootstrap responsive navigation bar example.',
+          code: `<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Navbar</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Features</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Pricing</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<s`+`cript src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></scr`+`ipt>
+<scr`+`ipt src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></sc`+`ript>
+<sc`+`ript src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></s`+`cript>`,
           simulatedOutput: `No output to display. This is an HTML snippet for styling with Bootstrap.`
         }
       ],
@@ -1078,6 +1241,17 @@ function hello() {
     <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">#travel</span>
     <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">#winter</span>
   </div>
+</div>`,
+          simulatedOutput: `No output to display. This is an HTML snippet for styling with Tailwind CSS.`
+        },
+        {
+          description: 'A responsive hero section layout with Tailwind CSS flexbox and grid.',
+          code: `<div class="bg-blue-500 text-white p-8 flex flex-col md:flex-row items-center justify-between">
+  <div class="text-center md:text-left mb-4 md:mb-0">
+    <h1 class="text-4xl font-bold mb-2">Welcome to Our Site</h1>
+    <p class="text-lg">Discover amazing things with us.</p>
+  </div>
+  <button class="bg-white text-blue-500 font-bold py-2 px-4 rounded-full shadow-lg hover:bg-gray-100 transition duration-300">Learn More</button>
 </div>`,
           simulatedOutput: `No output to display. This is an HTML snippet for styling with Tailwind CSS.`
         }
@@ -1106,6 +1280,32 @@ function animate() {
     requestAnimationFrame(animate);
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
+    renderer.render(scene, camera);
+}
+animate();`
+        },
+        {
+          description: 'A THREE.js example creating a sphere with a basic material.',
+          code: `const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, 400 / 300, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(400, 300);
+outputCanvas.appendChild(renderer.domElement);
+
+const geometry = new THREE.SphereGeometry(1, 32, 32); // Radius, width segments, height segments
+const material = new THREE.MeshPhongMaterial({ color: 0xff0000 }); // Red material
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
+
+const light = new THREE.PointLight(0xffffff, 1); // White light
+light.position.set(5, 5, 5);
+scene.add(light);
+
+camera.position.z = 5;
+
+function animate() {
+    requestAnimationFrame(animate);
+    sphere.rotation.y += 0.005;
     renderer.render(scene, camera);
 }
 animate();`
@@ -1139,8 +1339,40 @@ playButton.style.cssText = \`
 \`;
 playButton.addEventListener('click', () => {
     // Need to start audio context on user interaction
-    Tone.start(); 
+    Tone.start();
     playNote();
+});
+outputCanvas.appendChild(playButton);`
+        },
+        {
+          description: 'Plays a simple sequence of notes using Tone.js Transport and Part.',
+          code: `const synth = new Tone.Synth().toDestination();
+const part = new Tone.Part(((time, note) => {
+    synth.triggerAttackRelease(note, "8n", time);
+}), [
+    ["0:0:0", "C4"],
+    ["0:0:1", "E4"],
+    ["0:0:2", "G4"],
+    ["0:0:3", "C5"]
+]);
+
+const playButton = document.createElement('button');
+playButton.textContent = 'Play Sequence';
+playButton.style.cssText = \`
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    background-color: #61dafb;
+    color: #20232a;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+\`;
+playButton.addEventListener('click', async () => {
+    await Tone.start();
+    part.start(0);
+    Tone.Transport.start();
 });
 outputCanvas.appendChild(playButton);`
         }
@@ -1176,6 +1408,31 @@ outputCanvas.appendChild(playButton);`
   transform: translateY(0);
   box-shadow: none;
 }`,
+          simulatedOutput: `No output to display. This is a CSS snippet for styling.`
+        },
+        {
+          description: 'A CSS example demonstrating a simple gradient background animation.',
+          code: `/* CSS for a gradient background animation */
+.gradient-background {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to right, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+`,
           simulatedOutput: `No output to display. This is a CSS snippet for styling.`
         }
       ],
@@ -1348,12 +1605,46 @@ outputCanvas.appendChild(playButton);`
             .replace(/```(.*?)```/gims, '<pre><code>$1</code></pre>') // Code blocks
             .replace(/\`(.*?)\`/gims, '<code>$1</code>') // Inline code
             .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>');
-        
+            .replace(/\n/g, '<br>')
+            .replace(/^\|(.+)\|\n\|[-\s|]+\|\n((\|.+\|\n)+)/gim, (match, headers, rows) => { // Handle Markdown tables
+                const headerCells = headers.split('|').map(h => `<th>${h.trim()}</th>`).join('');
+                const rowCells = rows.trim().split('\n').map(row => {
+                    const cells = row.split('|').map(cell => `<td>${cell.trim()}</td>`).join('');
+                    return `<tr>${cells}</tr>`;
+                }).join('');
+                return `<table><thead><tr>${headerCells}</tr></thead><tbody>${rowCells}</tbody></table>`;
+            });
+
         // Wrap paragraphs in <p> tags
         html = '<p>' + html + '</p>';
         return html;
     };
+
+    // Function to convert a Markdown table string to an HTML table
+    const markdownTableToHtml = (markdown) => {
+        const lines = markdown.trim().split('\n');
+        if (lines.length < 2) return `<pre>${markdown}</pre>`; // Not a valid table format
+
+        // Extract headers from the first line
+        const headers = lines[0].split('|').map(h => h.trim()).filter(h => h !== '');
+
+        // Extract data rows, skipping the header separator line (lines[1])
+        const bodyRows = lines.slice(2).map(line => line.split('|').map(d => `<td>${d.trim()}</td>`).join('')).filter(row => row !== '');
+
+        let html = '<table class="csv-table">';
+        html += '<thead><tr>';
+        headers.forEach(header => {
+            html += `<th>${header}</th>`;
+        });
+        html += '</tr></thead>';
+        html += '<tbody>';
+        bodyRows.forEach(row => {
+            html += `<tr>${row}</tr>`;
+        });
+        html += '</tbody></table>';
+        return html;
+    };
+
 
     // Logic for HTML, CSS, Markdown, and other previews
     const snippetCode = codeSnippetElement.textContent;
@@ -1363,6 +1654,7 @@ outputCanvas.appendChild(playButton);`
     const isFileDownload = (langKey === 'powershell' && currentSnippet.description.includes('exports them to a CSV file')) || (langKey === 'bash' && currentSnippet.description.includes('backs up a directory'));
     const isPlot = ['r', 'matlab'].includes(langKey) && currentSnippet.description.includes('plot');
     const isUrlDownload = langKey === 'python' && currentSnippet.description.includes('download URLs concurrently');
+
 
     if (isHTML) {
       outputCanvas.innerHTML = `<style>
@@ -1666,6 +1958,36 @@ outputCanvas.appendChild(playButton);`
             }
         });
         hasCanvasOutput = true;
+    } else if (langKey === 'sql') { // NEW: Handle SQL snippets
+      const htmlTable = markdownTableToHtml(currentSnippet.simulatedOutput);
+      outputCanvas.innerHTML = `
+          <style>
+              .csv-table-container {
+                  padding: 20px;
+                  font-family: monospace;
+                  overflow-x: auto;
+              }
+              .csv-table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  border: 1px solid #ccc;
+              }
+              .csv-table th, .csv-table td {
+                  border: 1px solid #ccc;
+                  padding: 8px;
+                  text-align: left;
+              }
+              .csv-table th {
+                  background-color: #f2f2f2;
+              }
+          </style>
+          <div class="csv-table-container">
+              <h4>SQL Query Result</h4>
+              ${htmlTable}
+          </div>
+      `;
+      outputText.textContent = 'Simulated SQL query result displayed in CSV format.';
+      hasCanvasOutput = true;
     } else if (isFileDownload) {
       if (langKey === 'powershell') {
         outputCanvas.innerHTML = `
@@ -1946,60 +2268,6 @@ outputCanvas.appendChild(playButton);`
         });
         hasCanvasOutput = true;
       }
-    } else if (langKey === 'sql' && currentSnippet && currentSnippet.simulatedOutput) {
-        // SQL output handling
-        const lines = currentSnippet.simulatedOutput.trim().split('\n');
-        if (lines.length > 2) {
-            const headerLine = lines[0];
-            const dataLines = lines.slice(2);
-            const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
-            
-            let tableHtml = `
-                <style>
-                    .csv-table-container {
-                        padding: 20px;
-                        font-family: monospace;
-                        overflow-x: auto;
-                    }
-                    .csv-table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        border: 1px solid #ccc;
-                    }
-                    .csv-table th, .csv-table td {
-                        border: 1px solid #ccc;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    .csv-table th {
-                        background-color: #f2f2f2;
-                        font-weight: bold;
-                    }
-                </style>
-                <div class="csv-table-container">
-                    <h4>SQL Query Result</h4>
-                    <table class="csv-table">
-                        <thead>
-                            <tr>
-                                ${headers.map(h => `<th>${h}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${dataLines.map(line => {
-                                const cells = line.split('|').map(c => c.trim()).filter(c => c);
-                                return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            outputCanvas.innerHTML = tableHtml;
-            outputText.textContent = 'Simulated SQL query results displayed on the canvas.';
-            hasCanvasOutput = true;
-        } else {
-            // Handle cases with no data or a malformed table
-            outputText.textContent = currentSnippet.simulatedOutput;
-        }
     } else if (currentLangData.runnable) {
       // Use a temporary variable to capture console output
       const originalConsoleLog = console.log;
@@ -2008,7 +2276,8 @@ outputCanvas.appendChild(playButton);`
       };
       const originalConsoleError = console.error;
       console.error = (...args) => {
-        consoleOutput += `<span class="console-error">Error: ${args.join(' ')}</span>\n`;
+        const errorMessage = args.join(' ').replace(/`/g, '\\`'); // Escape backticks
+        consoleOutput += `<span class="console-error">Error: ${errorMessage}</span>\n`;
       };
 
       try {
@@ -2043,12 +2312,12 @@ outputCanvas.appendChild(playButton);`
           hasCanvasOutput = true;
           outputText.textContent = 'Interactive audio component preview in the canvas.';
         } else {
-          const codeFunction = new Function('console', 'document', 'outputCanvas', currentSnippet.code);
-          codeFunction(console, document, outputCanvas);
+          const codeFunction = new Function('console', 'document', 'outputCanvas', 'outputText', currentSnippet.code); // Pass outputText
+          codeFunction(console, document, outputCanvas, outputText); // Pass outputText
           // Check if the runnable code has appended anything to the canvas
           if (outputCanvas.innerHTML.trim() !== '') {
             hasCanvasOutput = true;
-            outputText.textContent = 'Output displayed in the canvas.';
+            // outputText will be set by the snippet itself now
           }
         }
       } catch (e) {
@@ -2083,10 +2352,19 @@ outputCanvas.appendChild(playButton);`
           .console-error {
               color: #ff6347;
           }
+          .report-error-link {
+              display: block;
+              margin-top: 10px;
+              color: #61dafb; /* A contrasting color */
+              text-decoration: underline;
+              font-size: 0.9em;
+              cursor: pointer;
+          }
         </style>
         <div class="console-container">
           <b class="console-header">Developer Console</b>
           <p>${consoleOutput}</p>
+          <a href="https://github.com/houselearning/issue-channel/issues/new" target="_blank" class="report-error-link">Report Error</a>
         </div>
       `;
       outputText.textContent = 'Output displayed in Developer Console.';
