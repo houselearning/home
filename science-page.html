@@ -1,129 +1,256 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-P42LD5XN48"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P42LD5XN48"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-P42LD5XN48');
+  </script>
 
-  gtag('config', 'G-P42LD5XN48');
-</script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoolScienceTime - Science Lessons & Games</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #ffeb3b;
-        }
-        header {
-            background: #0288d1;
-            color: white;
-            padding: 20px;
-            font-size: 28px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .navbar {
-            display: flex;
-            justify-content: center;
-            background: #0277bd;
-            padding: 10px;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            margin: 0 10px;
-            font-size: 18px;
-            background: #01579b;
-            border-radius: 5px;
-        }
-        .navbar a:hover {
-            background: #013a63;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px;
-        }
-        .lesson-card, .game-card {
-            background: white;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 10px;
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-            width: 220px;
-            text-align: center;
-        }
-        .lesson-card h3, .game-card h3 {
-            font-size: 18px;
-            color: #0288d1;
-        }
-        .lesson-card a, .game-card a {
-            text-decoration: none;
-            color: white;
-            background: #0288d1;
-            padding: 10px 15px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .lesson-card a:hover, .game-card a:hover {
-            background: #01579b;
-        }
-        img
-        {
-            width:4cm;
-            height:4cm;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CoolScienceTime - Science Lessons & Games</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    html,body { height:100%; margin:0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background .25s, color .25s;
+    }
+    body.dark-mode { background:#0f1113; color:#eaeaea; }
+
+    /* Navbar */
+    .navbar {
+      background:#20232a;
+      display:flex;
+      justify-content:center;
+      overflow-x:auto;
+      padding:12px;
+      gap:8px;
+      box-shadow:0 2px 6px rgb(0 0 0 / 0.12);
+    }
+    body.dark-mode .navbar { background:#151515; }
+    .navbar a {
+      color:#61dafb;
+      text-decoration:none;
+      padding:10px 14px;
+      font-weight:600;
+      font-size:14px;
+      border-radius:8px;
+      transition: background .15s, transform .1s;
+    }
+    .navbar a:hover { transform:translateY(-2px); background:rgba(97,218,251,0.1); }
+
+    /* Page layout */
+    main { flex:1; padding:20px; }
+    .page {
+      max-width:1200px;
+      margin:0 auto;
+      display:grid;
+      gap:20px;
+    }
+
+    .section {
+      background:white;
+      padding:18px;
+      border-radius:10px;
+      box-shadow:0 6px 18px rgb(2 8 23 / 6%);
+      transition: background .25s, color .25s;
+    }
+    body.dark-mode .section { background:#1e1e1e; color:#f1f1f1; }
+
+    h2 {
+      font-weight:700;
+      color:#20232a;
+      border-bottom:3px solid #61dafb;
+      padding-bottom:6px;
+      margin:0 0 14px 0;
+    }
+    body.dark-mode h2 { color:#9be7ff; }
+
+    /* Cards */
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:14px;
+    }
+    .lesson-card,.game-card {
+      background:#fff;
+      border-radius:10px;
+      padding:14px;
+      text-align:center;
+      box-shadow:2px 6px 16px rgba(2,8,23,0.06);
+      transition: transform .12s, box-shadow .12s;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:110px;
+    }
+    .lesson-card:hover,.game-card:hover { transform:translateY(-6px); }
+    body.dark-mode .lesson-card,body.dark-mode .game-card { background:#262626; }
+
+    .lesson-card h3,.game-card h3 {
+      color:#0288d1;
+      font-size:16px;
+      margin:6px 0 8px 0;
+    }
+    body.dark-mode .lesson-card h3,body.dark-mode .game-card h3 { color:#61dafb; }
+
+    .lesson-card a,.game-card a {
+      text-decoration:none;
+      color:#fff;
+      background:#0288d1;
+      padding:8px 12px;
+      border-radius:6px;
+      font-weight:600;
+      margin-top:auto;
+    }
+    .lesson-card a:hover,.game-card a:hover { background:#01579b; }
+
+    .game-card img {
+      max-width:100%;
+      height:auto;
+      border-radius:8px;
+      object-fit:cover;
+    }
+
+    /* Theme switcher */
+    .theme-switch-wrapper {
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      display:flex;
+      gap:6px;
+      background:rgba(255,255,255,0.9);
+      padding:6px;
+      border-radius:10px;
+      box-shadow:0 6px 18px rgba(2,8,23,0.08);
+    }
+    body.dark-mode .theme-switch-wrapper { background:rgba(20,20,20,0.85); }
+    .theme-switch-wrapper button {
+      border:none;
+      background:transparent;
+      font-size:18px;
+      padding:8px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+    .theme-switch-wrapper button[aria-pressed="true"]{
+      background:rgba(2,136,209,0.14);
+      box-shadow:inset 0 -2px 0 rgba(2,136,209,0.16);
+    }
+
+    @media(max-width:420px){
+      .lesson-card,.game-card{padding:10px;}
+      .theme-switch-wrapper{right:12px;bottom:12px;}
+    }
+  </style>
 </head>
 <body>
-    <header>CoolScienceTime - Science Lessons & Games</header>
-    <nav class="navbar">
-        <a href="/index.html">Home</a>
-        <a href="/home/science-page.html">Science</a>
-        <a href="/home/math-page.html">Math</a>
-        <a href="/home/computer-science-page.html">Coding</a>
-        <a href="/about.html">About</a>
-    </nav>
-    
-    <h2 style="text-align:center; margin-top:20px;">K-8 Science Lessons</h2>
-    <div class="container">
-        <div class="lesson-card"><h3>Earth & Ecosystems</h3><a href="https://houselearning.github.io/home/science/ecosystems.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Forces & Motion</h3><a href="https://houselearning.github.io/home/science/forcesandmotion.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>States of Matter</h3><a href="https://houselearning.github.io/home/science/statesofmatter.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Electricity & Magnetism</h3><a href="https://houselearning.github.io/home/science/electricity.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Plants & Photosynthesis</h3><a href="https://houselearning.github.io/home/science/photosynthesis.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Animals & Adaptations</h3><a href="https://houselearning.github.io/home/science/animalsandadaptations.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Solar System & Space</h3><a href="https://houselearning.github.io/home/science/solarsystem.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Human Body Systems</h3><a href="https://houselearning.github.io/home/science/humanbody.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Weather & Climate</h3><a href="https://houselearning.github.io/home/science/weather.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Rocks & Minerals</h3><a href="https://houselearning.github.io/home/science/rocksandminerals.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Sound & Waves</h3><a href="https://houselearning.github.io/home/science/soundwaves.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Light & Optics</h3><a href="https://houselearning.github.io/home/science/lightandoptics.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Fossils & Dinosaurs</h3><a href="https://houselearning.github.io/home/science/dinosaurfossils.html">Start Lesson</a></div>
-        <div class="lesson-card"><h3>Biomes & Habitats</h3><a href="https://houselearning.github.io/home/science/biomes.html">Start Lesson</a></div>
+  <nav class="navbar">
+    <a href="/index.html">Home</a>
+    <a href="/home/science-page.html">Science</a>
+    <a href="/home/math-page.html">Math</a>
+    <a href="/home/computer-science-page.html">Coding</a>
+    <a href="/about.html">About</a>
+  </nav>
+
+  <main>
+    <div class="page">
+      <section class="section">
+        <h2>K-8 Science Lessons</h2>
+        <div class="grid">
+          <div class="lesson-card"><h3>Earth & Ecosystems</h3><a href="https://houselearning.github.io/home/science/ecosystems.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Forces & Motion</h3><a href="https://houselearning.github.io/home/science/forcesandmotion.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>States of Matter</h3><a href="https://houselearning.github.io/home/science/statesofmatter.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Electricity & Magnetism</h3><a href="https://houselearning.github.io/home/science/electricity.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Plants & Photosynthesis</h3><a href="https://houselearning.github.io/home/science/photosynthesis.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Animals & Adaptations</h3><a href="https://houselearning.github.io/home/science/animalsandadaptations.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Solar System & Space</h3><a href="https://houselearning.github.io/home/science/solarsystem.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Human Body Systems</h3><a href="https://houselearning.github.io/home/science/humanbody.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Weather & Climate</h3><a href="https://houselearning.github.io/home/science/weather.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Rocks & Minerals</h3><a href="https://houselearning.github.io/home/science/rocksandminerals.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Sound & Waves</h3><a href="https://houselearning.github.io/home/science/soundwaves.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Light & Optics</h3><a href="https://houselearning.github.io/home/science/lightandoptics.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Fossils & Dinosaurs</h3><a href="https://houselearning.github.io/home/science/dinosaurfossils.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Biomes & Habitats</h3><a href="https://houselearning.github.io/home/science/biomes.html">Start Lesson</a></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Science Games</h2>
+        <div class="grid">
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/ecoexplorer.png" alt=""><h3>Eco Explorer</h3><a href="https://houselearning.github.io/home/science/games/ecoexplorer.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/gravityjump.png" alt=""><h3>Gravity Jump</h3><a href="https://houselearning.github.io/home/science/games/gravityjump.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/energyquest.png" alt=""><h3>Energy Quest</h3><a href="https://houselearning.github.io/home/science/games/energyquest.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/animalkingdom.png" alt=""><h3>Animal Kingdom</h3><a href="https://houselearning.github.io/home/science/games/animalkingdom.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/spaceadventure.png" alt=""><h3>Space Adventure</h3><a href="https://houselearning.github.io/home/science/games/spaceexplorer.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/bodysystemschallange.png" alt=""><h3>Body Systems Challenge</h3><a href="https://houselearning.github.io/home/science/games/bodysystems.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/weatherwizard.png" alt=""><h3>Weather Wizard</h3><a href="https://houselearning.github.io/home/science/games/weatherwizard.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/rockhunter.png" alt=""><h3>Rock Hunter</h3><a href="https://houselearning.github.io/home/science/games/rockhunter.html">Play Now</a></div>
+          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/lightlab.png" alt=""><h3>Light Lab</h3><a href="https://houselearning.github.io/home/science/games/lightlab.html">Play Now</a></div>
+        </div>
+      </section>
     </div>
-    
-    <h2 style="text-align:center; margin-top:20px;">Science Games</h2>
-    <div class="container">
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/ecoexplorer.png"><h3>Eco Explorer</h3><a href="https://houselearning.github.io/home/science/games/ecoexplorer.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/gravityjump.png"><h3>Gravity Jump</h3><a href="https://houselearning.github.io/home/science/games/gravityjump.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/energyquest.png"><h3>Energy Quest</h3><a href="https://houselearning.github.io/home/science/games/energyquest.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/animalkingdom.png"><h3>Animal Kingdom</h3><a href="https://houselearning.github.io/home/science/games/animalkingdom.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/spaceadventure.png"><h3>Space Adventure</h3><a href="https://houselearning.github.io/home/science/games/spaceexplorer.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/bodysystemschallange.png"><h3>Body Systems Challenge</h3><a href="https://houselearning.github.io/home/science/games/bodysystems.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/weatherwizard.png"><h3>Weather Wizard</h3><a href="https://houselearning.github.io/home/science/games/weatherwizard.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/rockhunter.png"><h3>Rock Hunter</h3><a href="https://houselearning.github.io/home/science/games/rockhunter.html">Play Now</a></div>
-        <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/lightlab.png"><h3>Light Lab</h3><a href="https://houselearning.github.io/home/science/games/lightlab.html">Play Now</a></div>
-    </div>
+  </main>
+
+  <!-- Theme switch -->
+  <div class="theme-switch-wrapper">
+    <button id="light-mode-btn" aria-pressed="false">☀️</button>
+    <button id="dark-mode-btn" aria-pressed="false">🌙</button>
+    <button id="auto-mode-btn" aria-pressed="true">🌓</button>
+  </div>
+
+  <script>
+    (function(){
+      const MODE_KEY='coolsciencetime_theme';
+      const body=document.body;
+      const btns={
+        light:document.getElementById('light-mode-btn'),
+        dark:document.getElementById('dark-mode-btn'),
+        auto:document.getElementById('auto-mode-btn')
+      };
+
+      function apply(mode){
+        body.classList.remove('dark-mode');
+        if(mode==='dark') body.classList.add('dark-mode');
+        else if(mode==='auto'){
+          if(window.matchMedia('(prefers-color-scheme: dark)').matches)
+            body.classList.add('dark-mode');
+        }
+        Object.entries(btns).forEach(([k,b])=>b.setAttribute('aria-pressed',k===mode));
+      }
+
+      function save(m){ localStorage.setItem(MODE_KEY,m); }
+      function load(){ return localStorage.getItem(MODE_KEY)||'auto'; }
+
+      Object.entries(btns).forEach(([k,b])=>{
+        b.addEventListener('click',()=>{ save(k); apply(k); });
+      });
+
+      // keyboard shortcut "T"
+      window.addEventListener('keydown',e=>{
+        if(e.key.toLowerCase()==='t'&&!/input|textarea/i.test(document.activeElement.tagName)){
+          const map={auto:'light',light:'dark',dark:'auto'};
+          const next=map[load()]||'auto';
+          save(next); apply(next);
+        }
+      });
+
+      if(window.matchMedia){
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(load()==='auto') apply('auto'); });
+      }
+      apply(load());
+    })();
+  </script>
 </body>
 </html>
