@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Graph Gauntlet</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the game */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #1a202c; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem; /* Space between canvas and controls */
+            align-items: center;
+            padding: 1.5rem;
+            background-color: #2d3748; /* Slightly lighter dark background */
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+            max-width: 90vw; /* Responsive width */
+        }
+
+        canvas {
+            background-color: #000; /* Game background */
+            border-radius: 0.75rem;
+            border: 2px solid #4a5568; /* Border around canvas */
+            display: block;
+            touch-action: none; /* Disable default touch actions */
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: center;
+        }
+
+        .game-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6); /* Purple gradient */
+            border: none;
+        }
+
+        .game-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .info-panel {
+            color: #e2e8f0; /* Light gray text */
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 150px; /* Ensure score/status has enough space */
+            display: flex; /* For score and moves to be in a row */
+            justify-content: space-around;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .level-display {
+            color: #a78bfa; /* Light purple for level */
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Modal styling */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
+        }
+
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: #2d3748;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+            max-width: 80vw;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .start-prompt {
+            color: #4CAF50; /* Green text */
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            text-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50;
+            display: none; /* Hidden by default */
+        }
+
+        .instructions-content {
+            text-align: left;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+
+        .instructions-content h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #a78bfa; /* Light purple */
+        }
+        .instructions-content ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .instructions-content p {
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white text-center mb-4">The Graph Gauntlet</h1>
+        <div class="level-display" id="levelDisplay">Level: 1</div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="info-panel">
+            <span id="scorePanel">Score: 0</span>
+            <span id="movesPanel">Moves: 15</span>
+        </div>
+        <div class="game-controls">
+            <button id="startButton" class="game-button">Start Game</button>
+            <button id="instructionsButton" class="game-button">Instructions</button>
+            <button id="restartButton" class="game-button" style="display: none;">Restart</button>
+        </div>
+        <div id="pressEnterPrompt" class="start-prompt">Press Enter to Start!</div>
+        <div class="info-panel text-sm text-gray-400 mt-2">
+            Use Arrow Keys or touch/swipe to move between nodes.
+        </div>
+    </div>
+
+    <!-- Custom Modal for Game Over / Win -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4" id="modalTitle">Game Over!</h2>
+            <p class="text-xl mb-6">Your final score: <span id="finalScore" class="font-extrabold text-purple-400">0</span></p>
+            <p class="text-lg mb-4" id="gameOverReason"></p>
+            <button id="modalRestartButton" class="game-button">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4">Instructions</h2>
+            <div class="instructions-content text-gray-200">
+                <p>Welcome to **The Graph Gauntlet**! Your mission is to navigate a graph of interconnected nodes, aiming to collect points while avoiding dangerous traps.</p>
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>You start at the **top-left node** (marked with a purple circle).</li>
+                    <li>Use the **Arrow Keys** (Up, Down, Left, Right) on your keyboard to move to adjacent nodes.</li>
+                    <li>On touch devices, **swipe** in the direction you want to move.</li>
+                    <li>You have a limited number of **Moves**. Each move costs 1 point from your move count.</li>
+                    <li>The game ends when you run out of moves or hit a danger node.</li>
+                </ul>
+                <h3>Node Types:</h3>
+                <ul>
+                    <li><span style="color: #6366f1;">&#x25CF;</span> **Your Player:** The purple circle, your current position.</li>
+                    <li><span style="color: #4a5568;">&#x25CF;</span> **Normal Nodes:** Grey nodes you can pass through safely.</li>
+                    <li><span style="color: #fef08a;">&#x25CF;</span> **Point Nodes:** Yellow nodes that give you points when you land on them. Once collected, they turn into normal nodes.</li>
+                    <li><span style="color: #ef4444;">&#x25CF;</span> **Danger Nodes:** Red nodes that will end your game immediately if you land on them.</li>
+                    <li><span style="color: rgba(255, 255, 255, 0.5);">&#x25CF;</span> **Visited Nodes:** Nodes with a semi-transparent white circle inside indicate you've visited them before.</li>
+                </ul>
+                <h3>Enemies:</h3>
+                <ul>
+                    <li>**Level 14 - The Chaser:** A red dot with an angry face (😡) starts chasing you! Avoid it at all costs.</li>
+                    <li>**Level 31 - The Boss:** The graph tilts, and a devil-faced boss (😈) appears, moving incredibly fast. This level is designed to be impossible!</li>
+                </ul>
+                <h3>Scoring:</h3>
+                <ul>
+                    <li>Collecting a **Point Node** adds **25 points** to your score.</li>
+                    <li>Landing on a **Danger Node** deducts **50 points** and ends the game.</li>
+                </ul>
+                <h3>Winning:</h3>
+                <ul>
+                    <li>Collect **all** the yellow Point Nodes on the board to win the current level!</li>
+                    <li>Beat 30 levels to reach the ultimate challenge of Level 31!</li>
+                </ul>
+                <p>Strategize your path to maximize your score before your moves run out!</p>
+            </div>
+            <button id="closeInstructionsButton" class="game-button mt-6">Got It!</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default to anonymous
+
+        // Get app ID and Firebase config from the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // Initialize Firebase
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Sign in anonymously or with custom token
+            if (typeof __initial_auth_token !== 'undefined') {
+                signInWithCustomToken(auth, __initial_auth_token)
+                    .then((userCredential) => {
+                        userId = userCredential.user.uid;
+                        console.log("Firebase signed in with custom token. User ID:", userId);
+                    })
+                    .catch((error) => {
+                        console.error("Error signing in with custom token:", error);
+                        signInAnonymously(auth)
+                            .then(() => {
+                                userId = auth.currentUser.uid;
+                                console.log("Firebase signed in anonymously due to custom token error. User ID:", userId);
+                            })
+                            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+                    });
+            } else {
+                signInAnonymously(auth)
+                    .then(() => {
+                        userId = auth.currentUser.uid;
+                        console.log("Firebase signed in anonymously. User ID:", userId);
+                    })
+                    .catch((error) => console.error("Error signing in anonymously:", error));
+            }
+
+            // Listen for auth state changes (optional, but good practice)
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                } else {
+                    // console.log("Auth state changed, no user.");
+                }
+            });
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+        }
+
+
+        // Game JavaScript Logic
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const instructionsButton = document.getElementById('instructionsButton');
+        const restartButton = document.getElementById('restartButton');
+        const scorePanel = document.getElementById('scorePanel');
+        const movesPanel = document.getElementById('movesPanel');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const gameOverReason = document.getElementById('gameOverReason');
+        const modalRestartButton = document.getElementById('modalRestartButton');
+        const pressEnterPrompt = document.getElementById('pressEnterPrompt');
+        const instructionsModal = document.getElementById('instructionsModal');
+        const closeInstructionsButton = document.getElementById('closeInstructionsButton');
+        const modalTitle = document.getElementById('modalTitle');
+
+        // Game settings (base values, will be modified by level)
+        const BASE_GRID_SIZE = 5;
+        const BASE_INITIAL_MOVES = 15;
+        const BASE_POINT_NODE_CHANCE = 0.25;
+        const BASE_DANGER_NODE_CHANCE = 0.1; // Reduced for better playability in early levels
+        const POINT_VALUE = 25;
+        const DANGER_PENALTY = 50;
+        const START_PROMPT_DELAY = 5000; // 5 seconds
+
+        const NODE_RADIUS = 15;
+        const PLAYER_COLOR = '#6366f1'; // Purple
+        const NORMAL_NODE_COLOR = '#4a5568'; // Dark gray
+        const POINT_NODE_COLOR = '#fef08a'; // Yellow
+        const DANGER_NODE_COLOR = '#ef4444'; // Red
+        const EDGE_COLOR = '#4a5568'; // Dark gray
+
+        let GAME_WIDTH = 500; // Will be scaled for 3D effect, but base width
+        let GAME_HEIGHT = 500; // Will be scaled for 3D effect, but base height
+
+        let currentLevel = 1;
+        let GRID_SIZE = BASE_GRID_SIZE;
+        let INITIAL_MOVES = BASE_INITIAL_MOVES;
+        let POINT_NODE_CHANCE = BASE_POINT_NODE_CHANCE;
+        let DANGER_NODE_CHANCE = BASE_DANGER_NODE_CHANCE;
+
+
+        let graph = []; // Stores node objects
+        let playerNodeIndex = { row: 0, col: 0 }; // Player's current node coordinates
+        let score = 0;
+        let movesLeft = INITIAL_MOVES;
+        let gameOver = true;
+        let startPromptTimeoutId;
+
+        // Enemy and Boss Objects
+        let enemy = { r: 0, c: 0, active: false, speed: 1000, emoji: '😡', intervalId: null }; // 1000ms = 1 second
+        let boss = { r: 0, c: 0, active: false, speed: 100, emoji: '😈', intervalId: null }; // 100ms = very fast
+        const ENEMY_ACTIVATION_LEVEL = 14;
+        const BOSS_ACTIVATION_LEVEL = 31;
+
+
+        // --- Utility Functions ---
+        function resizeCanvas() {
+            canvas.width = GAME_WIDTH;
+            canvas.height = GAME_HEIGHT;
+
+            const container = canvas.closest('.game-container');
+            let scale = 1;
+            if (window.innerWidth < GAME_WIDTH + 60) {
+                scale = (window.innerWidth - 60) / GAME_WIDTH;
+            } else if (window.innerHeight < GAME_HEIGHT + 150) {
+                scale = (window.innerHeight - 150) / GAME_HEIGHT;
+            }
+            scale = Math.min(scale, 1);
+            canvas.style.width = `${GAME_WIDTH * scale}px`;
+            canvas.style.height = `${GAME_HEIGHT * scale}px`;
+        }
+
+        // --- Graph Generation ---
+        function generateGraph() {
+            graph = [];
+            let nodeSpacing = (GAME_WIDTH - (NODE_RADIUS * 2) * GRID_SIZE) / (GRID_SIZE + 1);
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const x = (c + 1) * nodeSpacing + c * NODE_RADIUS * 2 + NODE_RADIUS;
+                    const y = (r + 1) * nodeSpacing + r * NODE_RADIUS * 2 + NODE_RADIUS;
+                    let type = 'normal'; // default
+
+                    // Randomly assign point or danger nodes, excluding start node
+                    if ((r !== 0 || c !== 0) && Math.random() < (POINT_NODE_CHANCE + DANGER_NODE_CHANCE) / 2) {
+                        type = Math.random() < (POINT_NODE_CHANCE / (POINT_NODE_CHANCE + DANGER_NODE_CHANCE)) ? 'point' : 'danger';
+                    }
+
+                    graph.push({ id: `${r}-${c}`, r, c, x, y, type, visited: false });
+                }
+            }
+            // Ensure at least one point node exists if none were randomly generated
+            if (!graph.some(node => node.type === 'point')) {
+                let randomIndex = Math.floor(Math.random() * graph.length);
+                while (graph[randomIndex].r === 0 && graph[randomIndex].c === 0 || graph[randomIndex].type === 'danger') {
+                    randomIndex = Math.floor(Math.random() * graph.length);
+                }
+                graph[randomIndex].type = 'point';
+            }
+        }
+
+        function getNode(r, c) {
+            if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE) {
+                return null;
+            }
+            return graph.find(node => node.r === r && node.c === c);
+        }
+
+        // --- Drawing Functions ---
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawGraph() {
+            ctx.save(); // Save current canvas state
+
+            // Apply 3D tilt effect for BOSS_ACTIVATION_LEVEL and above
+            if (currentLevel >= BOSS_ACTIVATION_LEVEL) {
+                // Translate to center, rotate, then translate back
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(Math.PI / 8); // Rotate slightly
+                ctx.scale(0.8, 0.8); // Scale down a bit for perspective
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
+            // Draw edges first
+            ctx.strokeStyle = EDGE_COLOR;
+            ctx.lineWidth = 2;
+            graph.forEach(node => {
+                const neighbors = [
+                    getNode(node.r - 1, node.c), // Up
+                    getNode(node.r + 1, node.c), // Down
+                    getNode(node.r, node.c - 1), // Left
+                    getNode(node.r, node.c + 1)  // Right
+                ];
+
+                neighbors.forEach(neighbor => {
+                    if (neighbor) {
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y);
+                        ctx.lineTo(neighbor.x, neighbor.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            // Draw nodes
+            graph.forEach(node => {
+                let fillColor = NORMAL_NODE_COLOR;
+                if (node.type === 'point') {
+                    fillColor = POINT_NODE_COLOR;
+                } else if (node.type === 'danger') {
+                    fillColor = DANGER_NODE_COLOR;
+                }
+
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2);
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+                ctx.strokeStyle = '#e2e8f0'; // Light gray border
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Mark visited nodes
+                if (node.visited) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, NODE_RADIUS / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Semi-transparent white
+                    ctx.fill();
+                }
+            });
+            ctx.restore(); // Restore original canvas state
+        }
+
+        function drawPlayer() {
+            ctx.save(); // Save current canvas state
+            if (currentLevel >= BOSS_ACTIVATION_LEVEL) {
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(Math.PI / 8);
+                ctx.scale(0.8, 0.8);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
+            const playerNode = getNode(playerNodeIndex.row, playerNodeIndex.col);
+            if (playerNode) {
+                ctx.beginPath();
+                ctx.arc(playerNode.x, playerNode.y, NODE_RADIUS - 5, 0, Math.PI * 2);
+                ctx.fillStyle = PLAYER_COLOR;
+                ctx.fill();
+                ctx.strokeStyle = '#fff'; // White border
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            ctx.restore(); // Restore original canvas state
+        }
+
+        function drawEnemy() {
+            if (!enemy.active) return;
+            ctx.save();
+            if (currentLevel >= BOSS_ACTIVATION_LEVEL) {
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(Math.PI / 8);
+                ctx.scale(0.8, 0.8);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
+            const enemyNode = getNode(enemy.r, enemy.c);
+            if (enemyNode) {
+                ctx.beginPath();
+                ctx.arc(enemyNode.x, enemyNode.y, NODE_RADIUS - 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.font = `${NODE_RADIUS * 1.5}px Arial`; // Emoji font size
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(enemy.emoji, enemyNode.x, enemyNode.y + 2); // Adjust Y for emoji centering
+            }
+            ctx.restore();
+        }
+
+        function drawBoss() {
+            if (!boss.active) return;
+            ctx.save();
+            if (currentLevel >= BOSS_ACTIVATION_LEVEL) {
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(Math.PI / 8);
+                ctx.scale(0.8, 0.8);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
+            const bossNode = getNode(boss.r, boss.c);
+            if (bossNode) {
+                ctx.beginPath();
+                ctx.arc(bossNode.x, bossNode.y, NODE_RADIUS - 2, 0, Math.PI * 2); // Slightly larger
+                ctx.fillStyle = 'darkred';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.font = `${NODE_RADIUS * 1.8}px Arial`; // Larger emoji
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(boss.emoji, bossNode.x, bossNode.y + 2);
+            }
+            ctx.restore();
+        }
+
+        function updateScoreDisplay() {
+            scorePanel.textContent = `Score: ${score}`;
+            movesPanel.textContent = `Moves: ${movesLeft}`;
+            levelDisplay.textContent = `Level: ${currentLevel}`;
+        }
+
+        // --- Game Logic Functions ---
+        function checkWinCondition() {
+            const remainingPointNodes = graph.some(node => node.type === 'point');
+            if (!remainingPointNodes) {
+                if (currentLevel < BOSS_ACTIVATION_LEVEL) { // Win current level, move to next
+                    nextLevel();
+                } else { // Beat level 30, but level 31 is impossible, so this path may not be taken
+                    endGame(true, `You collected all points on Level ${currentLevel}! But the boss level is truly a test...`);
+                }
+            }
+        }
+
+        function movePlayer(dRow, dCol) {
+            if (gameOver || instructionsModal.classList.contains('show')) return;
+
+            const newRow = playerNodeIndex.row + dRow;
+            const newCol = playerNodeIndex.col + dCol;
+
+            const nextNode = getNode(newRow, newCol);
+
+            if (nextNode) {
+                playerNodeIndex.row = newRow;
+                playerNodeIndex.col = newCol;
+                movesLeft--;
+
+                const currentNode = getNode(playerNodeIndex.row, playerNodeIndex.col);
+
+                if (currentNode.type === 'point') {
+                    score += POINT_VALUE;
+                    currentNode.type = 'normal';
+                    checkWinCondition();
+                } else if (currentNode.type === 'danger') {
+                    score -= DANGER_PENALTY;
+                    endGame(false, `You landed on a danger node on Level ${currentLevel}!`);
+                    return;
+                }
+                currentNode.visited = true;
+
+                if (movesLeft <= 0) {
+                    endGame(false, `You ran out of moves on Level ${currentLevel}!`);
+                }
+            }
+
+            // Check for collision after player moves
+            checkEnemyCollision();
+            checkBossCollision();
+
+            drawGame();
+        }
+
+        function moveEnemy() {
+            if (!enemy.active || gameOver || instructionsModal.classList.contains('show')) return;
+
+            const playerR = playerNodeIndex.row;
+            const playerC = playerNodeIndex.col;
+            let targetR = enemy.r;
+            let targetC = enemy.c;
+
+            const possibleMoves = [];
+            const currentNode = getNode(enemy.r, enemy.c);
+
+            // Prioritize moving towards player's row or column
+            if (playerR !== enemy.r) {
+                possibleMoves.push({ r: enemy.r + Math.sign(playerR - enemy.r), c: enemy.c });
+            }
+            if (playerC !== enemy.c) {
+                possibleMoves.push({ r: enemy.r, c: enemy.c + Math.sign(playerC - enemy.c) });
+            }
+
+            // Fallback to random if direct path is blocked or not moving
+            let chosenMove = null;
+            // Try to pick a valid move that gets closer
+            for (const move of possibleMoves) {
+                if (getNode(move.r, move.c)) {
+                    chosenMove = move;
+                    break;
+                }
+            }
+
+            // If no direct path is chosen, or it leads nowhere, try adjacent valid moves
+            if (!chosenMove) {
+                const adjacentMoves = [
+                    { r: enemy.r - 1, c: enemy.c }, { r: enemy.r + 1, c: enemy.c },
+                    { r: enemy.r, c: enemy.c - 1 }, { r: enemy.r, c: enemy.c + 1 }
+                ].filter(move => getNode(move.r, move.c)); // Only consider valid nodes
+
+                if (adjacentMoves.length > 0) {
+                    chosenMove = adjacentMoves[Math.floor(Math.random() * adjacentMoves.length)];
+                }
+            }
+
+
+            if (chosenMove) {
+                enemy.r = chosenMove.r;
+                enemy.c = chosenMove.c;
+            }
+
+            checkEnemyCollision(); // Check collision after enemy moves
+            drawGame();
+        }
+
+        function moveBoss() {
+            if (!boss.active || gameOver || instructionsModal.classList.contains('show')) return;
+
+            const playerR = playerNodeIndex.row;
+            const playerC = playerNodeIndex.col;
+
+            const possibleMoves = [];
+            // Boss prioritizes moving directly to player's location
+            if (playerR !== boss.r) {
+                possibleMoves.push({ r: boss.r + Math.sign(playerR - boss.r), c: boss.c });
+            }
+            if (playerC !== boss.c) {
+                possibleMoves.push({ r: boss.r, c: boss.c + Math.sign(playerC - boss.c) });
+            }
+
+            let chosenMove = null;
+            for (const move of possibleMoves) {
+                if (getNode(move.r, move.c)) {
+                    chosenMove = move;
+                    break;
+                }
+            }
+
+            if (chosenMove) {
+                boss.r = chosenMove.r;
+                boss.c = chosenMove.c;
+            } else { // If direct path blocked, just move to any valid adjacent
+                 const adjacentMoves = [
+                    { r: boss.r - 1, c: boss.c }, { r: boss.r + 1, c: boss.c },
+                    { r: boss.r, c: boss.c - 1 }, { r: boss.r, c: boss.c + 1 }
+                ].filter(move => getNode(move.r, move.c));
+
+                if (adjacentMoves.length > 0) {
+                    boss.r = adjacentMoves[Math.floor(Math.random() * adjacentMoves.length)].r;
+                    boss.c = adjacentMoves[Math.floor(Math.random() * adjacentMoves.length)].c;
+                }
+            }
+
+
+            checkBossCollision(); // Check collision after boss moves
+            drawGame();
+        }
+
+
+        function checkEnemyCollision() {
+            if (enemy.active && playerNodeIndex.r === enemy.r && playerNodeIndex.c === enemy.c) {
+                endGame(false, `The Chaser caught you on Level ${currentLevel}!`);
+            }
+        }
+
+        function checkBossCollision() {
+            if (boss.active && playerNodeIndex.r === boss.r && playerNodeIndex.c === boss.c) {
+                endGame(false, `The Boss got you on Level ${currentLevel}!`); // Instant death, no points withdrawn here as per request.
+            }
+        }
+
+        // --- Game State Management ---
+        function startGame() {
+            if (!gameOver) return;
+
+            score = 0;
+            currentLevel = 0; // Will be incremented to 1 by nextLevel()
+            nextLevel(); // Start the first level
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            levelDisplay.textContent = `Level: ${currentLevel}`; // Update level display
+
+            // Clear any active enemy/boss intervals
+            clearInterval(enemy.intervalId);
+            clearInterval(boss.intervalId);
+
+            // Adjust game parameters based on level
+            GRID_SIZE = Math.min(BASE_GRID_SIZE + Math.floor((currentLevel - 1) / 3), 10); // Max grid 10x10
+            INITIAL_MOVES = Math.max(BASE_INITIAL_MOVES - Math.floor((currentLevel - 1) * 0.75), 5); // Min moves 5
+            POINT_NODE_CHANCE = Math.min(BASE_POINT_NODE_CHANCE + (currentLevel - 1) * 0.02, 0.6); // Max 60% point nodes
+            DANGER_NODE_CHANCE = Math.min(BASE_DANGER_NODE_CHANCE + (currentLevel - 1) * 0.015, 0.4); // Max 40% danger nodes
+
+            // Reset game state for new level
+            movesLeft = INITIAL_MOVES;
+            gameOver = false;
+            playerNodeIndex = { row: 0, col: 0 };
+            generateGraph();
+            getNode(0, 0).visited = true; // Mark start node as visited
+
+            // Reset enemy
+            enemy.active = (currentLevel >= ENEMY_ACTIVATION_LEVEL && currentLevel < BOSS_ACTIVATION_LEVEL);
+            if (enemy.active) {
+                enemy.r = GRID_SIZE - 1; // Start enemy at bottom-right
+                enemy.c = GRID_SIZE - 1;
+                enemy.intervalId = setInterval(moveEnemy, enemy.speed);
+            }
+
+            // Reset boss
+            boss.active = (currentLevel >= BOSS_ACTIVATION_LEVEL);
+            if (boss.active) {
+                // For level 31, spawn boss near player for immediate threat
+                boss.r = playerNodeIndex.r + 1; // Spawn near player, adjust as needed
+                boss.c = playerNodeIndex.c + 1;
+                // Ensure boss spawn is within bounds and not on player
+                if (!getNode(boss.r, boss.c)) {
+                    boss.r = GRID_SIZE - 1;
+                    boss.c = GRID_SIZE - 1;
+                }
+                boss.intervalId = setInterval(moveBoss, boss.speed);
+            }
+
+            startButton.style.display = 'none';
+            instructionsButton.style.display = 'none';
+            restartButton.style.display = 'none';
+            gameOverModal.classList.remove('show');
+            pressEnterPrompt.style.display = 'none';
+            clearTimeout(startPromptTimeoutId);
+
+            drawGame();
+        }
+
+
+        function endGame(isWin = false, reason = "") {
+            if (gameOver) return;
+
+            gameOver = true;
+            console.log(`Game Over on Level ${currentLevel}! Final Score:`, score, isWin ? "(Win)" : "(Loss)");
+
+            // Clear any active enemy/boss intervals
+            clearInterval(enemy.intervalId);
+            clearInterval(boss.intervalId);
+
+            finalScoreDisplay.textContent = score;
+            modalTitle.textContent = isWin ? `Level ${currentLevel} Complete!` : 'Game Over!';
+            gameOverReason.textContent = reason;
+            gameOverModal.classList.add('show');
+
+            startButton.style.display = 'none'; // Keep start button hidden, but show restart
+            instructionsButton.style.display = 'block';
+            restartButton.style.display = 'block';
+            pressEnterPrompt.style.display = 'none';
+            clearTimeout(startPromptTimeoutId);
+        }
+
+        function restartGame() {
+            gameOverModal.classList.remove('show');
+            startGame();
+        }
+
+        function drawGame() {
+            clearCanvas();
+            drawGraph();
+            drawPlayer();
+            drawEnemy(); // Draw enemy
+            drawBoss(); // Draw boss
+            updateScoreDisplay();
+        }
+
+        // --- Event Listeners ---
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && gameOver && pressEnterPrompt.style.display !== 'none') {
+                startGame();
+                return;
+            }
+
+            if (gameOver || instructionsModal.classList.contains('show')) return;
+
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    movePlayer(1, 0);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    movePlayer(0, 1);
+                    break;
+            }
+            e.preventDefault();
+        }
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const SWIPE_THRESHOLD = 30; // pixels
+
+        function handleTouchStart(e) {
+            if (gameOver || instructionsModal.classList.contains('show')) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            if (gameOver || instructionsModal.classList.contains('show')) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > SWIPE_THRESHOLD) {
+                    movePlayer(0, 1);
+                } else if (diffX < -SWIPE_THRESHOLD) {
+                    movePlayer(0, -1);
+                }
+            } else {
+                if (diffY > SWIPE_THRESHOLD) {
+                    movePlayer(1, 0);
+                } else if (diffY < -SWIPE_THRESHOLD) {
+                    movePlayer(-1, 0);
+                }
+            }
+            e.preventDefault();
+        }
+
+        function showPressEnterPrompt() {
+            if (gameOver && !instructionsModal.classList.contains('show')) {
+                pressEnterPrompt.style.display = 'block';
+            }
+        }
+
+        function openInstructions() {
+            instructionsModal.classList.add('show');
+            pressEnterPrompt.style.display = 'none';
+            clearTimeout(startPromptTimeoutId);
+        }
+
+        function closeInstructions() {
+            instructionsModal.classList.remove('show');
+            if (gameOver) {
+                 startPromptTimeoutId = setTimeout(showPressEnterPrompt, 500);
+            }
+        }
+
+        // Initialize on window load
+        window.onload = function() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            document.addEventListener('keydown', handleKeyDown);
+            startButton.addEventListener('click', startGame);
+            instructionsButton.addEventListener('click', openInstructions);
+            restartButton.addEventListener('click', restartGame);
+            modalRestartButton.addEventListener('click', restartGame);
+            closeInstructionsButton.addEventListener('click', closeInstructions);
+
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+            startPromptTimeoutId = setTimeout(showPressEnterPrompt, START_PROMPT_DELAY);
+
+            // Initial graph generation and draw (before game starts)
+            generateGraph();
+            drawGame();
+        };
+    </script>
+</body>
+</html>
