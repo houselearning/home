@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integral Invasion</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the game */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #1a202c; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Space between canvas and controls */
+            align-items: center;
+            padding: 1.5rem;
+            background-color: #2d3748; /* Slightly lighter dark background */
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+            max-width: 90vw; /* Responsive width */
+        }
+
+        canvas {
+            background-color: #000; /* Game background */
+            border-radius: 0.75rem;
+            border: 2px solid #4a5568; /* Border around canvas */
+            display: block;
+            touch-action: none; /* Disable default touch actions */
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: center;
+        }
+
+        .game-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6); /* Purple gradient */
+            border: none;
+        }
+
+        .game-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .info-panel {
+            color: #e2e8f0; /* Light gray text */
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 150px; /* Ensure score/status has enough space */
+        }
+
+        /* Modal styling */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
+        }
+
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: #2d3748;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+            max-width: 80vw;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .start-prompt {
+            color: #4CAF50; /* Green text */
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            text-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white text-center mb-4">Integral Invasion</h1>
+        <canvas id="gameCanvas"></canvas>
+        <div class="info-panel" id="scorePanel">Score: 0</div>
+        <div class="game-controls">
+            <button id="startButton" class="game-button">Start Game</button>
+            <button id="restartButton" class="game-button" style="display: none;">Restart</button>
+        </div>
+        <div id="pressEnterPrompt" class="start-prompt">Press Enter to Start!</div>
+        <div class="info-panel text-sm text-gray-400 mt-2">
+            Use Left/Right Arrow Keys or touch screen to move.
+        </div>
+    </div>
+
+    <!-- Custom Modal for Game Over -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4">Game Over!</h2>
+            <p class="text-xl mb-6">Your final score: <span id="finalScore" class="font-extrabold text-purple-400">0</span></p>
+            <button id="modalRestartButton" class="game-button">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default to anonymous
+
+        // Get app ID and Firebase config from the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // Initialize Firebase
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Sign in anonymously or with custom token
+            if (typeof __initial_auth_token !== 'undefined') {
+                signInWithCustomToken(auth, __initial_auth_token)
+                    .then((userCredential) => {
+                        userId = userCredential.user.uid;
+                        console.log("Firebase signed in with custom token. User ID:", userId);
+                        // At this point, you could fetch or set user-specific data
+                        // For this game, we're just setting the userId
+                    })
+                    .catch((error) => {
+                        console.error("Error signing in with custom token:", error);
+                        signInAnonymously(auth)
+                            .then(() => {
+                                userId = auth.currentUser.uid;
+                                console.log("Firebase signed in anonymously due to custom token error. User ID:", userId);
+                            })
+                            .catch((anonError) => console.error("Error signing in anonymously:", anonError));
+                    });
+            } else {
+                signInAnonymously(auth)
+                    .then(() => {
+                        userId = auth.currentUser.uid;
+                        console.log("Firebase signed in anonymously. User ID:", userId);
+                    })
+                    .catch((error) => console.error("Error signing in anonymously:", error));
+            }
+
+            // Listen for auth state changes (optional, but good practice)
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    // console.log("Auth state changed, user:", userId);
+                } else {
+                    // console.log("Auth state changed, no user.");
+                }
+            });
+
+            // You can now use `db`, `auth`, and `userId` for Firestore operations
+            // Example: const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/game_data`, 'scores');
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            // Handle Firebase initialization errors gracefully in the UI if needed
+        }
+
+
+        // Game JavaScript Logic
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restartButton');
+        const scorePanel = document.getElementById('scorePanel');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const modalRestartButton = document.getElementById('modalRestartButton');
+        const pressEnterPrompt = document.getElementById('pressEnterPrompt'); // New element for "Press Enter" prompt
+
+        // Game settings
+        const GAME_WIDTH = 400;
+        const GAME_HEIGHT = 600;
+        const PLAYER_WIDTH = 60;
+        const PLAYER_HEIGHT = 20;
+        const PLAYER_SPEED = 5;
+        const INTEGRAL_SPEED_MIN = 1;
+        const INTEGRAL_SPEED_MAX = 3;
+        const INTEGRAL_SPAWN_INTERVAL = 1000; // ms
+        const INTEGRAL_WIDTH = 80;
+        const INTEGRAL_HEIGHT = 30;
+        const START_PROMPT_DELAY = 5000; // 5 seconds
+
+        let player = {
+            x: GAME_WIDTH / 2 - PLAYER_WIDTH / 2,
+            y: GAME_HEIGHT - PLAYER_HEIGHT - 10,
+            width: PLAYER_WIDTH,
+            height: PLAYER_HEIGHT,
+            dx: 0 // movement delta
+        };
+
+        let integrals = [];
+        let score = 0;
+        let gameOver = true;
+        let lastSpawnTime = 0;
+        let animationFrameId;
+        let startPromptTimeoutId; // To store the timeout ID for the "Press Enter" prompt
+
+        // --- Utility Functions ---
+        function resizeCanvas() {
+            // Keep a fixed internal resolution for game logic
+            canvas.width = GAME_WIDTH;
+            canvas.height = GAME_HEIGHT;
+
+            // Scale the canvas visually using CSS for responsiveness
+            const container = canvas.closest('.game-container');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            let scale = 1;
+            if (window.innerWidth < GAME_WIDTH + 60) { // Some padding
+                scale = (window.innerWidth - 60) / GAME_WIDTH;
+            } else if (window.innerHeight < GAME_HEIGHT + 150) { // Some padding for controls
+                scale = (window.innerHeight - 150) / GAME_HEIGHT;
+            }
+            scale = Math.min(scale, 1); // Don't scale up beyond actual size if there's plenty of space
+
+            canvas.style.width = `${GAME_WIDTH * scale}px`;
+            canvas.style.height = `${GAME_HEIGHT * scale}px`;
+        }
+
+
+        function getRandomIntegralExpression() {
+            const forms = [
+                '∫ x dx',
+                '∫ 2x dx',
+                '∫ x² dx',
+                '∫ 3x² dx',
+                '∫ cos(x) dx',
+                '∫ sin(x) dx',
+                '∫ 1/x dx',
+                '∫ eˣ dx',
+                '∫ x³ dx',
+                '∫ x⁴ dx'
+            ];
+            return forms[Math.floor(Math.random() * forms.length)];
+        }
+
+        // --- Drawing Functions ---
+        function drawPlayer() {
+            ctx.fillStyle = '#6366f1'; // Player color (purple)
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y + player.height); // Bottom-left
+            ctx.lineTo(player.x + player.width, player.y + player.height); // Bottom-right
+            ctx.lineTo(player.x + player.width / 2, player.y); // Top-center
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawIntegral(integral) {
+            ctx.fillStyle = '#fef08a'; // Integral expression color (yellow)
+            ctx.strokeStyle = '#eab308'; // Integral border color (darker yellow)
+            ctx.lineWidth = 2;
+            ctx.font = 'bold 16px "Inter", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Draw a rounded rectangle for the integral background
+            const radius = 5;
+            ctx.beginPath();
+            ctx.moveTo(integral.x + radius, integral.y);
+            ctx.lineTo(integral.x + integral.width - radius, integral.y);
+            ctx.quadraticCurveTo(integral.x + integral.width, integral.y, integral.x + integral.width, integral.y + radius);
+            ctx.lineTo(integral.x + integral.width, integral.y + integral.height - radius);
+            ctx.quadraticCurveTo(integral.x + integral.width, integral.y + integral.height, integral.x + integral.width - radius, integral.y + integral.height);
+            ctx.lineTo(integral.x + radius, integral.y + integral.height);
+            ctx.quadraticCurveTo(integral.x, integral.y + integral.height, integral.x, integral.y + integral.height - radius);
+            ctx.lineTo(integral.x, integral.y + radius);
+            ctx.quadraticCurveTo(integral.x, integral.y, integral.x + radius, integral.y);
+            ctx.closePath();
+            ctx.fillStyle = '#ef4444'; // Red background for integrals
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw the integral text
+            ctx.fillStyle = '#ffffff'; // White text
+            ctx.fillText(integral.expression, integral.x + integral.width / 2, integral.y + integral.height / 2);
+        }
+
+        function drawScore() {
+            scorePanel.textContent = `Score: ${score}`;
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // --- Game Logic Functions ---
+        function updatePlayer() {
+            player.x += player.dx;
+
+            // Keep player within canvas bounds
+            if (player.x < 0) {
+                player.x = 0;
+            }
+            if (player.x + player.width > GAME_WIDTH) {
+                player.x = GAME_WIDTH - player.width;
+            }
+        }
+
+        function generateIntegral() {
+            integrals.push({
+                x: Math.random() * (GAME_WIDTH - INTEGRAL_WIDTH),
+                y: -INTEGRAL_HEIGHT, // Start above the canvas
+                width: INTEGRAL_WIDTH,
+                height: INTEGRAL_HEIGHT,
+                speed: INTEGRAL_SPEED_MIN + Math.random() * (INTEGRAL_SPEED_MAX - INTEGRAL_SPEED_MIN),
+                expression: getRandomIntegralExpression()
+            });
+        }
+
+        function updateIntegrals(deltaTime) {
+            for (let i = integrals.length - 1; i >= 0; i--) {
+                const integral = integrals[i];
+                integral.y += integral.speed * (deltaTime / 16); // Normalize speed for consistent movement
+
+                // Remove integrals that go off-screen
+                if (integral.y > GAME_HEIGHT) {
+                    integrals.splice(i, 1);
+                    score += 10; // Award points for dodging an integral
+                }
+            }
+        }
+
+        function checkCollisions() {
+            for (const integral of integrals) {
+                if (
+                    player.x < integral.x + integral.width &&
+                    player.x + player.width > integral.x &&
+                    player.y < integral.y + integral.height &&
+                    player.y + player.height > integral.y
+                ) {
+                    // Collision detected!
+                    endGame();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // --- Game State Management ---
+        function startGame() {
+            if (!gameOver) return; // Prevent starting if game is already running
+
+            player.x = GAME_WIDTH / 2 - PLAYER_WIDTH / 2;
+            player.dx = 0;
+            integrals = [];
+            score = 0;
+            gameOver = false;
+            lastSpawnTime = performance.now(); // Reset spawn timer
+            scorePanel.textContent = 'Score: 0';
+            startButton.style.display = 'none';
+            restartButton.style.display = 'none'; // Only show restart after game over
+            gameOverModal.classList.remove('show'); // Hide modal
+            pressEnterPrompt.style.display = 'none'; // Hide the "Press Enter" prompt
+            clearTimeout(startPromptTimeoutId); // Clear any pending timeout
+
+            // Generate initial integrals
+            for (let i = 0; i < 3; i++) {
+                setTimeout(generateIntegral, i * 500); // Stagger initial spawn
+            }
+
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            gameLoop(performance.now()); // Start the game loop
+        }
+
+        function endGame() {
+            if (gameOver) return;
+
+            gameOver = true;
+            cancelAnimationFrame(animationFrameId); // Stop the game loop
+            console.log('Game Over! Final Score:', score);
+
+            finalScoreDisplay.textContent = score;
+            gameOverModal.classList.add('show');
+
+            startButton.style.display = 'none';
+            restartButton.style.display = 'block';
+            pressEnterPrompt.style.display = 'none'; // Ensure prompt is hidden on game over
+            clearTimeout(startPromptTimeoutId); // Clear any pending timeout
+        }
+
+        function restartGame() {
+            gameOverModal.classList.remove('show');
+            startGame();
+        }
+
+        // --- Main Game Loop ---
+        let lastTime = 0;
+        function gameLoop(currentTime) {
+            if (gameOver) return;
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            // Spawn new integrals
+            if (currentTime - lastSpawnTime > INTEGRAL_SPAWN_INTERVAL) {
+                generateIntegral();
+                lastSpawnTime = currentTime;
+            }
+
+            updatePlayer();
+            updateIntegrals(deltaTime);
+            if (checkCollisions()) {
+                return; // Game ended due to collision
+            }
+
+            clearCanvas();
+            drawPlayer();
+            integrals.forEach(drawIntegral);
+            drawScore();
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Event Listeners ---
+        function handleKeyDown(e) {
+            // Allow 'Enter' key to start the game when the prompt is visible
+            if (e.key === 'Enter' && gameOver && pressEnterPrompt.style.display !== 'none') {
+                startGame();
+                return;
+            }
+
+            if (gameOver) return; // Don't allow movement if game is over (unless for 'Enter')
+
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                player.dx = -PLAYER_SPEED;
+            } else if (e.key === 'ArrowRight' || e.key === 'd') {
+                player.dx = PLAYER_SPEED;
+            }
+        }
+
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'ArrowRight' || e.key === 'd') {
+                player.dx = 0;
+            }
+        }
+
+        let touchStartX = 0;
+        function handleTouchStart(e) {
+            if (gameOver) return;
+            touchStartX = e.touches[0].clientX;
+            e.preventDefault(); // Prevent scrolling
+        }
+
+        function handleTouchMove(e) {
+            if (gameOver) return;
+            const touchCurrentX = e.touches[0].clientX;
+            const diffX = touchCurrentX - touchStartX;
+
+            if (diffX > 5) { // Move right threshold
+                player.dx = PLAYER_SPEED;
+            } else if (diffX < -5) { // Move left threshold
+                player.dx = -PLAYER_SPEED;
+            } else {
+                player.dx = 0;
+            }
+            // Continuous update of touch start for smooth dragging
+            touchStartX = touchCurrentX;
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            player.dx = 0;
+            e.preventDefault();
+        }
+
+        // Function to show the "Press Enter" prompt
+        function showPressEnterPrompt() {
+            if (gameOver) { // Only show if the game hasn't started
+                pressEnterPrompt.style.display = 'block';
+            }
+        }
+
+        // Initialize on window load
+        window.onload = function() {
+            resizeCanvas();
+            // Start listening for resize events
+            window.addEventListener('resize', resizeCanvas);
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', restartGame);
+            modalRestartButton.addEventListener('click', restartGame);
+
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+            // Set timeout for "Press Enter to Start" prompt
+            startPromptTimeoutId = setTimeout(showPressEnterPrompt, START_PROMPT_DELAY);
+
+            // Draw initial state
+            clearCanvas();
+            drawPlayer();
+            drawScore();
+        };
+
+    </script>
+</body>
+</html>
