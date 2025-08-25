@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Counting to 100 - Kindergarten Lesson</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin:0; font-family: 'Segoe UI', Tahoma, sans-serif;
+      background:#f9f9f9; color:#333;
+      min-height:100vh; display:flex; flex-direction:column;
+    }
+    body.dark-mode { background:#0f1113; color:#eaeaea; }
+
+    main { flex:1; padding:20px; }
+    .section {
+      background:white; padding:18px; border-radius:10px;
+      box-shadow:0 6px 18px rgb(2 8 23 / 6%);
+    }
+    body.dark-mode .section { background:#1e1e1e; }
+
+    h1 { font-size:28px; color:#0288d1; margin-bottom:14px; }
+    h2 { font-size:22px; margin:16px 0 8px; border-bottom:2px solid #61dafb; }
+    body.dark-mode h1, body.dark-mode h2 { color:#61dafb; }
+
+    .count-grid {
+      display:grid; grid-template-columns: repeat(10, 1fr);
+      gap:6px; margin:20px 0;
+    }
+    .count-grid div {
+      background:#0288d1; color:white; font-weight:bold;
+      padding:12px; border-radius:8px;
+      text-align:center; font-size:18px;
+      transition: transform 0.12s, background 0.2s;
+      cursor:pointer;
+    }
+    .count-grid div:hover { transform: scale(1.1); background:#01579b; }
+
+    .game-area {
+      margin-top:20px; padding:16px;
+      background:#fff3cd; border-radius:10px; border:1px solid #ffeeba;
+      text-align:center;
+    }
+    .game-area button {
+      background:#0288d1; color:white; font-weight:600;
+      padding:10px 16px; border:none; border-radius:8px;
+      margin-top:12px; cursor:pointer;
+      transition: background 0.2s;
+    }
+    .game-area button:hover { background:#01579b; }
+    .question { font-size:20px; margin:10px 0; }
+
+    body.dark-mode .count-grid div { background:#262626; color:#9be7ff; }
+    body.dark-mode .game-area { background:#332f17; border-color:#5f4c1f; color:#f9f9f9; }
+    body.dark-mode .game-area button { background:#61dafb; color:#0f1113; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="section">
+      <h1>👶 Counting to 100</h1>
+      <p>Click each number to hear it out loud. Then try the practice game below!</p>
+
+      <h2>🔢 Number Grid</h2>
+      <div class="count-grid" id="grid"></div>
+
+      <h2>🎲 Practice Game</h2>
+      <div class="game-area">
+        <p class="question" id="question">Press “New Question” to start!</p>
+        <input type="number" id="answer" placeholder="Type number…" />
+        <br />
+        <button onclick="newQuestion()">New Question</button>
+        <button onclick="checkAnswer()">Check Answer</button>
+        <p id="feedback"></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Build 1–100 grid with speech
+    const grid = document.getElementById("grid");
+    for(let i=1; i<=100; i++){
+      const cell = document.createElement("div");
+      cell.textContent = i;
+      cell.addEventListener("click", ()=> {
+        cell.style.background = "#4caf50";
+        cell.style.color = "white";
+        speakNumber(i);
+      });
+      grid.appendChild(cell);
+    }
+
+    // Use Web Speech API for numbers
+    function speakNumber(num){
+      const msg = new SpeechSynthesisUtterance(num.toString());
+      msg.lang = "en-US";
+      window.speechSynthesis.speak(msg);
+    }
+
+    // Quiz game
+    let currentQ = 0;
+    const correctSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+    const wrongSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+    function newQuestion(){
+      currentQ = Math.floor(Math.random()*100)+1;
+      document.getElementById("question").textContent =
+        "👉 What number comes after " + (currentQ-1) + "?";
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("answer").value = "";
+    }
+    function checkAnswer(){
+      const ans = parseInt(document.getElementById("answer").value);
+      const feedback = document.getElementById("feedback");
+      if(ans === currentQ){
+        feedback.textContent = "✅ Correct! Great job!";
+        correctSound.play();
+      } else {
+        feedback.textContent = "❌ Oops! Try again.";
+        wrongSound.play();
+      }
+    }
+  </script>
+</body>
+</html>
