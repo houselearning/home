@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Place Value (Tens & Ones)</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, sans-serif;
+      background: #fff9e6;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff6600;
+    }
+    .example, .practice {
+      background: #ffe0b3;
+      margin: 15px auto;
+      padding: 20px;
+      width: 60%;
+      border-radius: 12px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    }
+    .number-box {
+      font-size: 2em;
+      margin: 10px;
+      display: inline-block;
+      background: #fff;
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 10px 20px;
+    }
+    .btn {
+      padding: 10px 15px;
+      font-size: 1em;
+      margin-top: 10px;
+      cursor: pointer;
+      background: #ff6600;
+      border: none;
+      border-radius: 8px;
+      color: white;
+    }
+    .btn:hover {
+      background: #e55a00;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Place Value: Tens & Ones</h1>
+  <p>Numbers are made of <b>Tens</b> and <b>Ones</b>. Let's learn how to break them apart!</p>
+
+  <div class="example">
+    <h2>Example</h2>
+    <p>The number <span class="number-box">47</span> has:</p>
+    <p><b>4 Tens</b> (40) and <b>7 Ones</b> (7)</p>
+    <p>👉 40 + 7 = 47</p>
+    <button class="btn" onclick="playExample()">🔊 Hear Example</button>
+  </div>
+
+  <div class="practice">
+    <h2>Practice Time</h2>
+    <p id="practice-question">What are the Tens and Ones in <span class="number-box" id="num">36</span>?</p>
+    <label>Tens: <input type="number" id="tens" min="0"></label>
+    <br><br>
+    <label>Ones: <input type="number" id="ones" min="0"></label>
+    <br><br>
+    <button class="btn" onclick="checkAnswer()">Check Answer ✅</button>
+    <p id="feedback"></p>
+  </div>
+
+  <script>
+    let numbers = [12, 25, 47, 63, 89, 54, 71, 99];
+    let currentNum = 36;
+
+    function playExample() {
+      let msg = new SpeechSynthesisUtterance("The number forty-seven has four tens and seven ones. Forty plus seven equals forty-seven.");
+      window.speechSynthesis.speak(msg);
+    }
+
+    function newQuestion() {
+      currentNum = numbers[Math.floor(Math.random() * numbers.length)];
+      document.getElementById("num").innerText = currentNum;
+      document.getElementById("tens").value = "";
+      document.getElementById("ones").value = "";
+      document.getElementById("feedback").innerText = "";
+    }
+
+    function checkAnswer() {
+      let tens = parseInt(document.getElementById("tens").value);
+      let ones = parseInt(document.getElementById("ones").value);
+      let actualTens = Math.floor(currentNum / 10);
+      let actualOnes = currentNum % 10;
+      
+      if (tens === actualTens && ones === actualOnes) {
+        document.getElementById("feedback").innerHTML = "<span class='correct'>✅ Correct! " + currentNum + " = " + tens*10 + " + " + ones + "</span>";
+        let msg = new SpeechSynthesisUtterance("Great job! " + currentNum + " is " + tens + " tens and " + ones + " ones.");
+        window.speechSynthesis.speak(msg);
+        setTimeout(newQuestion, 2500);
+      } else {
+        document.getElementById("feedback").innerHTML = "<span class='wrong'>❌ Try again!</span>";
+        let msg = new SpeechSynthesisUtterance("Oops! That's not correct. Try again.");
+        window.speechSynthesis.speak(msg);
+      }
+    }
+
+    // start with first question
+    newQuestion();
+  </script>
+</body>
+</html>
