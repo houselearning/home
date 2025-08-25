@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add within 20 - Advanced Lesson</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", sans-serif;
+      background: linear-gradient(to bottom right, #ffecd2, #fcb69f);
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #ff6f61;
+      color: white;
+      padding: 20px;
+      font-size: 2em;
+      font-weight: bold;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    }
+    #lesson {
+      margin: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      padding: 20px;
+      margin: 15px auto;
+      max-width: 700px;
+    }
+    .big-number {
+      font-size: 2.5em;
+      margin: 10px;
+      color: #ff6f61;
+    }
+    .btn {
+      background: #ff6f61;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      margin: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: #ff3f31;
+    }
+    #feedback {
+      font-size: 1.5em;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .choices button {
+      margin: 5px;
+    }
+    #score {
+      font-size: 1.3em;
+      color: #333;
+    }
+    .number-line {
+      margin-top: 20px;
+      position: relative;
+      height: 80px;
+    }
+    .tick {
+      display: inline-block;
+      width: 30px;
+      text-align: center;
+    }
+    .draggable {
+      display: inline-block;
+      background: #ff6f61;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 50%;
+      margin: 5px;
+      cursor: grab;
+    }
+    .dropzone {
+      display: inline-block;
+      border: 2px dashed #aaa;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 10px;
+      min-width: 50px;
+    }
+  </style>
+</head>
+<body>
+  <header>✨ Add Within 20 - CoolMathTime✨</header>
+  <div id="lesson">
+    <div class="card">
+      <h2>Warm Up 🔢</h2>
+      <p class="big-number" id="warmup-problem">7 + 5 = ?</p>
+      <div class="choices" id="warmup-choices"></div>
+      <div id="warmup-feedback"></div>
+    </div>
+
+    <div class="card">
+      <h2>Drag & Drop Addition 🎯</h2>
+      <p>Drag the numbers into the boxes to complete the equation:</p>
+      <div>
+        <span class="dropzone" id="drop1"></span> + 
+        <span class="dropzone" id="drop2"></span> = 
+        <span id="drag-target-answer">10</span>
+      </div>
+      <div id="drag-numbers"></div>
+      <div id="drag-feedback"></div>
+    </div>
+
+    <div class="card">
+      <h2>Number Line Practice 📏</h2>
+      <p>Move along the number line to solve:</p>
+      <p class="big-number" id="line-problem">9 + 4 = ?</p>
+      <div class="number-line" id="number-line"></div>
+      <input type="number" id="line-answer" placeholder="Your Answer">
+      <button class="btn" onclick="checkLine()">Check</button>
+      <div id="line-feedback"></div>
+    </div>
+
+    <div class="card">
+      <h2>Final Challenge 💪</h2>
+      <p>Solve this without hints:</p>
+      <p class="big-number" id="final-problem"></p>
+      <input type="number" id="final-answer" placeholder="Type your answer">
+      <button class="btn" onclick="checkFinal()">Submit</button>
+      <div id="final-feedback"></div>
+    </div>
+
+    <p id="score">⭐ Score: 0</p>
+  </div>
+
+  <audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="wrong-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+
+  <script>
+    let score = 0;
+
+    function updateScore(points) {
+      score += points;
+      document.getElementById("score").innerText = "⭐ Score: " + score;
+    }
+
+    // Warm-up
+    const warmupChoices = document.getElementById("warmup-choices");
+    const warmupFeedback = document.getElementById("warmup-feedback");
+    const warmupAnswer = 12;
+
+    [10, 11, 12, 13].forEach(num => {
+      const btn = document.createElement("button");
+      btn.innerText = num;
+      btn.className = "btn";
+      btn.onclick = () => {
+        if (num === warmupAnswer) {
+          warmupFeedback.innerText = "✅ Correct!";
+          document.getElementById("correct-sound").play();
+          updateScore(5);
+        } else {
+          warmupFeedback.innerText = "❌ Try again!";
+          document.getElementById("wrong-sound").play();
+        }
+      };
+      warmupChoices.appendChild(btn);
+    });
+
+    // Drag & Drop
+    const dragNumbers = [2, 8, 5, 7];
+    const correctPair = [2, 8];
+    const dragContainer = document.getElementById("drag-numbers");
+    dragNumbers.forEach(num => {
+      const span = document.createElement("span");
+      span.innerText = num;
+      span.className = "draggable";
+      span.draggable = true;
+      span.ondragstart = e => e.dataTransfer.setData("text", num);
+      dragContainer.appendChild(span);
+    });
+
+    document.querySelectorAll(".dropzone").forEach(zone => {
+      zone.ondragover = e => e.preventDefault();
+      zone.ondrop = e => {
+        e.preventDefault();
+        zone.innerText = e.dataTransfer.getData("text");
+        checkDrag();
+      };
+    });
+
+    function checkDrag() {
+      const d1 = document.getElementById("drop1").innerText;
+      const d2 = document.getElementById("drop2").innerText;
+      if (d1 && d2) {
+        if (+d1 + +d2 === 10) {
+          document.getElementById("drag-feedback").innerText = "✅ Perfect!";
+          document.getElementById("correct-sound").play();
+          updateScore(10);
+        } else {
+          document.getElementById("drag-feedback").innerText = "❌ Nope, try again!";
+          document.getElementById("wrong-sound").play();
+        }
+      }
+    }
+
+    // Number Line
+    const lineProblem = { a: 9, b: 4, answer: 13 };
+    const lineContainer = document.getElementById("number-line");
+    for (let i = 0; i <= 20; i++) {
+      const tick = document.createElement("div");
+      tick.className = "tick";
+      tick.innerText = i;
+      lineContainer.appendChild(tick);
+    }
+    function checkLine() {
+      const ans = +document.getElementById("line-answer").value;
+      if (ans === lineProblem.answer) {
+        document.getElementById("line-feedback").innerText = "✅ Correct!";
+        document.getElementById("correct-sound").play();
+        updateScore(10);
+      } else {
+        document.getElementById("line-feedback").innerText = "❌ Wrong!";
+        document.getElementById("wrong-sound").play();
+      }
+    }
+
+    // Final Challenge
+    const finalA = Math.floor(Math.random() * 10) + 5;
+    const finalB = Math.floor(Math.random() * 10) + 5;
+    const finalAns = finalA + finalB;
+    document.getElementById("final-problem").innerText = `${finalA} + ${finalB} = ?`;
+
+    function checkFinal() {
+      const ans = +document.getElementById("final-answer").value;
+      if (ans === finalAns) {
+        document.getElementById("final-feedback").innerText = "🎉 Amazing, you did it!";
+        document.getElementById("correct-sound").play();
+        updateScore(20);
+      } else {
+        document.getElementById("final-feedback").innerText = "❌ Try again!";
+        document.getElementById("wrong-sound").play();
+      }
+    }
+  </script>
+</body>
+</html>
