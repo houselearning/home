@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Measurement Tools Lesson</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 700px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .tool {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 15px 0;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .tool img {
+      width: 100px;
+      height: auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .question {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>📏 Measurement Tools Lesson</h1>
+
+  <div class="card">
+    <h2>Introduction</h2>
+    <p>Measurement tools help us find out <b>how long, how heavy, what time, or how hot/cold</b> something is.  
+    Let’s explore the four main tools: <b>Ruler, Clock, Scale, Thermometer</b>.</p>
+  </div>
+
+  <div class="card">
+    <h2>🛠 Learn the Tools</h2>
+    <div class="tool">
+      <p><b>Ruler</b> – measures length in inches or centimeters.</p>
+      <img src="ruler.png" alt="Ruler">
+    </div>
+    <div class="tool">
+      <p><b>Clock</b> – measures time in hours and minutes.</p>
+      <img src="clock.png" alt="Clock">
+    </div>
+    <div class="tool">
+      <p><b>Scale</b> – measures weight in pounds or kilograms.</p>
+      <img src="scale.png" alt="Scale">
+    </div>
+    <div class="tool">
+      <p><b>Thermometer</b> – measures temperature in °C or °F.</p>
+      <img src="thermometer.png" alt="Thermometer">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 Practice Time!</h2>
+    <p class="question" id="question">Which tool do we use to measure weight?</p>
+    <div>
+      <button onclick="checkAnswer('Ruler')">Ruler</button>
+      <button onclick="checkAnswer('Clock')">Clock</button>
+      <button onclick="checkAnswer('Scale')">Scale</button>
+      <button onclick="checkAnswer('Thermometer')">Thermometer</button>
+    </div>
+    <p class="feedback" id="feedback"></p>
+    <button onclick="nextQuestion()">Next Question ➡️</button>
+  </div>
+
+  <script>
+    const questions = [
+      {q: "Which tool do we use to measure weight?", a: "Scale"},
+      {q: "Which tool do we use to measure time?", a: "Clock"},
+      {q: "Which tool do we use to measure temperature?", a: "Thermometer"},
+      {q: "Which tool do we use to measure length?", a: "Ruler"}
+    ];
+    let current = 0;
+
+    function checkAnswer(answer) {
+      let correct = questions[current].a;
+      let feedback = document.getElementById("feedback");
+      if (answer === correct) {
+        feedback.textContent = "✅ Correct! Great job!";
+        feedback.style.color = "green";
+      } else {
+        feedback.textContent = "❌ Oops! The correct answer is " + correct + ".";
+        feedback.style.color = "red";
+      }
+    }
+
+    function nextQuestion() {
+      current = (current + 1) % questions.length;
+      document.getElementById("question").textContent = questions[current].q;
+      document.getElementById("feedback").textContent = "";
+    }
+  </script>
+</body>
+</html>
