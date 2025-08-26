@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Intro to Division - 2nd Grade Lesson</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9ff;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #3b3bbf;
+    }
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      background: #3b3bbf;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #2a2a91;
+    }
+    input {
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin: 5px;
+    }
+    #canvasDiv {
+      text-align: center;
+    }
+    canvas {
+      border: 2px solid #3b3bbf;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 Intro to Division</h1>
+  <div class="section">
+    <h2>What is Division?</h2>
+    <p>
+      Division means **splitting into equal groups**. Think of it as the opposite of multiplication.
+      If multiplication is putting groups together, division is breaking them apart.
+    </p>
+    <p>Example: You have <b>12 cookies</b> and want to share with <b>3 friends</b>. Each friend gets <b>4 cookies</b>.</p>
+  </div>
+
+  <div class="section">
+    <h2>Visual Example 🍪</h2>
+    <p>Let’s see how 12 cookies can be shared among 3 people:</p>
+    <div id="canvasDiv">
+      <canvas id="divisionCanvas" width="400" height="200"></canvas>
+      <br>
+      <button onclick="drawDivision()">Show Sharing</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Practice Problems 📝</h2>
+    <p>Solve these and type your answers:</p>
+    <p>1. 10 ÷ 2 = <input id="q1"> <button onclick="checkAnswer(1,5)">Check</button> <span id="a1"></span></p>
+    <p>2. 15 ÷ 3 = <input id="q2"> <button onclick="checkAnswer(2,5)">Check</button> <span id="a2"></span></p>
+    <p>3. 20 ÷ 4 = <input id="q3"> <button onclick="checkAnswer(3,5)">Check</button> <span id="a3"></span></p>
+  </div>
+
+  <div class="section">
+    <h2>Mini Game 🎮</h2>
+    <p>How many groups? (Click for a random division question!)</p>
+    <button onclick="generateGame()">New Question</button>
+    <p id="gameQ"></p>
+    <input id="gameA">
+    <button onclick="checkGame()">Submit</button>
+    <p id="gameResult"></p>
+  </div>
+
+  <script>
+    function drawDivision() {
+      let c = document.getElementById("divisionCanvas");
+      let ctx = c.getContext("2d");
+      ctx.clearRect(0,0,c.width,c.height);
+
+      // Draw 12 cookies
+      for(let i=0;i<12;i++) {
+        ctx.beginPath();
+        ctx.arc(40 + (i%6)*50, 50 + Math.floor(i/6)*80, 15, 0, Math.PI*2);
+        ctx.fillStyle = "saddlebrown";
+        ctx.fill();
+      }
+
+      // Draw 3 stick figures (friends)
+      for(let j=0;j<3;j++) {
+        ctx.beginPath();
+        ctx.arc(80 + j*120, 160, 20, 0, Math.PI*2);
+        ctx.fillStyle = "#3b3bbf";
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#000";
+      ctx.fillText("Cookies shared equally among 3 friends!", 80, 20);
+    }
+
+    function checkAnswer(num, correct) {
+      let ans = document.getElementById("q"+num).value;
+      let result = document.getElementById("a"+num);
+      if(ans == correct) {
+        result.innerHTML = "✅ Correct!";
+        result.style.color = "green";
+      } else {
+        result.innerHTML = "❌ Try again!";
+        result.style.color = "red";
+      }
+    }
+
+    let gameAnswer = 0;
+    function generateGame() {
+      let nums = [12,16,18,20,24];
+      let divs = [2,3,4,6];
+      let a = nums[Math.floor(Math.random()*nums.length)];
+      let b = divs[Math.floor(Math.random()*divs.length)];
+      gameAnswer = a/b;
+      document.getElementById("gameQ").innerHTML = `${a} ÷ ${b} = ?`;
+      document.getElementById("gameResult").innerHTML = "";
+      document.getElementById("gameA").value = "";
+    }
+
+    function checkGame() {
+      let ans = document.getElementById("gameA").value;
+      if(ans == gameAnswer) {
+        document.getElementById("gameResult").innerHTML = "🎉 Correct!";
+        document.getElementById("gameResult").style.color = "green";
+      } else {
+        document.getElementById("gameResult").innerHTML = "😅 Nope, try again!";
+        document.getElementById("gameResult").style.color = "red";
+      }
+    }
+  </script>
+</body>
+</html>
