@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Intro to Multiplication</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    header {
+      background: #007acc;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    section {
+      padding: 20px;
+    }
+    .example, .practice, .activity {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #007acc;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #005f99;
+    }
+    .question {
+      margin: 10px 0;
+    }
+    input {
+      padding: 5px;
+      font-size: 16px;
+      border: 2px solid #007acc;
+      border-radius: 6px;
+    }
+    canvas {
+      border: 2px solid #007acc;
+      display: block;
+      margin: 20px auto;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Intro to Multiplication</h1>
+    <p>Learn how multiplication is just repeated addition!</p>
+  </header>
+
+  <section>
+    <div class="example">
+      <h2>🔎 What is Multiplication?</h2>
+      <p>Multiplication is a quick way of adding the same number again and again.</p>
+      <p>Example: <b>2 × 3</b> means <b>2 + 2 + 2</b>. The answer is <b>6</b>.</p>
+    </div>
+
+    <div class="example">
+      <h2>📊 Arrays and Groups</h2>
+      <p>We can use groups or arrays to show multiplication:</p>
+      <ul>
+        <li><b>3 × 4</b> = 3 groups of 4 = 12</li>
+        <li><b>5 × 2</b> = 5 groups of 2 = 10</li>
+      </ul>
+      <canvas id="arrayCanvas" width="300" height="200"></canvas>
+      <button onclick="drawArray()">Show 3 × 4 Array</button>
+    </div>
+
+    <div class="practice">
+      <h2>✏️ Practice Problems</h2>
+      <div class="question">
+        1) 2 × 5 = 
+        <input id="q1" type="number">
+        <button onclick="checkAnswer('q1',10)">Check</button>
+      </div>
+      <div class="question">
+        2) 4 × 3 = 
+        <input id="q2" type="number">
+        <button onclick="checkAnswer('q2',12)">Check</button>
+      </div>
+      <div class="question">
+        3) 6 × 2 = 
+        <input id="q3" type="number">
+        <button onclick="checkAnswer('q3',12)">Check</button>
+      </div>
+    </div>
+
+    <div class="activity">
+      <h2>🎮 Multiplication Game</h2>
+      <p>Click to get a random multiplication question (1–10). Type your answer and check!</p>
+      <p id="gameQuestion"></p>
+      <input id="gameAnswer" type="number">
+      <button onclick="checkGame()">Check</button>
+      <p id="gameResult"></p>
+      <button onclick="newGame()">New Question</button>
+    </div>
+  </section>
+
+  <script>
+    // Canvas for arrays
+    function drawArray() {
+      const c = document.getElementById("arrayCanvas");
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      let rows = 3, cols = 4;
+      for (let r = 0; r < rows; r++) {
+        for (let col = 0; col < cols; col++) {
+          ctx.beginPath();
+          ctx.arc(30 + col * 50, 30 + r * 50, 15, 0, 2 * Math.PI);
+          ctx.fillStyle = "#007acc";
+          ctx.fill();
+        }
+      }
+    }
+
+    // Practice check
+    function checkAnswer(id, correct) {
+      let user = document.getElementById(id).value;
+      if (parseInt(user) === correct) {
+        alert("✅ Correct!");
+      } else {
+        alert("❌ Try again!");
+      }
+    }
+
+    // Game logic
+    let num1, num2, answer;
+    function newGame() {
+      num1 = Math.floor(Math.random() * 10) + 1;
+      num2 = Math.floor(Math.random() * 10) + 1;
+      answer = num1 * num2;
+      document.getElementById("gameQuestion").innerText = `${num1} × ${num2} = ?`;
+      document.getElementById("gameResult").innerText = "";
+      document.getElementById("gameAnswer").value = "";
+    }
+    function checkGame() {
+      let user = document.getElementById("gameAnswer").value;
+      if (parseInt(user) === answer) {
+        document.getElementById("gameResult").innerText = "✅ Correct!";
+      } else {
+        document.getElementById("gameResult").innerText = "❌ Nope, try again!";
+      }
+    }
+
+    // Start with a question
+    newGame();
+  </script>
+</body>
+</html>
