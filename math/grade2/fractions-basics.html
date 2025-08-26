@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractions Lesson (1/2, 1/3, 1/4)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f7f7ff;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #4CAF50;
+            font-size: 3em;
+            margin: 10px 0;
+        }
+        h2 {
+            color: #2196F3;
+        }
+        .lesson-box {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            width: 100%;
+        }
+        .lesson-box h2 {
+            font-size: 2em;
+        }
+        .lesson-box p {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        button {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        canvas {
+            margin: 15px auto;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            display: block;
+        }
+        .question {
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        .result {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .celebration {
+            font-size: 2em;
+            color: #ff9800;
+            display: none;
+        }
+        /* New styles for the challenge section */
+        .challenge-text {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #4a5568;
+            margin: 10px 0;
+        }
+        #drawing-canvas {
+            border: 2px solid #cbd5e0;
+            border-radius: 12px;
+            background-color: #f7fafc;
+            touch-action: none;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .check-button {
+            background-color: #4361ee;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 9999px;
+            padding: 12px 24px;
+        }
+        .check-button:hover {
+            background-color: #3f59d0;
+        }
+        .clear-button {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 9999px;
+            padding: 12px 24px;
+        }
+        .clear-button:hover {
+            background-color: #d1d8e0;
+        }
+        .message-box {
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 700;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .message-box.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .message-box.fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px;
+        }
+        .loading-spinner.visible {
+            display: block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍰 Fractions: 1/2, 1/3, 1/4 🍕</h1>
+
+    <div class="lesson-box">
+        <h2>📖 Introduction</h2>
+        <p>Fractions are a way to show equal parts of a whole.
+            If you split a cake into 2 equal parts, each part is <b>1/2</b>.
+            If you split it into 3 equal parts, each part is <b>1/3</b>.
+            If you split it into 4 equal parts, each part is <b>1/4</b>.</p>
+    </div>
+
+    <div class="lesson-box">
+        <h2>💡 How to Do It</h2>
+        <p>Look at the bottom number (denominator). It tells you how many equal parts.
+            Look at the top number (numerator). It tells you how many parts are shaded.</p>
+        <p>Example: <b>1/2</b> = 1 shaded part out of 2 equal parts.</p>
+    </div>
+
+    <div class="lesson-box">
+        <h2>🎨 Fraction Visuals</h2>
+        <canvas id="fractionCanvas" width="400" height="200"></canvas><br>
+        <button onclick="drawFraction(2)">Show 1/2</button>
+        <button onclick="drawFraction(3)">Show 1/3</button>
+        <button onclick="drawFraction(4)">Show 1/4</button>
+    </div>
+
+    <div class="lesson-box">
+        <h2>📝 Practice Problems</h2>
+        <div class="question">
+            🍕 If you cut a pizza into 2 equal parts and eat 1 part, what fraction did you eat?<br>
+            <button onclick="checkAnswer(1,'1/2')">1/2</button>
+            <button onclick="checkAnswer(1,'1/3')">1/3</button>
+            <button onclick="checkAnswer(1,'1/4')">1/4</button>
+            <div id="result1" class="result"></div>
+        </div>
+
+        <div class="question">
+            🍰 If a cake is cut into 4 equal parts and you eat 1, what fraction is that?<br>
+            <button onclick="checkAnswer(2,'1/2')">1/2</button>
+            <button onclick="checkAnswer(2,'1/3')">1/3</button>
+            <button onclick="checkAnswer(2,'1/4')">1/4</button>
+            <div id="result2" class="result"></div>
+        </div>
+
+        <div class="question">
+            🍫 A chocolate bar is divided into 3 equal parts. You eat 1 part. What fraction is that?<br>
+            <button onclick="checkAnswer(3,'1/2')">1/2</button>
+            <button onclick="checkAnswer(3,'1/3')">1/3</button>
+            <button onclick="checkAnswer(3,'1/4')">1/4</button>
+            <div id="result3" class="result"></div>
+        </div>
+    </div>
+
+    <div class="lesson-box celebration" id="celebration">
+        🎉 Woohoo! You mastered the basics of fractions! 🎉
+    </div>
+
+    <!-- The new challenge section is added here -->
+    <div class="lesson-box">
+        <h2>🎨 Fraction Drawing Challenge</h2>
+        <p class="challenge-text">Challenge: draw <span id="fraction-display"></span></p>
+        <canvas id="drawing-canvas"></canvas>
+        <div class="buttons-container">
+            <button id="check-button" class="check-button">Check Your Work</button>
+            <button id="clear-button" class="clear-button">Clear</button>
+        </div>
+        <div id="message-container">
+            <div id="loading-spinner" class="loading-spinner"></div>
+            <div id="message-box" class="message-box"></div>
+        </div>
+    </div>
+
+    <script>
+        // Existing functions from the original lesson
+        function drawFraction(parts) {
+            let canvas = document.getElementById("fractionCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let centerX = 100, centerY = 100, radius = 80;
+            let fractionColors = ["#FF5722","#FFC107","#4CAF50","#2196F3"];
+
+            // draw circle with sections
+            for(let i=0;i<parts;i++){
+                ctx.beginPath();
+                ctx.moveTo(centerX,centerY);
+                ctx.arc(centerX, centerY, radius, i*2*Math.PI/parts, (i+1)*2*Math.PI/parts);
+                ctx.closePath();
+                ctx.fillStyle = i === 0 ? fractionColors[i] : "#eee";
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // label
+            ctx.font = "20px Roboto, sans-serif";
+            ctx.fillStyle = "#333";
+            ctx.fillText("1/"+parts+" shaded", 220, 100);
+        }
+
+        let answers = {
+            1: "1/2",
+            2: "1/4",
+            3: "1/3"
+        };
+        let correctCount = 0;
+
+        function checkAnswer(q, ans) {
+            let result = document.getElementById("result"+q);
+            if(ans === answers[q]){
+                result.innerHTML = "✅ Correct!";
+                result.style.color = "green";
+                correctCount++;
+                if(correctCount === 3){
+                    document.getElementById("celebration").style.display = "block";
+                }
+            } else {
+                result.innerHTML = "❌ Try Again!";
+                result.style.color = "red";
+            }
+        }
+
+        // New code for the drawing challenge
+        (async () => {
+            // Define global variables for the Firebase environment
+            const __app_id = "default-app-id";
+            const __firebase_config = JSON.stringify({
+                apiKey: "",
+                authDomain: "",
+                projectId: "",
+                storageBucket: "",
+                messagingSenderId: "",
+                appId: ""
+            });
+            const __initial_auth_token = "";
+
+            // --- API Setup for Gemini Vision Model ---
+            const API_KEY = "AIzaSyC268bg0hssvKuCHwZ_kHXQzhgMFEAEtr4";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            const EXPONENTIAL_BACKOFF_BASE = 1000;
+            const MAX_RETRIES = 5;
+
+            async function fetchWithRetry(url, options, retries = 0) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (retries < MAX_RETRIES) {
+                        const delay = EXPONENTIAL_BACKOFF_BASE * Math.pow(2, retries) + Math.random() * 1000;
+                        console.error(`Fetch failed, retrying in ${delay / 1000}s...`, error);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return fetchWithRetry(url, options, retries + 1);
+                    } else {
+                        console.error("Max retries reached. Failing.", error);
+                        throw error;
+                    }
+                }
+            }
+
+            // --- UI and State Management ---
+            const canvas = document.getElementById('drawing-canvas');
+            const ctx = canvas.getContext('2d');
+            const checkButton = document.getElementById('check-button');
+            const clearButton = document.getElementById('clear-button');
+            const fractionDisplay = document.getElementById('fraction-display');
+            const messageBox = document.getElementById('message-box');
+            const loadingSpinner = document.getElementById('loading-spinner');
+
+            let drawing = false;
+            let currentFraction;
+            const fractions = ["1/2", "3/4", "1/4", "2/3", "1/3", "2/4", "3/3", "4/5", "1/5", "2/5"];
+
+            // Initialize canvas for drawing
+            function initCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = 500;
+                canvas.height = 300;
+                ctx.fillStyle = '#f7fafc';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#1a202c';
+            }
+
+            // Get mouse or touch coordinates relative to the canvas
+            function getMousePos(event) {
+                const rect = canvas.getBoundingClientRect();
+                if (event.touches) {
+                    return {
+                        x: (event.touches[0].clientX - rect.left) / rect.width * canvas.width,
+                        y: (event.touches[0].clientY - rect.top) / rect.height * canvas.height
+                    };
+                } else {
+                    return {
+                        x: (event.clientX - rect.left) / rect.width * canvas.width,
+                        y: (event.clientY - rect.top) / rect.height * canvas.height
+                    };
+                }
+            }
+
+            // Start drawing
+            function startDrawing(event) {
+                drawing = true;
+                ctx.beginPath();
+                const { x, y } = getMousePos(event);
+                ctx.moveTo(x, y);
+                event.preventDefault();
+            }
+
+            // Draw line
+            function drawLine(event) {
+                if (!drawing) return;
+                const { x, y } = getMousePos(event);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+
+            // Stop drawing
+            function stopDrawing() {
+                drawing = false;
+                ctx.closePath();
+            }
+
+            // Show a message to the user
+            function showMessage(text, type) {
+                messageBox.textContent = text;
+                messageBox.className = `message-box visible ${type}`;
+            }
+
+            // Hide the message
+            function hideMessage() {
+                messageBox.className = 'message-box';
+            }
+
+            // Show or hide the loading spinner
+            function showLoading(isVisible) {
+                if (isVisible) {
+                    loadingSpinner.classList.add('visible');
+                    hideMessage();
+                    checkButton.disabled = true;
+                    clearButton.disabled = true;
+                } else {
+                    loadingSpinner.classList.remove('visible');
+                    checkButton.disabled = false;
+                    clearButton.disabled = false;
+                }
+            }
+
+            // Get a new random fraction and update the display
+            function newChallenge() {
+                const randomIndex = Math.floor(Math.random() * fractions.length);
+                currentFraction = fractions[randomIndex];
+                fractionDisplay.textContent = currentFraction;
+            }
+
+            // Convert canvas content to a base64 string
+            function getBase64Image() {
+                return canvas.toDataURL('image/png').split(',')[1];
+            }
+
+            // Check the drawing against the AI model
+            async function checkFraction() {
+                showLoading(true);
+
+                const base64Image = getBase64Image();
+                const userPrompt = `Does this drawing represent the fraction ${currentFraction}? Answer with a single word: Yes or No.`;
+
+                const payload = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [
+                                { text: userPrompt },
+                                {
+                                    inlineData: {
+                                        mimeType: "image/png",
+                                        data: base64Image
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                };
+
+                try {
+                    const result = await fetchWithRetry(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const responseText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (responseText && responseText.trim().toLowerCase() === 'yes') {
+                        showMessage('✅ Yes! You got it!', 'success');
+                    } else {
+                        showMessage('❌ Not quite. Try again!', 'fail');
+                    }
+                } catch (error) {
+                    console.error('API call failed:', error);
+                    showMessage('An error occurred. Please try again.', 'fail');
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            // Event listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mousemove', drawLine);
+
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchend', stopDrawing);
+            canvas.addEventListener('touchmove', drawLine);
+
+            checkButton.addEventListener('click', checkFraction);
+            clearButton.addEventListener('click', () => {
+                initCanvas();
+                newChallenge();
+                hideMessage();
+            });
+
+            // Initial setup on page load
+            window.onload = function() {
+                initCanvas();
+                newChallenge();
+            };
+        })();
+    </script>
+</body>
+</html>
