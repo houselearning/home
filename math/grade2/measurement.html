@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Measurement (cm and in)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fdf6e3;
+      color: #333;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #2e6da4;
+    }
+    .lesson-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #2e6da4;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px 0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #245580;
+    }
+    input[type="number"] {
+      padding: 5px;
+      margin: 5px 0;
+      width: 100px;
+    }
+    #canvasContainer {
+      text-align: center;
+      margin-top: 20px;
+    }
+    canvas {
+      border: 1px solid #333;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📏 Measurement (cm and in)</h1>
+
+  <div class="lesson-section">
+    <h2>Introduction</h2>
+    <p>
+      Measurement is how we find out the size or length of something. Two common units are:
+    </p>
+    <ul>
+      <li><b>Centimeters (cm)</b>: used in the metric system. 1 meter = 100 cm.</li>
+      <li><b>Inches (in)</b>: used in the US customary system. 1 foot = 12 inches.</li>
+    </ul>
+    <p>
+      The key relationship is: <b>1 inch ≈ 2.54 cm</b>.  
+      That means every inch is about 2 and a half centimeters.
+    </p>
+  </div>
+
+  <div class="lesson-section">
+    <h2>Examples</h2>
+    <p>
+      Let’s look at some real-world measurements:
+    </p>
+    <ul>
+      <li>A crayon might be <b>10 cm</b> long, which is about <b>4 in</b>.</li>
+      <li>A sheet of paper is about <b>28 cm</b> tall, or <b>11 in</b>.</li>
+      <li>A smartphone is around <b>15 cm</b>, or <b>6 in</b>.</li>
+    </ul>
+  </div>
+
+  <div class="lesson-section">
+    <h2>Conversion Practice</h2>
+    <p>Convert between centimeters and inches:</p>
+
+    <label>Centimeters ➡ Inches: </label><br>
+    <input type="number" id="cmInput" placeholder="cm">
+    <button onclick="convertToInches()">Convert</button>
+    <p id="inchResult"></p>
+
+    <label>Inches ➡ Centimeters: </label><br>
+    <input type="number" id="inInput" placeholder="in">
+    <button onclick="convertToCm()">Convert</button>
+    <p id="cmResult"></p>
+  </div>
+
+  <div class="lesson-section">
+    <h2>Interactive Measurement Tool</h2>
+    <p>
+      Use the canvas below to <b>measure objects</b>. Click the buttons to switch between a
+      centimeter ruler and an inch ruler.
+    </p>
+    <div id="canvasContainer">
+      <button onclick="drawCmRuler()">📏 Show cm Ruler</button>
+      <button onclick="drawInchRuler()">📐 Show in Ruler</button>
+      <canvas id="rulerCanvas" width="600" height="120"></canvas>
+    </div>
+  </div>
+
+  <div class="lesson-section">
+    <h2>Practice Problems</h2>
+    <ol>
+      <li>Your pencil is 12 cm long. About how many inches is it?</li>
+      <li>A notebook is 8 inches wide. How many centimeters is that?</li>
+      <li>If a toy car is 20 cm long, is that longer or shorter than 10 inches?</li>
+    </ol>
+    <p><b>Think:</b> Use the fact that 1 in = 2.54 cm to solve these!</p>
+  </div>
+
+  <div class="lesson-section">
+    <h2>Summary</h2>
+    <p>
+      - Measurement tells us how long something is.<br>
+      - We use <b>cm</b> in the metric system and <b>in</b> in the US system.<br>
+      - 1 in ≈ 2.54 cm.<br>
+      - You can convert back and forth using this relationship.<br>
+      - Practice helps you get familiar with both units!
+    </p>
+  </div>
+
+  <script>
+    function convertToInches() {
+      let cm = parseFloat(document.getElementById("cmInput").value);
+      if (!isNaN(cm)) {
+        let inches = (cm / 2.54).toFixed(2);
+        document.getElementById("inchResult").innerText = cm + " cm ≈ " + inches + " in";
+      }
+    }
+
+    function convertToCm() {
+      let inches = parseFloat(document.getElementById("inInput").value);
+      if (!isNaN(inches)) {
+        let cm = (inches * 2.54).toFixed(2);
+        document.getElementById("cmResult").innerText = inches + " in ≈ " + cm + " cm";
+      }
+    }
+
+    function drawCmRuler() {
+      let c = document.getElementById("rulerCanvas");
+      let ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.strokeStyle = "#000";
+      ctx.beginPath();
+      for (let i = 0; i <= 600; i += 10) { // every cm = 10px
+        let height = (i % 50 === 0) ? 40 : (i % 10 === 0) ? 25 : 15;
+        ctx.moveTo(i, 100);
+        ctx.lineTo(i, 100 - height);
+        if (i % 50 === 0) {
+          ctx.fillText(i/10 + " cm", i + 2, 110);
+        }
+      }
+      ctx.stroke();
+    }
+
+    function drawInchRuler() {
+      let c = document.getElementById("rulerCanvas");
+      let ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.strokeStyle = "#000";
+      ctx.beginPath();
+      for (let i = 0; i <= 600; i += 25.4) { // 1 inch ≈ 25.4px
+        let height = (Math.round(i) % Math.round(25.4*5) === 0) ? 40 : 25;
+        ctx.moveTo(i, 100);
+        ctx.lineTo(i, 100 - height);
+        if (Math.round(i) % Math.round(25.4*1) === 0) {
+          ctx.fillText((i/25.4).toFixed(0) + " in", i + 2, 110);
+        }
+      }
+      ctx.stroke();
+    }
+
+    // draw default cm ruler
+    drawCmRuler();
+  </script>
+</body>
+</html>
