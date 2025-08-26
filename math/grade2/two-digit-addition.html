@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Two-Digit Addition Lesson</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", sans-serif;
+      background: #fef9f5;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: #ffcc80;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5em;
+    }
+    section {
+      padding: 20px;
+      margin: 20px;
+      background: #fff3e0;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e68900;
+    }
+    .example, .practice, .challenge {
+      background: #ffe0b2;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    canvas {
+      border: 2px solid #333;
+      display: block;
+      margin: 20px auto;
+      background: #fff8e1;
+    }
+    .scroll-buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📘 Two-Digit Addition Lesson</h1>
+    <p>Learn how to add numbers with two digits (tens & ones) step by step!</p>
+  </header>
+
+  <section>
+    <h2>📖 Introduction</h2>
+    <p>
+      Two-digit addition means we’re adding numbers from 10 to 99.  
+      Each number has a <strong>tens place</strong> and a <strong>ones place</strong>.  
+      When we add them, we start with the <strong>ones</strong>. If the sum is 10 or greater, we carry (regroup) the extra ten into the tens place.
+    </p>
+  </section>
+
+  <section>
+    <h2>🧩 Step-by-Step Example</h2>
+    <div class="example">
+      <p><strong>Example:</strong> 47 + 36</p>
+      <ol>
+        <li>Line up the numbers by place value:
+          <pre>
+   47
++ 36
+          </pre>
+        </li>
+        <li>Add the ones: 7 + 6 = 13 → Write 3, carry the 1 to the tens.</li>
+        <li>Add the tens: 4 + 3 = 7, plus the carried 1 = 8.</li>
+        <li>Final Answer: <strong>83</strong></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>✏️ Practice Problems</h2>
+    <div class="practice">
+      <p>Solve: 28 + 46 = ?</p>
+      <input type="number" id="q1">
+      <button onclick="checkAnswer('q1', 74)">Check</button>
+      <span id="q1result"></span>
+    </div>
+    <div class="practice">
+      <p>Solve: 59 + 27 = ?</p>
+      <input type="number" id="q2">
+      <button onclick="checkAnswer('q2', 86)">Check</button>
+      <span id="q2result"></span>
+    </div>
+    <div class="practice">
+      <p>Solve: 34 + 48 = ?</p>
+      <input type="number" id="q3">
+      <button onclick="checkAnswer('q3', 82)">Check</button>
+      <span id="q3result"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>🔥 Challenge Problems</h2>
+    <div class="challenge">
+      <p>Solve: 76 + 89 = ?</p>
+      <input type="number" id="c1">
+      <button onclick="checkAnswer('c1', 165)">Check</button>
+      <span id="c1result"></span>
+    </div>
+    <div class="challenge">
+      <p>Solve: 95 + 68 = ?</p>
+      <input type="number" id="c2">
+      <button onclick="checkAnswer('c2', 163)">Check</button>
+      <span id="c2result"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>🔢 Number Chart (100–1000)</h2>
+    <div class="scroll-buttons">
+      <button onclick="scrollUp()">⬆️ Up</button>
+      <button onclick="scrollDown()">⬇️ Down</button>
+    </div>
+    <canvas id="chartCanvas" width="500" height="400"></canvas>
+  </section>
+
+  <script>
+    function checkAnswer(id, correct) {
+      const input = document.getElementById(id).value;
+      const result = document.getElementById(id + "result");
+      if (parseInt(input) === correct) {
+        result.textContent = "✅ Correct!";
+        result.style.color = "green";
+      } else {
+        result.textContent = "❌ Try again!";
+        result.style.color = "red";
+      }
+    }
+
+    // Canvas number chart
+    const canvas = document.getElementById("chartCanvas");
+    const ctx = canvas.getContext("2d");
+    let start = 100;
+
+    function drawChart() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "#333";
+      let x = 20, y = 30;
+      for (let i = start; i < start + 100; i++) {
+        ctx.fillText(i, x, y);
+        x += 40;
+        if (x > 400) {
+          x = 20;
+          y += 30;
+        }
+      }
+    }
+
+    function scrollUp() {
+      if (start > 100) start -= 100;
+      drawChart();
+    }
+    function scrollDown() {
+      if (start < 900) start += 100;
+      drawChart();
+    }
+
+    drawChart();
+  </script>
+</body>
+</html>
