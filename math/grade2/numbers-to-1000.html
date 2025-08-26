@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2nd Grade Lesson: Numbers to 1000</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      background: #f0f9ff;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    section {
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 800px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    h2 {
+      color: #4CAF50;
+    }
+    .question {
+      margin: 15px 0;
+      font-size: 20px;
+    }
+    input[type="number"] {
+      padding: 8px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: 2px solid #4CAF50;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .feedback {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    #numberChart {
+      margin-top: 30px;
+      border: 2px solid #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <header>2nd Grade Lesson: Numbers to 1000</header>
+
+  <section>
+    <h2>📖 Introduction</h2>
+    <p>In 2nd grade, we learn numbers all the way up to <b>1000</b>!  
+    Numbers are grouped into <b>hundreds, tens, and ones</b>.  
+    For example: <br>
+    <b>527</b> = 5 hundreds + 2 tens + 7 ones.</p>
+  </section>
+
+  <section>
+    <h2>🧮 Practice: Numbers to 1000</h2>
+    <div class="question">
+      What number comes after <b>249</b>?<br>
+      <input type="number" id="q1"> 
+      <button onclick="checkAnswer(1, 250)">Check</button>
+      <div class="feedback" id="f1"></div>
+    </div>
+    <div class="question">
+      What number comes before <b>600</b>?<br>
+      <input type="number" id="q2"> 
+      <button onclick="checkAnswer(2, 599)">Check</button>
+      <div class="feedback" id="f2"></div>
+    </div>
+    <div class="question">
+      Fill in the missing number: <b>700, 710, ___, 730</b><br>
+      <input type="number" id="q3"> 
+      <button onclick="checkAnswer(3, 720)">Check</button>
+      <div class="feedback" id="f3"></div>
+    </div>
+  </section>
+
+<p>
+      In 2nd grade, we expand from counting to 100 all the way up to 1,000!  
+      Numbers are organized into hundreds, tens, and ones.  
+      A chart can help us see patterns as numbers grow larger.
+    </p>
+
+    <h2>How to Do It</h2>
+    <p>
+      • Numbers 1–9 are the building blocks.  
+      • After 9 comes 10, then 20, 30, and so on until 100.  
+      • Hundreds stack on top: 100, 200, 300 … all the way to 1000.  
+      • Look at the number chart below to see the order and patterns!
+    </p>
+
+    <h2>Interactive Number Chart</h2>
+    <canvas id="numberChart" width="600" height="400"></canvas>
+    <div class="controls">
+      <button onclick="scrollUp()">⬆ Up</button>
+      <button onclick="scrollDown()">⬇ Down</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("numberChart");
+    const ctx = canvas.getContext("2d");
+
+    const numbersPerRow = 10;
+    const cellWidth = 60;
+    const cellHeight = 40;
+    const visibleRows = 10; // visible at once
+    const totalNumbers = 1000;
+
+    let startRow = 0; // row index to start drawing
+
+    function drawChart() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "16px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      for (let row = 0; row < visibleRows; row++) {
+        for (let col = 0; col < numbersPerRow; col++) {
+          let number = (startRow + row) * numbersPerRow + col + 1;
+          if (number > totalNumbers) return;
+
+          let x = col * cellWidth + cellWidth / 2;
+          let y = row * cellHeight + cellHeight / 2;
+
+          ctx.strokeStyle = "#999";
+          ctx.strokeRect(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
+
+          ctx.fillStyle = "#000";
+          ctx.fillText(number, x, y);
+        }
+      }
+    }
+
+    function scrollUp() {
+      if (startRow > 0) {
+        startRow--;
+        drawChart();
+      }
+    }
+
+    function scrollDown() {
+      let maxRow = Math.ceil(totalNumbers / numbersPerRow) - visibleRows;
+      if (startRow < maxRow) {
+        startRow++;
+        drawChart();
+      }
+    }
+
+    // Initial draw
+    drawChart();
+  </script>
+
+  <script>
+    function checkAnswer(q, correct) {
+      let input = document.getElementById("q"+q).value;
+      let feedback = document.getElementById("f"+q);
+      if (parseInt(input) === correct) {
+        feedback.innerHTML = "✅ Correct!";
+        feedback.style.color = "green";
+      } else {
+        feedback.innerHTML = "❌ Try Again!";
+        feedback.style.color = "red";
+      }
+    }
+
+    // Generate number chart (1–1000)
+    const canvas = document.getElementById("numberCwhart");
+    const ctx = canvas.getContext("2d");
+    ctx.font = "12px Arial";
+    let cols = 20; // 20 numbers per row
+    let size = 35;
+    let num = 1;
+
+    for (let row = 0; row < 50; row++) { // 50 rows = 1000 numbers
+      for (let col = 0; col < cols; col++) {
+        let x = col * size + 5;
+        let y = row * size + 15;
+        ctx.fillText(num, x, y);
+        num++;
+        if (num > 1000) break;
+      }
+      if (num > 1000) break;
+    }
+  </script>
+</body>
+</html>
