@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>⏰ Time to the Minute - Stylish Advanced Lesson</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Comic Neue', sans-serif;
+      background: linear-gradient(120deg, #fdf6e3, #d6eaf8);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    h1 { color: #2c3e50; font-size: 36px; margin-bottom: 10px; }
+    h2 { color: #34495e; margin-top: 40px; }
+    p { font-size: 18px; line-height: 1.5; }
+    canvas { background: #fff; border: 4px solid #2c3e50; border-radius: 50%; margin: 20px 0; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);}
+    input[type="text"] { padding: 10px; font-size: 16px; border-radius: 8px; border: 2px solid #2c3e50; width: 120px; text-align: center; }
+    button { padding: 10px 15px; margin: 10px; cursor: pointer; font-size: 16px; border-radius: 8px; border: none; background: #2c3e50; color: #fff; transition: 0.2s; }
+    button:hover { background: #34495e; }
+    #feedback { font-weight: bold; margin-top: 10px; font-size: 18px; }
+    .challenge { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+    .clockbox { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 2px 2px 8px rgba(0,0,0,0.2); }
+    .clockbox input { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>⏰ Time to the Minute Lesson</h1>
+  <p>Learn to read clocks down to the <b>exact minute</b>. These clocks show numbers, hour marks, minute tick marks, and colored hands to make it easier!</p>
+
+  <h2>🎯 Practice Clock</h2>
+  <canvas id="mainClock" width="300" height="300"></canvas><br>
+  <input type="text" id="userGuess" placeholder="h:mm">
+  <button onclick="checkAnswer()">Check Answer</button>
+  <p id="feedback"></p>
+  <button onclick="newTime()">🔄 New Random Time</button>
+  <button onclick="downloadCSV()">⬇️ Download CSV Log</button>
+
+  <h2>🔥 Challenge Mode: Multiple Clocks</h2>
+  <div class="challenge" id="challengeClocks"></div>
+
+  <script>
+    // === Random time between 1:00 - 12:59
+    function getRandomTime() {
+      let hour = Math.floor(Math.random() * 12) + 1; 
+      let minute = Math.floor(Math.random() * 60);
+      return { hour, minute };
+    }
+
+    // === Draw clock face ===
+    function drawClock(canvas, hour, minute) {
+      let ctx = canvas.getContext("2d");
+      let radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(1,0,0,1,0,0); // reset transform
+      ctx.translate(radius, radius);
+      radius *= 0.90;
+
+      drawFace(ctx, radius);
+      drawNumbers(ctx, radius);
+      drawTicks(ctx, radius);
+      drawHands(ctx, radius, hour, minute);
+
+      ctx.translate(-canvas.width/2, -canvas.height/2);
+    }
+
+    function drawFace(ctx, radius) {
+      let grad = ctx.createRadialGradient(0,0,radius*0.95, 0,0,radius*1.05);
+      grad.addColorStop(0, '#fff');
+      grad.addColorStop(1, '#ddd');
+      ctx.beginPath();
+      ctx.arc(0,0,radius,0,2*Math.PI);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = "#2c3e50";
+      ctx.stroke();
+    }
+
+    function drawNumbers(ctx, radius) {
+      ctx.font = radius*0.15 + "px Comic Neue";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      for (let num=1; num<=12; num++) {
+        let ang = num * Math.PI / 6;
+        ctx.rotate(ang);
+        ctx.translate(0, -radius*0.8);
+        ctx.rotate(-ang);
+        ctx.fillStyle = "#2c3e50";
+        ctx.fillText(num.toString(), 0, 0);
+        ctx.rotate(ang);
+        ctx.translate(0, radius*0.8);
+        ctx.rotate(-ang);
+      }
+    }
+
+    function drawTicks(ctx, radius) {
+      for (let i=0; i<60; i++){
+        let ang = i*Math.PI/30;
+        ctx.beginPath();
+        ctx.rotate(ang);
+        ctx.moveTo(0, -radius*0.95);
+        ctx.lineTo(0, -radius*0.9);
+        ctx.lineWidth = (i%5===0)?3:1;
+        ctx.strokeStyle = (i%5===0)?"#2c3e50":"#555";
+        ctx.stroke();
+        ctx.rotate(-ang);
+      }
+    }
+
+    function drawHands(ctx, radius, hour, minute) {
+      // Hour hand
+      let hourAngle = (hour%12) * Math.PI/6 + (minute * Math.PI/360);
+      ctx.beginPath();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = "#000"; // black hour hand
+      ctx.moveTo(0,0);
+      ctx.rotate(hourAngle);
+      ctx.lineTo(0, -radius*0.5);
+      ctx.stroke();
+      ctx.rotate(-hourAngle);
+
+      // Minute hand
+      let minAngle = minute*Math.PI/30;
+      ctx.beginPath();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "red"; // red minute hand
+      ctx.moveTo(0,0);
+      ctx.rotate(minAngle);
+      ctx.lineTo(0, -radius*0.8);
+      ctx.stroke();
+      ctx.rotate(-minAngle);
+
+      // Center dot
+      ctx.beginPath();
+      ctx.arc(0,0,6,0,2*Math.PI);
+      ctx.fillStyle = "#2c3e50";
+      ctx.fill();
+    }
+
+    // === Practice Clock ===
+    let currentHour, currentMinute;
+    function newTime() {
+      let time = getRandomTime();
+      currentHour = time.hour;
+      currentMinute = time.minute;
+      let canvas = document.getElementById("mainClock");
+      drawClock(canvas, currentHour, currentMinute);
+      document.getElementById("userGuess").value = "";
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function checkAnswer() {
+      let guess = document.getElementById("userGuess").value.trim();
+      let correct = `${currentHour}:${currentMinute.toString().padStart(2,"0")}`;
+      let feedback = document.getElementById("feedback");
+      if (guess === correct) {
+        feedback.textContent = "✅ Correct! Great job!";
+        feedback.style.color = "green";
+        logCSV(correct, guess, "Correct");
+      } else {
+        feedback.textContent = `❌ Not quite. The correct time was ${correct}`;
+        feedback.style.color = "red";
+        logCSV(correct, guess, "Wrong");
+      }
+    }
+
+    // === Challenge Mode ===
+    function setupChallenge() {
+      let container = document.getElementById("challengeClocks");
+      container.innerHTML = "";
+      for (let i=0;i<4;i++){
+        let {hour, minute} = getRandomTime();
+        let box = document.createElement("div");
+        box.className = "clockbox";
+        let canvas = document.createElement("canvas");
+        canvas.width = 200; canvas.height = 200;
+        drawClock(canvas, hour, minute);
+        let input = document.createElement("input");
+        input.placeholder = "h:mm";
+        box.appendChild(canvas);
+        box.appendChild(document.createElement("br"));
+        box.appendChild(input);
+        container.appendChild(box);
+      }
+    }
+
+    // === CSV Logging ===
+    let csvData = [["Correct Time","User Guess","Result"]];
+    function logCSV(correct, guess, result){
+      csvData.push([correct, guess, result]);
+    }
+    function downloadCSV(){
+      let csvContent = csvData.map(e => e.join(",")).join("\n");
+      let blob = new Blob([csvContent], {type:"text/csv"});
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement("a");
+      a.href = url;
+      a.download = "time_practice_log.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Init
+    newTime();
+    setupChallenge();
+  </script>
+</body>
+</html>
