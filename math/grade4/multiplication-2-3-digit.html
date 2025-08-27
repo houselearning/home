@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 4 — 2–3 Digit Multiplication (Advanced)</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#facc15; --accent2:#ca8a04; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#facc15;color:#04263b}
+button.ghost{background:#fef9c3;color:var(--accent2);border:1px solid #fde68a}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fde68a;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #fde68a;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 4 — 2–3 Digit Multiplication (Advanced)</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • CSV download — build mastery of multi-digit multiplication!</p>
+</header>
+
+<main>
+<!-- Intro -->
+<section aria-labelledby="introTitle">
+  <h2 id="introTitle">Intro & Concept</h2>
+  <p>Multi-digit multiplication uses partial products, carrying, and place value. Break down numbers to multiply efficiently.</p>
+  <p><strong>Example:</strong> 123 × 45</p>
+  <ul>
+    <li>Multiply 123 × 5 = 615</li>
+    <li>Multiply 123 × 40 = 4920</li>
+    <li>Add: 615 + 4920 = 5535</li>
+  </ul>
+  <div class="status" style="margin-top:8px">
+    <div class="pill" id="score">Score: 0</div>
+    <div class="muted" id="streak">Streak: 0</div>
+  </div>
+</section>
+
+<!-- Step-by-step Examples -->
+<section aria-labelledby="exampleTitle">
+  <h2 id="exampleTitle">Step-by-Step Examples</h2>
+  <p>Example 1: 234 × 56</p>
+  <ul>
+    <li>234 × 6 = 1404</li>
+    <li>234 × 50 = 11700</li>
+    <li>Add: 1404 + 11700 = 13104</li>
+  </ul>
+  <p>Example 2: 321 × 123</p>
+  <ul>
+    <li>321 × 3 = 963</li>
+    <li>321 × 20 = 6420</li>
+    <li>321 × 100 = 32100</li>
+    <li>Add: 963 + 6420 + 32100 = 39483</li>
+  </ul>
+</section>
+
+<!-- Interactive Tiles -->
+<section aria-labelledby="practiceTitle">
+  <h2 id="practiceTitle">Interactive Practice</h2>
+  <div class="grid cols-4" style="margin-top:10px">
+    <div class="tile">
+      <div style="font-weight:700">1) 123 × 45 = ?</div>
+      <input id="q1" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q1',5535)">Check</button></div>
+      <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile">
+      <div style="font-weight:700">2) 234 × 56 = ?</div>
+      <input id="q2" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q2',13104)">Check</button></div>
+      <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile">
+      <div style="font-weight:700">3) 321 × 123 = ?</div>
+      <input id="q3" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q3',39483)">Check</button></div>
+      <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile">
+      <div style="font-weight:700">4) 142 × 87 = ?</div>
+      <input id="q4" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q4',12354)">Check</button></div>
+      <div id="r4" class="answer"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Random Challenge -->
+<section aria-labelledby="challengeTitle">
+  <h2 id="challengeTitle">Random Multiplication Challenge</h2>
+  <div class="controls" style="margin-top:10px;align-items:center">
+    <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+    <input id="challengeInput" type="number" placeholder="answer" style="width:120px">
+    <button id="challengeCheck">Check</button>
+    <button id="challengeNew" class="secondary">New Question</button>
+    <div id="challengeResult" class="answer"></div>
+  </div>
+</section>
+
+<!-- Speed Quiz -->
+<section aria-labelledby="speedTitle">
+  <h2 id="speedTitle">⚡ Speed Quiz</h2>
+  <div class="controls">
+    <label>Duration:
+      <select id="quizDuration">
+        <option value="30">30s</option>
+        <option value="60" selected>60s</option>
+        <option value="90">90s</option>
+      </select>
+    </label>
+    <button id="startQuiz" class="warn">Start Quiz</button>
+    <button id="stopQuiz" class="ghost">Stop</button>
+    <div class="muted" id="quizTimer">Time: 0</div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+  </div>
+  <div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+    <div style="margin-top:8px" class="controls">
+      <input id="quizInput" type="number" placeholder="answer" style="width:140px">
+      <button id="quizCheck" class="secondary">Submit</button>
+      <div id="quizFeedback" class="answer"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CSV Download -->
+<section aria-labelledby="csvTitle">
+  <h2 id="csvTitle">Download CSV Log</h2>
+  <p>Track all practice & quiz answers in a CSV file.</p>
+  <button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: Use partial products and carry carefully. Speed + accuracy = mastery!</footer>
+</main>
+
+<script>
+/* ===== utilities ===== */
+const speak=(t)=>{ try{ const s=new SpeechSynthesisUtterance(t); s.lang='en-US'; speechSynthesis.cancel(); speechSynthesis.speak(s);}catch(e){} };
+const tone=(f=880,d=0.06)=>{ try{ const A=new (window.AudioContext||window.webkitAudioContext)(); const o=A.createOscillator(); const g=A.createGain(); o.type='sine'; o.frequency.value=f; g.gain.value=0.0001; o.connect(g); g.connect(A.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d); setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){} };
+
+/* ===== score tracking ===== */
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){
+  if(points>0){ totalScore+=points; streak++; } else { streak=0; }
+  document.getElementById('score').textContent=`Score: ${totalScore}`;
+  document.getElementById('streak').textContent=`Streak: ${streak}`;
+  if(q && a) csvData.push([q,a]);
+}
+function check(inputId,correct){
+  const val=parseInt(document.getElementById(inputId).value,10);
+  const res=document.getElementById('r'+inputId.replace(/[^\d]/g,''));
+  if(val===correct){ res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}
+  else{ res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}
+}
+
+/* ===== Random Challenge ===== */
+let challengeList=[];
+for(let i=0;i<50;i++){
+  const a=Math.floor(Math.random()*900)+100;
+  const b=Math.floor(Math.random()*90)+10;
+  challengeList.push({q:`${a} × ${b}`,a:a*b});
+}
+let currentCorrect=null;
+function newChallenge(){
+  const idx=Math.floor(Math.random()*challengeList.length);
+  currentCorrect=challengeList[idx].a;
+  document.getElementById('challengeQ').textContent=challengeList[idx].q+' = ?';
+  document.getElementById('challengeInput').value='';
+  document.getElementById('challengeResult').textContent='';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click',()=>{
+  const val=parseInt(document.getElementById('challengeInput').value,10);
+  const res=document.getElementById('challengeResult');
+  if(val===currentCorrect){ res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById('challengeQ').textContent,currentCorrect);}
+  else{ res.textContent=`❌ Wrong (Answer: ${currentCorrect})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById('challengeQ').textContent,currentCorrect);}
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt=null, quizTime=0, quizScore=0, currentQuiz=null;
+function newQuizQuestion(){
+  const idx=Math.floor(Math.random()*challengeList.length);
+  currentQuiz=challengeList[idx];
+  document.getElementById('quizQ').textContent=currentQuiz.q+' = ?';
+  document.getElementById('quizInput').value='';
+  document.getElementById('quizFeedback').textContent='';
+}
+document.getElementById('startQuiz').addEventListener('click',()=>{
+  quizTime=parseInt(document.getElementById('quizDuration').value,10);
+  quizScore=0; document.getElementById('quizScore').textContent=`Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt=setInterval(()=>{
+    quizTime--; document.getElementById('quizTimer').textContent=`Time: ${quizTime}s`;
+    if(quizTime<=0){ clearInterval(quizTimerInt); document.getElementById('quizQ').textContent='Time Up!'; }
+  },1000);
+});
+document.getElementById('stopQuiz').addEventListener('click',()=>{ clearInterval(quizTimerInt); });
+document.getElementById('quizCheck').addEventListener('click',()=>{
+  const val=parseInt(document.getElementById('quizInput').value,10);
+  const f=document.getElementById('quizFeedback');
+  if(val===currentQuiz.a){ f.textContent='✅ Correct!'; f.className='answer ok'; quizScore++; document.getElementById('quizScore').textContent=`Correct: ${quizScore}`; tone(880,0.06); csvData.push([currentQuiz.q,currentQuiz.a]); }
+  else{ f.textContent=`❌ Wrong (Answer: ${currentQuiz.a})`; f.className='answer bad'; tone(220,0.06); csvData.push([currentQuiz.q,currentQuiz.a]); }
+  newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click',()=>{
+  const csvContent=csvData.map(e=>e.join(',')).join('\n');
+  const blob=new Blob([csvContent],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='multi_digit_multiplication.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
