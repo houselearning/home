@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 4 — Graphs & Data Tables (Advanced)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#3b82f6; --accent2:#1e40af; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#3b82f6;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+table{border-collapse:collapse;width:100%;margin-top:10px}
+th,td{border:1px solid #93c5fd;padding:6px;text-align:center}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 4 — Graphs & Data Tables (Advanced)</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive charts • dynamic tables • practice challenges • tutorial video • CSV download</p>
+</header>
+
+<main>
+
+<!-- Intro -->
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p>Graphs help us visualize data. Line charts show trends, bar charts compare quantities, and pie charts show parts of a whole. Data tables help organize numbers clearly.</p>
+</section>
+
+<!-- Tutorial Video -->
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Animated Tutorial Video</h2>
+<p>Click Play to watch a step-by-step tutorial. Captions appear on the canvas, with synchronized audio.</p>
+<canvas id="tutorialCanvas" width="700" height="300"></canvas>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
+</div>
+<div class="controls" style="margin-top:6px">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
+</div>
+</section>
+
+<!-- Dynamic Table -->
+<section aria-labelledby="tableTitle">
+<h2 id="tableTitle">Interactive Data Table</h2>
+<p>Edit numbers in the table and watch the charts update instantly.</p>
+<table id="dataTable">
+  <tr><th>Fruit</th><th>Quantity</th></tr>
+  <tr><td>Apples</td><td contenteditable="true">10</td></tr>
+  <tr><td>Bananas</td><td contenteditable="true">5</td></tr>
+  <tr><td>Cherries</td><td contenteditable="true">8</td></tr>
+  <tr><td>Grapes</td><td contenteditable="true">12</td></tr>
+</table>
+</section>
+
+<!-- Charts -->
+<section aria-labelledby="chartsTitle">
+<h2 id="chartsTitle">Charts</h2>
+<p>All charts update automatically from the data table.</p>
+<canvas id="barChart" width="700" height="300"></canvas>
+<canvas id="lineChart" width="700" height="300"></canvas>
+<canvas id="pieChart" width="700" height="300"></canvas>
+</section>
+
+<!-- Practice Challenge -->
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Practice Challenge</h2>
+<p>Read the table or chart, then answer the question.</p>
+<div class="controls">
+  <div id="question" style="font-weight:800;font-size:1.2rem">—</div>
+  <input id="answerInput" type="text" placeholder="Your answer">
+  <button id="checkAnswer" class="secondary">Check</button>
+  <div id="answerResult" class="answer"></div>
+</div>
+</section>
+
+<!-- CSV Download -->
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV</h2>
+<p>Save the current table as a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+</main>
+
+<script>
+/* ===== Chart.js Setup ===== */
+const ctxBar = document.getElementById('barChart').getContext('2d');
+const ctxLine = document.getElementById('lineChart').getContext('2d');
+const ctxPie = document.getElementById('pieChart').getContext('2d');
+
+function getTableData(){
+  const table = document.getElementById('dataTable');
+  const labels=[], data=[];
+  for(let i=1;i<table.rows.length;i++){
+    labels.push(table.rows[i].cells[0].textContent);
+    data.push(parseInt(table.rows[i].cells[1].textContent)||0);
+  }
+  return {labels,data};
+}
+
+let barChart = new Chart(ctxBar,{
+  type:'bar',
+  data:{labels:[], datasets:[{label:'Quantity', data:[], backgroundColor:'#3b82f6'}]},
+  options:{responsive:true, plugins:{legend:{display:false}}}
+});
+let lineChart = new Chart(ctxLine,{
+  type:'line',
+  data:{labels:[], datasets:[{label:'Quantity', data:[], borderColor:'#1e40af', fill:false, tension:0.3}]},
+  options:{responsive:true}
+});
+let pieChart = new Chart(ctxPie,{
+  type:'pie',
+  data:{labels:[], datasets:[{label:'Quantity', data:[], backgroundColor:['#3b82f6','#60a5fa','#93c5fd','#bfdbfe']}]},
+  options:{responsive:true}
+});
+
+function updateCharts(){
+  const {labels,data} = getTableData();
+  [barChart,lineChart,pieChart].forEach(chart=>{
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
+  });
+}
+updateCharts();
+
+/* ===== Editable Table Listener ===== */
+document.querySelectorAll('#dataTable td[contenteditable]').forEach(td=>{
+  td.addEventListener('input',updateCharts);
+});
+
+/* ===== Practice Challenge ===== */
+const questions=[
+  {q:"Which fruit has the highest quantity?",a:"Grapes"},
+  {q:"How many Apples and Bananas together?",a:"15"},
+  {q:"What is the difference between Cherries and Bananas?",a:"3"},
+  {q:"Which fruit is least in quantity?",a:"Bananas"}
+];
+let currentQuestion = null;
+function newQuestion(){
+  currentQuestion = questions[Math.floor(Math.random()*questions.length)];
+  document.getElementById('question').textContent = currentQuestion.q;
+  document.getElementById('answerInput').value = '';
+  document.getElementById('answerResult').textContent = '';
+}
+document.getElementById('checkAnswer').addEventListener('click',()=>{
+  const val = document.getElementById('answerInput').value.trim();
+  const res = document.getElementById('answerResult');
+  if(val.toLowerCase()===currentQuestion.a.toLowerCase()){ res.textContent='✅ Correct!'; res.className='answer ok'; }
+  else{ res.textContent=`❌ Wrong (Answer: ${currentQuestion.a})`; res.className='answer bad'; }
+});
+newQuestion();
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click',()=>{
+  const {labels,data} = getTableData();
+  let csvContent = "Fruit,Quantity\n";
+  labels.forEach((l,i)=> csvContent += `${l},${data[i]}\n`);
+  const blob = new Blob([csvContent],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='graphs_data.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ===== Tutorial Video (Canvas + Audio) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const tCtx = tutorialCanvas.getContext('2d');
+tCtx.font="20px Arial"; tCtx.textAlign="center"; tCtx.textBaseline="middle";
+
+const tutorialSteps = [
+  {
+    caption: "Step 1: Look at the table",
+    draw: () => {
+      tCtx.clearRect(0,0,700,300);
+      // Draw a simple table icon
+      tCtx.fillStyle = "#3b82f6";
+      for(let i=0;i<4;i++){
+        tCtx.fillRect(150+i*100, 80, 80, 30); // header
+        tCtx.fillRect(150+i*100, 120, 80, 30); // row 1
+      }
+      tCtx.fillStyle = "#000";
+      tCtx.fillText("Table: Fruit Quantities", 350, 50);
+    },
+    audio: "We start by looking at the data table."
+  },
+  {
+    caption: "Step 2: Observe Bar Chart",
+    draw: () => {
+      tCtx.clearRect(0,0,700,300);
+      tCtx.fillText("Bar chart shows quantity per fruit",350,50);
+      const heights = [100,50,80,120];
+      const labels = ["Apples","Bananas","Cherries","Grapes"];
+      for(let i=0;i<4;i++){
+        tCtx.fillStyle = "#3b82f6";
+        tCtx.fillRect(100+i*150, 250-heights[i], 50, heights[i]);
+        tCtx.fillStyle = "#000";
+        tCtx.fillText(labels[i], 125+i*150, 265);
+      }
+    },
+    audio: "Next, the bar chart shows each fruit's quantity."
+  },
+  {
+    caption: "Step 3: Observe Line Chart",
+    draw: () => {
+      tCtx.clearRect(0,0,700,300);
+      tCtx.fillText("Line chart shows trends",350,50);
+      const points = [100,50,80,120];
+      tCtx.beginPath();
+      tCtx.moveTo(100,250-points[0]);
+      for(let i=1;i<points.length;i++){
+        tCtx.lineTo(100+i*150,250-points[i]);
+      }
+      tCtx.strokeStyle = "#1e40af";
+      tCtx.lineWidth = 3;
+      tCtx.stroke();
+      // Draw points
+      for(let i=0;i<points.length;i++){
+        tCtx.beginPath();
+        tCtx.arc(100+i*150,250-points[i],6,0,Math.PI*2);
+        tCtx.fillStyle="#1e40af";
+        tCtx.fill();
+      }
+    },
+    audio: "Line chart highlights trends in the data."
+  },
+  {
+    caption: "Step 4: Observe Pie Chart",
+    draw: () => {
+      tCtx.clearRect(0,0,700,300);
+      tCtx.fillText("Pie chart shows proportion",350,50);
+      const data = [10,5,8,12];
+      const colors = ["#3b82f6","#60a5fa","#93c5fd","#bfdbfe"];
+      let startAngle = -Math.PI/2;
+      const total = data.reduce((a,b)=>a+b,0);
+      for(let i=0;i<data.length;i++){
+        let sliceAngle = (data[i]/total)*2*Math.PI;
+        tCtx.beginPath();
+        tCtx.moveTo(350,150);
+        tCtx.arc(350,150,80,startAngle,startAngle+sliceAngle);
+        tCtx.closePath();
+        tCtx.fillStyle = colors[i];
+        tCtx.fill();
+        startAngle += sliceAngle;
+      }
+    },
+    audio: "Pie chart shows how each fruit contributes to the total."
+  }
+];
+
+
+async function playTutorialVideo(){
+  const speed = parseFloat(document.getElementById('videoSpeed').value)||1;
+  for(const step of tutorialSteps){
+    step.draw();
+    await new Promise(resolve=>{
+      const utter = new SpeechSynthesisUtterance(step.audio);
+      utter.rate = speed;
+      utter.onend = resolve;
+      speechSynthesis.speak(utter);
+    });
+    await new Promise(r=>setTimeout(r,500/speed));
+  }
+}
+document.getElementById('playTutorial').addEventListener('click',()=>playTutorialVideo());
+
+</script>
+</body>
+</html>
