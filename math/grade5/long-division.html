@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 5 — Long Division (3-Digit Dividends)</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 5 — Long Division (3-Digit Dividends)</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p><strong>Long division</strong> is a method used for dividing large numbers. It breaks down a big division problem into smaller, easier steps. We use a helpful acronym to remember the steps: <strong>DMSB</strong> - Divide, Multiply, Subtract, Bring down.</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Animated Tutorial Video</h2>
+<p>Click Play to watch a detailed animated example of long division with captions and audio.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
+  <button id="downloadVideo" class="ghost">💾 Download Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Interactive Practice</h2>
+<p>Solve these problems using the DMSB method. Remember to include the remainder, if any (e.g., 23 R 2).</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) 456 ÷ 3</div>
+    <input id="q1" type="text" placeholder="Answer e.g. 152">
+    <div style="margin-top:6px"><button onclick="check('q1','152')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) 789 ÷ 5</div>
+    <input id="q2" type="text" placeholder="Answer e.g. 157 R 4">
+    <div style="margin-top:6px"><button onclick="check('q2','157 R 4')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) 932 ÷ 4</div>
+    <input id="q3" type="text" placeholder="Answer e.g. 233">
+    <div style="margin-top:6px"><button onclick="check('q3','233')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) 615 ÷ 6</div>
+    <input id="q4" type="text" placeholder="Answer e.g. 102 R 3">
+    <div style="margin-top:6px"><button onclick="check('q4','102 R 3')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Random Challenge</h2>
+<div class="controls" style="margin-top:10px;align-items:center">
+  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+  <input id="challengeInput" type="text" placeholder="Answer">
+  <button id="challengeCheck">Check</button>
+  <button id="challengeNew" class="secondary">New Question</button>
+  <div id="challengeResult" class="answer"></div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: Practice makes perfect! Don't be afraid to use scratch paper.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
+function check(inputId,correct){const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val.toLowerCase()===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+
+/* ===== Canvas Tutorial ===== */
+const canvas=document.getElementById('tutorialCanvas');
+const ctx=canvas.getContext('2d');
+ctx.font="22px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
+const speedInput=document.getElementById('videoSpeed');
+let currentCaption="";
+
+function drawLongDivision(dividend, divisor, step) {
+    ctx.clearRect(0, 0, 800, 400);
+    ctx.font = "24px Arial";
+    ctx.fillStyle = "#000";
+
+    const boxWidth = 30;
+    const startX = 250;
+    const startY = 150;
+    const digits = dividend.toString().split('').map(Number);
+    const divisorStr = divisor.toString();
+
+    ctx.fillText(divisorStr, startX - 50, startY + 20);
+
+    ctx.beginPath();
+    ctx.moveTo(startX - 10, startY);
+    ctx.lineTo(startX - 10, startY + 40);
+    ctx.lineTo(startX + digits.length * boxWidth + 10, startY + 40);
+    ctx.stroke();
+
+    for (let i = 0; i < digits.length; i++) {
+        ctx.fillText(digits[i], startX + i * boxWidth, startY + 20);
+    }
+    
+    // Draw step-specific text
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "#000";
+    if (step === 1) { ctx.fillText("Step 1: Divide (4 ÷ 3)", 400, 350); }
+    else if (step === 2) { ctx.fillText("Step 2: Multiply (1 × 3 = 3)", 400, 350); }
+    else if (step === 3) { ctx.fillText("Step 3: Subtract (4 - 3 = 1)", 400, 350); }
+    else if (step === 4) { ctx.fillText("Step 4: Bring down (bring down the 5)", 400, 350); }
+    else if (step === 5) { ctx.fillText("Step 5: Divide again (15 ÷ 3 = 5)", 400, 350); }
+    else if (step === 6) { ctx.fillText("Step 6: Multiply & Subtract (15 - 15 = 0)", 400, 350); }
+    else if (step === 7) { ctx.fillText("Step 7: Bring down (bring down the 6)", 400, 350); }
+    else if (step === 8) { ctx.fillText("Step 8: Final division (6 ÷ 3 = 2)", 400, 350); }
+    else if (step === 9) {
+        ctx.fillText("Final Solution: 152", 400, 350);
+        ctx.font = "24px Arial";
+        ctx.fillStyle = "#1d4ed8";
+        ctx.fillText("152", startX + 50, startY - 20);
+    }
+}
+
+const tutorialSteps = [
+    { audio: "Let's solve the problem 456 divided by 3 using the DMSB method.", draw: () => drawLongDivision(456, 3, 0) },
+    { audio: "First, we divide. How many times does 3 go into 4? Once. We write 1 above the 4.", draw: () => drawLongDivision(456, 3, 1) },
+    { audio: "Next, we multiply. We multiply the quotient digit, 1, by the divisor, 3. 1 times 3 is 3.", draw: () => drawLongDivision(456, 3, 2) },
+    { audio: "Then, we subtract. We subtract 3 from 4 to get 1.", draw: () => drawLongDivision(456, 3, 3) },
+    { audio: "Now, we bring down. Bring down the next digit, which is 5, to make the new number 15.", draw: () => drawLongDivision(456, 3, 4) },
+    { audio: "We repeat the steps. How many times does 3 go into 15? Five times. We write 5 next to the 1.", draw: () => drawLongDivision(456, 3, 5) },
+    { audio: "Multiply 5 by 3 to get 15, and subtract 15 from 15 to get 0.", draw: () => drawLongDivision(456, 3, 6) },
+    { audio: "Bring down the last digit, 6. How many times does 3 go into 6? Two times. We write 2.", draw: () => drawLongDivision(456, 3, 7) },
+    { audio: "Multiply 2 by 3 to get 6. Subtract 6 from 6 to get 0. Since there's no remainder, the final answer is 152.", draw: () => drawLongDivision(456, 3, 9) },
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+  tutorialIndex = 0;
+  const speed = parseFloat(speedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    step.draw();
+    const utter = new SpeechSynthesisUtterance(step.audio);
+    utter.rate = speed;
+    utter.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utter.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utter);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+
+/* ===== Video Download ===== */
+document.getElementById('downloadVideo').addEventListener('click', () => {
+  const speed = parseFloat(speedInput.value) || 1;
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream);
+  const chunks = [];
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = e => {
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'long_division_tutorial.webm'; a.click();
+    URL.revokeObjectURL(url);
+  };
+  recorder.start();
+  playTutorialVideo(() => { setTimeout(() => recorder.stop(), 500); });
+});
+
+/* ===== Random Challenge ===== */
+function generateProblem() {
+  let divisor = Math.floor(Math.random() * 8) + 2; // 2 to 9
+  let quotient = Math.floor(Math.random() * 80) + 120; // 120 to 199
+  let remainder = Math.floor(Math.random() * divisor);
+  let dividend = (quotient * divisor) + remainder;
+
+  let question = `${dividend} ÷ ${divisor}`;
+  let answer = `${quotient}`;
+  if (remainder > 0) {
+    answer += ` R ${remainder}`;
+  }
+  return { q: question, a: answer };
+}
+
+let challengeList = [];
+for (let i = 0; i < 50; i++) {
+  challengeList.push(generateProblem());
+}
+let currentCorrect = null;
+
+function newChallenge() {
+  const problem = generateProblem();
+  currentCorrect = problem.a;
+  document.getElementById('challengeQ').textContent = problem.q + ' = ?';
+  document.getElementById('challengeInput').value = '';
+  document.getElementById('challengeResult').textContent = '';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', () => {
+  const val = document.getElementById('challengeInput').value.trim();
+  const res = document.getElementById('challengeResult');
+  if (val.toLowerCase() === currentCorrect.toLowerCase()) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
+  } else {
+    res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+  }
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+  const problem = generateProblem();
+  currentQuiz = problem;
+  document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt = setInterval(() => {
+    quizTime--;
+    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+    if (quizTime <= 0) {
+      clearInterval(quizTimerInt);
+      document.getElementById('quizQ').textContent = 'Time Up!';
+    }
+  }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+  clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+  const val = document.getElementById('quizInput').value.trim();
+  const f = document.getElementById('quizFeedback');
+  if (val.toLowerCase() === currentQuiz.a.toLowerCase()) {
+    f.textContent = '✅ Correct!';
+    f.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    csvData.push([currentQuiz.q, currentQuiz.a]);
+  } else {
+    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+    f.className = 'answer bad';
+    tone(220, 0.06);
+    csvData.push([currentQuiz.q, currentQuiz.a]);
+  }
+  newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+  const csvContent = csvData.map(e => e.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'long_division.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
