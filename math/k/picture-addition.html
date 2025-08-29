@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kindergarten — Picture Addition</title>
+<style>
+:root{
+  --bg:#ecfdf5; --panel:#fff; --accent:#10b981; --accent2:#047857; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#064e3b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0;font-size:1.1rem;}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#10b981;color:#fff}
+button.ghost{background:#d1fae5;color:var(--accent2);border:1px solid #6ee7b7}
+button.warn{background:#f97316}
+input[type=text], select{padding:8px;border-radius:8px;border:1px solid #6ee7b7;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #6ee7b7;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#dcfce7;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#737373}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #6ee7b7;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Kindergarten — Picture Addition</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • video tutorial • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Let's Add! ➕</h2>
+<p>You know how to count, and now we're going to learn something new! We are going to **add**. Adding means putting two groups of things together to find a new, bigger number. It's like having some toys and getting more toys! ✨</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Putting Groups Together</h2>
+<p>Watch this video to see how to put two groups of pictures together to find the total. 🎥</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Let's Practice!</h2>
+<p>Look at the pictures. Count the first group, then the second group. Add them together to find the total! Type the number in the box.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) 🍎 + 🍎🍎 = ?</div>
+    <div id="q1Image" style="font-size:3rem; margin:10px 0;">🍎 + 🍎🍎</div>
+    <input id="q1" type="text" >
+    <div style="margin-top:6px"><button onclick="check('q1','3')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) 🎈🎈 + 🎈🎈🎈 = ?</div>
+    <div id="q2Image" style="font-size:3rem; margin:10px 0;">🎈🎈 + 🎈🎈🎈</div>
+    <input id="q2" type="text" >
+    <div style="margin-top:6px"><button onclick="check('q2','5')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) ⭐⭐⭐ + ⭐⭐ = ?</div>
+    <div id="q3Image" style="font-size:3rem; margin:10px 0;">⭐⭐⭐ + ⭐⭐</div>
+    <input id="q3" type="text" >
+    <div style="margin-top:6px"><button onclick="check('q3','5')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) 🌻🌻 + 🌻🌻🌻🌻 = ?</div>
+    <div id="q4Image" style="font-size:3rem; margin:10px 0;">🌻🌻 + 🌻🌻🌻🌻</div>
+    <input id="q4" type="text" >
+    <div style="margin-top:6px"><button onclick="check('q4','6')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speedy Quiz!</h2>
+<p>Add the two groups and find the total number!</p>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px; text-align: center;">
+  <div id="quizQ" style="font-size:1.5rem;font-weight:800;">Press Start</div>
+  <div id="quizEquation" style="font-size:3rem; margin-top:20px; min-height:50px;"></div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Sum">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<footer>You are becoming an addition expert! Keep up the great work. ➕ 🎉</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function normalizeAnswer(str) {
+    return str.trim();
+}
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0;
+function updateScore(points){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; }
+window.check = (inputId,correct)=>{const val=normalizeAnswer(document.getElementById(inputId).value); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===normalizeAnswer(correct)){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0);}}
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    const textX = tutorialCanvas.width / 2;
+    const textY = 40;
+    
+    ctx.font = '32px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#064e3b';
+    ctx.fillText(step.text, textX, textY);
+
+    if (step.emojis) {
+        ctx.font = '60px Arial';
+        const totalEmojis = step.emojis.join('').length + step.emojis.length - 1;
+        const totalWidth = totalEmojis * 60;
+        let startX = (tutorialCanvas.width - totalWidth) / 2;
+        const y = tutorialCanvas.height / 2;
+        
+        step.emojis.forEach((group, index) => {
+            ctx.fillText(group, startX, y);
+            startX += group.length * 60;
+            if (index < step.emojis.length - 1) {
+                ctx.fillText('+', startX, y);
+                startX += 60;
+            }
+        });
+        
+        if (step.totalEmojis) {
+            ctx.fillText('=', startX + 60, y);
+            ctx.fillText(step.totalEmojis, startX + 120, y);
+        }
+    }
+}
+
+const tutorialSteps = [
+    { audio: "Let's learn about adding. It means putting groups together.", text: "What is Addition?" },
+    { audio: "Here we have two apples. The number is two.", text: "Two apples", emojis: ['🍎🍎'] },
+    { audio: "And here is one more apple. The number is one.", text: "One apple", emojis: ['🍎'] },
+    { audio: "If we put them together, we use a plus sign. Two plus one.", text: "Two plus one", emojis: ['🍎🍎', '🍎'] },
+    { audio: "Now let's count all of them. One, two, three! We have three apples!", text: "Two plus one equals three", emojis: ['🍎🍎', '🍎'], totalEmojis: '🍎🍎🍎' },
+    { audio: "Let's try another one. Here are two stars and three stars.", text: "Two stars plus three stars", emojis: ['⭐⭐', '⭐⭐⭐'] },
+    { audio: "How many stars altogether? Let's count them all. One, two, three, four, five.", text: "The total is five", emojis: ['⭐⭐', '⭐⭐⭐'], totalEmojis: '⭐⭐⭐⭐⭐' },
+    { audio: "You did it! You just learned how to add.", text: "Great job!"}
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    drawLesson(step);
+    const utter = new SpeechSynthesisUtterance(step.audio);
+    utter.rate = speed;
+    utter.pitch = 1.2;
+    utter.volume = 1;
+    if(voice) utter.voice = voice;
+    utter.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utter.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utter);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Picture Addition"});
+
+/* ===== Speed Quiz ===== */
+const quizEmojis = ['🐶', '🐱', '🐰', '🦊', '🐻', '🐼', '🍎', '🍊', '🍓'];
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function generateQuizQuestion() {
+    const num1 = getRandomInt(1, 4);
+    const num2 = getRandomInt(1, 4);
+    const emoji = quizEmojis[getRandomInt(0, quizEmojis.length - 1)];
+    const questionText = `${emoji.repeat(num1)} + ${emoji.repeat(num2)}`;
+    const answer = (num1 + num2).toString();
+    return { q: questionText, a: answer };
+}
+
+function newQuizQuestion() {
+    currentQuiz = generateQuizQuestion();
+    document.getElementById('quizQ').textContent = 'What is the total?';
+    document.getElementById('quizEquation').textContent = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+            document.getElementById('quizEquation').textContent = '';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = normalizeAnswer(document.getElementById('quizInput').value);
+    const f = document.getElementById('quizFeedback');
+    if (val === normalizeAnswer(currentQuiz.a)) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    if (quizTime > 0) newQuizQuestion();
+});
+</script>
+</body>
+</html>
