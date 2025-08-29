@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 5 — Surface Area of Cubes</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 5 — Surface Area of Cubes</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • 3D viewer • CSV download</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p><strong>Surface area</strong> is the total area of all the faces (or sides) of a 3D object. Think of it like the amount of wrapping paper you would need to cover a gift box. A cube has 6 identical square faces. 🎁</p>
+<p>To find the surface area of a cube, we follow these steps:</p>
+<ol>
+  <li>Find the area of one face: Area = side × side.</li>
+  <li>Since a cube has 6 identical faces, multiply the area of one face by 6.</li>
+</ol>
+<p>The formula is: <strong>Surface Area = 6 × (side × side)</strong> or <strong>$SA = 6s^2$</strong></p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="threeDTitle">
+<h2 id="threeDTitle">Interactive 3D Viewer</h2>
+<p>Change the side length below to see how the surface area changes in 3D!</p>
+<div class="controls">
+  <label>Side Length: <input type="number" id="sideLength" value="3" min="1" max="10"></label>
+  <button id="updateCube" class="secondary">Update Cube</button>
+</div>
+<div style="font-weight:bold;margin-top:8px" id="saText">Surface Area: 54 square units</div>
+<div class="canvas-wrapper">
+  <canvas id="threeDCanvas" width="800" height="400"></canvas>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Interactive Practice</h2>
+<p>Calculate the surface area of these cubes. Don't forget the units! 📏</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Side = 2cm</div>
+    <input id="q1" type="text" placeholder="e.g. 24 cm^2">
+    <div style="margin-top:6px"><button onclick="check('q1','24 cm^2')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Side = 5in</div>
+    <input id="q2" type="text" placeholder="e.g. 150 in^2">
+    <div style="margin-top:6px"><button onclick="check('q2','150 in^2')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Side = 10m</div>
+    <input id="q3" type="text" placeholder="e.g. 600 m^2">
+    <div style="margin-top:6px"><button onclick="check('q3','600 m^2')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Side = 1ft</div>
+    <input id="q4" type="text" placeholder="e.g. 6 ft^2">
+    <div style="margin-top:6px"><button onclick="check('q4','6 ft^2')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Random Challenge</h2>
+<div class="controls" style="margin-top:10px;align-items:center">
+  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+  <input id="challengeInput" type="text" placeholder="Answer">
+  <button id="challengeCheck">Check</button>
+  <button id="challengeNew" class="secondary">New Question</button>
+  <div id="challengeResult" class="answer"></div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: Surface Area is always measured in square units, like $in^2$, $cm^2$, etc.</footer>
+</main>
+
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ===== Score & CSV ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
+window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim().toLowerCase(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+
+/* ===== 3D Viewer ===== */
+const canvas = document.getElementById('threeDCanvas');
+let renderer, scene, camera, controls, cube;
+
+function initThree() {
+  renderer = new THREE.WebGLRenderer({ canvas, antialiasing: true });
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf7fbff);
+  camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+  camera.position.set(5, 5, 5);
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
+  controls.minDistance = 5;
+  controls.maxDistance = 20;
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  directionalLight.position.set(5, 5, 5);
+  scene.add(directionalLight);
+
+  const gridHelper = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
+  gridHelper.material.opacity = 0.2;
+  gridHelper.material.transparent = true;
+  gridHelper.position.y = -0.01;
+  scene.add(gridHelper);
+
+  animate();
+}
+
+function createCube(sideLength) {
+  if (cube) scene.remove(cube);
+  const geometry = new THREE.BoxGeometry(sideLength, sideLength, sideLength);
+  const material = new THREE.MeshStandardMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.8 });
+  cube = new THREE.Mesh(geometry, material);
+  scene.add(cube);
+
+  // Add wireframe to show edges
+  const edges = new THREE.EdgesGeometry(geometry);
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x1d4ed8, linewidth: 2 }));
+  cube.add(line);
+
+  const sa = 6 * (sideLength * sideLength);
+  document.getElementById('saText').textContent = `Surface Area: ${sa} square units`;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+document.getElementById('updateCube').addEventListener('click', () => {
+  const s = parseInt(document.getElementById('sideLength').value);
+  createCube(s);
+});
+
+initThree();
+createCube(3);
+
+/* ===== Random Challenge ===== */
+function generateProblem() {
+    const s = Math.floor(Math.random() * 8) + 2;
+    const units = ['cm', 'in', 'm', 'ft'][Math.floor(Math.random() * 4)];
+    const question = `Side = ${s}${units}`;
+    const answer = `${6 * s * s} ${units}^2`;
+    return { q: question, a: answer };
+}
+
+let currentCorrect = null;
+
+function newChallenge() {
+    const problem = generateProblem();
+    currentCorrect = problem.a;
+    document.getElementById('challengeQ').textContent = problem.q + ' = ?';
+    document.getElementById('challengeInput').value = '';
+    document.getElementById('challengeResult').textContent = '';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', () => {
+    const val = document.getElementById('challengeInput').value.trim().toLowerCase();
+    const res = document.getElementById('challengeResult');
+    if (val === currentCorrect.toLowerCase()) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+    }
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase();
+    const f = document.getElementById('quizFeedback');
+    if (val === currentQuiz.a.toLowerCase()) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    }
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = csvData.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'surface_area_practice_log.csv'; a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
