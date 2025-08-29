@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 5 — The Coordinate Plane</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 5 — The Coordinate Plane</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • CSV download</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p>A **coordinate plane** is a special grid used to locate points. It's like a map! It has two main lines: the horizontal **x-axis** and the vertical **y-axis**. They meet at the **origin**, which is the point (0, 0). 🗺️</p>
+<p>To find a point, you use an **ordered pair** of numbers, written as **(x, y)**. The first number tells you how far to move along the x-axis, and the second number tells you how far to move along the y-axis.</p>
+<ol>
+  <li>Start at the origin (0, 0).</li>
+  <li>Move right along the x-axis for the first number.</li>
+  <li>Then, move up along the y-axis for the second number.</li>
+</ol>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="threeDTitle">
+<h2 id="threeDTitle">Interactive Coordinate Plane</h2>
+<p>Click on the grid to see the coordinates of the point you selected. Can you find the point (3, 5)? 🎯</p>
+<div class="controls">
+    <div style="font-weight:bold" id="coordsDisplay">Coordinates: (0, 0)</div>
+</div>
+<canvas id="gridCanvas" width="400" height="400"></canvas>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Interactive Practice</h2>
+<p>What are the coordinates for each point shown on the grid?</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Point A at (4, 1)</div>
+    <input id="q1" type="text" placeholder="e.g. 4,1">
+    <div style="margin-top:6px"><button onclick="check('q1','4,1')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Point B at (2, 5)</div>
+    <input id="q2" type="text" placeholder="e.g. 2,5">
+    <div style="margin-top:6px"><button onclick="check('q2','2,5')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Point C at (1, 3)</div>
+    <input id="q3" type="text" placeholder="e.g. 1,3">
+    <div style="margin-top:6px"><button onclick="check('q3','1,3')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Point D at (5, 2)</div>
+    <input id="q4" type="text" placeholder="e.g. 5,2">
+    <div style="margin-top:6px"><button onclick="check('q4','5,2')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Random Challenge</h2>
+<div class="controls" style="margin-top:10px;align-items:center">
+  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+  <input id="challengeInput" type="text" placeholder="e.g. 3,4">
+  <button id="challengeCheck">Check</button>
+  <button id="challengeNew" class="secondary">New Question</button>
+  <div id="challengeResult" class="answer"></div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="e.g. 3,4">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: The x-axis goes across (like a horizon) and the y-axis goes up and down (like a sky).</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+function getAnswer(problem) {
+    try {
+        const expression = problem.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**');
+        return eval(expression).toString();
+    } catch (e) {
+        return null;
+    }
+}
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
+window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+
+/* ===== Interactive Coordinate Plane ===== */
+const canvas = document.getElementById('gridCanvas');
+const ctx = canvas.getContext('2d');
+const gridSize = 35;
+const padding = 20;
+
+function drawGrid(highlightX = null, highlightY = null) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Draw grid lines
+    ctx.strokeStyle = '#ccc';
+    for (let i = padding; i < canvas.width - padding; i += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(i, padding);
+        ctx.lineTo(i, canvas.height - padding);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(padding, i);
+        ctx.lineTo(canvas.width - padding, i);
+        ctx.stroke();
+    }
+    
+    // Draw axes
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    // X-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - padding, canvas.height - padding);
+    ctx.stroke();
+    ctx.fillText('x-axis', canvas.width / 2, canvas.height - padding / 2);
+    // Y-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, canvas.height - padding);
+    ctx.stroke();
+    ctx.fillText('y-axis', padding / 2, canvas.height / 2);
+    
+    // Draw numbers
+    ctx.fillStyle = '#000';
+    ctx.lineWidth = 1;
+    for (let i = 1; i <= 10; i++) {
+        const xPos = padding + i * gridSize;
+        const yPos = canvas.height - padding - i * gridSize;
+        ctx.fillText(i, xPos, canvas.height - padding + 10);
+        ctx.fillText(i, padding - 10, yPos);
+    }
+    
+    // Draw highlight points
+    if (highlightX !== null && highlightY !== null) {
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        const xCoord = padding + highlightX * gridSize;
+        const yCoord = canvas.height - padding - highlightY * gridSize;
+        ctx.arc(xCoord, yCoord, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left - padding;
+    const y = event.clientY - rect.top - padding;
+
+    const xGrid = Math.round(x / gridSize);
+    const yGrid = Math.round((canvas.height - padding * 2 - y) / gridSize);
+
+    if (xGrid > 0 && xGrid <= 10 && yGrid > 0 && yGrid <= 10) {
+        document.getElementById('coordsDisplay').textContent = `Coordinates: (${xGrid}, ${yGrid})`;
+        drawGrid(xGrid, yGrid);
+    }
+});
+
+drawGrid(0, 0); // Initial draw
+
+/* ===== Practice Section Grid Points ===== */
+const practicePoints = [
+    { label: 'A', x: 4, y: 1 },
+    { label: 'B', x: 2, y: 5 },
+    { label: 'C', x: 1, y: 3 },
+    { label: 'D', x: 5, y: 2 }
+];
+
+function drawPracticePoints() {
+    drawGrid();
+    ctx.fillStyle = '#1d4ed8';
+    practicePoints.forEach(point => {
+        const xCoord = padding + point.x * gridSize;
+        const yCoord = canvas.height - padding - point.y * gridSize;
+        ctx.beginPath();
+        ctx.arc(xCoord, yCoord, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#04263b';
+        ctx.font = '16px Arial';
+        ctx.fillText(point.label, xCoord + 15, yCoord - 15);
+    });
+}
+drawPracticePoints();
+
+/* ===== Random Challenge ===== */
+function generateProblem() {
+    const x = getRandomInt(1, 10);
+    const y = getRandomInt(1, 10);
+    const question = `Find the point (${x}, ${y})`;
+    const answer = `${x},${y}`;
+    return { q: question, a: answer };
+}
+
+let currentCorrect = null;
+
+function newChallenge() {
+    const problem = generateProblem();
+    currentCorrect = problem.a;
+    document.getElementById('challengeQ').textContent = problem.q;
+    document.getElementById('challengeInput').value = '';
+    document.getElementById('challengeResult').textContent = '';
+    
+    const [x, y] = problem.a.split(',').map(Number);
+    drawGrid(x, y);
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', () => {
+    const val = document.getElementById('challengeInput').value.trim();
+    const res = document.getElementById('challengeResult');
+    if (val === currentCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+    }
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    document.getElementById('quizQ').textContent = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    
+    const [x, y] = problem.a.split(',').map(Number);
+    drawGrid(x, y);
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim();
+    const f = document.getElementById('quizFeedback');
+    if (val === currentQuiz.a) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    }
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = csvData.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'coordinate_plane_log.csv'; a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
