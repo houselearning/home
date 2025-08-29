@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kindergarten — Comparing Sizes</title>
+<style>
+:root{
+  --bg:#f0f9ff; --panel:#fff; --accent:#0ea5e9; --accent2:#0284c7; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#083344;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0;font-size:1.1rem;}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#0ea5e9;color:#fff}
+button.ghost{background:#e0f2fe;color:var(--accent2);border:1px solid #7dd3fc}
+button.warn{background:#f97316}
+input[type=text], select{padding:8px;border-radius:8px;border:1px solid #7dd3fc;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #7dd3fc;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#dcfce7;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#525252}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #7dd3fc;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Kindergarten — Comparing Sizes</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • video tutorial • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Comparing Things! 📏</h2>
+<p>Everything around us has a size! We can look at two things and decide if one is **bigger** or **smaller**. Or, we can see if one is **taller** or **shorter**. Let's learn to use these words to compare. 🔍</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Big and Small, Tall and Short</h2>
+<p>Watch this video to see some examples of different sizes. 🎥</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Let's Practice!</h2>
+<p>Look at the pictures and choose the correct word. Type your answer in the box.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) The big elephant is...</div>
+    <div id="q1Image" style="font-size:2rem; margin:10px 0;">🐘🐘🐘</div>
+    <input id="q1" type="text" placeholder="e.g. bigger">
+    <div style="margin-top:6px"><button onclick="check('q1','bigger')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) The small mouse is...</div>
+    <div id="q2Image" style="font-size:2rem; margin:10px 0;">🐭🐭🐭</div>
+    <input id="q2" type="text" placeholder="e.g. smaller">
+    <div style="margin-top:6px"><button onclick="check('q2','smaller')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) The giraffe is...</div>
+    <div id="q3Image" style="font-size:2rem; margin:10px 0;">🦒🧍‍♂️</div>
+    <input id="q3" type="text" placeholder="e.g. taller">
+    <div style="margin-top:6px"><button onclick="check('q3','taller')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) The pencil is...</div>
+    <div id="q4Image" style="font-size:2rem; margin:10px 0;">📏✏️</div>
+    <input id="q4" type="text" placeholder="e.g. shorter">
+    <div style="margin-top:6px"><button onclick="check('q4','shorter')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speedy Quiz!</h2>
+<p>Look at the two objects. What is the correct word to compare them?</p>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px; text-align: center;">
+  <div id="quizQ" style="font-size:1.5rem;font-weight:800;">Press Start</div>
+  <div id="quizImages" style="display:flex; justify-content:center; align-items:flex-end; gap:20px; font-size:4rem; min-height:100px; margin-top:20px;"></div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="e.g. bigger">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<footer>You are getting so good at comparing sizes! 🎉</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function normalizeAnswer(str) {
+    return str.trim().toLowerCase();
+}
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0;
+function updateScore(points){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; }
+window.check = (inputId,correct)=>{const val=normalizeAnswer(document.getElementById(inputId).value); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===normalizeAnswer(correct)){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0);}}
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawObjects(obj1, obj2, text) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    const textX = tutorialCanvas.width / 2;
+    const textY = 40;
+    
+    // Draw the number
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#083344';
+    ctx.fillText(text, textX, textY);
+    
+    ctx.font = '100px Arial';
+    ctx.textBaseline = 'bottom';
+    
+    // Draw object 1
+    const x1 = tutorialCanvas.width / 4;
+    const y1 = tutorialCanvas.height - 50;
+    ctx.fillText(obj1.emoji, x1, y1, 100);
+    
+    // Draw object 2
+    const x2 = tutorialCanvas.width * 3 / 4;
+    const y2 = tutorialCanvas.height - 50;
+    ctx.fillText(obj2.emoji, x2, y2, 100);
+}
+
+const tutorialSteps = [
+    { audio: "Let's compare two things. This is a big elephant and a small mouse.", obj1: { emoji: '🐘' }, obj2: { emoji: '🐭' }, text: "Big vs. Small" },
+    { audio: "The elephant is bigger.", obj1: { emoji: '🐘' }, obj2: { emoji: '🐭' }, text: "The elephant is bigger." },
+    { audio: "The mouse is smaller.", obj1: { emoji: '🐘' }, obj2: { emoji: '🐭' }, text: "The mouse is smaller." },
+    { audio: "Look at these two. The giraffe is taller than the person.", obj1: { emoji: '🦒' }, obj2: { emoji: '🧍‍♂️' }, text: "Tall vs. Short" },
+    { audio: "The person is shorter than the giraffe.", obj1: { emoji: '🦒' }, obj2: { emoji: '🧍‍♂️' }, text: "The person is shorter." },
+    { audio: "This train is longer than the bus.", obj1: { emoji: '🚂' }, obj2: { emoji: '🚌' }, text: "Long vs. Short" },
+    { audio: "The bus is shorter than the train.", obj1: { emoji: '🚂' }, obj2: { emoji: '🚌' }, text: "The bus is shorter." },
+    { audio: "Great job! Now you know how to compare sizes.", obj1: { emoji: '✨' }, obj2: { emoji: '🎉' }, text: "You did it!"}
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    drawObjects(step.obj1, step.obj2, step.text);
+    const utter = new SpeechSynthesisUtterance(step.audio);
+    utter.rate = speed;
+    utter.pitch = 1.2;
+    utter.volume = 1;
+    if(voice) utter.voice = voice;
+    utter.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utter.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utter);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawObjects({ emoji: '🐘' }, { emoji: '🐭' }, "Big vs. Small");
+
+/* ===== Speed Quiz ===== */
+const quizObjects = [
+    { name: 'bigger', emojis: ['🐘', '🐈'], visual: ['🐘', '🐈'] },
+    { name: 'smaller', emojis: ['🐻', '🐢'], visual: ['🐻', '🐢'] },
+    { name: 'taller', emojis: ['🦒', '🐕'], visual: ['🦒', '🐕'] },
+    { name: 'shorter', emojis: ['🌳', '🌷'], visual: ['🌳', '🌷'] },
+    { name: 'longer', emojis: ['🐍', '🐛'], visual: ['🐍', '🐛'] },
+    { name: 'shorter', emojis: ['🚝', '🚗'], visual: ['🚝', '🚗'] }
+];
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function generateQuizQuestion() {
+    const problem = quizObjects[getRandomInt(0, quizObjects.length - 1)];
+    const questionText = `Which is the correct word to compare these?`;
+    const answer = problem.name;
+    const images = problem.visual;
+    return { q: questionText, a: answer, images: images };
+}
+
+function newQuizQuestion() {
+    currentQuiz = generateQuizQuestion();
+    document.getElementById('quizQ').textContent = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    
+    const quizImagesDiv = document.getElementById('quizImages');
+    quizImagesDiv.innerHTML = '';
+    quizImagesDiv.style.fontSize = `${getRandomInt(50, 80)}px`;
+    
+    const isTaller = currentQuiz.a === 'taller' || currentQuiz.a === 'shorter';
+    if(isTaller){
+      quizImagesDiv.style.alignItems = 'flex-end';
+    } else {
+      quizImagesDiv.style.alignItems = 'center';
+    }
+
+    currentQuiz.images.forEach(emoji => {
+        const span = document.createElement('span');
+        span.textContent = emoji;
+        if(currentQuiz.a === 'shorter' || currentQuiz.a === 'smaller'){
+           if(emoji === currentQuiz.images[0]) span.style.fontSize = `0.8em`;
+        } else if (currentQuiz.a === 'taller' || currentQuiz.a === 'longer' || currentQuiz.a === 'bigger') {
+            if(emoji === currentQuiz.images[0]) span.style.fontSize = `1.2em`;
+        }
+        quizImagesDiv.appendChild(span);
+    });
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+            document.getElementById('quizImages').innerHTML = '';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = normalizeAnswer(document.getElementById('quizInput').value);
+    const f = document.getElementById('quizFeedback');
+    if (val === normalizeAnswer(currentQuiz.a)) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    if (quizTime > 0) newQuizQuestion();
+});
+</script>
+</body>
+</html>
