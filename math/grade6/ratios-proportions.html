@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 6 — Ratios & Proportions</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Grade 6 — Ratios & Proportions</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive lesson • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a Ratio?</h2>
+<p>A **ratio** is a comparison of two numbers. It tells you how much of one thing there is compared to another. For example, if we have 2 red circles and 3 blue circles, the ratio of red to blue is 2 to 3.</p>
+<p>You can write a ratio in a few ways:</p>
+<ul>
+    <li>Using the word "to": **2 to 3**</li>
+    <li>Using a colon: **2:3**</li>
+    <li>As a fraction: **2/3**</li>
+</ul>
+<p>The order is important! A ratio of 2:3 is not the same as a ratio of 3:2.</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Ratios Explained!</h2>
+<p>Watch this video to see how to use ratios and proportions in a fun way! 🎥</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="simplifyTitle">
+<h2 id="simplifyTitle">Simplifying Ratios</h2>
+<p>Just like fractions, ratios can be **simplified** to their lowest terms. We do this by dividing both numbers by their greatest common factor (GCF). Try to simplify these ratios!</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) 12:18</div>
+    <input id="q1" type="text" placeholder="e.g. 2:3">
+    <div style="margin-top:6px"><button onclick="check('q1','2:3')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) 20:25</div>
+    <input id="q2" type="text" placeholder="e.g. 4:5">
+    <div style="margin-top:6px"><button onclick="check('q2','4:5')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) 6:15</div>
+    <input id="q3" type="text" placeholder="e.g. 2:5">
+    <div style="margin-top:6px"><button onclick="check('q3','2:5')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) 30:10</div>
+    <input id="q4" type="text" placeholder="e.g. 3:1">
+    <div style="margin-top:6px"><button onclick="check('q4','3:1')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="proportionTitle">
+<h2 id="proportionTitle">Solving for an Unknown Proportion</h2>
+<p>A **proportion** is when two ratios are equal. Use cross-multiplication to solve for the missing number ($x$).</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) $${\frac{2}{5}} = {\frac{x}{10}}$$</div>
+    <input id="p1" type="number" placeholder="x = ?">
+    <div style="margin-top:6px"><button onclick="check('p1','4')">Check</button></div>
+    <div id="rp1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) $${\frac{3}{4}} = {\frac{9}{x}}$$</div>
+    <input id="p2" type="number" placeholder="x = ?">
+    <div style="margin-top:6px"><button onclick="check('p2','12')">Check</button></div>
+    <div id="rp2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) $${\frac{x}{8}} = {\frac{6}{16}}$$</div>
+    <input id="p3" type="number" placeholder="x = ?">
+    <div style="margin-top:6px"><button onclick="check('p3','3')">Check</button></div>
+    <div id="rp3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) $${\frac{1}{x}} = {\frac{5}{25}}$$</div>
+    <input id="p4" type="number" placeholder="x = ?">
+    <div style="margin-top:6px"><button onclick="check('p4','5')">Check</button></div>
+    <div id="rp4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Cross-multiplication is a great trick for solving proportions!</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const val = document.getElementById(inputId).value.trim().toLowerCase();
+    const res = document.getElementById('r' + inputId);
+    const questionText = document.getElementById(inputId).previousElementSibling.textContent;
+    if (val === correct.toLowerCase()) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+        csvData.push([questionText, val, correct]);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correct})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+        csvData.push([questionText, val, correct]);
+    }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    const textX = tutorialCanvas.width / 2;
+    const textY = 40;
+    
+    ctx.font = '32px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#04263b';
+    ctx.fillText(step.text, textX, textY);
+    
+    if (step.emojis) {
+        ctx.font = '60px Arial';
+        const totalEmojiWidth = step.emojis.length * 60;
+        let startX = (tutorialCanvas.width - totalEmojiWidth) / 2;
+        const y = tutorialCanvas.height / 2;
+        
+        step.emojis.forEach(emoji => {
+            ctx.fillText(emoji, startX, y);
+            startX += 60;
+        });
+    }
+
+    if (step.boxes) {
+        const boxWidth = 200;
+        const boxHeight = 100;
+        const verticalPadding = 20;
+        const totalStackHeight = step.boxes.length * (boxHeight + verticalPadding) - verticalPadding;
+        let boxY = (tutorialCanvas.height - totalStackHeight) / 2 + 50;
+        
+        step.boxes.forEach((box) => {
+            const boxX = (tutorialCanvas.width - boxWidth) / 2;
+            ctx.strokeStyle = '#1d4ed8';
+            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+            
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#04263b';
+            ctx.fillText(box.label, boxX + boxWidth / 2, boxY + 30);
+            
+            ctx.font = '40px Arial';
+            ctx.fillText(box.emojis.join(''), boxX + boxWidth / 2, boxY + 75);
+            
+            boxY += boxHeight + verticalPadding;
+        });
+    }
+    
+    if (step.fractions) {
+      const fontSize = 40;
+      const x1 = tutorialCanvas.width / 4;
+      const x2 = tutorialCanvas.width * 3 / 4;
+      const y = tutorialCanvas.height / 2;
+      ctx.font = `${fontSize}px Arial`;
+      ctx.textAlign = 'center';
+      
+      const drawFraction = (fraction, x, y) => {
+        const parts = fraction.split('/');
+        const numerator = parts[0];
+        const denominator = parts[1];
+        ctx.fillText(numerator, x, y - 20);
+        ctx.beginPath();
+        ctx.moveTo(x - fontSize, y);
+        ctx.lineTo(x + fontSize, y);
+        ctx.stroke();
+        ctx.fillText(denominator, x, y + 20);
+      };
+
+      const drawMultiplication = (x, y) => {
+        ctx.font = '30px Arial';
+        ctx.fillText('×', x, y);
+      };
+      
+      const drawEquals = (x, y) => {
+        ctx.font = '30px Arial';
+        ctx.fillText('=', x, y);
+      };
+      
+      drawFraction(step.fractions[0], x1, y);
+      drawEquals(tutorialCanvas.width / 2, y);
+      drawFraction(step.fractions[1], x2, y);
+      
+      if (step.crossMultiply) {
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x1 - fontSize / 2, y - fontSize);
+          ctx.lineTo(x2 + fontSize / 2, y + fontSize);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x1 + fontSize / 2, y + fontSize);
+          ctx.lineTo(x2 - fontSize / 2, y - fontSize);
+          ctx.stroke();
+      }
+    }
+}
+
+const tutorialSteps = [
+    { audio: "Today we will learn about ratios. A ratio is a way to compare two numbers.", text: "What is a Ratio?" },
+    { audio: "For example, look at these shapes. We have 3 red squares and 2 blue squares.", text: "Comparing Numbers", emojis: ['🟥', '🟥', '🟥', '🔵', '🔵'] },
+    { audio: "The ratio of red squares to blue squares is 3 to 2. You can write it as 3:2.", text: "Writing a Ratio", boxes: [{label: 'Red Squares', emojis: ['🟥', '🟥', '🟥']}, {label: 'Blue Squares', emojis: ['🔵', '🔵']}] },
+    { audio: "Now let's talk about simplifying ratios. Just like fractions, we can make them smaller.", text: "Simplifying Ratios" },
+    { audio: "If we have 6 red flowers and 9 yellow flowers, the ratio is 6 to 9.", text: "Example: 6:9", emojis: ['🌺', '🌺', '🌺', '🌺', '🌺', '🌺', '🌻', '🌻', '🌻', '🌻', '🌻', '🌻', '🌻', '🌻', '🌻'] },
+    { audio: "To simplify, we find the biggest number that can divide both 6 and 9. That number is 3!", text: "Divide by the GCF" },
+    { audio: "6 divided by 3 is 2, and 9 divided by 3 is 3. The simplified ratio is 2 to 3.", text: "The Simplified Ratio", boxes: [{label: 'Red Flowers', emojis: ['🌺', '🌺']}, {label: 'Yellow Flowers', emojis: ['🌻', '🌻', '🌻']}] },
+    { audio: "Finally, let's learn about proportions. A proportion is when two ratios are equal.", text: "What is a Proportion?" },
+    { audio: "For example, the ratio 2 to 3 is equal to the ratio 4 to 6. This is a proportion.", text: "Equivalent Ratios", fractions: ['2/3', '4/6'] },
+    { audio: "A great way to check if two ratios are equal is to cross-multiply.", text: "Cross-Multiplication", fractions: ['2/3', '4/6'], crossMultiply: true },
+    { audio: "You multiply the numbers that are diagonal from each other. Two times six is twelve, and three times four is also twelve. Since they are the same, the ratios are equal!", text: "It Works!" },
+    { audio: "You've got this! Let's practice now.", text: "You did it!" }
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        drawLesson(step);
+        const utter = new SpeechSynthesisUtterance(step.audio);
+        utter.rate = speed;
+        utter.pitch = 1.2;
+        utter.volume = 1;
+        if (voice) utter.voice = voice;
+        utter.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utter.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        speechSynthesis.speak(utter);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Ratios & Proportions"});
+
+
+/* ===== Score & Streak ===== */
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const val = document.getElementById(inputId).value.trim().toLowerCase();
+    const res = document.getElementById('r' + inputId);
+    const questionText = document.getElementById(inputId).previousElementSibling.textContent;
+    if (val === correct.toLowerCase()) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+        csvData.push([questionText, val, correct]);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correct})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+        csvData.push([questionText, val, correct]);
+    }
+};
+
+/* ===== Speed Quiz ===== */
+function gcd(a, b) {
+    return b === 0 ? a : gcd(b, a % b);
+}
+
+function generateRatioProblem() {
+    let type = Math.random() < 0.5 ? 'simplify' : 'proportion';
+    let question, answer;
+
+    if (type === 'simplify') {
+        const factor = Math.floor(Math.random() * 8) + 2;
+        const a = (Math.floor(Math.random() * 10) + 2) * factor;
+        const b = (Math.floor(Math.random() * 10) + 2) * factor;
+        const g = gcd(a, b);
+        question = `Simplify: ${a}:${b}`;
+        answer = `${a/g}:${b/g}`;
+    } else {
+        const a = Math.floor(Math.random() * 8) + 2;
+        const b = Math.floor(Math.random() * 8) + 2;
+        const factor = Math.floor(Math.random() * 5) + 2;
+        const c = a * factor;
+        const d = b * factor;
+        
+        let position = Math.floor(Math.random() * 4);
+        let q = [a, b, c, d];
+        let missing = q[position];
+        q[position] = 'x';
+        
+        question = `Solve for x: \\(\\frac{${q[0]}}{${q[1]}} = \\frac{${q[2]}}{${q[3]}}\\)`
+        answer = missing.toString();
+    }
+    return { q: question, a: answer };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateRatioProblem();
+    currentQuiz = problem;
+    document.getElementById('quizQ').textContent = '';
+    
+    // Use innerHTML to allow MathJax to render
+    document.getElementById('quizQ').innerHTML = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    
+    if (window.MathJax) {
+      window.MathJax.typesetPromise([document.getElementById('quizQ')]);
+    }
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase();
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a;
+
+    if (val === currentQuiz.a.toLowerCase()) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "ratios_and_proportions_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>
