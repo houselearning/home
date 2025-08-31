@@ -1,275 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Detailed MATLAB GUI Simulation & Code</title>
+  <meta charset="UTF-8">
+  <title>MATLAB GUI Course</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
       margin: 2rem;
-      background-color: #f7f7f7;
+      background-color: #f1f1f1;
       color: #333;
-      max-width: 720px;
     }
+
     h1, h2 {
-      color: #0076A8;
+      color: #d35400;
     }
-    p {
-      margin-bottom: 1rem;
-    }
-    canvas {
-      border: 1px solid #0076A8;
-      border-radius: 10px;
-      background: #e1f0fc;
-      cursor: pointer;
-      display: block;
-      margin-top: 1rem;
-      max-width: 720px;
-      width: 100%;
-      height: 360px;
-    }
-    .tip {
-      background-color: #d9ecf9;
-      padding: 0.7rem 1rem;
-      border-left: 5px solid #0076A8;
-      margin: 1.5rem 0;
-      font-style: italic;
-      color: #055a8c;
-    }
+
     textarea {
       width: 100%;
       height: 280px;
       font-family: Consolas, monospace;
-      font-size: 14px;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #d35400;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a84300;
+    }
+
+    .output {
+      margin-top: 1rem;
       background: #222;
-      color: #a9d1f7;
+      color: #0f0;
       padding: 1rem;
       border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 80px;
+    }
+
+    .tip {
+      background-color: #fbe9e7;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #d35400;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    hr {
+      margin: 2rem 0;
       border: none;
-      resize: vertical;
-      margin-top: 1rem;
+      border-top: 2px solid #ccc;
     }
   </style>
 </head>
 <body>
+  <h1>🖥️ MATLAB GUI Mini-Course</h1>
+  <p>Welcome! This course walks you through creating GUIs in MATLAB step by step.</p>
 
-  <h1>🖥️ Detailed MATLAB GUI Canvas Simulation</h1>
-  <p>This canvas simulates a typical MATLAB GUI window with multiple components:</p>
-  <ul>
-    <li><strong>Window Frame</strong> with title bar and close button</li>
-    <li><strong>Static Text Label</strong></li>
-    <li><strong>Push Button</strong></li>
-    <li><strong>Edit Text Box</strong></li>
-    <li><strong>Checkbox</strong></li>
-    <li><strong>Dropdown Menu (Popup Menu)</strong></li>
-  </ul>
-  <p>Click the blue button inside the canvas to simulate interaction.</p>
+  <!-- LESSON 1 -->
+  <h2>📘 Lesson 1: Creating a Window + Button</h2>
+  <textarea id="lesson1">
+% Create a figure window
+f = figure('Position',[500 300 300 200],'Name','Lesson 1');
 
-  <canvas id="guiCanvas" width="700" height="360" aria-label="Simulated MATLAB GUI"></canvas>
-
-  <div class="tip">
-    💡 <strong>Tip:</strong> Below the canvas is the MATLAB code you’d use to create this GUI in MATLAB (App Designer or GUIDE style).
-  </div>
-
-  <textarea readonly>
-% MATLAB GUI code example:
-
-function simple_gui
-    fig = figure('Name', 'Detailed GUI', 'Position', [500 300 400 280], ...
-        'MenuBar', 'none', 'NumberTitle', 'off', 'Resize', 'off');
-
-    % Label
-    uicontrol('Style', 'text', 'Position', [20 230 360 30], ...
-        'String', 'Welcome to your MATLAB GUI!', 'FontSize', 12, ...
-        'BackgroundColor', get(fig,'Color'), 'HorizontalAlignment', 'center');
-
-    % Push Button
-    btn = uicontrol('Style', 'pushbutton', 'Position', [150 180 100 35], ...
-        'String', 'Click me', 'FontSize', 11, ...
-        'Callback', @(src, event) disp('Button clicked!'));
-
-    % Edit Text Box
-    uicontrol('Style', 'edit', 'Position', [150 140 100 30], ...
-        'String', 'Type here');
-
-    % Checkbox
-    uicontrol('Style', 'checkbox', 'Position', [150 110 120 25], ...
-        'String', 'Check me');
-
-    % Popup Menu (Dropdown)
-    uicontrol('Style', 'popupmenu', 'Position', [150 70 100 30], ...
-        'String', {'Option 1', 'Option 2', 'Option 3'});
-
-end
-
-% Run this by typing `simple_gui` in MATLAB command window.
+% Add a push button
+btn = uicontrol('Style','pushbutton',...
+    'String','Click Me!',...
+    'Position',[100 80 100 40],...
+    'Callback',@(src,event)disp('Button clicked!'));
   </textarea>
+  <button onclick="simulateLesson1()">▶️ Run</button>
+  <div class="output" id="out1">Output here...</div>
 
   <script>
-    const canvas = document.getElementById('guiCanvas');
-    const ctx = canvas.getContext('2d');
-
-    // Window
-    const win = {x: 10, y: 10, w: 680, h: 340, r: 12};
-    // Title bar
-    const titleBarHeight = 40;
-
-    // Button
-    const btn = {x: 280, y: 210, w: 140, h: 40, r: 8};
-    let btnClicked = false;
-
-    // Checkbox
-    const checkbox = {x: 280, y: 170, size: 22};
-    let checkboxChecked = false;
-
-    // Edit box
-    const editBox = {x: 280, y: 130, w: 140, h: 30};
-    let editBoxContent = 'Type here';
-
-    // Dropdown
-    const dropdown = {x: 280, y: 90, w: 140, h: 30};
-    const dropdownOptions = ['Option 1', 'Option 2', 'Option 3'];
-    let dropdownSelectedIndex = 0;
-
-    function drawRoundedRect(x, y, w, h, r, fill, stroke) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-      if (fill) {
-        ctx.fillStyle = fill;
-        ctx.fill();
-      }
-      if (stroke) {
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+    function simulateLesson1(){
+      document.getElementById("out1").innerText = "Button clicked!";
     }
-
-    function drawCheckbox(x, y, size, checked) {
-      ctx.fillStyle = '#fff';
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 2;
-      ctx.fillRect(x, y, size, size);
-      ctx.strokeRect(x, y, size, size);
-
-      if (checked) {
-        ctx.strokeStyle = '#0076A8';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(x + 4, y + size / 2);
-        ctx.lineTo(x + size / 3, y + size - 5);
-        ctx.lineTo(x + size - 4, y + 5);
-        ctx.stroke();
-      }
-    }
-
-    function drawDropdown(x, y, w, h, selectedIndex) {
-      drawRoundedRect(x, y, w, h, 6, '#fff', '#333');
-      ctx.fillStyle = '#000';
-      ctx.font = '14px Segoe UI';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(dropdownOptions[selectedIndex], x + 10, y + h / 2);
-
-      // Down arrow
-      ctx.beginPath();
-      ctx.moveTo(x + w - 20, y + h / 2 - 5);
-      ctx.lineTo(x + w - 10, y + h / 2 - 5);
-      ctx.lineTo(x + w - 15, y + h / 2 + 5);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function drawEditBox(x, y, w, h, text) {
-      drawRoundedRect(x, y, w, h, 6, '#fff', '#333');
-      ctx.fillStyle = '#000';
-      ctx.font = '14px Consolas, monospace';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, x + 8, y + h / 2);
-    }
-
-    function drawButton(x, y, w, h, text, clicked) {
-      drawRoundedRect(x, y, w, h, 8, clicked ? '#004d66' : '#0076A8', '#004d66');
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 16px Segoe UI';
-      ctx.textBaseline = 'middle';
-      ctx.textAlign = 'center';
-      ctx.fillText(text, x + w / 2, y + h / 2);
-    }
-
-    function drawWindow() {
-      // Background window
-      drawRoundedRect(win.x, win.y, win.w, win.h, win.r, '#cce7f9', '#0076A8');
-
-      // Title bar
-      drawRoundedRect(win.x, win.y, win.w, titleBarHeight, win.r, '#0076A8');
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 18px Segoe UI';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Detailed MATLAB GUI', win.x + 15, win.y + titleBarHeight / 2);
-
-      // Close button (red circle)
-      ctx.beginPath();
-      ctx.fillStyle = '#d9534f';
-      ctx.arc(win.x + win.w - 20, win.y + titleBarHeight / 2, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#a73a3a';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Label text
-      ctx.fillStyle = '#00334d';
-      ctx.font = '16px Segoe UI';
-      ctx.textBaseline = 'top';
-      ctx.textAlign = 'left';
-      ctx.fillText('Welcome to your MATLAB GUI!', win.x + 20, win.y + titleBarHeight + 15);
-
-      // Draw controls
-      drawButton(btn.x, btn.y, btn.w, btn.h, 'Click me', btnClicked);
-      drawEditBox(editBox.x, editBox.y, editBox.w, editBox.h, editBoxContent);
-      drawCheckbox(checkbox.x, checkbox.y, checkbox.size, checkboxChecked);
-      ctx.fillStyle = '#00334d';
-      ctx.font = '14px Segoe UI';
-      ctx.fillText('Check me', checkbox.x + checkbox.size + 10, checkbox.y + checkbox.size / 4);
-
-      drawDropdown(dropdown.x, dropdown.y, dropdown.w, dropdown.h, dropdownSelectedIndex);
-    }
-
-    function isInsideRect(pos, rect) {
-      return pos.x >= rect.x && pos.x <= rect.x + rect.w && pos.y >= rect.y && pos.y <= rect.y + rect.h;
-    }
-
-    function isInsideSquare(pos, x, y, size) {
-      return pos.x >= x && pos.x <= x + size && pos.y >= y && pos.y <= y + size;
-    }
-
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const clickPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-      if (isInsideRect(clickPos, btn)) {
-        btnClicked = true;
-        alert('Button clicked! (Simulated)');
-        draw();
-      } else if (isInsideSquare(clickPos, checkbox.x, checkbox.y, checkbox.size)) {
-        checkboxChecked = !checkboxChecked;
-        draw();
-      } else if (isInsideRect(clickPos, dropdown)) {
-        dropdownSelectedIndex = (dropdownSelectedIndex + 1) % dropdownOptions.length;
-        draw();
-      }
-    });
-
-    draw();
   </script>
 
+  <div class="tip">
+    📝 A <code>figure</code> is your GUI window. <code>uicontrol</code> creates interactive elements.
+  </div>
+
+  <hr>
+
+  <!-- LESSON 2 -->
+  <h2>📘 Lesson 2: Textboxes & Input</h2>
+  <textarea id="lesson2">
+% Create GUI with textbox + button
+f = figure('Position',[500 300 350 200],'Name','Lesson 2');
+
+txt = uicontrol('Style','edit','Position',[80 120 180 30]);
+
+btn = uicontrol('Style','pushbutton',...
+    'String','Show Text',...
+    'Position',[100 60 120 40],...
+    'Callback',@(src,event)disp(get(txt,'String')));
+  </textarea>
+  <button onclick="simulateLesson2()">▶️ Run</button>
+  <div class="output" id="out2">Output here...</div>
+
+  <script>
+    function simulateLesson2(){
+      document.getElementById("out2").innerText = "User entered text here";
+    }
+  </script>
+
+  <div class="tip">
+    ⚡ Use <code>get()</code> to grab values from user input fields.
+  </div>
+
+  <hr>
+
+  <!-- LESSON 3 -->
+  <h2>📘 Lesson 3: Multiple Controls & Layout</h2>
+  <textarea id="lesson3">
+f = figure('Position',[500 300 400 250],'Name','Lesson 3');
+
+uicontrol('Style','text','String','Enter Name:',...
+    'Position',[50 180 100 30]);
+
+txt = uicontrol('Style','edit','Position',[160 180 150 30]);
+
+uicontrol('Style','pushbutton','String','Greet',...
+    'Position',[130 120 120 40],...
+    'Callback',@(src,event)disp(['Hello ' get(txt,'String') '!']));
+  </textarea>
+  <button onclick="simulateLesson3()">▶️ Run</button>
+  <div class="output" id="out3">Output here...</div>
+
+  <script>
+    function simulateLesson3(){
+      document.getElementById("out3").innerText = "Hello Alex!";
+    }
+  </script>
+
+  <div class="tip">
+    👋 This shows multiple controls working together: labels, textboxes, and a button.
+  </div>
+
+  <hr>
+
+  <!-- LESSON 4 -->
+  <h2>📘 Lesson 4: Callback Functions & Logic</h2>
+  <textarea id="lesson4">
+f = figure('Position',[500 300 350 200],'Name','Lesson 4');
+
+chk = uicontrol('Style','checkbox','String','Enable Option',...
+    'Position',[100 120 150 30]);
+
+btn = uicontrol('Style','pushbutton','String','Check Status',...
+    'Position',[100 70 120 40],...
+    'Callback',@(src,event)disp(get(chk,'Value')));
+  </textarea>
+  <button onclick="simulateLesson4()">▶️ Run</button>
+  <div class="output" id="out4">Output here...</div>
+
+  <script>
+    function simulateLesson4(){
+      document.getElementById("out4").innerText = "1 (Option Checked)";
+    }
+  </script>
+
+  <div class="tip">
+    ✅ Checkboxes return <code>1</code> if selected, <code>0</code> if not.
+  </div>
+
+  <hr>
+
+<h2>📘 How to Create a GUI (Using MATLAB GUI Editor)</h2>
+<p>MATLAB provides two main ways to design GUIs without writing all the code manually:</p>
+
+<ul>
+  <li><strong>GUIDE (Legacy)</strong> — The older GUI Design Environment (still available in many MATLAB versions)</li>
+  <li><strong>App Designer</strong> — The modern replacement for GUIDE (introduced in newer MATLAB versions)</li>
+</ul>
+
+<h3>🛠️ Using GUIDE</h3>
+<ol>
+  <li>Type <code>guide</code> in the MATLAB Command Window.</li>
+  <li>Select a blank GUI (or template).</li>
+  <li>Drag & drop controls (buttons, sliders, text boxes) from the toolbox onto your window.</li>
+  <li>Save the GUI — MATLAB will create two files: 
+    <ul>
+      <li><code>myGUI.fig</code> → the layout (UI)</li>
+      <li><code>myGUI.m</code> → the logic (callbacks and code)</li>
+    </ul>
+  </li>
+  <li>Double-click a control (like a button) to add custom code in its <em>Callback</em> function.</li>
+</ol>
+
+<div class="tip">
+  ⚡ GUIDE is being phased out, but it’s still great for learning because it shows the link between GUI layout and MATLAB code.
+</div>
+
+<h3>🛠️ Using App Designer</h3>
+<ol>
+  <li>Type <code>appdesigner</code> in the MATLAB Command Window.</li>
+  <li>Drag & drop UI components from the Component Library (buttons, sliders, switches, etc.).</li>
+  <li>Adjust properties in the right-hand panel (text, size, colors, callbacks).</li>
+  <li>Add interactivity by writing code in the <code>Code View</code>.</li>
+  <li>Save your app as a <code>.mlapp</code> file — this is a self-contained GUI app.</li>
+</ol>
+
+<div class="tip">
+  🚀 App Designer is the future. It uses an object-oriented approach and integrates better with modern MATLAB apps.
+</div>
+<hr>
+  <!-- LESSON 5 -->
+  <h2>📘 Lesson 5: Mini Project - Calculator GUI</h2>
+  <textarea id="lesson5">
+f = figure('Position',[500 300 400 300],'Name','Lesson 5 - Calculator');
+
+uicontrol('Style','text','String','Number 1:',...
+    'Position',[50 220 80 30]);
+n1 = uicontrol('Style','edit','Position',[150 220 100 30]);
+
+uicontrol('Style','text','String','Number 2:',...
+    'Position',[50 170 80 30]);
+n2 = uicontrol('Style','edit','Position',[150 170 100 30]);
+
+uicontrol('Style','pushbutton','String','Add',...
+    'Position',[100 110 120 40],...
+    'Callback',@(src,event)disp(str2double(get(n1,'String')) + str2double(get(n2,'String'))));
+  </textarea>
+  <button onclick="simulateLesson5()">▶️ Run</button>
+  <div class="output" id="out5">Output here...</div>
+
+  <script>
+    function simulateLesson5(){
+      document.getElementById("out5").innerText = "Result: 15";
+    }
+  </script>
+
+  <div class="tip">
+    🔢 This mini project shows how to combine multiple inputs, callbacks, and logic into a functional GUI.
+  </div>
 </body>
 </html>
