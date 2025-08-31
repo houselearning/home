@@ -163,7 +163,17 @@ function updateScore(points) {
 }
 window.check = (inputId, correct) => {
     const val = document.getElementById(inputId).value.trim().toLowerCase();
-    const res = document.getElementById('r' + inputId);
+    
+    // Correctly get the result element's ID
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+
+    // Guardrail to prevent TypeError if element is not found
+    if (!res) {
+        console.error(`Result element with ID '${resultId}' not found.`);
+        return;
+    }
+
     const questionText = document.getElementById(inputId).previousElementSibling.textContent;
     if (val === correct.toLowerCase()) {
         res.textContent = '✅ Correct!';
@@ -283,24 +293,7 @@ function updateScore(points) {
     document.getElementById('score').textContent = `Score: ${totalScore}`;
     document.getElementById('streak').textContent = `Streak: ${streak}`;
 }
-window.check = (inputId, correct) => {
-    const val = document.getElementById(inputId).value.trim().toLowerCase();
-    const res = document.getElementById('r' + inputId);
-    const questionText = document.getElementById(inputId).previousElementSibling.textContent;
-    if (val === correct.toLowerCase()) {
-        res.textContent = '✅ Correct!';
-        res.className = 'answer ok';
-        tone(880, 0.06);
-        updateScore(1);
-        csvData.push([questionText, val, correct]);
-    } else {
-        res.textContent = `❌ Wrong (Answer: ${correct})`;
-        res.className = 'answer bad';
-        tone(220, 0.06);
-        updateScore(0);
-        csvData.push([questionText, val, correct]);
-    }
-};
+
 
 /* ===== Speed Quiz ===== */
 function generateUnitRateProblem() {
