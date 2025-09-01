@@ -1,4 +1,4 @@
-# HouseLearning Home
+# HouseLearning Home 
 
 Welcome to **HouseLearning Home** — a fun and interactive learning game website designed to make education engaging through browser-based mini-games and activities. The platform offers a collection of educational games that help users practice and reinforce their skills while having fun.
 
