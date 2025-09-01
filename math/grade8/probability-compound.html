@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Compound Probability</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#ef4444; --accent2:#dc2626; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#ef4444;color:#fff}
+button.ghost{background:#fee2e2;color:var(--accent2);border:1px solid #fecaca}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fecaca;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #fecaca;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #fecaca;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Compound Probability 🎲</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is Compound Probability? 🎯</h2>
+<p>
+  **Compound probability** is the likelihood of two or more independent events happening. Two events are **independent** if the outcome of one event does not affect the outcome of the other.
+</p>
+<p>
+  To find the compound probability of two independent events A and B, you multiply the probability of event A by the probability of event B.
+</p>
+<p>
+  $$P(A \text{ and } B) = P(A) \times P(B)$$
+</p>
+<p>
+  For example, the probability of flipping heads on a coin AND rolling a 3 on a six-sided die would be the probability of heads ($$\frac{1}{2}$$) multiplied by the probability of rolling a 3 ($$\frac{1}{6}$$), which is $$\frac{1}{12}$$.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Compound Probability Example 🎬</h2>
+<p>This video will walk you through calculating the probability of two independent events.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Calculate the probability of each compound event as a fraction in simplest form (e.g., 1/2).</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1.tile">
+    <div style="font-weight:700">1) Rolling a 2 on a die and then flipping heads on a coin.</div>
+    <p>Answer = <input id="q1_ans" type="text" placeholder="?/?"></p>
+    <div style="margin-top:6px"><button onclick="check('q1', '1/12')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2.tile">
+    <div style="font-weight:700">2) Drawing a red card from a deck, replacing it, then drawing a heart.</div>
+    <p>Answer = <input id="q2_ans" type="text" placeholder="?/?"></p>
+    <div style="margin-top:6px"><button onclick="check('q2', '1/8')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3.tile">
+    <div style="font-weight:700">3) Rolling a 4 on a die and then another 4 on a second die.</div>
+    <p>Answer = <input id="q3_ans" type="text" placeholder="?/?"></p>
+    <div style="margin-top:6px"><button onclick="check('q3', '1/36')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4.tile">
+    <div style="font-weight:700">4) Flipping heads on 3 separate coins.</div>
+    <p>Answer = <input id="q4_ans" type="text" placeholder="?/?"></p>
+    <div style="margin-top:6px"><button onclick="check('q4', '1/8')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Compound Probability Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput_ans" type="text" placeholder="Answer = ?/?">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You've got this! Practice makes perfect.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+window.check = (qId, correct) => {
+    const input = document.getElementById(qId + '_ans');
+    const val = input.value.trim().toLowerCase();
+    const correctVal = correct.trim().toLowerCase();
+    const res = document.getElementById('r' + qId.slice(1));
+    const isCorrect = val === correctVal;
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correctVal})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, `Answer=${val}`, `Answer=${correctVal}`]);
+};
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawDie(ctx, x, y, size, number) {
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, size, size);
+    const dotSize = size / 7;
+    const dotPos = (pos) => x + size / 4 * pos;
+    const drawDot = (dx, dy) => { ctx.beginPath(); ctx.arc(dx, dy, dotSize, 0, 2 * Math.PI); ctx.fill(); };
+    ctx.fillStyle = '#000';
+    if (number === 1) drawDot(dotPos(2), dotPos(2));
+    if (number === 2) { drawDot(dotPos(1), dotPos(3)); drawDot(dotPos(3), dotPos(1)); }
+    if (number === 3) { drawDot(dotPos(1), dotPos(3)); drawDot(dotPos(2), dotPos(2)); drawDot(dotPos(3), dotPos(1)); }
+    // Add more numbers for a more complex die illustration
+}
+
+function drawCoin(ctx, x, y, size) {
+    ctx.fillStyle = '#fde047';
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, size / 2, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 20px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("H", x, y + 8);
+}
+
+const tutorialSteps = [
+    { 
+        audio: "Let's find the probability of rolling an even number on a six-sided die and then flipping a coin and getting heads.", 
+        text: "P(even) and P(heads)",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("P(even)", tutorialCanvas.width / 4, tutorialCanvas.height / 2 - 40);
+            ctx.fillText("P(heads)", tutorialCanvas.width / 4 * 3, tutorialCanvas.height / 2 - 40);
+        }
+    },
+    {
+        audio: "First, let's find the probability of rolling an even number on a standard die. The even numbers are 2, 4, and 6. That's 3 favorable outcomes out of 6 total possible outcomes. The probability is 3 over 6, which simplifies to one half.",
+        text: "P(even) = $$3/6 = 1/2$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawDie(ctx, tutorialCanvas.width / 4 - 50, tutorialCanvas.height / 2, 100, 2);
+        }
+    },
+    {
+        audio: "Next, let's find the probability of flipping heads on a coin. There is one favorable outcome, heads, out of two total possible outcomes, heads or tails. The probability is one half.",
+        text: "P(heads) = $$1/2$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawCoin(ctx, tutorialCanvas.width / 4 * 3, tutorialCanvas.height / 2 + 20, 100);
+        }
+    },
+    {
+        audio: "Finally, to find the compound probability, we multiply the two probabilities together: one half times one half. This gives us one fourth.",
+        text: "$$1/2 \times 1/2 = 1/4$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("P(even and heads) = 1/4", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+        }
+    }
+];
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        step.draw(ctx);
+        ctx.textAlign = 'center';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillStyle = '#04263b';
+        ctx.fillText(step.text, tutorialCanvas.width / 2, 40);
+        MathJax.typeset([document.getElementById('tutorialCanvas').parentNode.parentNode]);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function simplifyFraction(numerator, denominator) {
+    const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+    const common = gcd(numerator, denominator);
+    return `${numerator / common}/${denominator / common}`;
+}
+function generateProblem() {
+    const event1 = Math.floor(Math.random() * 3); // 0=die, 1=coin, 2=deck
+    const event2 = Math.floor(Math.random() * 3);
+    let prob1, prob2, q1Text, q2Text;
+    
+    const getProb = (event) => {
+        switch (event) {
+            case 0:
+                const dieOutcome = ['even', 'odd', 'prime', 'multiple of 3'][Math.floor(Math.random()*4)];
+                q1Text = `rolling an ${dieOutcome} number on a die`;
+                if (dieOutcome === 'even' || dieOutcome === 'odd') return { n: 3, d: 6 };
+                if (dieOutcome === 'prime') return { n: 3, d: 6 }; // 2, 3, 5
+                if (dieOutcome === 'multiple of 3') return { n: 2, d: 6 }; // 3, 6
+                break;
+            case 1:
+                const coinOutcome = ['heads', 'tails'][Math.floor(Math.random()*2)];
+                q1Text = `flipping ${coinOutcome} on a coin`;
+                return { n: 1, d: 2 };
+            case 2:
+                const cardOutcome = ['red card', 'black card', 'spade', 'ace', 'king'][Math.floor(Math.random()*5)];
+                q1Text = `drawing a ${cardOutcome} from a deck (with replacement)`;
+                if (cardOutcome === 'red card' || cardOutcome === 'black card') return { n: 26, d: 52 };
+                if (cardOutcome === 'spade') return { n: 13, d: 52 };
+                if (cardOutcome === 'ace' || cardOutcome === 'king') return { n: 4, d: 52 };
+                break;
+        }
+    };
+    
+    prob1 = getProb(event1);
+    prob2 = getProb(event2);
+    const totalN = prob1.n * prob2.n;
+    const totalD = prob1.d * prob2.d;
+    const simplified = simplifyFraction(totalN, totalD);
+    const q = `Find the probability of ${q1Text} and then ${q2Text}.`;
+    return { q: q, a: simplified };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = currentQuiz.q;
+    document.getElementById('quizInput_ans').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput_ans').value.trim().toLowerCase();
+    const f = document.getElementById('quizFeedback');
+    const correctVal = currentQuiz.a.trim().toLowerCase();
+    let userAnswer = `Answer=${val}`;
+    let correctAnswer = `Answer=${correctVal}`;
+    if (val === correctVal) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${correctVal})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "compound_probability_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>
