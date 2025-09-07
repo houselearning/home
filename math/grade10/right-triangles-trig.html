@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 10 — Right Triangles & Trig</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Grade 10 — Right Triangles & Trig</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive lesson • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Right Triangles & SOH CAH TOA</h2>
+<p>A **right triangle** is a triangle that contains a $90^\circ$ angle. The sides of a right triangle have special names: the side opposite the right angle is the **hypotenuse**, and the other two sides are **legs**.</p>
+<p>For any acute angle $\theta$ in a right triangle, we can define three fundamental trigonometric ratios. A common mnemonic to remember these is **SOH CAH TOA**.</p>
+<ul>
+  <li>**SOH**: **S**in($\theta$) = **O**pposite / **H**ypotenuse</li>
+  <li>**CAH**: **C**os($\theta$) = **A**djacent / **H**ypotenuse</li>
+  <li>**TOA**: **T**an($\theta$) = **O**pposite / **A**djacent</li>
+</ul>
+<p>The **Pythagorean Theorem** states that for any right triangle, the square of the hypotenuse is equal to the sum of the squares of the two legs: $a^2 + b^2 = c^2$.</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Right Triangle Trig Explained!</h2>
+<p>Watch this video to visualize the relationships between angles and side lengths in a right triangle! 🎥</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Use SOH CAH TOA and the Pythagorean Theorem to solve for the missing values. Round to two decimal places if needed.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) A right triangle has legs of length 3 and 4. What is the length of the hypotenuse?</div>
+    <input id="q1" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q1', '5')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) In a right triangle, the opposite side is 5 and the hypotenuse is 13. What is $\sin(\theta)$?</div>
+    <input id="q2" type="text" placeholder="e.g. 5/13">
+    <div style="margin-top:6px"><button onclick="check('q2', '5/13')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) The adjacent side is 12 and the hypotenuse is 13. What is $\cos(\theta)$?</div>
+    <input id="q3" type="text" placeholder="e.g. 12/13">
+    <div style="margin-top:6px"><button onclick="check('q3', '12/13')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) The opposite side is 5 and the adjacent side is 12. What is $\tan(\theta)$?</div>
+    <input id="q4" type="text" placeholder="e.g. 5/12">
+    <div style="margin-top:6px"><button onclick="check('q4', '5/12')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Trig Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You can do it! SOH CAH TOA is your key to unlocking right triangles.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+  const inputEl = document.getElementById(inputId);
+  const val = inputEl.value.trim().toLowerCase();
+  
+  const resultId = 'r' + inputId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  if (!res) {
+    console.error(`Result element with ID '${resultId}' not found.`);
+    return;
+  }
+
+  const questionText = inputEl.previousElementSibling.textContent;
+  const isCorrect = (val === correct.toLowerCase());
+
+  if (isCorrect) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong (Answer: ${correct})`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+  csvData.push([questionText, val, correct]);
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+  ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+  const textX = tutorialCanvas.width / 2;
+  const textY = 40;
+  
+  ctx.font = '32px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#04263b';
+  ctx.fillText(step.text, textX, textY);
+  
+  if (step.diagram) {
+    ctx.strokeStyle = '#93c5fd';
+    ctx.lineWidth = 2;
+    
+    // Draw right triangle
+    const drawRightTriangle = (x, y, scale) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + 100 * scale, y);
+      ctx.lineTo(x, y - 100 * scale);
+      ctx.closePath();
+      ctx.stroke();
+      
+      // Right angle box
+      ctx.strokeRect(x, y - 15, 15, 15);
+      
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#04263b';
+      
+      ctx.fillText('Hypotenuse', x + 50 * scale, y - 50 * scale - 10);
+      ctx.fillText('Adjacent', x + 50 * scale, y + 20);
+      ctx.fillText('Opposite', x - 40, y - 50 * scale);
+      
+      ctx.font = '24px Arial';
+      ctx.fillText('θ', x + 25, y - 25);
+    };
+
+    // Draw SOH CAH TOA
+    const drawTrigRatios = (x, y) => {
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#1d4ed8';
+        
+        ctx.fillText('SOH', x, y);
+        ctx.fillText('sin(θ) = Opp / Hyp', x, y + 40);
+        
+        ctx.fillText('CAH', x, y + 100);
+        ctx.fillText('cos(θ) = Adj / Hyp', x, y + 140);
+        
+        ctx.fillText('TOA', x, y + 200);
+        ctx.fillText('tan(θ) = Opp / Adj', x, y + 240);
+    };
+    
+    if (step.diagram.triangle) {
+        drawRightTriangle(200, 300, 1);
+    }
+    
+    if (step.diagram.sohcahtoa) {
+        drawTrigRatios(tutorialCanvas.width / 2, 80);
+    }
+    
+    if (step.diagram.pythagorean) {
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('a²', tutorialCanvas.width / 2 - 100, 150);
+        ctx.fillText('+ b²', tutorialCanvas.width / 2, 150);
+        ctx.fillText('= c²', tutorialCanvas.width / 2 + 100, 150);
+    }
+  }
+
+  if (step.textLines) {
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    let y = tutorialCanvas.height / 2 + 50;
+    step.textLines.forEach((line) => {
+      ctx.fillText(line, tutorialCanvas.width / 2, y);
+      y += 40;
+    });
+  }
+}
+
+const tutorialSteps = [
+  { audio: "A right triangle is a triangle with one 90-degree angle. The sides are called the hypotenuse, opposite, and adjacent.", text: "Right Triangle Basics", diagram: { triangle: true } },
+  { audio: "The hypotenuse is always the longest side, opposite the right angle.", text: "Identifying the Hypotenuse", diagram: { triangle: true } },
+  { audio: "SOH CAH TOA is a way to remember the three main trigonometric ratios. SOH stands for Sine equals Opposite over Hypotenuse.", text: "SOH: Sine", diagram: { sohcahtoa: true } },
+  { audio: "CAH stands for Cosine equals Adjacent over Hypotenuse.", text: "CAH: Cosine", diagram: { sohcahtoa: true } },
+  { audio: "TOA stands for Tangent equals Opposite over Adjacent.", text: "TOA: Tangent", diagram: { sohcahtoa: true } },
+  { audio: "The Pythagorean Theorem relates the three sides of a right triangle. a-squared plus b-squared equals c-squared.", text: "The Pythagorean Theorem", diagram: { pythagorean: true } },
+  { audio: "You've got this! Now let's practice.", text: "You did it!" }
+];
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    drawLesson(step);
+    
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utterance.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Right Triangles & Trig"});
+
+
+/* ===== Speed Quiz ===== */
+function generateTrigProblem() {
+  const problems = [
+    { q: "What is the longest side of a right triangle?", a: "hypotenuse" },
+    { q: "What does SOH stand for?", a: "sine opposite hypotenuse" },
+    { q: "What is the Pythagorean Theorem?", a: "a^2+b^2=c^2" },
+    { q: "If the adjacent side is 3 and the opposite side is 4, what is the tangent ratio?", a: "4/3" },
+    { q: "If the hypotenuse is 10 and the opposite side is 8, what is the sine ratio?", a: "8/10" },
+    { q: "If a and b are legs, what is the hypotenuse?", a: "sqrt(a^2+b^2)" },
+    { q: "What does CAH stand for?", a: "cosine adjacent hypotenuse" },
+  ];
+  const problem = problems[Math.floor(Math.random() * problems.length)];
+  return { q: problem.q, a: problem.a };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+  const problem = generateTrigProblem();
+  currentQuiz = problem;
+  document.getElementById('quizQ').textContent = currentQuiz.q;
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt = setInterval(() => {
+    quizTime--;
+    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+    if (quizTime <= 0) {
+      clearInterval(quizTimerInt);
+      document.getElementById('quizQ').textContent = 'Time Up!';
+    }
+  }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+  clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+  const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/\s+/g, '');
+  const f = document.getElementById('quizFeedback');
+  let userAnswer = val;
+  let correctAnswer = currentQuiz.a.toLowerCase().replace(/\s+/g, '');
+
+  if (userAnswer === correctAnswer) {
+    f.textContent = '✅ Correct!';
+    f.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+  } else {
+    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+    f.className = 'answer bad';
+    tone(220, 0.06);
+  }
+  csvData.push([currentQuiz.q, userAnswer, correctAnswer]);
+  if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+  const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "trig_log.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+</script>
+</body>
+</html>
