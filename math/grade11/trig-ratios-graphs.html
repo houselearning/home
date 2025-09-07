@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 11 — Trig Ratios & Graphs</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Grade 11 — Trig Ratios & Graphs</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive lesson • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Trig Functions</h2>
+<p>The three main trigonometric ratios relate the angles of a right triangle to the lengths of its sides. They are sine, cosine, and tangent.</p>
+<p>For a given angle $\theta$ in a right triangle:</p>
+<ul>
+  <li>**Sine** ($sin(\theta)$) is the ratio of the **opposite** side to the **hypotenuse**.</li>
+  <li>**Cosine** ($cos(\theta)$) is the ratio of the **adjacent** side to the **hypotenuse**.</li>
+  <li>**Tangent** ($tan(\theta)$) is the ratio of the **opposite** side to the **adjacent** side.</li>
+</ul>
+<p>A common mnemonic to remember these is **SOH CAH TOA**.</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Unit Circle & Graphs!</h2>
+<p>Watch this video to visualize how trig ratios relate to the unit circle and create their characteristic wave-like graphs. 🌊</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Find the values of the trig ratios and key properties of their graphs!</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) In a right triangle, if the opposite side is 3 and the hypotenuse is 5, what is $sin(\theta)$? (e.g., 3/5)</div>
+    <input id="q1" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q1', '3/5')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) What is the period of the function $y = sin(x)$?</div>
+    <input id="q2" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q2', '2π')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) What is the amplitude of the function $y = 3cos(x)$?</div>
+    <input id="q3" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q3', '3')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) What is the value of $sin(90°)$?</div>
+    <input id="q4" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q4', '1')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Trig Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You can do it! Remember SOH CAH TOA.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+  const inputEl = document.getElementById(inputId);
+  const val = inputEl.value.trim().toLowerCase().replace(/\s/g, '');
+  
+  const resultId = 'r' + inputId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  if (!res) {
+    console.error(`Result element with ID '${resultId}' not found.`);
+    return;
+  }
+
+  const questionText = inputEl.previousElementSibling.textContent;
+  const isCorrect = (val === correct.toLowerCase().replace(/\s/g, ''));
+
+  if (isCorrect) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong (Answer: ${correct})`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+  csvData.push([questionText, val, correct]);
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+  ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+  const textX = tutorialCanvas.width / 2;
+  const textY = 40;
+  
+  ctx.font = '32px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#04263b';
+  ctx.fillText(step.text, textX, textY);
+  
+  if (step.diagram) {
+    const drawPlane = () => {
+      ctx.strokeStyle = '#93c5fd';
+      ctx.lineWidth = 2;
+      const center = {x: tutorialCanvas.width / 2, y: tutorialCanvas.height / 2 + 20};
+      ctx.beginPath();
+      ctx.moveTo(0, center.y);
+      ctx.lineTo(tutorialCanvas.width, center.y);
+      ctx.moveTo(center.x, 0);
+      ctx.lineTo(center.x, tutorialCanvas.height);
+      ctx.stroke();
+    };
+    
+    const drawSineWave = () => {
+      drawPlane();
+      ctx.strokeStyle = '#1d4ed8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      const center = {x: tutorialCanvas.width / 2, y: tutorialCanvas.height / 2 + 20};
+      const scaleX = tutorialCanvas.width / (4 * Math.PI);
+      const scaleY = 70;
+      for (let i = 0; i < tutorialCanvas.width; i++) {
+        const x = i - center.x;
+        const y = Math.sin(x / scaleX) * scaleY;
+        if (i === 0) {
+          ctx.moveTo(i, center.y - y);
+        } else {
+          ctx.lineTo(i, center.y - y);
+        }
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#04263b';
+      ctx.font = '20px Arial';
+      ctx.fillText('Sine Wave: $y=sin(x)$', tutorialCanvas.width / 2, 350);
+      ctx.fillText('Starts at origin, period is 2π', tutorialCanvas.width / 2, 375);
+    };
+    
+    const drawCosineWave = () => {
+      drawPlane();
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      const center = {x: tutorialCanvas.width / 2, y: tutorialCanvas.height / 2 + 20};
+      const scaleX = tutorialCanvas.width / (4 * Math.PI);
+      const scaleY = 70;
+      for (let i = 0; i < tutorialCanvas.width; i++) {
+        const x = i - center.x;
+        const y = Math.cos(x / scaleX) * scaleY;
+        if (i === 0) {
+          ctx.moveTo(i, center.y - y);
+        } else {
+          ctx.lineTo(i, center.y - y);
+        }
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#04263b';
+      ctx.font = '20px Arial';
+      ctx.fillText('Cosine Wave: $y=cos(x)$', tutorialCanvas.width / 2, 350);
+      ctx.fillText('Starts at its max value (1), period is 2π', tutorialCanvas.width / 2, 375);
+    };
+
+    if (step.diagram.sine) {
+      drawSineWave();
+    }
+    
+    if (step.diagram.cosine) {
+      drawCosineWave();
+    }
+  }
+
+  if (step.textLines) {
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    let y = tutorialCanvas.height / 2 + 50;
+    step.textLines.forEach((line) => {
+      ctx.fillText(line, tutorialCanvas.width / 2, y);
+      y += 40;
+    });
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Sine, cosine, and tangent are ratios of the sides of a right triangle. SOH CAH TOA helps you remember the ratios.", text: "SOH CAH TOA" },
+  { audio: "The graphs of sine and cosine are smooth, repeating waves. Their shape comes from a point moving around a unit circle.", text: "The Unit Circle" },
+  { audio: "The sine wave starts at zero, goes up to a maximum of one, down to a minimum of negative one, and returns to zero. Its period is two pi.", text: "The Sine Wave", diagram: { sine: true } },
+  { audio: "The cosine wave is identical to the sine wave, but shifted. It starts at its maximum value of one, goes down to negative one, and returns to one. Its period is also two pi.", text: "The Cosine Wave", diagram: { cosine: true } },
+  { audio: "The amplitude of a sine or cosine function is the height of the wave from its center line. It's the absolute value of the number in front of the trig function.", text: "Amplitude" },
+  { audio: "The period is the horizontal length of one full cycle of the wave.", text: "Period" },
+  { audio: "You've got this! Now let's practice.", text: "You did it!" }
+];
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    drawLesson(step);
+    
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utterance.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Trig Ratios & Graphs"});
+
+
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+  const problems = [
+    { q: "What is the ratio for SINE?", a: "opposite/hypotenuse" },
+    { q: "What is the ratio for TANGENT?", a: "opposite/adjacent" },
+    { q: "What is the amplitude of y = 5sin(x)?", a: "5" },
+    { q: "What is the period of y = cos(x)?", a: "2π" },
+    { q: "What is cos(0)?", a: "1" },
+    { q: "What is sin(180°)?", a: "0" }
+  ];
+  const problem = problems[Math.floor(Math.random() * problems.length)];
+  return { q: problem.q, a: problem.a };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+  const problem = generateProblem();
+  currentQuiz = problem;
+  document.getElementById('quizQ').textContent = currentQuiz.q;
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt = setInterval(() => {
+    quizTime--;
+    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+    if (quizTime <= 0) {
+      clearInterval(quizTimerInt);
+      document.getElementById('quizQ').textContent = 'Time Up!';
+    }
+  }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+  clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+  const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/\s/g, '');
+  const f = document.getElementById('quizFeedback');
+  let userAnswer = val;
+  let correctAnswer = currentQuiz.a.toLowerCase().replace(/\s/g, '');
+
+  if (userAnswer === correctAnswer) {
+    f.textContent = '✅ Correct!';
+    f.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+  } else {
+    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+    f.className = 'answer bad';
+    tone(220, 0.06);
+  }
+  csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+  if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+  const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "trig_ratios_graphs_log.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+</script>
+</body>
+</html>
