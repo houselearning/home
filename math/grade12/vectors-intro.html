@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vectors (Intro)</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Vectors (Intro) ➡️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What Are Vectors? 📏</h2>
+<p>
+  A **vector** is a mathematical object with both **magnitude** (size) and **direction**. This is different from a **scalar**, which only has magnitude. Vectors are essential for describing quantities like force, velocity, and displacement.
+</p>
+<p>
+  A vector is often represented by an arrow: its length shows the magnitude, and the way it points shows the direction.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Visualizing Vectors 🎬</h2>
+<p>Watch this video to understand the difference between a vector and a scalar, and how vectors can be represented.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Test your understanding of vector components, magnitude, and operations.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Find the magnitude of $\vec{v} = \langle 3, -4 \rangle$.</div>
+    <select id="q1">
+      <option value="">Choose one...</option>
+      <option value="5">5</option>
+      <option value="7">7</option>
+      <option value="1">1</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q1', '5')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Find $\vec{u}+\vec{v}$ for $\vec{u}=\langle 2,5 \rangle$ and $\vec{v}=\langle -1,3 \rangle$.</div>
+    <select id="q2">
+      <option value="">Choose one...</option>
+      <option value="<1,8>">$\langle 1, 8 \rangle$</option>
+      <option value="<3,2>">$\langle 3, 2 \rangle$</option>
+      <option value="<1,-2>">$\langle 1, -2 \rangle$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q2', '<1,8>')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) What is $2\vec{u}$ for $\vec{u}=\langle 4,-1 \rangle$?</div>
+    <select id="q3">
+      <option value="">Choose one...</option>
+      <option value="<2,-0.5>">$\langle 2, -0.5 \rangle$</option>
+      <option value="<8,-2>">$\langle 8, -2 \rangle$</option>
+      <option value="<6,1>">$\langle 6, 1 \rangle$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q3', '<8,-2>')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Find the components of the vector from $P(1,2)$ to $Q(5,5)$.</div>
+    <select id="q4">
+      <option value="">Choose one...</option>
+      <option value="<4,3>">$\langle 4, 3 \rangle$</option>
+      <option value="<6,7>">$\langle 6, 7 \rangle$</option>
+      <option value="<-4,-3>">$\langle -4, -3 \rangle$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q4', '<4,3>')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Vector Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Type your answer (e.g., <1,2>)">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Practice makes perfect! You can do this.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+      const A = new (window.AudioContext || window.webkitAudioContext)();
+      const o = A.createOscillator();
+      const g = A.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(A.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+      setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+      totalScore += points;
+      streak++;
+    } else {
+      streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim().toLowerCase().replace(/ /g, '');
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+    if (!res) {
+      console.error(`Result element with ID '${resultId}' not found.`);
+      return;
+    }
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === correct.toLowerCase().replace(/ /g, ''));
+    if (isCorrect) {
+      res.textContent = '✅ Correct!';
+      res.className = 'answer ok';
+      tone(880, 0.06);
+      updateScore(1);
+    } else {
+      res.textContent = `❌ Wrong (Answer: ${correct})`;
+      res.className = 'answer bad';
+      tone(220, 0.06);
+      updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawLine(x1, y1, x2, y2, color, thickness, dash) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.setLineDash(dash || []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+function drawArrowhead(x, y, dx, dy, color) {
+    const angle = Math.atan2(dy, dx);
+    const size = 10;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - size * Math.cos(angle - Math.PI / 6), y - size * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x - size * Math.cos(angle + Math.PI / 6), y - size * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+}
+function drawText(text, x, y, color = '#04263b', size = '20px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+const tutorialSteps = [
+    { audio: "A scalar has magnitude only, like speed.", text: "Scalar: Speed = 60 mph", viz: "scalar" },
+    { audio: "A vector has both magnitude and direction, like velocity.", text: "Vector: Velocity = 60 mph North", viz: "vector" },
+    { audio: "A vector can be represented by components on a coordinate plane.", text: "Vector Components", viz: "components" },
+    { audio: "The components tell you the horizontal and vertical change.", text: "Horizontal (x) and Vertical (y) changes", viz: "components" },
+    { audio: "The magnitude is the length of the vector, found using the Pythagorean theorem.", text: "Magnitude: ||v|| = sqrt(x² + y²)", viz: "magnitude" },
+    { audio: "To add vectors, we add their components.", text: "Vector Addition: u + v", viz: "addition" },
+    { audio: "This is like placing the tail of the second vector at the head of the first.", text: "Vector Addition (Tail-to-Head)", viz: "addition" },
+    { audio: "Scalar multiplication changes the magnitude, but not the direction.", text: "Scalar Multiplication: 2v", viz: "scalar-mult" },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+      if (tutorialIndex >= tutorialSteps.length) {
+        if (callback) callback();
+        return;
+      }
+      const step = tutorialSteps[tutorialIndex];
+      const utterance = new SpeechSynthesisUtterance(step.audio);
+      utterance.rate = speed;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => {
+        tutorialIndex++;
+        nextStep();
+      };
+      ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+      drawText(step.text, tutorialCanvas.width / 2, 40);
+      
+      const w = tutorialCanvas.width, h = tutorialCanvas.height;
+      const centerX = w / 2, centerY = h * 0.6;
+      
+      if (step.viz === "scalar") {
+          drawText("Magnitude: 60", centerX, centerY, '#16a34a', '24px');
+      } else if (step.viz === "vector") {
+          drawText("Magnitude: 60", centerX, centerY - 20, '#16a34a', '20px');
+          drawText("Direction: North", centerX, centerY + 20, '#1d4ed8', '20px');
+          drawLine(centerX, centerY + 50, centerX, centerY - 50, '#1d4ed8', 3);
+          drawArrowhead(centerX, centerY - 50, 0, -1, '#1d4ed8');
+      } else if (step.viz === "components" || step.viz === "magnitude") {
+          drawLine(w * 0.1, centerY, w * 0.9, centerY, '#566270', 1);
+          drawLine(centerX, h * 0.1, centerX, h * 0.9, '#566270', 1);
+          
+          const vX = 120, vY = -90;
+          drawLine(centerX, centerY, centerX + vX, centerY + vY, '#1d4ed8', 3);
+          drawArrowhead(centerX + vX, centerY + vY, vX, vY, '#1d4ed8');
+          drawText("v", centerX + vX/2 + 20, centerY + vY/2 - 15, '#1d4ed8', '20px');
+          
+          if (step.viz === "components") {
+              drawLine(centerX, centerY, centerX + vX, centerY, '#f97316', 2, [5, 5]);
+              drawText("x-component", centerX + vX/2, centerY + 15, '#f97316', '16px');
+              
+              drawLine(centerX + vX, centerY, centerX + vX, centerY + vY, '#f97316', 2, [5, 5]);
+              drawText("y-component", centerX + vX + 15, centerY + vY/2, '#f97316', '16px');
+          }
+      } else if (step.viz === "addition") {
+          const uX = 80, uY = -80;
+          const vX = 120, vY = 0;
+          const rX = uX + vX, rY = uY + vY;
+          
+          drawLine(centerX, centerY, centerX + uX, centerY + uY, '#60a5fa', 3);
+          drawArrowhead(centerX + uX, centerY + uY, uX, uY, '#60a5fa');
+          drawText("u", centerX + uX/2 + 10, centerY + uY/2 - 10, '#60a5fa', '20px');
+          
+          drawLine(centerX + uX, centerY + uY, centerX + rX, centerY + rY, '#f97316', 3);
+          drawArrowhead(centerX + rX, centerY + rY, vX, vY, '#f97316');
+          drawText("v", centerX + uX + vX/2, centerY + uY + vY/2 + 15, '#f97316', '20px');
+          
+          drawLine(centerX, centerY, centerX + rX, centerY + rY, '#16a34a', 3);
+          drawArrowhead(centerX + rX, centerY + rY, rX, rY, '#16a34a');
+          drawText("u+v", centerX + rX/2 + 20, centerY + rY/2 + 10, '#16a34a', '20px');
+      } else if (step.viz === "scalar-mult") {
+          const vX = 80, vY = 50;
+          drawLine(centerX - vX/2, centerY, centerX + vX/2, centerY + vY, '#60a5fa', 3);
+          drawArrowhead(centerX + vX/2, centerY + vY, vX, vY, '#60a5fa');
+          drawText("v", centerX, centerY + vY/2 + 10, '#60a5fa', '20px');
+          
+          const twoVX = 2 * vX, twoVY = 2 * vY;
+          drawLine(centerX - twoVX/2, centerY, centerX + twoVX/2, centerY + twoVY, '#1d4ed8', 3);
+          drawArrowhead(centerX + twoVX/2, centerY + twoVY, twoVX, twoVY, '#1d4ed8');
+          drawText("2v", centerX, centerY + twoVY/2 + 10, '#1d4ed8', '20px');
+      }
+      
+      speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const quizQuestions = [
+      { q: "What does a scalar have?", a: "magnitude" },
+      { q: "What is the unit vector for the x-axis?", a: "i" },
+      { q: "What is the magnitude of <-6, 8>?", a: "10" },
+      { q: "Find $\\langle 1,2 \\rangle + \\langle 5,-3 \\rangle$.", a: "<6,-1>" },
+      { q: "Find $3\\langle 2, -1 \\rangle$.", a: "<6,-3>" },
+    ];
+    return quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = problem.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    if (window.MathJax) {
+        window.MathJax.typesetPromise([qEl]).catch(err => console.error("MathJax typesetting failed", err));
+    }
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+      quizTime--;
+      document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+      if (quizTime <= 0) {
+        clearInterval(quizTimerInt);
+        document.getElementById('quizQ').textContent = 'Time Up!';
+      }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/ /g, '');
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a.toLowerCase().replace(/ /g, '');
+    let isCorrect = (val === correctAnswer);
+    if (isCorrect) {
+      f.textContent = '✅ Correct!';
+      f.className = 'answer ok';
+      quizScore++;
+      document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+      tone(880, 0.06);
+    } else {
+      f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+      f.className = 'answer bad';
+      tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "vectors_intro_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>
