@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Five Senses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce4ec; /* Light pink background */
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .lesson-section {
+            background-color: #f1f8e9; /* Light green for sections */
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .sense-card {
+            background-color: #e3f2fd; /* Light blue for cards */
+            border-radius: 15px;
+            padding: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .sense-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .quiz-option {
+            background-color: #f8bbd0; /* Light pink for quiz options */
+            border-radius: 10px;
+            padding: 0.75rem;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #f48fb1;
+        }
+        .correct-answer {
+            background-color: #a5d6a7; /* Green for correct */
+        }
+        .wrong-answer {
+            background-color: #ef9a9a; /* Red for wrong */
+        }
+        .interactive-card {
+            background-color: #fff3e0; /* Light orange for interactive cards */
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .interactive-card.selected {
+            border: 3px solid #64b5f6;
+            transform: scale(1.05);
+        }
+        .interactive-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-8">
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Lesson Introduction & "Video" Section -->
+        <div class="lesson-section">
+            <h1 class="text-4xl font-bold text-pink-600 mb-4">Welcome to the Five Senses! 👋</h1>
+            <p class="text-lg text-gray-700">Let's learn all about how our amazing bodies see, hear, smell, taste, and touch the world around us!</p>
+            <div class="mt-8 p-6 bg-purple-200 rounded-lg">
+                <p class="text-xl font-semibold text-purple-800">Video Lesson (Text Version)</p>
+                <p class="mt-2 text-purple-700">We're learning with a fun story! Imagine you're a superhero who uses all your senses to explore.</p>
+                <p class="mt-2 text-purple-700">
+                    Your eyes help you <strong>SEE</strong> big red apples 🍎 and beautiful flowers 🌷.
+                    Your ears help you <strong>HEAR</strong> birds singing 🐦 and your favorite song 🎶.
+                    Your nose helps you <strong>SMELL</strong> yummy cookies baking 🍪 and fresh cut grass 🌱.
+                    Your tongue helps you <strong>TASTE</strong> sweet ice cream 🍦 and sour lemons 🍋.
+                    And your hands help you <strong>TOUCH</strong> a soft teddy bear 🧸 and a bumpy rock 🪨.
+                </p>
+            </div>
+        </div>
+
+        <!-- The Five Senses -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-center">
+            <!-- Sight -->
+            <div class="sense-card shadow-lg">
+                <p class="text-5xl">👀</p>
+                <h2 class="text-2xl font-bold text-blue-800 mt-2">Sight</h2>
+                <p class="text-gray-700">We use our eyes to see.</p>
+            </div>
+            <!-- Hearing -->
+            <div class="sense-card shadow-lg">
+                <p class="text-5xl">👂</p>
+                <h2 class="text-2xl font-bold text-blue-800 mt-2">Hearing</h2>
+                <p class="text-gray-700">We use our ears to hear.</p>
+            </div>
+            <!-- Smell -->
+            <div class="sense-card shadow-lg">
+                <p class="text-5xl">👃</p>
+                <h2 class="text-2xl font-bold text-blue-800 mt-2">Smell</h2>
+                <p class="text-gray-700">We use our nose to smell.</p>
+            </div>
+            <!-- Taste -->
+            <div class="sense-card shadow-lg">
+                <p class="text-5xl">👅</p>
+                <h2 class="text-2xl font-bold text-blue-800 mt-2">Taste</h2>
+                <p class="text-gray-700">We use our tongue to taste.</p>
+            </div>
+            <!-- Touch -->
+            <div class="sense-card shadow-lg">
+                <p class="text-5xl">🖐️</p>
+                <h2 class="text-2xl font-bold text-blue-800 mt-2">Touch</h2>
+                <p class="text-gray-700">We use our hands to touch.</p>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="lesson-section mt-8">
+            <h2 class="text-3xl font-bold text-pink-600 mb-4">Time to Answer!</h2>
+            <p class="text-gray-700 mb-4">Choose the right answer for each question.</p>
+            
+            <!-- Question 1 -->
+            <div class="mb-6">
+                <p class="text-xl font-semibold mb-2">1. What sense do you use to eat a cookie?</p>
+                <div id="q1" class="flex flex-wrap justify-center">
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(1, 'taste')">Sight</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(1, 'touch')">Touch</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(1, 'taste')">Taste</div>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="mb-6">
+                <p class="text-xl font-semibold mb-2">2. What body part helps you hear a bird sing?</p>
+                <div id="q2" class="flex flex-wrap justify-center">
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(2, 'ears')">Ears</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(2, 'nose')">Nose</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(2, 'eyes')">Eyes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Practice Section -->
+        <div class="lesson-section mt-8">
+            <h2 class="text-3xl font-bold text-pink-600 mb-4">Match the Sense Game!</h2>
+            <p class="text-gray-700 mb-4">Click on an item, then click on the sense you use to experience it!</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="match-game-container">
+                <!-- Items to match -->
+                <div id="item-0" class="interactive-card p-4 shadow-md" onclick="selectCard(0)">
+                    <p class="text-5xl">👂</p>
+                    <p class="text-lg font-semibold mt-2">Sound of a drum</p>
+                </div>
+                <div id="item-1" class="interactive-card p-4 shadow-md" onclick="selectCard(1)">
+                    <p class="text-5xl">👅</p>
+                    <p class="text-lg font-semibold mt-2">Sweet lollipop</p>
+                </div>
+                <div id="item-2" class="interactive-card p-4 shadow-md" onclick="selectCard(2)">
+                    <p class="text-5xl">👀</p>
+                    <p class="text-lg font-semibold mt-2">Rainbow</p>
+                </div>
+                <div id="item-3" class="interactive-card p-4 shadow-md" onclick="selectCard(3)">
+                    <p class="text-5xl">👃</p>
+                    <p class="text-lg font-semibold mt-2">Smell of pizza</p>
+                </div>
+                <div id="item-4" class="interactive-card p-4 shadow-md" onclick="selectCard(4)">
+                    <p class="text-5xl">🖐️</p>
+                    <p class="text-lg font-semibold mt-2">Soft blanket</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal for Messages -->
+    <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-8 rounded-lg text-center shadow-2xl">
+            <p id="message-text" class="text-2xl font-bold"></p>
+            <button onclick="closeModal()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full">Got it!</button>
+        </div>
+    </div>
+    
+    <!-- Confetti Effect -->
+    <canvas id="confetti-canvas" class="fixed inset-0 z-50 pointer-events-none"></canvas>
+
+    <script>
+        // Confetti logic
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let particles = [];
+        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+        
+        function resizeConfettiCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+
+        function createConfetti() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: confettiCanvas.height + Math.random() * confettiCanvas.height,
+                    radius: Math.random() * 5 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedX: Math.random() * 6 - 3,
+                    speedY: Math.random() * -10 - 5,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+        }
+
+        function drawConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate(p.rotation * Math.PI / 180);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.beginPath();
+                confettiCtx.arc(0, 0, p.radius, 0, 2 * Math.PI);
+                confettiCtx.fill();
+                confettiCtx.restore();
+            }
+        }
+
+        function updateConfetti() {
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.speedY += 0.2; // Gravity
+                p.rotation += p.rotationSpeed;
+            }
+        }
+
+        function animateConfetti() {
+            requestAnimationFrame(animateConfetti);
+            drawConfetti();
+            updateConfetti();
+        }
+        
+        // Resize canvas and run animation on load
+        window.addEventListener('resize', resizeConfettiCanvas);
+        resizeConfettiCanvas();
+        animateConfetti();
+        
+        function triggerConfetti() {
+            createConfetti();
+        }
+
+        // Quiz Logic
+        const quizAnswers = {
+            1: 'taste',
+            2: 'ears'
+        };
+        const answeredQuestions = new Set();
+        
+        function showMessage(text) {
+            document.getElementById('message-text').innerText = text;
+            document.getElementById('message-modal').classList.remove('hidden');
+            document.getElementById('message-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('message-modal').classList.add('hidden');
+            document.getElementById('message-modal').classList.remove('flex');
+        }
+
+        function checkAnswer(questionNumber, selectedAnswer) {
+            if (answeredQuestions.has(questionNumber)) {
+                return; // Prevent multiple clicks on the same question
+            }
+            const correct = quizAnswers[questionNumber];
+            const options = document.querySelectorAll(`#q${questionNumber} .quiz-option`);
+            options.forEach(option => {
+                if (option.innerText.toLowerCase() === selectedAnswer) {
+                    if (selectedAnswer === correct) {
+                        option.classList.add('correct-answer');
+                        showMessage('Hooray! That\'s the right answer!');
+                        triggerConfetti();
+                    } else {
+                        option.classList.add('wrong-answer');
+                        showMessage('Oops, try again!');
+                    }
+                    answeredQuestions.add(questionNumber);
+                }
+            });
+        }
+
+        // Match Game Logic
+        const matches = [
+            'ear', 'tongue', 'eye', 'nose', 'hand'
+        ];
+        const itemMap = {
+            0: 'ear',
+            1: 'tongue',
+            2: 'eye',
+            3: 'nose',
+            4: 'hand'
+        };
+        const senseMap = {
+            0: 'ear',
+            1: 'tongue',
+            2: 'eye',
+            3: 'nose',
+            4: 'hand'
+        };
+        let selectedCard = null;
+
+        function selectCard(index) {
+            const card = document.getElementById(`item-${index}`);
+            
+            // Check if card is already matched
+            if (card.classList.contains('correct-answer')) {
+                return;
+            }
+
+            // Deselect previous card
+            if (selectedCard !== null) {
+                const prevCard = document.getElementById(`item-${selectedCard}`);
+                prevCard.classList.remove('selected');
+            }
+
+            // Select new card
+            selectedCard = index;
+            card.classList.add('selected');
+            
+            // Wait for next click to match
+            if (selectedCard !== null) {
+                setTimeout(() => {
+                     // Check if it's a valid pair
+                    if (itemMap[selectedCard]) {
+                        // Correctly matched
+                        card.classList.add('correct-answer');
+                        card.classList.remove('selected');
+                        showMessage('Great job! You made a match!');
+                        triggerConfetti();
+                    } else {
+                        showMessage('Try again! Click an item, then the sense it goes with.');
+                    }
+                    selectedCard = null;
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
