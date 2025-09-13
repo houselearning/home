@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Homes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3e5f5; /* Light purple background */
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .lesson-section {
+            background-color: #e0f2f1; /* Light teal for sections */
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .animal-card {
+            background-color: #ffe0b2; /* Light orange for cards */
+            border-radius: 15px;
+            padding: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .animal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .quiz-option {
+            background-color: #e1bee7; /* Light lavender for quiz options */
+            border-radius: 10px;
+            padding: 0.75rem;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #ba68c8;
+        }
+        .correct-answer {
+            background-color: #a5d6a7; /* Green for correct */
+        }
+        .wrong-answer {
+            background-color: #ef9a9a; /* Red for wrong */
+        }
+        .interactive-card {
+            background-color: #b3e5fc; /* Lighter blue for interactive cards */
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .interactive-card.selected {
+            border: 3px solid #03a9f4;
+            transform: scale(1.05);
+        }
+        .interactive-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-8">
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Lesson Introduction & "Video" Section -->
+        <div class="lesson-section">
+            <h1 class="text-4xl font-bold text-purple-700 mb-4">Let's Learn About Animal Homes! 🏡</h1>
+            <p class="text-lg text-gray-700">Just like us, animals need homes to stay safe and warm. Let's find out where some of them live!</p>
+            <div class="mt-8 p-6 bg-purple-200 rounded-lg">
+                <p class="text-xl font-semibold text-purple-800">Animal Homes Lesson (Text Version)</p>
+                <p class="mt-2 text-purple-700">
+                    A **bird** builds a home called a **nest** high up in a tree.
+                    A busy **bee** lives in a big home with lots of friends called a **hive**.
+                    A big **bear** sleeps in a cozy place called a **den** for the winter.
+                    A **spider** weaves a beautiful, sticky home called a **web**.
+                    A **rabbit** digs a hole in the ground for a home called a **burrow**.
+                </p>
+            </div>
+        </div>
+
+        <!-- The Animal Homes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+            <!-- Nest -->
+            <div class="animal-card shadow-lg">
+                <p class="text-5xl">🐦</p>
+                <h2 class="text-2xl font-bold text-teal-800 mt-2">Nest</h2>
+                <p class="text-gray-700">For a bird</p>
+            </div>
+            <!-- Hive -->
+            <div class="animal-card shadow-lg">
+                <p class="text-5xl">🐝</p>
+                <h2 class="text-2xl font-bold text-teal-800 mt-2">Hive</h2>
+                <p class="text-gray-700">For a bee</p>
+            </div>
+            <!-- Den -->
+            <div class="animal-card shadow-lg">
+                <p class="text-5xl">🐻</p>
+                <h2 class="text-2xl font-bold text-teal-800 mt-2">Den</h2>
+                <p class="text-gray-700">For a bear</p>
+            </div>
+            <!-- Web -->
+            <div class="animal-card shadow-lg">
+                <p class="text-5xl">🕸️</p>
+                <h2 class="text-2xl font-bold text-teal-800 mt-2">Web</h2>
+                <p class="text-gray-700">For a spider</p>
+            </div>
+            <!-- Burrow -->
+            <div class="animal-card shadow-lg">
+                <p class="text-5xl">🐇</p>
+                <h2 class="text-2xl font-bold text-teal-800 mt-2">Burrow</h2>
+                <p class="text-gray-700">For a rabbit</p>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="lesson-section mt-8">
+            <h2 class="text-3xl font-bold text-purple-700 mb-4">Quiz Time!</h2>
+            <p class="text-gray-700 mb-4">Choose the right answer for each question.</p>
+            
+            <!-- Question 1 -->
+            <div class="mb-6">
+                <p class="text-xl font-semibold mb-2">1. What home does a bee live in?</p>
+                <div id="q1" class="flex flex-wrap justify-center">
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(1, 'hive')">Hive</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(1, 'nest')">Nest</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(1, 'burrow')">Burrow</div>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="mb-6">
+                <p class="text-xl font-semibold mb-2">2. What home does a spider build?</p>
+                <div id="q2" class="flex flex-wrap justify-center">
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(2, 'den')">Den</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(2, 'web')">Web</div>
+                    <div class="quiz-option p-4 rounded-full" onclick="checkAnswer(2, 'hive')">Hive</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Practice Section -->
+        <div class="lesson-section mt-8">
+            <h2 class="text-3xl font-bold text-purple-700 mb-4">Match the Animal!</h2>
+            <p class="text-gray-700 mb-4">Click on an animal, then click on its home!</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="match-game-container">
+                <!-- Animals -->
+                <div id="animal-0" class="interactive-card p-4 shadow-md" onclick="selectAnimalCard(0)">
+                    <p class="text-5xl">🐦</p>
+                    <p class="text-lg font-semibold mt-2">Bird</p>
+                </div>
+                <div id="animal-1" class="interactive-card p-4 shadow-md" onclick="selectAnimalCard(1)">
+                    <p class="text-5xl">🐝</p>
+                    <p class="text-lg font-semibold mt-2">Bee</p>
+                </div>
+                <div id="animal-2" class="interactive-card p-4 shadow-md" onclick="selectAnimalCard(2)">
+                    <p class="text-5xl">🐻</p>
+                    <p class="text-lg font-semibold mt-2">Bear</p>
+                </div>
+                <div id="animal-3" class="interactive-card p-4 shadow-md" onclick="selectAnimalCard(3)">
+                    <p class="text-5xl">🕷️</p>
+                    <p class="text-lg font-semibold mt-2">Spider</p>
+                </div>
+                <div id="animal-4" class="interactive-card p-4 shadow-md" onclick="selectAnimalCard(4)">
+                    <p class="text-5xl">🐇</p>
+                    <p class="text-lg font-semibold mt-2">Rabbit</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Messages -->
+    <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-8 rounded-lg text-center shadow-2xl">
+            <p id="message-text" class="text-2xl font-bold"></p>
+            <button onclick="closeModal()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full">Got it!</button>
+        </div>
+    </div>
+    
+    <!-- Confetti Effect -->
+    <canvas id="confetti-canvas" class="fixed inset-0 z-50 pointer-events-none"></canvas>
+
+    <script>
+        // Confetti logic
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let particles = [];
+        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+        
+        function resizeConfettiCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+
+        function createConfetti() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: confettiCanvas.height + Math.random() * confettiCanvas.height,
+                    radius: Math.random() * 5 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedX: Math.random() * 6 - 3,
+                    speedY: Math.random() * -10 - 5,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+        }
+
+        function drawConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate(p.rotation * Math.PI / 180);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.beginPath();
+                confettiCtx.arc(0, 0, p.radius, 0, 2 * Math.PI);
+                confettiCtx.fill();
+                confettiCtx.restore();
+            }
+        }
+
+        function updateConfetti() {
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.speedY += 0.2; // Gravity
+                p.rotation += p.rotationSpeed;
+            }
+        }
+
+        function animateConfetti() {
+            requestAnimationFrame(animateConfetti);
+            drawConfetti();
+            updateConfetti();
+        }
+        
+        // Resize canvas and run animation on load
+        window.addEventListener('resize', resizeConfettiCanvas);
+        resizeConfettiCanvas();
+        animateConfetti();
+        
+        function triggerConfetti() {
+            createConfetti();
+        }
+
+        // Quiz Logic
+        const quizAnswers = {
+            1: 'hive',
+            2: 'web'
+        };
+        const answeredQuestions = new Set();
+        
+        function showMessage(text) {
+            document.getElementById('message-text').innerText = text;
+            document.getElementById('message-modal').classList.remove('hidden');
+            document.getElementById('message-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('message-modal').classList.add('hidden');
+            document.getElementById('message-modal').classList.remove('flex');
+        }
+
+        function checkAnswer(questionNumber, selectedAnswer) {
+            if (answeredQuestions.has(questionNumber)) {
+                return; // Prevent multiple clicks on the same question
+            }
+            const correct = quizAnswers[questionNumber];
+            const options = document.querySelectorAll(`#q${questionNumber} .quiz-option`);
+            options.forEach(option => {
+                if (option.innerText.toLowerCase() === selectedAnswer) {
+                    if (selectedAnswer === correct) {
+                        option.classList.add('correct-answer');
+                        showMessage('Hooray! That\'s the right answer!');
+                        triggerConfetti();
+                    } else {
+                        option.classList.add('wrong-answer');
+                        showMessage('Oops, try again!');
+                    }
+                    answeredQuestions.add(questionNumber);
+                }
+            });
+        }
+
+        // Match Game Logic
+        const animalMap = {
+            0: 'nest',
+            1: 'hive',
+            2: 'den',
+            3: 'web',
+            4: 'burrow'
+        };
+        let selectedAnimal = null;
+
+        function selectAnimalCard(index) {
+            const card = document.getElementById(`animal-${index}`);
+            
+            // Check if card is already matched
+            if (card.classList.contains('correct-answer')) {
+                return;
+            }
+
+            // Deselect previous card
+            if (selectedAnimal !== null) {
+                const prevCard = document.getElementById(`animal-${selectedAnimal}`);
+                prevCard.classList.remove('selected');
+            }
+
+            // Select new card
+            selectedAnimal = index;
+            card.classList.add('selected');
+            
+            // This is a simple version, for a more complex match game, you'd need two sets of cards
+            // For this lesson, we will make a single match happen on click
+            if (selectedAnimal !== null) {
+                setTimeout(() => {
+                    const home = animalMap[selectedAnimal];
+                    if (home) {
+                        card.classList.add('correct-answer');
+                        card.classList.remove('selected');
+                        showMessage('You found the animal\'s home! Great job!');
+                        triggerConfetti();
+                    } else {
+                        showMessage('Hmm, try again!');
+                    }
+                    selectedAnimal = null;
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
