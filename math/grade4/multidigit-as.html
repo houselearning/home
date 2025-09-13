@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 4 — Multi‑Digit Addition & Subtraction (Advanced)</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#34d399; --accent2:#059669; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#34d399}
+button.ghost{background:#d1fae5;color:var(--accent2);border:1px solid #a7f3d0}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #d1fae5;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #d1fae5;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 4 — Multi‑Digit Addition & Subtraction (Advanced)</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • CSV download — build mastery of big numbers!</p>
+</header>
+
+<main>
+<!-- Intro -->
+<section aria-labelledby="introTitle">
+  <h2 id="introTitle">Intro & Concept</h2>
+  <p>Multi-digit addition and subtraction involve carrying and borrowing. Practice breaking numbers into place values to solve efficiently.</p>
+  <p><strong>Example:</strong> 4,562 + 3,789 = 8,351 (carry as needed)<br>
+  9,403 − 2,687 = 6,716 (borrow as needed)</p>
+  <div class="status" style="margin-top:8px">
+    <div class="pill" id="score">Score: 0</div>
+    <div class="muted" id="streak">Streak: 0</div>
+  </div>
+</section>
+
+<!-- Step-by-step examples -->
+<section aria-labelledby="exampleTitle">
+  <h2 id="exampleTitle">Step-by-Step Examples</h2>
+  <p>Example 1: Addition</p>
+  <p>2,456 + 3,789 → Add digits column by column starting from the right:</p>
+  <ul>
+    <li>Units: 6 + 9 = 15 → Write 5, carry 1</li>
+    <li>Tens: 5 + 8 + 1 = 14 → Write 4, carry 1</li>
+    <li>Hundreds: 4 + 7 + 1 = 12 → Write 2, carry 1</li>
+    <li>Thousands: 2 + 3 + 1 = 6 → Write 6</li>
+  </ul>
+  <p>Answer: 6,245</p>
+
+  <p>Example 2: Subtraction</p>
+  <p>7,302 − 4,678 → Subtract digits column by column starting from the right:</p>
+  <ul>
+    <li>Units: 2 − 8 → Borrow 1 from tens → 12 − 8 = 4</li>
+    <li>Tens: 0 (borrowed) − 7 → Borrow 1 from hundreds → 10 − 7 = 3</li>
+    <li>Hundreds: 3 (after borrow) − 6 → Borrow 1 from thousands → 13 − 6 = 7</li>
+    <li>Thousands: 7 − 4 (after borrow) = 2</li>
+  </ul>
+  <p>Answer: 2,624</p>
+</section>
+
+<!-- Interactive Tiles -->
+<section aria-labelledby="practiceTitle">
+  <h2 id="practiceTitle">Interactive Practice</h2>
+  <p>Type the answer and check for instant feedback.</p>
+  <div class="grid cols-4" style="margin-top:10px">
+    <div class="tile">
+      <div style="font-weight:700">1) 4,562 + 3,421 = ?</div>
+      <input id="q1" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q1',7983)">Check</button></div>
+      <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile">
+      <div style="font-weight:700">2) 7,814 − 3,456 = ?</div>
+      <input id="q2" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q2',4358)">Check</button></div>
+      <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile">
+      <div style="font-weight:700">3) 12,345 + 7,654 = ?</div>
+      <input id="q3" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q3',20000)">Check</button></div>
+      <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile">
+      <div style="font-weight:700">4) 10,002 − 4,567 = ?</div>
+      <input id="q4" type="number" placeholder="answer">
+      <div style="margin-top:6px"><button onclick="check('q4',5435)">Check</button></div>
+      <div id="r4" class="answer"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Random Challenge -->
+<section aria-labelledby="challengeTitle">
+  <h2 id="challengeTitle">Random Multi-Digit Challenge</h2>
+  <p>Press New Question for a random addition or subtraction problem.</p>
+  <div class="controls" style="margin-top:10px;align-items:center">
+    <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+    <input id="challengeInput" type="number" placeholder="answer" style="width:120px">
+    <button id="challengeCheck">Check</button>
+    <button id="challengeNew" class="secondary">New Question</button>
+    <div id="challengeResult" class="answer"></div>
+  </div>
+</section>
+
+<!-- Speed Quiz -->
+<section aria-labelledby="speedTitle">
+  <h2 id="speedTitle">⚡ Speed Quiz</h2>
+  <p>Answer as many problems as possible within the selected time.</p>
+  <div class="controls">
+    <label>Duration:
+      <select id="quizDuration">
+        <option value="30">30s</option>
+        <option value="60" selected>60s</option>
+        <option value="90">90s</option>
+      </select>
+    </label>
+    <button id="startQuiz" class="warn">Start Quiz</button>
+    <button id="stopQuiz" class="ghost">Stop</button>
+    <div class="muted" id="quizTimer">Time: 0</div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+  </div>
+  <div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+    <div style="margin-top:8px" class="controls">
+      <input id="quizInput" type="number" placeholder="answer" style="width:140px">
+      <button id="quizCheck" class="secondary">Submit</button>
+      <div id="quizFeedback" class="answer"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CSV Download -->
+<section aria-labelledby="csvTitle">
+  <h2 id="csvTitle">Download CSV Log</h2>
+  <button id="downloadCSVBtn" class="secondary">⬇️ Download Your Answers</button>
+  <p class="muted">Track your practice results!</p>
+</section>
+
+<footer>Tip: Break down numbers into place values. Always check your carrying and borrowing. Practice daily for mastery!</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{ try{const A=new(window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+let totalScore=0, streak=0;
+let csvData=[['Question','Answer']];
+
+/* ===== Quick check ===== */
+function check(inputId, correct){
+  const val=parseInt(document.getElementById(inputId).value,10);
+  const resId='r'+inputId.replace(/[^\d]/g,'');
+  const target=document.getElementById(resId);
+  if(!isNaN(val) && val===correct){
+    target.textContent='✅ Correct!';
+    target.className='answer ok';
+    tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);
+  } else {
+    target.textContent=`❌ Try again (Answer: ${correct})`;
+    target.className='answer bad';
+    tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);
+  }
+}
+function updateScore(points, q='', a=''){
+  if(points>0){ totalScore+=points; streak++; } else { streak=0; }
+  document.getElementById('score').textContent=`Score: ${totalScore}`;
+  document.getElementById('streak').textContent=`Streak: ${streak}`;
+  if(q && a) csvData.push([q,a]);
+}
+
+/* ===== Random Challenge ===== */
+let challengeList = [];
+for(let i=0;i<50;i++){
+  const op = Math.random()<0.5?'+':'-';
+  const a=Math.floor(Math.random()*90000)+10000;
+  const b=Math.floor(Math.random()*90000)+10000;
+  const q=op==='+'?`${a} + ${b}`:`${a} - ${b}`;
+  const ans=op==='+'?a+b:a-b;
+  challengeList.push({q:q,a:ans});
+}
+let currentCorrect=null;
+function newChallenge(){
+  const idx=Math.floor(Math.random()*challengeList.length);
+  const problem=challengeList[idx];
+  document.getElementById('challengeQ').textContent=problem.q+' = ?';
+  currentCorrect=problem.a;
+  document.getElementById('challengeInput').value='';
+  document.getElementById('challengeResult').textContent='';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', ()=>{
+  const val=parseInt(document.getElementById('challengeInput').value,10);
+  const res=document.getElementById('challengeResult');
+  if(val===currentCorrect){
+    res.textContent='✅ Correct!';
+    res.className='answer ok';
+    tone(880,0.06); updateScore(1,document.getElementById('challengeQ').textContent,currentCorrect);
+  } else {
+    res.textContent=`❌ Wrong — Answer: ${currentCorrect}`;
+    res.className='answer bad';
+    tone(220,0.06); updateScore(0,document.getElementById('challengeQ').textContent,currentCorrect);
+  }
+});
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt=null, quizTime=0, quizScore=0, currentQuiz=null;
+const quizQuestions=[];
+document.getElementById('startQuiz').addEventListener('click',()=>{
+  quizTime=parseInt(document.getElementById('quizDuration').value,10);
+  quizScore=0;
+  document.getElementById('quizScore').textContent=`Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt=setInterval(()=>{
+    quizTime--;
+    document.getElementById('quizTimer').textContent=`Time: ${quizTime}s`;
+    if(quizTime<=0){ clearInterval(quizTimerInt); document.getElementById('quizQ').textContent='Time Up!'; }
+  },1000);
+});
+document.getElementById('stopQuiz').addEventListener('click',()=>{ clearInterval(quizTimerInt); });
+document.getElementById('quizCheck').addEventListener('click',()=>{
+  const val=parseInt(document.getElementById('quizInput').value,10);
+  const f=document.getElementById('quizFeedback');
+  if(val===currentQuiz.a){
+    f.textContent='✅ Correct!'; f.className='answer ok';
+    quizScore++; document.getElementById('quizScore').textContent=`Correct: ${quizScore}`;
+    tone(880,0.06); csvData.push([currentQuiz.q,currentQuiz.a]);
+  } else {
+    f.textContent=`❌ Wrong (Answer: ${currentQuiz.a})`; f.className='answer bad';
+    tone(220,0.06); csvData.push([currentQuiz.q,currentQuiz.a]);
+  }
+  newQuizQuestion();
+});
+function newQuizQuestion(){
+  const idx=Math.floor(Math.random()*challengeList.length);
+  currentQuiz=challengeList[idx];
+  document.getElementById('quizQ').textContent=currentQuiz.q+' = ?';
+  document.getElementById('quizInput').value='';
+  document.getElementById('quizFeedback').textContent='';
+}
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click',()=>{
+  const csvContent=csvData.map(e=>e.join(',')).join('\n');
+  const blob=new Blob([csvContent],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='multi_digit_practice.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ===== Init ===== */
+newChallenge();
+</script>
+</body>
+</html>

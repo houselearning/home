@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 5 — Order of Operations (PEMDAS)</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 5 — Order of Operations (PEMDAS)</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p>When you have a math problem with more than one operation (like addition and multiplication), you need to follow a special set of rules called the <strong>Order of Operations</strong>. This makes sure everyone gets the same answer every time! We can remember the order using the acronym <strong>PEMDAS</strong>. 📝</p>
+<p><strong>PEMDAS</strong> stands for:</p>
+<ul>
+  <li><strong>P</strong>arentheses: Solve anything inside parentheses first.</li>
+  <li><strong>E</strong>xponents: Solve any exponents (like $2^3$) next.</li>
+  <li><strong>M</strong>ultiplication and <strong>D</strong>ivision: Do these from left to right.</li>
+  <li><strong>A</strong>ddition and <strong>S</strong>ubtraction: Do these last, also from left to right.</li>
+</ul>
+<p>Remember: M and D are a team! A and S are a team! If you see multiplication and division, do whichever one comes first as you read the problem from left to right. The same goes for addition and subtraction. ➡️</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Animated Tutorial Video</h2>
+<p>Click Play to watch a detailed animated example of solving an order of operations problem.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Interactive Practice</h2>
+<p>Solve these problems using the PEMDAS order. Type your answer as a whole number.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) 10 + 2 × 3</div>
+    <input id="q1" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q1','16')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) (8 - 3) × 4</div>
+    <input id="q2" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q2','20')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) 24 ÷ 6 + 2</div>
+    <input id="q3" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q3','6')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) 5 × 3 + 4 ÷ 2</div>
+    <input id="q4" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q4','17')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Random Challenge</h2>
+<div class="controls" style="margin-top:10px;align-items:center">
+  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+  <input id="challengeInput" type="text" placeholder="Answer">
+  <button id="challengeCheck">Check</button>
+  <button id="challengeNew" class="secondary">New Question</button>
+  <div id="challengeResult" class="answer"></div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: A common mistake is doing addition before division! Always check for multiplication/division first.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+function getAnswer(problem) {
+    try {
+        const expression = problem.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**');
+        return eval(expression).toString();
+    } catch (e) {
+        return null;
+    }
+}
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
+window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+
+/* ===== Canvas Tutorial ===== */
+const canvas=document.getElementById('tutorialCanvas');
+const ctx=canvas.getContext('2d');
+ctx.font="30px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
+const speedInput=document.getElementById('videoSpeed');
+
+const problem = "2 × (5 + 3) - 10";
+
+function drawProblem(currentProblem, stepText, highlightOp = '', highlightIndex = -1) {
+    ctx.clearRect(0, 0, 800, 400);
+    ctx.font = "40px Arial";
+    
+    // Draw PEMDAS
+    const pemdas = ['P', 'E', 'M/D', 'A/S'];
+    const pemdasColors = ['#1d4ed8', '#000', '#000', '#000'];
+    let x = 150;
+    for(let i=0; i<pemdas.length; i++) {
+        if (i === 0 && highlightOp === 'P') pemdasColors[i] = '#16a34a';
+        if (i === 2 && (highlightOp === 'M' || highlightOp === 'D')) pemdasColors[i] = '#16a34a';
+        if (i === 3 && (highlightOp === 'A' || highlightOp === 'S')) pemdasColors[i] = '#16a34a';
+        
+        ctx.fillStyle = pemdasColors[i];
+        ctx.fillText(pemdas[i], x, 50);
+        x += 150;
+    }
+    
+    // Draw current problem string with highlighting
+    ctx.font = "50px Arial";
+    let currentX = 100;
+    const parts = currentProblem.split(/(\d+|\(|\)|\s|[+\-×÷])/).filter(p => p.trim() !== '');
+    
+    parts.forEach((part, index) => {
+        let color = '#000';
+        if (highlightIndex === index) {
+            color = '#ef4444';
+        }
+        ctx.fillStyle = color;
+        ctx.fillText(part, currentX, 200);
+        currentX += ctx.measureText(part).width + 10;
+    });
+
+    // Draw step text
+    ctx.font = "24px Arial";
+    ctx.fillStyle = "#1d4ed8";
+    ctx.fillText(stepText, 400, 350);
+}
+
+const tutorialSteps = [
+    { audio: "Our problem is 2 times, open parenthesis, 5 plus 3, close parenthesis, minus 10.", 
+      draw: () => drawProblem(problem, "Step 1: Parentheses") },
+    { audio: "According to PEMDAS, we first solve what's inside the parentheses: 5 + 3, which equals 8.", 
+      draw: () => drawProblem(problem, "Step 1: Parentheses", 'P', 3) },
+    { audio: "Now our problem is 2 times 8 minus 10.", 
+      draw: () => drawProblem("2 × 8 - 10", "Step 2: Multiplication/Division", 'M') },
+    { audio: "Next, we do multiplication and division from left to right. We have 2 times 8, which is 16.", 
+      draw: () => drawProblem("2 × 8 - 10", "Step 2: Multiplication/Division", 'M', 1) },
+    { audio: "Our problem is now 16 minus 10.", 
+      draw: () => drawProblem("16 - 10", "Step 3: Addition/Subtraction", 'S') },
+    { audio: "Finally, we do addition and subtraction from left to right. 16 minus 10 equals 6.", 
+      draw: () => drawProblem("16 - 10", "Step 3: Addition/Subtraction", 'S', 1) },
+    { audio: "The final answer is 6.", 
+      draw: () => { drawProblem("The final answer is 6", "You did it! 🎉", 'S', -1); } }
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+  tutorialIndex = 0;
+  const speed = parseFloat(speedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    step.draw();
+    const utter = new SpeechSynthesisUtterance(step.audio);
+    utter.rate = speed;
+    utter.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utter.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utter);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+
+/* ===== Random Challenge ===== */
+function generateProblem() {
+    let problem, answer;
+    let operators = ['+', '-', '×', '÷'];
+    let num1 = getRandomInt(1, 15);
+    let num2 = getRandomInt(1, 10);
+    let num3 = getRandomInt(1, 5);
+    let op1 = operators[getRandomInt(0, 3)];
+    let op2 = operators[getRandomInt(0, 3)];
+    
+    // Simple two-op problems
+    problem = `${num1} ${op1} ${num2} ${op2} ${num3}`;
+    answer = getAnswer(problem);
+
+    // Add parentheses sometimes
+    if (Math.random() > 0.5) {
+        if (Math.random() > 0.5) {
+            problem = `(${num1} ${op1} ${num2}) ${op2} ${num3}`;
+            answer = getAnswer(problem);
+        } else {
+            problem = `${num1} ${op1} (${num2} ${op2} ${num3})`;
+            answer = getAnswer(problem);
+        }
+    }
+
+    // Ensure answer is a whole number for simplicity
+    if (answer.indexOf('.') !== -1) {
+        return generateProblem();
+    }
+
+    return { q: problem, a: answer };
+}
+
+let currentCorrect = null;
+
+function newChallenge() {
+    const problem = generateProblem();
+    currentCorrect = problem.a;
+    document.getElementById('challengeQ').textContent = problem.q + ' = ?';
+    document.getElementById('challengeInput').value = '';
+    document.getElementById('challengeResult').textContent = '';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', () => {
+    const val = document.getElementById('challengeInput').value.trim();
+    const res = document.getElementById('challengeResult');
+    if (val === currentCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+    }
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim();
+    const f = document.getElementById('quizFeedback');
+    if (val === currentQuiz.a) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    }
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = csvData.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'pemdas_practice_log.csv'; a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

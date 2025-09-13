@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 5 — Multiplying and Dividing Decimals</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 5 — Multiplying and Dividing Decimals</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p>For **multiplication**, count the total decimal places in the numbers you are multiplying. The final answer will have that many decimal places. For **division**, move the decimal point in the divisor to make it a whole number, and move the decimal point in the dividend the same number of places. Then divide! 🧠</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Animated Tutorial Video</h2>
+<p>Click Play to watch a detailed animated example of multiplying and dividing decimals.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
+  <button id="downloadVideo" class="ghost">💾 Download Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Interactive Practice</h2>
+<p>Solve these problems and type your answer. Round to two decimal places if needed.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) 2.5 × 1.2</div>
+    <input id="q1" type="text" placeholder="Answer e.g. 3.0">
+    <div style="margin-top:6px"><button onclick="check('q1','3')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) 8.4 ÷ 0.2</div>
+    <input id="q2" type="text" placeholder="Answer e.g. 42">
+    <div style="margin-top:6px"><button onclick="check('q2','42')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) 0.5 × 0.5</div>
+    <input id="q3" type="text" placeholder="Answer e.g. 0.25">
+    <div style="margin-top:6px"><button onclick="check('q3','0.25')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) 9.6 ÷ 1.2</div>
+    <input id="q4" type="text" placeholder="Answer e.g. 8">
+    <div style="margin-top:6px"><button onclick="check('q4','8')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Random Challenge</h2>
+<div class="controls" style="margin-top:10px;align-items:center">
+  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+  <input id="challengeInput" type="text" placeholder="Answer">
+  <button id="challengeCheck">Check</button>
+  <button id="challengeNew" class="secondary">New Question</button>
+  <div id="challengeResult" class="answer"></div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: A quick check for multiplication: if both decimals are less than 1, the product will also be less than 1.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+function getDecimalPlaces(num) {
+    const s = num.toString();
+    const decimalIndex = s.indexOf('.');
+    return decimalIndex === -1 ? 0 : s.length - decimalIndex - 1;
+}
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
+function check(inputId,correct){const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val.toLowerCase()===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+
+/* ===== Canvas Tutorial ===== */
+const canvas=document.getElementById('tutorialCanvas');
+const ctx=canvas.getContext('2d');
+ctx.font="30px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
+const speedInput=document.getElementById('videoSpeed');
+
+function drawMultiplyDivideDecimals(num1, num2, operator, step) {
+    ctx.clearRect(0, 0, 800, 400);
+    ctx.font = "40px Arial";
+    const startX = 300, startY = 150;
+    
+    // Draw initial problem
+    ctx.fillStyle = "#000";
+    ctx.fillText(num1, startX, startY);
+    ctx.fillText(operator, startX + 100, startY);
+    ctx.fillText(num2, startX + 200, startY);
+
+    if (operator === '×') {
+        if (step === 1) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#16a34a";
+            ctx.fillText("Step 1: Ignore the decimal points.", 400, 350);
+            ctx.font = "40px Arial";
+            ctx.fillText(num1.toString().replace('.', ''), startX, startY + 50);
+            ctx.fillText('×', startX + 100, startY + 50);
+            ctx.fillText(num2.toString().replace('.', ''), startX + 200, startY + 50);
+        } else if (step === 2) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#1d4ed8";
+            ctx.fillText("Step 2: Multiply the whole numbers.", 400, 350);
+            ctx.font = "40px Arial";
+            const product = num1 * num2;
+            ctx.fillText('=', startX + 300, startY);
+            ctx.fillText(product.toString().replace('.', ''), startX + 400, startY + 50);
+            ctx.fillText(`(Product: ${num1.toString().replace('.', '')} × ${num2.toString().replace('.', '')})`, 400, 380);
+        } else if (step === 3) {
+            const decPlaces = getDecimalPlaces(num1) + getDecimalPlaces(num2);
+            const product = num1 * num2;
+            const finalAnswer = product.toFixed(decPlaces);
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#000";
+            ctx.fillText("Step 3: Count decimal places and place the decimal in the answer.", 400, 350);
+            ctx.fillText(`Total decimal places: ${getDecimalPlaces(num1)} + ${getDecimalPlaces(num2)} = ${decPlaces}`, 400, 380);
+            ctx.font = "40px Arial";
+            ctx.fillStyle = "#ef4444";
+            ctx.fillText('=', startX + 300, startY);
+            ctx.fillText(finalAnswer, startX + 400, startY);
+        }
+    } else if (operator === '÷') {
+        if (step === 1) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#16a34a";
+            ctx.fillText("Step 1: Make the divisor a whole number by moving its decimal.", 400, 350);
+            ctx.font = "40px Arial";
+            const decPlaces2 = getDecimalPlaces(num2);
+            ctx.fillText(num2.toString().replace('.', ''), startX + 200, startY);
+            ctx.fillText('→', startX + 200 - 40, startY + 20);
+        } else if (step === 2) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#1d4ed8";
+            ctx.fillText("Step 2: Move the dividend's decimal the same number of places.", 400, 350);
+            ctx.font = "40px Arial";
+            const decPlaces2 = getDecimalPlaces(num2);
+            const shiftedNum1 = num1 * Math.pow(10, decPlaces2);
+            const shiftedNum2 = num2 * Math.pow(10, decPlaces2);
+            ctx.fillText(shiftedNum1, startX, startY);
+            ctx.fillText('÷', startX + 100, startY);
+            ctx.fillText(shiftedNum2, startX + 200, startY);
+            ctx.fillText('→', startX - 40, startY + 20);
+        } else if (step === 3) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "#000";
+            ctx.fillText("Step 3: Divide the new whole numbers.", 400, 350);
+            ctx.font = "40px Arial";
+            const decPlaces2 = getDecimalPlaces(num2);
+            const shiftedNum1 = num1 * Math.pow(10, decPlaces2);
+            const shiftedNum2 = num2 * Math.pow(10, decPlaces2);
+            const result = shiftedNum1 / shiftedNum2;
+            ctx.fillText('=', startX + 300, startY);
+            ctx.fillText(result, startX + 400, startY);
+        }
+    }
+}
+
+const tutorialSteps = [
+    { audio: "Let's first multiply 2.5 by 1.4.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 0) },
+    { audio: "Step 1: Ignore the decimal points and multiply 25 by 14.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 1) },
+    { audio: "The product of 25 and 14 is 350.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 2) },
+    { audio: "Count the total decimal places: one in 2.5 and one in 1.4, for a total of two. Move the decimal in 350 two places to the left to get 3.50, or 3.5.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 3) },
+    { audio: "Now, let's divide 4.2 by 0.3.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 0) },
+    { audio: "Step 1: Make the divisor, 0.3, a whole number by moving its decimal one place to the right to get 3.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 1) },
+    { audio: "Step 2: Move the decimal in the dividend, 4.2, the same number of places to the right to get 42. Our new problem is 42 divided by 3.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 2) },
+    { audio: "Step 3: Solve the new problem. 42 divided by 3 is 14. Place the decimal point in the answer directly above its new position in the dividend.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 3) }
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+  tutorialIndex = 0;
+  const speed = parseFloat(speedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    step.draw();
+    const utter = new SpeechSynthesisUtterance(step.audio);
+    utter.rate = speed;
+    utter.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utter.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utter);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+
+/* ===== Video Download ===== */
+document.getElementById('downloadVideo').addEventListener('click', () => {
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream);
+  const chunks = [];
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = e => {
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'decimal_ops_tutorial.webm'; a.click();
+    URL.revokeObjectURL(url);
+  };
+  recorder.start();
+  playTutorialVideo(() => { setTimeout(() => recorder.stop(), 500); });
+});
+
+/* ===== Random Challenge ===== */
+function generateProblem() {
+    const isMultiplication = Math.random() < 0.5;
+    let num1, num2, question, answer;
+
+    if (isMultiplication) {
+        num1 = parseFloat((Math.random() * 9 + 0.1).toFixed(Math.floor(Math.random() * 2)));
+        num2 = parseFloat((Math.random() * 9 + 0.1).toFixed(Math.floor(Math.random() * 2)));
+        question = `${num1} × ${num2}`;
+        const result = num1 * num2;
+        const totalDecimals = getDecimalPlaces(num1) + getDecimalPlaces(num2);
+        answer = result.toFixed(totalDecimals);
+    } else {
+        const quotient = parseFloat((Math.random() * 10 + 1).toFixed(Math.floor(Math.random() * 1)));
+        const divisor = parseFloat((Math.random() * 9 + 0.1).toFixed(Math.floor(Math.random() * 2)));
+        num1 = quotient * divisor;
+        num2 = divisor;
+        question = `${num1.toFixed(getDecimalPlaces(num1))} ÷ ${num2}`;
+        answer = quotient.toString();
+    }
+    return { q: question, a: answer };
+}
+
+let currentCorrect = null;
+
+function newChallenge() {
+  const problem = generateProblem();
+  currentCorrect = problem.a;
+  document.getElementById('challengeQ').textContent = problem.q + ' = ?';
+  document.getElementById('challengeInput').value = '';
+  document.getElementById('challengeResult').textContent = '';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', () => {
+  const val = document.getElementById('challengeInput').value.trim();
+  const res = document.getElementById('challengeResult');
+  if (val === currentCorrect) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
+  } else {
+    res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+  }
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+  const problem = generateProblem();
+  currentQuiz = problem;
+  document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt = setInterval(() => {
+    quizTime--;
+    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+    if (quizTime <= 0) {
+      clearInterval(quizTimerInt);
+      document.getElementById('quizQ').textContent = 'Time Up!';
+    }
+  }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+  clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+  const val = document.getElementById('quizInput').value.trim();
+  const f = document.getElementById('quizFeedback');
+  if (val === currentQuiz.a) {
+    f.textContent = '✅ Correct!';
+    f.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    csvData.push([currentQuiz.q, currentQuiz.a]);
+  } else {
+    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+    f.className = 'answer bad';
+    tone(220, 0.06);
+    csvData.push([currentQuiz.q, currentQuiz.a]);
+  }
+  newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+  const csvContent = csvData.map(e => e.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'decimal_ops.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

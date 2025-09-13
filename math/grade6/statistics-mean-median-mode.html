@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Statistics: Mean, Median & Mode</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;transition:transform 0.1s ease;}
+button:active{transform:scale(0.95);}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;height:350px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Statistics: Mean, Median & Mode</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive tutorial • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What's the Difference?</h2>
+<p>In statistics, mean, median, and mode are all measures of central tendency. They each describe a "typical" value in a dataset, but they are calculated in different ways.</p>
+<p>
+  The **Mean** is the average of a dataset. You find it by summing all the numbers and dividing by the count of numbers.
+  $$\text{Mean} = \frac{\sum x}{n}$$
+</p>
+<p>
+  The **Median** is the middle value in a dataset when the numbers are arranged in order. If there is an even number of values, it's the average of the two middle numbers.
+</p>
+<p>
+  The **Mode** is the value that appears most frequently in a dataset. A dataset can have one mode, more than one mode (bimodal, trimodal, etc.), or no mode at all.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="tutorialTitle">
+<h2 id="tutorialTitle">Visual Tutorial</h2>
+<p id="tutorial-step">Click a button to see a visual step-by-step calculation.</p>
+<div class="controls">
+  <button id="playAllBtn" class="secondary">▶️ Play All</button>
+  <button id="playMeanBtn">Mean</button>
+  <button id="playMedianBtn">Median</button>
+  <button id="playModeBtn">Mode</button>
+</div>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas"></canvas>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Calculate the requested measure for each dataset.</p>
+<div class="grid" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Dataset: [3, 5, 5, 8, 9]<br>Find the Mode.</div>
+    <input id="q1" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q1', '5', 'mode')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Dataset: [10, 20, 30, 40]<br>Find the Mean.</div>
+    <input id="q2" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q2', '25', 'mean')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Dataset: [7, 2, 9, 4, 6]<br>Find the Median.</div>
+    <input id="q3" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q3', '6', 'median')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Dataset: [1, 2, 3, 4, 5, 6]<br>Find the Median.</div>
+    <input id="q4" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q4', '3.5', 'median')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Statistics Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Practice makes perfect! You can do this.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct, type) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim().toLowerCase();
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+
+    if (!res) {
+        console.error(`Result element with ID '${resultId}' not found.`);
+        return;
+    }
+    
+    let isCorrect;
+    if (type === 'mode') {
+        const userAnswers = val.split(',').map(s => s.trim()).sort().join(',');
+        const correctAnswers = correct.split(',').map(s => s.trim()).sort().join(',');
+        isCorrect = userAnswers === correctAnswers;
+    } else {
+        isCorrect = (val === correct);
+    }
+
+    const questionText = inputEl.previousElementSibling.textContent;
+
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correct})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+
+/* ===== Canvas Tutorial Logic ===== */
+const canvas = document.getElementById('tutorialCanvas');
+const ctx = canvas.getContext('2d');
+const tutorialStepEl = document.getElementById('tutorial-step');
+let animationFrameId = null;
+
+const meanData = [7, 2, 9, 4, 6];
+const medianData = [7, 2, 9, 4, 6];
+const modeData = [5, 2, 8, 2, 5, 2];
+
+let currentTutorial = '';
+let currentStep = 0;
+let animationProgress = 0;
+let animationDuration = 60;
+
+function setCanvasSize() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+}
+window.addEventListener('resize', setCanvasSize);
+setCanvasSize();
+
+function resetTutorial() {
+    cancelAnimationFrame(animationFrameId);
+    currentTutorial = '';
+    currentStep = 0;
+    animationProgress = 0;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    tutorialStepEl.textContent = "Click a button to see a visual step-by-step calculation.";
+}
+
+function drawText(text, x, y, size = 20, color = '#04263b') {
+    ctx.font = `${size}px Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.fillText(text, x, y);
+    window.MathJax.typeset();
+}
+
+function drawMeanTutorial() {
+    const data = meanData;
+    const itemWidth = 60;
+    const gap = 20;
+    const startX = (canvas.width - (data.length * itemWidth + (data.length - 1) * gap)) / 2;
+    const startY = 80;
+
+    // Step 1: Display numbers
+    if (currentStep === 0) {
+        tutorialStepEl.innerHTML = "Step 1: The **Mean** is the average. First, we need to sum all the numbers.";
+        data.forEach((val, i) => {
+            ctx.fillStyle = '#e0f2fe';
+            ctx.fillRect(startX + i * (itemWidth + gap), startY, itemWidth, itemWidth);
+            drawText(val, startX + i * (itemWidth + gap) + itemWidth / 2, startY + itemWidth / 2 + 7, 28);
+        });
+    }
+
+    // Step 2: Show addition
+    if (currentStep === 1) {
+        let sum = 0;
+        data.forEach((val, i) => {
+            sum += val;
+            ctx.fillStyle = '#93c5fd';
+            ctx.fillRect(startX + i * (itemWidth + gap), startY, itemWidth, itemWidth);
+            drawText(val, startX + i * (itemWidth + gap) + itemWidth / 2, startY + itemWidth / 2 + 7, 28);
+        });
+        const equationText = `${data.join(' + ')} = ${sum}`;
+        drawText(equationText, canvas.width / 2, startY + itemWidth + 50);
+        tutorialStepEl.innerHTML = `Step 2: Sum the numbers: ${sum}. Now, we divide by the count of numbers, which is ${data.length}.`;
+    }
+
+    // Step 3: Show division and final answer
+    if (currentStep === 2) {
+        let sum = data.reduce((a, b) => a + b);
+        const mean = (sum / data.length).toFixed(1);
+        drawText(`${sum} / ${data.length} = ${mean}`, canvas.width / 2, canvas.height / 2);
+        drawText(`Mean = ${mean}`, canvas.width / 2, canvas.height / 2 + 60, 32, '#1d4ed8');
+        tutorialStepEl.innerHTML = `Step 3: The average is ${mean}.`;
+    }
+}
+
+function drawMedianTutorial() {
+    const data = medianData;
+    const sortedData = [...data].sort((a, b) => a - b);
+    const itemWidth = 60;
+    const gap = 20;
+    const startX = (canvas.width - (data.length * itemWidth + (data.length - 1) * gap)) / 2;
+    const startY = 80;
+
+    // Step 1: Display unsorted numbers
+    if (currentStep === 0) {
+        tutorialStepEl.innerHTML = "Step 1: To find the **Median**, we first need to sort the numbers from smallest to largest.";
+        data.forEach((val, i) => {
+            ctx.fillStyle = '#e0f2fe';
+            ctx.fillRect(startX + i * (itemWidth + gap), startY, itemWidth, itemWidth);
+            drawText(val, startX + i * (itemWidth + gap) + itemWidth / 2, startY + itemWidth / 2 + 7, 28);
+        });
+    }
+
+    // Step 2: Display sorted numbers
+    if (currentStep === 1) {
+        tutorialStepEl.innerHTML = `Step 2: Now that they are sorted, the middle number is the median.`;
+        sortedData.forEach((val, i) => {
+            ctx.fillStyle = '#f0f9ff';
+            ctx.fillRect(startX + i * (itemWidth + gap), startY, itemWidth, itemWidth);
+            drawText(val, startX + i * (itemWidth + gap) + itemWidth / 2, startY + itemWidth / 2 + 7, 28);
+        });
+    }
+
+    // Step 3: Highlight the median
+    if (currentStep === 2) {
+        const midIndex = Math.floor(sortedData.length / 2);
+        const medianValue = sortedData[midIndex];
+        sortedData.forEach((val, i) => {
+            ctx.fillStyle = i === midIndex ? '#f97316' : '#f0f9ff';
+            ctx.fillRect(startX + i * (itemWidth + gap), startY, itemWidth, itemWidth);
+            drawText(val, startX + i * (itemWidth + gap) + itemWidth / 2, startY + itemWidth / 2 + 7, 28, i === midIndex ? '#fff' : '#04263b');
+        });
+        drawText(`Median = ${medianValue}`, canvas.width / 2, startY + itemWidth + 50, 32, '#1d4ed8');
+    }
+}
+
+function drawModeTutorial() {
+    const data = modeData;
+    const counts = {};
+    data.forEach(num => counts[num] = (counts[num] || 0) + 1);
+    const uniqueValues = Object.keys(counts).map(Number).sort((a,b) => a-b);
+    const maxCount = Math.max(...Object.values(counts));
+    const modes = uniqueValues.filter(val => counts[val] === maxCount);
+
+    // Step 1: Draw initial data
+    if (currentStep === 0) {
+        tutorialStepEl.innerHTML = `Step 1: The **Mode** is the number that appears most often. We need to count the frequency of each number.`;
+        const itemWidth = 50;
+        const gap = 15;
+        const startX = (canvas.width - (data.length * itemWidth + (data.length - 1) * gap)) / 2;
+        data.forEach((val, i) => {
+            ctx.fillStyle = '#e0f2fe';
+            ctx.fillRect(startX + i * (itemWidth + gap), 80, itemWidth, itemWidth);
+            drawText(val, startX + i * (itemWidth + gap) + itemWidth / 2, 80 + itemWidth / 2 + 7, 24);
+        });
+    }
+
+    // Step 2: Draw bar chart
+    if (currentStep === 1) {
+        tutorialStepEl.innerHTML = `Step 2: We can represent this with a bar chart. The tallest bar shows the most frequent number.`;
+        const barWidth = 60;
+        const barGap = 30;
+        const chartHeight = 150;
+        const chartY = canvas.height - chartHeight - 50;
+        const startX = (canvas.width - (uniqueValues.length * barWidth + (uniqueValues.length - 1) * barGap)) / 2;
+
+        uniqueValues.forEach((val, i) => {
+            const height = (counts[val] / maxCount) * chartHeight;
+            const x = startX + i * (barWidth + barGap);
+            const y = chartY + (chartHeight - height);
+            ctx.fillStyle = modes.includes(val) ? '#16a34a' : '#93c5fd';
+            ctx.fillRect(x, y, barWidth, height);
+            drawText(val, x + barWidth / 2, chartY + chartHeight + 25, 20);
+            drawText(counts[val], x + barWidth / 2, y - 10, 20);
+        });
+    }
+
+    // Step 3: Highlight the mode(s)
+    if (currentStep === 2) {
+        const barWidth = 60;
+        const barGap = 30;
+        const chartHeight = 150;
+        const chartY = canvas.height - chartHeight - 50;
+        const startX = (canvas.width - (uniqueValues.length * barWidth + (uniqueValues.length - 1) * barGap)) / 2;
+
+        uniqueValues.forEach((val, i) => {
+            const height = (counts[val] / maxCount) * chartHeight;
+            const x = startX + i * (barWidth + barGap);
+            const y = chartY + (chartHeight - height);
+            ctx.fillStyle = modes.includes(val) ? '#16a34a' : '#dbeafe';
+            ctx.fillRect(x, y, barWidth, height);
+            drawText(val, x + barWidth / 2, chartY + chartHeight + 25, 20, modes.includes(val) ? '#16a34a' : '#04263b');
+            drawText(counts[val], x + barWidth / 2, y - 10, 20);
+        });
+        const modeText = modes.join(', ');
+        drawText(`Mode = ${modeText}`, canvas.width / 2, 50, 32, '#1d4ed8');
+        tutorialStepEl.innerHTML = `Step 3: The number(s) that appear most often is the mode. Mode = ${modeText}.`;
+    }
+}
+
+function animateTutorial() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (currentTutorial === 'mean') {
+        drawMeanTutorial();
+    } else if (currentTutorial === 'median') {
+        drawMedianTutorial();
+    } else if (currentTutorial === 'mode') {
+        drawModeTutorial();
+    }
+
+    if (currentTutorial) {
+        animationFrameId = requestAnimationFrame(animateTutorial);
+    }
+}
+
+function startTutorial(type) {
+    resetTutorial();
+    currentTutorial = type;
+    currentStep = 0;
+    setTimeout(() => {
+        currentStep = 1;
+        setTimeout(() => {
+            currentStep = 2;
+            animateTutorial();
+        }, 3000);
+        animateTutorial();
+    }, 3000);
+    animateTutorial();
+}
+
+document.getElementById('playMeanBtn').addEventListener('click', () => startTutorial('mean'));
+document.getElementById('playMedianBtn').addEventListener('click', () => startTutorial('median'));
+document.getElementById('playModeBtn').addEventListener('click', () => startTutorial('mode'));
+document.getElementById('playAllBtn').addEventListener('click', () => {
+    let sequence = ['mean', 'median', 'mode'];
+    let i = 0;
+    function next() {
+        if (i < sequence.length) {
+            startTutorial(sequence[i]);
+            i++;
+            setTimeout(next, 7000); // Wait for the tutorial to finish before moving on
+        }
+    }
+    next();
+});
+
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const dataset = Array.from({length: Math.floor(Math.random() * 5) + 5}, () => Math.floor(Math.random() * 20) + 1);
+    const type = ['mean', 'median', 'mode'][Math.floor(Math.random() * 3)];
+    let answer;
+    let questionText = `Dataset: [${dataset.join(', ')}]<br>Find the ${type}.`;
+    
+    if (type === 'mean') {
+        const sum = dataset.reduce((acc, curr) => acc + curr, 0);
+        answer = (sum / dataset.length).toFixed(1);
+        if (answer.endsWith('.0')) answer = answer.substring(0, answer.length - 2);
+    } else if (type === 'median') {
+        const sortedData = [...dataset].sort((a, b) => a - b);
+        if (sortedData.length % 2 === 1) {
+            answer = sortedData[Math.floor(sortedData.length / 2)].toString();
+        } else {
+            const mid1 = sortedData[sortedData.length / 2 - 1];
+            const mid2 = sortedData[sortedData.length / 2];
+            answer = ((mid1 + mid2) / 2).toString();
+        }
+    } else if (type === 'mode') {
+        const counts = {};
+        dataset.forEach(num => counts[num] = (counts[num] || 0) + 1);
+        let maxCount = 0;
+        for (const num in counts) {
+            if (counts[num] > maxCount) maxCount = counts[num];
+        }
+        const modes = [];
+        if (maxCount > 1) {
+            for (const num in counts) {
+                if (counts[num] === maxCount) modes.push(num);
+            }
+        }
+        answer = modes.length > 0 ? modes.sort().join(',') : 'no mode';
+    }
+
+    return { q: questionText, a: answer, type: type };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.innerHTML = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    if(currentQuiz.type === 'mode') {
+      document.getElementById('quizInput').setAttribute('placeholder', 'e.g., 5,7');
+    } else {
+      document.getElementById('quizInput').setAttribute('placeholder', 'Answer');
+    }
+    window.MathJax.typeset();
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase();
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let isCorrect;
+    
+    if (currentQuiz.type === 'mode') {
+        const userAnswers = val.split(',').map(s => s.trim()).sort().join(',');
+        const correctAnswers = currentQuiz.a.split(',').map(s => s.trim()).sort().join(',');
+        isCorrect = userAnswers === correctAnswers;
+    } else {
+        isCorrect = (val === currentQuiz.a);
+    }
+    
+    if (isCorrect) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "statistics_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

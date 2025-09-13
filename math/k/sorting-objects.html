@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kindergarten — Sorting Objects</title>
+<style>
+:root{
+  --bg:#fef08a; --panel:#fff; --accent:#f59e0b; --accent2:#d97706; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#713f12;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#713f12;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0;font-size:1.1rem;}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#713f12;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#f59e0b;color:#713f12}
+button.ghost{background:#fef3c7;color:var(--accent2);border:1px solid #fcd34d}
+button.warn{background:#f97316}
+input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fcd34d;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #fcd34d;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#dcfce7;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#737373}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #fcd34d;border-radius:8px;display:block;margin-top:10px;}
+
+.drag-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.drag-zone, .drop-zone {
+    border: 2px dashed #fcd34d;
+    padding: 20px;
+    margin: 10px;
+    min-height: 100px;
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+.drag-item {
+    cursor: grab;
+    font-size: 3rem;
+    padding: 5px;
+}
+.drop-zone {
+    min-width: 150px;
+    border: 2px solid #fcd34d;
+    background-color: #fffbeb;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #d97706;
+}
+.drop-zone.hovered {
+    background-color: #fef9c3;
+    border-color: #f59e0b;
+}
+
+.speed-quiz-objects {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 4rem;
+    margin-top: 20px;
+}
+.quiz-item {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.quiz-item:hover {
+    transform: scale(1.1);
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Kindergarten — Sorting Objects</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • video tutorial • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Let's Sort! 📦</h2>
+<p>We see so many things around us every day! Sometimes it's helpful to **sort** them, or put them into groups. We can sort things by their **color**, their **shape**, or their **size**. Sorting helps us organize things and find them easily. ✨</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Sorting by Attributes</h2>
+<p>Watch this video to see how to sort different objects into groups. 🎥</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Let's Practice!</h2>
+<p>Drag the objects to their correct group!</p>
+<div class="grid cols-2" style="margin-top:10px">
+  <div class="drop-zone" data-group="fruit">Fruit Basket</div>
+  <div class="drop-zone" data-group="animal">Animal Friends</div>
+</div>
+<div class="drag-container">
+  <div class="drag-item" draggable="true" data-type="fruit">🍎</div>
+  <div class="drag-item" draggable="true" data-type="animal">🐶</div>
+  <div class="drag-item" draggable="true" data-type="animal">🐱</div>
+  <div class="drag-item" draggable="true" data-type="fruit">🍌</div>
+  <div class="drag-item" draggable="true" data-type="animal">🦊</div>
+  <div class="drag-item" draggable="true" data-type="fruit">🍊</div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speedy Quiz!</h2>
+<p>Click on the object that doesn't belong!</p>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px; text-align: center;">
+  <div id="quizQ" style="font-size:1.5rem;font-weight:800;">Press Start</div>
+  <div id="quizObjects" class="speed-quiz-objects"></div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+</section>
+
+<footer>Sorting helps us keep our toys and clothes tidy! You're a great sorter! ✨</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f, d) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+
+function goodSound() {
+    tone(880, 0.06);
+}
+
+function badSound() {
+    tone(220, 0.06);
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+/* ===== Score & Streak ===== */
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    const textX = tutorialCanvas.width / 2;
+    const textY = 40;
+    
+    ctx.font = '32px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#713f12';
+    ctx.fillText(step.text, textX, textY);
+    
+    if (step.emojis) {
+        ctx.font = '60px Arial';
+        const totalEmojiWidth = step.emojis.length * 60;
+        let startX = (tutorialCanvas.width - totalEmojiWidth) / 2;
+        const y = tutorialCanvas.height / 2;
+        
+        step.emojis.forEach(emoji => {
+            ctx.fillText(emoji, startX, y);
+            startX += 60;
+        });
+    }
+    
+    if (step.boxes) {
+        const boxWidth = 200;
+        const boxHeight = 100;
+        const verticalPadding = 20;
+        const totalStackHeight = step.boxes.length * (boxHeight + verticalPadding) - verticalPadding;
+        let boxY = (tutorialCanvas.height - totalStackHeight) / 2 + 50;
+        
+        step.boxes.forEach((box) => {
+            const boxX = (tutorialCanvas.width - boxWidth) / 2;
+            ctx.strokeStyle = '#d97706';
+            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+            
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#713f12';
+            ctx.fillText(box.label, boxX + boxWidth / 2, boxY + 30);
+            
+            ctx.font = '40px Arial';
+            ctx.fillText(box.emojis.join(''), boxX + boxWidth / 2, boxY + 75);
+            
+            boxY += boxHeight + verticalPadding;
+        });
+    }
+}
+
+const tutorialSteps = [
+    { audio: "Today we will learn how to sort. This means putting things into groups.", text: "What is Sorting?" },
+    { audio: "Let's sort by color. Here we have a mix of red and blue circles.", text: "Sort by Color", emojis: ['🔴', '🔵', '🔴', '🔵'] },
+    { audio: "We can put the red circles in one group and the blue circles in another.", text: "Red Group, Blue Group", boxes: [{label: 'Red', emojis: ['🔴', '🔴']}, {label: 'Blue', emojis: ['🔵', '🔵']}] },
+    { audio: "Now let's sort by shape. Here we have squares and triangles.", text: "Sort by Shape", emojis: ['🟥', '🔺', '🔺', '🟥'] },
+    { audio: "We can put the squares in one group and the triangles in another.", text: "Square Group, Triangle Group", boxes: [{label: 'Squares', emojis: ['🟥', '🟥']}, {label: 'Triangles', emojis: ['🔺', '🔺']}] },
+    { audio: "Let's try sorting by size. We have big and small animals.", text: "Sort by Size", emojis: ['🐘', '🐭', '🐘', '🐭'] },
+    { audio: "We can put the big elephants in one group and the small mice in another.", text: "Big Group, Small Group", boxes: [{label: 'Big', emojis: ['🐘', '🐘']}, {label: 'Small', emojis: ['🐭', '🐭']}] },
+    { audio: "Great job! Now you know how to sort objects.", text: "You did it!"}
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        drawLesson(step);
+        const utter = new SpeechSynthesisUtterance(step.audio);
+        utter.rate = speed;
+        utter.pitch = 1.2;
+        utter.volume = 1;
+        if (voice) utter.voice = voice;
+        utter.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utter.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        speechSynthesis.speak(utter);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Sorting Objects"});
+
+/* ===== Drag and Drop Practice ===== */
+const dragItems = document.querySelectorAll('.drag-item');
+const dropZones = document.querySelectorAll('.drop-zone');
+
+dragItems.forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.type);
+        e.dataTransfer.effectAllowed = 'move';
+    });
+});
+
+dropZones.forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        zone.classList.add('hovered');
+    });
+
+    zone.addEventListener('dragleave', () => {
+        zone.classList.remove('hovered');
+    });
+
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('hovered');
+        const draggedType = e.dataTransfer.getData('text/plain');
+        const dropZoneType = zone.dataset.group;
+        const draggedItem = document.querySelector(`.drag-item[data-type="${draggedType}"]`);
+        
+        if (draggedType === dropZoneType) {
+            zone.appendChild(draggedItem);
+            draggedItem.draggable = false;
+            draggedItem.style.cursor = 'default';
+            goodSound();
+            updateScore(1);
+        } else {
+            badSound();
+            updateScore(0);
+        }
+    });
+});
+
+
+/* ===== Speedy Quiz ===== */
+const quizGroups = [
+    { correct: '🍌', others: ['🍎', '🍎', '🍎'], category: 'Fruit' },
+    { correct: '🐕', others: ['🐶', '🐶', '🐶'], category: 'Dogs' },
+    { correct: '🔵', others: ['🟩', '🟩', '🟩'], category: 'Color' },
+    { correct: '🔴', others: ['🟨', '🟨', '🟨'], category: 'Color' },
+    { correct: '🌙', others: ['⭐', '⭐', '⭐'], category: 'Star' },
+    { correct: '🥕', others: ['🍓', '🍓', '🍓'], category: 'Fruit' },
+];
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function generateQuizQuestion() {
+    const group = quizGroups[getRandomInt(0, quizGroups.length - 1)];
+    const questionArray = shuffleArray([...group.others, group.correct]);
+    
+    return { 
+        q: 'Which one doesn\'t belong?', 
+        a: group.correct, 
+        visual: questionArray,
+        category: group.category
+    };
+}
+
+function newQuizQuestion() {
+    currentQuiz = generateQuizQuestion();
+    document.getElementById('quizQ').textContent = 'Which one doesn\'t belong?';
+    const container = document.getElementById('quizObjects');
+    container.innerHTML = '';
+    
+    currentQuiz.visual.forEach(emoji => {
+        const span = document.createElement('span');
+        span.className = 'quiz-item';
+        span.textContent = emoji;
+        span.addEventListener('click', () => handleQuizClick(emoji));
+        container.appendChild(span);
+    });
+
+    document.getElementById('quizFeedback').textContent = '';
+}
+
+function handleQuizClick(clickedEmoji) {
+    const f = document.getElementById('quizFeedback');
+    if (clickedEmoji === currentQuiz.a) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        goodSound();
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        badSound();
+    }
+    if (quizTime > 0) newQuizQuestion();
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+            document.getElementById('quizObjects').innerHTML = '';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+
+</script>
+</body>
+</html>

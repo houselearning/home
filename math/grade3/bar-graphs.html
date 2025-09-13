@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bar Graphs — HUGE Interactive Lesson</title>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f7fbff; --card:#fff; --accent:#0ea5e9; --accent-2:#0369a1; --ok:#16a34a; --warn:#f97316; --muted:#475569;
+    --shadow: 0 8px 24px rgba(2,8,23,0.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, "Segoe UI", Arial, system-ui, -apple-system;background:var(--bg);color:#062a3a}
+  header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;padding:22px 14px;text-align:center;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:clamp(18px,3vw,30px)}
+  main{max-width:1200px;margin:20px auto;padding:16px}
+  section{background:var(--card);border-radius:12px;padding:16px;margin:14px 0;box-shadow:var(--shadow)}
+  h2{color:var(--accent-2);margin:6px 0}
+  p.lead{margin:8px 0;color:var(--muted)}
+  .grid{display:grid;gap:12px}
+  @media(min-width:980px){ .grid.cols-2{grid-template-columns:1fr 420px} }
+  .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button{background:var(--accent-2);color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  button.alt{background:var(--accent)}
+  button.ghost{background:#eef9ff;color:var(--accent-2);border:1px solid #d8f3ff}
+  button.warn{background:var(--warn)}
+  button.small{padding:6px 8px;font-size:.95rem}
+  input[type="text"], input[type="number"], select, textarea{
+    padding:8px;border-radius:8px;border:1px solid #e6f6ff;font-size:1rem;
+  }
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid #f0f6fb;text-align:left}
+  td.drag-handle{cursor:grab;width:30px;text-align:center}
+  .muted{color:var(--muted)}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .status{display:flex;gap:12px;align-items:center}
+  .pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+  #chartWrap{border-radius:12px;padding:12px;background:linear-gradient(180deg,#ffffff,#f0fbff);border:1px solid #e6f6ff}
+  .controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .hidden{display:none}
+  footer{padding:12px;text-align:center;color:#334155}
+  .qa{margin-top:12px}
+  .feedback{font-weight:800;margin-top:6px}
+  .green{color:var(--ok)} .red{color:var(--warn)}
+  /* small responsive tweaks */
+  @media(max-width:540px){
+    header h1{font-size:18px}
+    .grid.cols-2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header role="banner">
+  <h1>📊 Bar Graphs — Mega Interactive Lesson</h1>
+  <p class="lead">Read, make, and analyze bar graphs. Edit data live, answer chart questions, download CSV/PNG, and save progress.</p>
+</header>
+
+<main>
+  <!-- Intro -->
+  <section aria-labelledby="introTitle">
+    <h2 id="introTitle">Intro — What is a Bar Graph?</h2>
+    <p class="lead">Bar graphs use bars to show numbers. Taller bars = bigger numbers. Today we’ll build graphs, edit the data, and answer questions about what the graph shows.</p>
+    <div class="inline">
+      <button id="btnNarrate" class="small ghost">🔊 Narrate Lesson</button>
+      <button id="btnResetLocal" class="small">Reset Saved Data</button>
+      <div class="status" style="margin-left:auto">
+        <div class="pill" id="scoreDisplay">Score: 0</div>
+        <div class="muted" id="streak">Streak: 0</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chart + data editor -->
+  <section class="grid cols-2" aria-labelledby="chartTitle">
+    <div>
+      <h2 id="chartTitle">Make a Bar Graph (live)</h2>
+      <p class="muted">Edit the table — the Chart updates automatically. Use presets to load real-world data.</p>
+
+      <div id="chartWrap">
+        <canvas id="barChart" aria-label="Bar graph showing data"></canvas>
+      </div>
+
+      <div class="controls-row">
+        <label for="presetSelect">Preset:</label>
+        <select id="presetSelect">
+          <option value="">-- choose preset --</option>
+          <option value="fruits">Favorite Fruits (survey)</option>
+          <option value="pets">Pets by Home</option>
+          <option value="school">Class Votes (recess games)</option>
+        </select>
+
+        <button id="btnRandom" class="small">🎲 Random Data</button>
+        <button id="btnSortDesc" class="small ghost">Sort Desc</button>
+        <button id="btnSortAsc" class="small ghost">Sort Asc</button>
+        <button id="btnExportPNG" class="small alt">📷 Export PNG</button>
+        <button id="btnDownloadCSV" class="small">⬇️ Download CSV</button>
+        <button id="btnPrint" class="small ghost">🖨️ Print View</button>
+      </div>
+
+      <div style="margin-top:10px" class="muted">Tip: click a bar to "preload" it into the quiz generator.</div>
+    </div>
+
+    <aside>
+      <h2>Data Table — edit & reorder</h2>
+      <p class="muted">Click a value to edit. Drag the left handle to reorder categories.</p>
+
+      <div style="max-height:420px;overflow:auto">
+        <table aria-label="Data table">
+          <thead>
+            <tr><th></th><th>Category</th><th>Value</th><th></th></tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+
+      <div class="tools">
+        <input id="newLabel" type="text" placeholder="New category (e.g., Apples)">
+        <input id="newValue" type="number" placeholder="Value" min="0" value="1" style="width:100px">
+        <button id="btnAdd">➕ Add</button>
+        <button id="btnRemoveSelected" class="ghost">🗑️ Remove Selected</button>
+        <button id="btnSaveLocal" class="small">💾 Save Locally</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <label class="muted"><input id="toggleGrid" type="checkbox"> Show grid lines</label>
+      </div>
+    </aside>
+  </section>
+
+  <!-- Analysis & Quiz -->
+  <section aria-labelledby="analysisTitle">
+    <h2 id="analysisTitle">Analyzing the Graph — Practice & Quiz</h2>
+    <p class="lead">Answer questions about the graph. These ask things like "Which category has the most?" or "How many more does A have than B?"</p>
+
+    <div class="inline">
+      <button id="btnGenQuestion">🎯 Generate Question</button>
+      <button id="btnCheckAnswer" class="small alt">Check Answer</button>
+      <button id="btnReveal" class="small ghost">Reveal Answer</button>
+      <div class="muted" style="margin-left:auto">Keyboard: Q = new question • Enter = check</div>
+    </div>
+
+    <div class="qa">
+      <div id="questionText" style="font-weight:800;margin-top:12px">Question will appear here.</div>
+      <input id="answerInput" type="text" placeholder="Type your answer (numbers or words)">
+      <div id="qFeedback" class="feedback"></div>
+    </div>
+
+    <div style="margin-top:12px" class="muted">Progress: Correct answers increase score and streak — wrong answers reset streak.</div>
+  </section>
+
+  <!-- Teacher tools & worksheet -->
+  <section aria-labelledby="teacherTitle">
+    <h2 id="teacherTitle">Teacher Tools — Worksheets & Exports</h2>
+    <p class="muted">Generate an exercise CSV or printable worksheet from current data.</p>
+    <div class="inline">
+      <button id="btnWorksheetCSV" class="small">Download Worksheet CSV</button>
+      <button id="btnWorksheetPrint" class="small ghost">Print Worksheet</button>
+      <button id="btnLoadExample" class="small">Load Example Questions</button>
+    </div>
+
+    <div style="margin-top:12px" class="muted">You can also drag data rows to reorder them for classroom sorting activities.</div>
+  </section>
+
+  <footer>Made for teaching & learning — tweak data, ask questions, and export practice sheets. Have fun ✨</footer>
+</main>
+
+<script>
+/* ============================
+   Utilities & voice/tone
+   ============================ */
+const speak = (text) => {
+  try {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utter);
+  } catch(e){}
+};
+const tone = (ok=true) => {
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = ok ? 'sine' : 'square';
+    o.frequency.value = ok ? 880 : 220;
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.15);
+    setTimeout(()=>{ o.stop(); ctx.close().catch(()=>{}); }, 220);
+  }catch(e){}
+};
+
+/* ============================
+   Default data & helpers
+   ============================ */
+let data = {
+  labels: ['Apples','Bananas','Grapes','Oranges'],
+  values: [4,3,2,1],
+  colors: ['#ef4444','#f59e0b','#8b5cf6','#fb923c']
+};
+const defaultDataKey = 'bargraphs_lesson_v1';
+
+/* persist/load from localStorage */
+function saveLocal(){
+  try { localStorage.setItem(defaultDataKey, JSON.stringify(data)); showStatus('Saved locally'); }
+  catch(e){ showStatus('Save failed', true); }
+}
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(defaultDataKey);
+    if(raw){ data = JSON.parse(raw); updateTable(); updateChart(); showStatus('Loaded saved data'); return true; }
+    return false;
+  } catch(e){ return false; }
+}
+function resetLocal(){
+  localStorage.removeItem(defaultDataKey);
+  data = { labels:['Apples','Bananas','Grapes','Oranges'], values:[4,3,2,1], colors:['#ef4444','#f59e0b','#8b5cf6','#fb923c']};
+  updateTable(); updateChart(); showStatus('Reset to default');
+}
+
+/* show small status (uses console + optional UI hint) */
+function showStatus(msg, isError=false){
+  console.log(msg);
+  // briefly update score display area as ephemeral message
+  const el = document.getElementById('scoreDisplay');
+  const old = el.textContent;
+  el.textContent = msg;
+  setTimeout(()=> el.textContent = old, 1500);
+}
+
+/* ============================
+   Chart.js setup
+   ============================ */
+const ctx = document.getElementById('barChart').getContext('2d');
+let barChart = null;
+function createChart(){
+  if(barChart) barChart.destroy();
+  const cfg = {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Count',
+        data: data.values,
+        backgroundColor: data.colors,
+        borderColor: data.colors.map(c => shadeColor(c, -20)),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (evt, items) => {
+        if(items.length){
+          const idx = items[0].index;
+          preloadQuizFromIndex(idx);
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        x: { title: { display:true, text:'Category' } },
+        y: { beginAtZero:true, title: { display:true, text:'Count' }, ticks: { precision:0 } }
+      }
+    }
+  };
+  barChart = new Chart(ctx.canvas, cfg);
+  // set canvas height
+  ctx.canvas.parentElement.style.height = '360px';
+}
+function updateChart(){
+  if(!barChart) createChart();
+  barChart.data.labels = data.labels;
+  barChart.data.datasets[0].data = data.values;
+  barChart.data.datasets[0].backgroundColor = data.colors;
+  barChart.update();
+}
+
+/* helper: shade color */
+function shadeColor(hex, percent) {
+  try{
+    let c = hex.replace('#','');
+    const num = parseInt(c,16);
+    let r = (num >> 16) + percent;
+    let g = ((num >> 8) & 0x00FF) + percent;
+    let b = (num & 0x0000FF) + percent;
+    r = Math.max(Math.min(255,r),0); g = Math.max(Math.min(255,g),0); b = Math.max(Math.min(255,b),0);
+    return '#' + (r<<16 | g<<8 | b).toString(16).padStart(6,'0');
+  } catch(e){ return hex; }
+}
+
+/* ============================
+   Data table rendering & editing
+   ============================ */
+const dataBody = document.getElementById('dataBody');
+
+function renderRow(i, label, value, color){
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-index', i);
+  // drag handle
+  const tdHandle = document.createElement('td');
+  tdHandle.className = 'drag-handle';
+  tdHandle.innerHTML = '☰';
+  tdHandle.setAttribute('draggable','true');
+  // label
+  const tdLabel = document.createElement('td');
+  const lblInput = document.createElement('input');
+  lblInput.type = 'text'; lblInput.value = label; lblInput.setAttribute('aria-label','Category '+(i+1));
+  lblInput.addEventListener('change', ()=>{ data.labels[i] = lblInput.value; updateChart(); saveLocal(); });
+  tdLabel.appendChild(lblInput);
+  // value
+  const tdVal = document.createElement('td');
+  const valInput = document.createElement('input');
+  valInput.type = 'number'; valInput.value = value; valInput.min = 0; valInput.addEventListener('change', ()=> { data.values[i] = Number(valInput.value||0); updateChart(); saveLocal(); });
+  tdVal.appendChild(valInput);
+  // color + select
+  const tdColor = document.createElement('td');
+  const colorInput = document.createElement('input'); colorInput.type='color'; colorInput.value = color || randomColor();
+  colorInput.addEventListener('change', ()=> { data.colors[i]=colorInput.value; updateChart(); saveLocal(); });
+  const removeBtn = document.createElement('button'); removeBtn.textContent='Remove'; removeBtn.className='small'; removeBtn.style.marginLeft='8px';
+  removeBtn.addEventListener('click', ()=>{ data.labels.splice(i,1); data.values.splice(i,1); data.colors.splice(i,1); updateTable(); updateChart(); saveLocal(); });
+  tdColor.appendChild(colorInput);
+  tdColor.appendChild(removeBtn);
+
+  tr.appendChild(tdHandle);
+  tr.appendChild(tdLabel);
+  tr.appendChild(tdVal);
+  tr.appendChild(tdColor);
+
+  // drag events
+  tdHandle.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/index', i); e.dataTransfer.effectAllowed='move'; tr.style.opacity=0.4; });
+  tdHandle.addEventListener('dragend', ()=>{ tr.style.opacity=1 });
+  tr.addEventListener('dragover', e=> e.preventDefault());
+  tr.addEventListener('drop', (e)=>{
+    const from = Number(e.dataTransfer.getData('text/index'));
+    const to = Number(tr.getAttribute('data-index'));
+    if(!Number.isFinite(from) || !Number.isFinite(to)) return;
+    // move item
+    moveArrayItem(data.labels, from, to);
+    moveArrayItem(data.values, from, to);
+    moveArrayItem(data.colors, from, to);
+    updateTable(); updateChart(); saveLocal();
+  });
+  return tr;
+}
+
+function updateTable(){
+  dataBody.innerHTML = '';
+  for(let i=0;i<data.labels.length;i++){
+    dataBody.appendChild(renderRow(i, data.labels[i], data.values[i], data.colors[i]));
+  }
+}
+function moveArrayItem(arr, from, to){
+  const item = arr.splice(from,1)[0];
+  arr.splice(to,0,item);
+}
+function randomColor(){ return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'); }
+
+/* ============================
+   Add / remove / presets / randomize
+   ============================ */
+document.getElementById('btnAdd').addEventListener('click', ()=>{
+  const l = document.getElementById('newLabel').value.trim() || 'New';
+  const v = Number(document.getElementById('newValue').value || 1);
+  data.labels.push(l); data.values.push(v); data.colors.push(randomColor());
+  updateTable(); updateChart(); saveLocal();
+  document.getElementById('newLabel').value=''; document.getElementById('newValue').value='1';
+});
+document.getElementById('btnRemoveSelected').addEventListener('click', ()=>{
+  // remove last row as a simple action (or you can extend to select specific)
+  if(data.labels.length>0){ data.labels.pop(); data.values.pop(); data.colors.pop(); updateTable(); updateChart(); saveLocal(); }
+});
+
+/* preset loading */
+document.getElementById('presetSelect').addEventListener('change', (e)=>{
+  const v = e.target.value;
+  if(v==='fruits'){
+    data.labels=['Apples','Bananas','Grapes','Oranges','Strawberries'];
+    data.values=[6,4,3,2,5];
+    data.colors=['#ef4444','#f59e0b','#8b5cf6','#fb923c','#f43f5e'];
+  } else if(v==='pets'){
+    data.labels=['Home A','Home B','Home C','Home D'];
+    data.values=[2,5,3,4];
+    data.colors=['#06b6d4','#34d399','#a78bfa','#f59e0b'];
+  } else if(v==='school'){
+    data.labels=['Tag','Hide & Seek','Soccer','Hopscotch','Other'];
+    data.values=[8,3,10,5,2];
+    data.colors=['#60a5fa','#f97316','#34d399','#f472b6','#cbd5e1'];
+  }
+  updateTable(); updateChart(); saveLocal();
+});
+
+/* randomize */
+document.getElementById('btnRandom').addEventListener('click', ()=>{
+  const n = Math.max(3, Math.min(10, Math.floor(Math.random()*8)+3));
+  data.labels = []; data.values = []; data.colors = [];
+  for(let i=0;i<n;i++){ data.labels.push('Cat '+(i+1)); data.values.push(randomInt(0,12)); data.colors.push(randomColor()); }
+  updateTable(); updateChart(); saveLocal();
+});
+
+/* sort */
+document.getElementById('btnSortDesc').addEventListener('click', ()=>{
+  const zipped = data.labels.map((l,i)=>({l, v:data.values[i], c:data.colors[i]}));
+  zipped.sort((a,b)=>b.v - a.v);
+  data.labels = zipped.map(z=>z.l); data.values = zipped.map(z=>z.v); data.colors = zipped.map(z=>z.c);
+  updateTable(); updateChart(); saveLocal();
+});
+document.getElementById('btnSortAsc').addEventListener('click', ()=>{
+  const zipped = data.labels.map((l,i)=>({l, v:data.values[i], c:data.colors[i]}));
+  zipped.sort((a,b)=>a.v - b.v);
+  data.labels = zipped.map(z=>z.l); data.values = zipped.map(z=>z.v); data.colors = zipped.map(z=>z.c);
+  updateTable(); updateChart(); saveLocal();
+});
+
+/* toggle grid lines */
+document.getElementById('toggleGrid').addEventListener('change', (e)=>{
+  const show = e.target.checked;
+  barChart.options.scales.y.grid = { display: show };
+  barChart.options.scales.x.grid = { display: show };
+  barChart.update();
+});
+
+/* ============================
+   Chart click -> preload quiz
+   ============================ */
+let quizSeed = null;
+function preloadQuizFromIndex(idx){
+  quizSeed = { index: idx, label: data.labels[idx], value: data.values[idx] };
+  speak(`Loaded ${quizSeed.label} with ${quizSeed.value}`);
+  document.getElementById('questionText').textContent = `Loaded: ${quizSeed.label} — use Generate Question to make a quiz about the chart.`;
+}
+
+/* ============================
+   Quiz generator & checking
+   ============================ */
+let currentQuestion = null;
+let totalScore = 0, streak = 0;
+document.getElementById('btnGenQuestion').addEventListener('click', generateQuestion);
+document.getElementById('btnCheckAnswer').addEventListener('click', checkAnswer);
+document.getElementById('btnReveal').addEventListener('click', revealAnswer);
+document.addEventListener('keydown', (e)=>{
+  if(e.key.toLowerCase()==='q') generateQuestion();
+  if(e.key === 'Enter') checkAnswer();
+});
+
+function generateQuestion(){
+  // select question types: most, least, difference, total, sum of two, is value > n?
+  const types = ['most','least','diff','sum2','total','compare'];
+  const t = types[randomInt(0, types.length-1)];
+  // ensure at least 2 categories exist
+  if(data.labels.length < 2){ currentQuestion = { text: 'Add more categories to generate questions', answer: null }; document.getElementById('questionText').textContent = currentQuestion.text; return; }
+  if(quizSeed && Math.random() < 0.3){
+    // sometimes use the preloaded seed
+    // create a question comparing seed to another random index
+    const other = randomInt(0, data.labels.length-1);
+    currentQuestion = {
+      type: 'compareSeed',
+      text: `How many more does ${quizSeed.label} have than ${data.labels[other]}?`,
+      answer: String(quizSeed.value - data.values[other])
+    };
+  } else {
+    switch(t){
+      case 'most':
+        const maxi = argMax(data.values);
+        currentQuestion = { type:'most', text: `Which category has the most?`, answer: data.labels[maxi] };
+        break;
+      case 'least':
+        const mini = argMin(data.values);
+        currentQuestion = { type:'least', text: `Which category has the least?`, answer: data.labels[mini] };
+        break;
+      case 'diff':
+        const i1 = randomInt(0, data.labels.length-1);
+        let i2 = randomInt(0, data.labels.length-1);
+        while(i2 === i1) i2 = randomInt(0, data.labels.length-1);
+        currentQuestion = { type:'diff', text: `How many more does ${data.labels[i1]} have than ${data.labels[i2]}?`, answer: String(data.values[i1] - data.values[i2]) };
+        break;
+      case 'sum2':
+        const a = randomInt(0, data.labels.length-1);
+        let b = randomInt(0, data.labels.length-1);
+        while(b===a) b = randomInt(0, data.labels.length-1);
+        currentQuestion = { type:'sum2', text: `What is ${data.labels[a]} plus ${data.labels[b]} (add their values)?`, answer: String(data.values[a] + data.values[b]) };
+        break;
+      case 'total':
+        const tot = data.values.reduce((s,v)=>s+v,0);
+        currentQuestion = { type:'total', text: `What is the total of all categories combined?`, answer: String(tot) };
+        break;
+      case 'compare':
+        const idx = randomInt(0, data.labels.length-1);
+        const n = randomInt(0, Math.max(1, Math.max(...data.values)));
+        currentQuestion = { type:'compare', text: `Is ${data.labels[idx]} greater than ${n}? (yes/no)`, answer: (data.values[idx] > n) ? 'yes' : 'no' };
+        break;
+      default:
+        currentQuestion = { type:'total', text: 'What is the total?', answer: String(data.values.reduce((s,v)=>s+v,0)) };
+    }
+  }
+  document.getElementById('questionText').textContent = currentQuestion.text;
+  document.getElementById('answerInput').value = '';
+  document.getElementById('qFeedback').textContent = '';
+}
+
+/* checking logic */
+function checkAnswer(){
+  if(!currentQuestion){ document.getElementById('qFeedback').textContent = 'Generate a question first.'; return; }
+  const raw = (document.getElementById('answerInput').value || '').toString().trim().toLowerCase();
+  const correct = (currentQuestion.answer || '').toString().trim().toLowerCase();
+  if(!raw){ document.getElementById('qFeedback').textContent = 'Type an answer!'; return; }
+  // accept numeric equivalence + some textual flexibility
+  let ok = false;
+  if(!isNaN(Number(correct)) && !isNaN(Number(raw))){ ok = Number(raw) === Number(correct); }
+  else {
+    ok = raw === correct || raw === (correct.replace(/\s+/g,''));
+    // also allow "no" / "yes" synonyms
+    if(!ok && (correct === 'yes' || correct === 'no')) ok = raw.startsWith(correct[0]);
+  }
+  if(ok){
+    document.getElementById('qFeedback').textContent = '✅ Correct!';
+    document.getElementById('qFeedback').className = 'feedback green';
+    tone(true); totalScore++; streak++;
+    document.getElementById('scoreDisplay').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+  } else {
+    document.getElementById('qFeedback').textContent = `❌ Not quite — answer: ${currentQuestion.answer}`;
+    document.getElementById('qFeedback').className = 'feedback red';
+    tone(false); streak = 0;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+  }
+}
+
+/* reveal */
+function revealAnswer(){ if(currentQuestion) document.getElementById('qFeedback').textContent = `Answer: ${currentQuestion.answer}`; }
+
+/* helper */
+function argMax(arr){ let mi=0; for(let i=1;i<arr.length;i++) if(arr[i]>arr[mi]) mi=i; return mi; }
+function argMin(arr){ let mi=0; for(let i=1;i<arr.length;i++) if(arr[i]<arr[mi]) mi=i; return mi; }
+
+/* ============================
+   Exports: CSV & PNG & Worksheet print
+   ============================ */
+document.getElementById('btnDownloadCSV').addEventListener('click', downloadCSV);
+document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
+document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+function downloadCSV(){
+  const rows = [['Category','Value']];
+  for(let i=0;i<data.labels.length;i++) rows.push([escapeCSV(data.labels[i]), data.values[i]]);
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'bar_graph_data.csv'; a.click(); URL.revokeObjectURL(url);
+  showStatus('CSV downloaded');
+}
+function exportPNG(){
+  const url = barChart.toBase64Image();
+  const a = document.createElement('a'); a.href = url; a.download = 'bar_graph.png'; a.click();
+}
+function escapeCSV(s){ return `"${s.replace(/"/g,'""')}"`; }
+
+/* worksheet CSV & print */
+document.getElementById('btnWorksheetCSV').addEventListener('click', ()=>{
+  const rows = [['Problem','Answer']];
+  // generate simple problems from data
+  for(let i=0;i<data.labels.length;i++){
+    rows.push([`How many ${data.labels[i]}?`, data.values[i]]);
+  }
+  // plus a few comparison problems
+  rows.push(['Which category has the most?', data.labels[argMax(data.values)]]);
+  rows.push(['What is the total of all categories?', data.values.reduce((s,v)=>s+v,0)]);
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='bar_graph_worksheet.csv'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('btnWorksheetPrint').addEventListener('click', ()=>{
+  // build a new window with printable sheet
+  const w = window.open('','_blank','noopener');
+  const tot = data.values.reduce((s,v)=>s+v,0);
+  const html = `
+  <html><head><title>Bar Graph Worksheet</title>
+  <style>body{font-family:Arial;padding:20px} h1{color:#0369a1}</style></head>
+  <body>
+  <h1>Bar Graph Worksheet</h1>
+  <p>Look at the data and answer the questions.</p>
+  <ul>
+    ${data.labels.map((l,i)=>`<li>${l}: ${data.values[i]}</li>`).join('')}
+  </ul>
+  <ol>
+    <li>Which category has the most?</li>
+    <li>Which category has the least?</li>
+    <li>What is the total of all categories?</li>
+    <li>Pick two categories and write how many more one has than the other.</li>
+  </ol>
+  <p style="margin-top:30px">Total: ${tot}</p>
+  </body></html>`;
+  w.document.write(html); w.document.close();
+});
+
+/* ============================
+   Save / load / init
+   ============================ */
+document.getElementById('btnSaveLocal').addEventListener('click', saveLocal);
+document.getElementById('btnResetLocal').addEventListener('click', resetLocal);
+document.getElementById('btnNarrate').addEventListener('click', ()=> speak('Welcome to the bar graphs lesson. Edit the table on the right to change the graph on the left. Generate questions and check answers. Good luck!'));
+
+/* quick load */
+if(!loadLocal()){ updateTable(); createChart(); updateChart(); } else { updateTable(); createChart(); updateChart(); }
+
+/* ============================
+   Extra features: random questions loader
+   ============================ */
+document.getElementById('btnLoadExample').addEventListener('click', ()=>{
+  // load a small set of teacher questions into the queue - example just sets question
+  currentQuestion = { text: 'How many more does the top category have than the second?', answer: null };
+  generateQuestion();
+});
+
+/* small helpers */
+function randomInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+/* ============================
+   Nice initial UI actions
+   ============================ */
+updateTable();
+createChart();
+updateChart();
+
+</script>
+</body>
+</html>

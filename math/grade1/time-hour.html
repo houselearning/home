@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🕒 Time to the Hour — Interactive Lesson</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f8ff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 { color: #2c3e50; }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        canvas { background: #eef6ff; border-radius: 15px; margin: 20px 0; }
+        .digital-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #2980b9; }
+        .feedback { font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🕒 Time to the Hour</h1>
+
+    <div class="card">
+        <h2>Introduction</h2>
+        <p>Learning to tell time on an analog clock is important. The **hour hand** shows the hour, and the **minute hand** points to 12 for exact hours. Try moving the hour hand to match the question below!</p>
+    </div>
+
+    <div class="card">
+        <h2>Interactive Clock</h2>
+        <div class="digital-display" id="digital-time">--:--</div>
+        <canvas id="clock" width="300" height="300"></canvas>
+        <h3>How to use the clock</h3>
+        <img src="clock.gif" alt="A GIF showing how to drag the clock hand.">
+        <div>
+            <button onclick="checkTime()">Check Answer</button>
+            <button onclick="nextQuestion()">Next Question ➡️</button>
+        </div>
+        <p class="feedback" id="feedback"></p>
+    </div>
+
+<script>
+    const canvas = document.getElementById("clock");
+    const ctx = canvas.getContext("2d");
+    const radius = canvas.width / 2;
+    ctx.translate(radius, radius);
+
+    let currentHour = 12;
+    let currentMinute = 0;
+    let questionHour = 3;
+    let questionMinute = 0;
+
+    const questions = [
+        { hour: 3, minute: 0 },
+        { hour: 7, minute: 30 },
+        { hour: 11, minute: 15 },
+        { hour: 9, minute: 45 },
+        { hour: 1, minute: 0 },
+        { hour: 5, minute: 5 }
+    ];
+    let currentQIndex = 0;
+
+    function drawClock(hour, minute) {
+        ctx.clearRect(-radius, -radius, canvas.width, canvas.height);
+
+        // Clock face
+        ctx.beginPath();
+        ctx.arc(0, 0, radius - 10, 0, 2 * Math.PI);
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Hour marks
+        for (let i = 1; i <= 12; i++) {
+            let ang = i * Math.PI / 6;
+            ctx.rotate(ang);
+            ctx.translate(0, -radius * 0.85);
+            ctx.fillStyle = "#000";
+            ctx.font = "16px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(i.toString(), 0, 0);
+            ctx.translate(0, radius * 0.85);
+            ctx.rotate(-ang);
+        }
+
+        // Hour hand
+        let angHour = ((hour % 12) + minute / 60) * Math.PI / 6;
+        ctx.beginPath();
+        ctx.lineWidth = 8;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.sin(angHour) * 50, -Math.cos(angHour) * 50);
+        ctx.strokeStyle = "#3498db";
+        ctx.stroke();
+
+        // Minute hand
+        let angMinute = (minute / 60) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.lineWidth = 5;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.sin(angMinute) * 80, -Math.cos(angMinute) * 80);
+        ctx.strokeStyle = "#e74c3c";
+        ctx.stroke();
+
+        // Digital time display
+        const displayedHour = Math.floor(hour) > 12 ? Math.floor(hour) - 12 : Math.floor(hour);
+        const formattedHour = displayedHour === 0 ? 12 : displayedHour;
+        const formattedMinute = Math.round(minute).toString().padStart(2, '0');
+        document.getElementById("digital-time").textContent = `${formattedHour}:${formattedMinute}`;
+    }
+
+    drawClock(currentHour, currentMinute);
+
+    // Drag hands
+    let dragging = false;
+    let activeHand = 'none';
+
+    canvas.addEventListener('mousedown', (e) => {
+        dragging = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left - radius;
+        const y = e.clientY - rect.top - radius;
+        const dist = Math.sqrt(x * x + y * y);
+
+        // Check if user clicked on the minute hand (further out)
+        if (dist > 60 && dist < 100) {
+            activeHand = 'minute';
+        }
+        // Otherwise, assume they are dragging the hour hand (closer to the center)
+        else if (dist <= 60) {
+            activeHand = 'hour';
+        } else {
+            activeHand = 'none'; // Clicked outside the hands
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => { dragging = false; activeHand = 'none'; });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (dragging && activeHand !== 'none') {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left - radius;
+            const y = e.clientY - rect.top - radius;
+            let angle = Math.atan2(y, x);
+            if (angle < 0) angle += 2 * Math.PI; // Normalize angle to 0-2PI
+
+            if (activeHand === 'hour') {
+                currentHour = (angle / (Math.PI / 6));
+                if (currentHour < 0) currentHour += 12;
+                currentMinute = Math.round((currentHour % 1) * 60); // Update minutes based on hour hand position
+                currentHour = Math.floor(currentHour) === 0 ? 12 : Math.floor(currentHour);
+
+            } else if (activeHand === 'minute') {
+                currentMinute = Math.round((angle / (Math.PI / 30)));
+                if (currentMinute === 60) currentMinute = 0;
+                // Update hour based on minute hand movement (more gradual)
+                currentHour = questionHour + (currentMinute / 60);
+                if (currentHour > 12) currentHour -= 12;
+                if (currentHour < 1) currentHour += 12;
+            }
+            drawClock(currentHour, currentMinute);
+        }
+    });
+
+    // Quiz
+    function nextQuestion() {
+        currentQIndex = (currentQIndex + 1) % questions.length;
+        questionHour = questionsByLevel.easy.basicToHour()[currentQIndex].hour;
+        questionMinute = questionsByLevel.easy.basicToHour()[currentQIndex].minute;
+        currentHour = 12;
+        currentMinute = 0;
+        drawClock(currentHour, currentMinute);
+
+        const displayQuestion = `${questionHour}:${questionMinute.toString().padStart(2, '0')}`;
+        document.getElementById("feedback").textContent = `Set the clock to ${displayQuestion}`;
+        speak(`Set the clock to ${displayQuestion}`);
+    }
+
+    function checkTime() {
+        const feedback = document.getElementById("feedback");
+        const userHour = Math.round(currentHour % 12 === 0 ? 12 : currentHour % 12);
+        const userMinute = Math.round(currentMinute);
+
+        if (userHour === questionHour && userMinute === questionMinute) {
+            feedback.textContent = `✅ Correct! It's ${questionHour}:${questionMinute.toString().padStart(2, '0')}`;
+            feedback.style.color = "green";
+            speak(`Correct! It's ${questionHour} ${questionMinute === 0 ? "o'clock" : questionMinute}`);
+        } else {
+            feedback.textContent = `❌ Try again. The correct time is ${questionHour}:${questionMinute.toString().padStart(2, '0')}`;
+            feedback.style.color = "red";
+            speak(`Try again. The correct time is ${questionHour} ${questionMinute === 0 ? "o'clock" : questionMinute}`);
+        }
+    }
+
+    function speak(text) {
+        try {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(msg);
+        } catch (e) { }
+    }
+
+    // Define your question structure properly
+    const questionsByLevel = {
+        easy: {
+            basicToHour: () => [
+                { hour: 3, minute: 0 },
+                { hour: 7, minute: 0 },
+                { hour: 11, minute: 0 },
+                { hour: 9, minute: 0 },
+                { hour: 1, minute: 0 },
+                { hour: 5, minute: 0 }
+            ],
+            // Add other question levels as needed
+        }
+    };
+
+    nextQuestion();
+    </script>
+</body>
+</html>

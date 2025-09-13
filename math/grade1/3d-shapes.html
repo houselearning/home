@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Shapes — Interactive Lesson</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --brand: #0066cc;
+      --accent: #31c48d;
+      --warn: #ff6b6b;
+      --bg: #f0f9ff;
+      --card: #ffffff;
+      --text: #0f172a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      padding: 16px 12px;
+      background: var(--brand);
+      color: white;
+      font-weight: 800;
+      font-size: clamp(20px, 3vw, 28px);
+      box-shadow: 0 2px 10px rgba(0,0,0,.12);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(2,8,23,.08);
+      padding: 16px;
+    }
+    h2 { margin: 0 0 10px 0; color: var(--brand); }
+    p { margin: 8px 0; line-height: 1.4; }
+
+    /* Canvas panel */
+    .stage {
+      position: relative;
+      height: 540px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #eaf6ff 0%, #ffffff 100%);
+    }
+    #three-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+    }
+    .hud {
+      position: absolute;
+      left: 10px; top: 10px;
+      display: flex; gap: 8px; flex-wrap: wrap;
+      background: rgba(255,255,255,.8);
+      padding: 8px; border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(2,8,23,.12);
+    }
+    .btn {
+      border: 0; border-radius: 10px;
+      padding: 8px 12px; font-weight: 700; cursor: pointer;
+      background: var(--brand); color: white;
+      transition: transform .06s, filter .2s;
+    }
+    .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn.alt { background: #0ea5e9; }
+    .btn.good { background: var(--accent); }
+    .btn.warn { background: var(--warn); }
+
+    /* Right sidebar */
+    .stack { display: grid; gap: 14px; }
+    .pill {
+      display: inline-block; padding: 6px 10px; border-radius: 999px;
+      background: #eef2ff; color: #3730a3; font-weight: 700; font-size: 12px;
+    }
+    .meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .score { font-weight:800; color: #0ea5e9; }
+    .bins {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .bin {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      min-height: 70px;
+      display: grid; place-items: center;
+      font-weight: 800; color: #475569;
+      background: #f8fafc;
+    }
+    .bin.correct { border-color: var(--accent); background: #ecfdf5; color: #065f46; }
+    .bin.wrong { border-color: var(--warn); background: #fff5f5; color: #7f1d1d; }
+
+    .help {
+      background: #fff7ed; border: 1px solid #fed7aa; color:#9a3412;
+      padding: 10px; border-radius: 8px; font-size: 14px;
+    }
+    .tiny { font-size: 12px; opacity:.8; }
+  </style>
+</head>
+<body>
+  <header>🌟 3D Shapes — Spin, Drag, and Sort!</header>
+
+  <main>
+    <section class="card">
+      <h2>🎮 Playground</h2>
+      <p class="tiny">Tip: Drag with mouse to rotate the camera. Hold <b>Shift</b> to pan. Scroll to zoom. Drag shapes to move them.</p>
+      <div class="stage" id="stage">
+        <canvas id="three-canvas" tabindex="0" aria-label="3D shapes playground"></canvas>
+        <div class="hud">
+          <button class="btn alt" id="btn-reset">Reset Scene</button>
+          <button class="btn" id="btn-speak">🔊 Say Shape</button>
+          <button class="btn good" id="btn-quiz">▶️ Find the Shape</button>
+          <button class="btn warn" id="btn-sort">🧺 Sorting Challenge</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="stack">
+      <section class="card">
+        <span class="pill">Intro</span>
+        <h2>What Are 3D Shapes?</h2>
+        <p>3D shapes have <b>length</b>, <b>width</b>, and <b>height</b>. Spin each model and look at faces, edges, and vertices.</p>
+        <ul>
+          <li><b>Cube</b> — all faces are squares (like a dice).</li>
+          <li><b>Sphere</b> — perfectly round (like a ball).</li>
+          <li><b>Cylinder</b> — circles on top & bottom (like a can).</li>
+          <li><b>Cone</b> — a circle base with a point (like an ice-cream cone).</li>
+          <li><b>Rectangular Prism</b> — box with rectangles (like a book).</li>
+          <li><b>Pyramid</b> — a polygon base with triangular sides meeting at a point.</li>
+        </ul>
+        <div class="help">Click a model, then press <b>“🔊 Say Shape”</b> to hear its name.</div>
+      </section>
+
+      <section class="card">
+        <div class="meta">
+          <span class="pill">Challenges</span>
+          <div>Mode: <b id="mode">Free Play</b></div>
+          <div>Score: <span class="score" id="score">0</span></div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="bins" id="bins" aria-label="Sorting bins for shapes">
+          <div class="bin" data-name="Cube">Cube</div>
+          <div class="bin" data-name="Sphere">Sphere</div>
+          <div class="bin" data-name="Cylinder">Cylinder</div>
+          <div class="bin" data-name="Cone">Cone</div>
+          <div class="bin" data-name="Rectangular Prism">Rectangular Prism</div>
+          <div class="bin" data-name="Pyramid">Pyramid</div>
+        </div>
+        <p id="status" class="tiny"></p>
+      </section>
+    </aside>
+  </main>
+
+  <audio id="sound-correct" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+  <audio id="sound-wrong" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { DragControls } from 'three/addons/controls/DragControls.js';
+
+    // ====== CORE SETUP ======
+    const canvas = document.getElementById('three-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    const stage = document.getElementById('stage');
+
+    function fitRenderer() {
+      const w = stage.clientWidth, h = stage.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf3f9ff);
+
+    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
+    camera.position.set(6.5, 5.5, 8.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = .08;
+    controls.screenSpacePanning = true;
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(5, 10, 7);
+    dir.castShadow = true;
+    scene.add(dir);
+
+    // Ground
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 20),
+      new THREE.MeshStandardMaterial({ color: 0xeef7ff })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.5;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // ====== SHAPES ======
+    const shapes = []; // {mesh, name}
+    const mat = (color) => new THREE.MeshStandardMaterial({ color, roughness: .5, metalness: .05 });
+
+    function addShape(mesh, name, pos) {
+      mesh.position.copy(pos);
+      mesh.castShadow = true;
+      mesh.userData = { name, originalPosition: pos.clone() };
+      scene.add(mesh);
+      shapes.push({ mesh, name });
+    }
+
+    // Cube
+    addShape(new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), mat(0x3b82f6)), "Cube", new THREE.Vector3(-4, 0.2, -2));
+    // Sphere
+    addShape(new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), mat(0x22c55e)), "Sphere", new THREE.Vector3(-1.8, 0.8, -2.2));
+    // Cylinder
+    addShape(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 1.6, 32), mat(0xf59e0b)), "Cylinder", new THREE.Vector3(0.5, 0.8, -2));
+    // Cone
+    addShape(new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.8, 32), mat(0xec4899)), "Cone", new THREE.Vector3(2.8, 0.9, -2.2));
+    // Rectangular Prism
+    addShape(new THREE.Mesh(new THREE.BoxGeometry(1.6, 1, 0.9), mat(0x06b6d4)), "Rectangular Prism", new THREE.Vector3(5, 0.5, -2));
+    // Pyramid (square base)
+    addShape(new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.5, 4), mat(0x9333ea)), "Pyramid", new THREE.Vector3(-5.8, 0.75, 1.2));
+
+    // Nice pedestals under shapes (for vibes)
+    shapes.forEach(({mesh}) => {
+      const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.2, 32), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+      ped.position.set(mesh.position.x, -0.4, mesh.position.z);
+      ped.receiveShadow = true;
+      scene.add(ped);
+    });
+
+    // ====== DRAG CONTROLS ======
+    const draggableMeshes = shapes.map(s => s.mesh);
+    const dragControls = new DragControls(draggableMeshes, camera, renderer.domElement);
+    dragControls.addEventListener('dragstart', () => controls.enabled = false);
+    dragControls.addEventListener('dragend', (e) => {
+      controls.enabled = true;
+      e.object.position.y = Math.max(e.object.position.y, e.object.userData.originalPosition.y); // keep above ground
+      if (currentMode === 'sort') checkDrop(e.object);
+    });
+
+    // ====== RAYCAST (click to select / quiz) ======
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let selected = null;
+
+    function onClick(evt) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const x = ( (evt.clientX - rect.left) / rect.width ) * 2 - 1;
+      const y = - ( (evt.clientY - rect.top) / rect.height ) * 2 + 1;
+      mouse.set(x, y);
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(draggableMeshes, false);
+      if (hits.length) {
+        selected = hits[0].object;
+        highlightOnce(selected);
+        if (currentMode === 'quiz') handleQuizClick(selected.userData.name);
+      }
+    }
+    renderer.domElement.addEventListener('click', onClick);
+
+    function highlightOnce(obj) {
+      const originalEmissive = obj.material.emissive ? obj.material.emissive.getHex() : 0x000000;
+      if (!obj.material.emissive) {
+        obj.material.emissive = new THREE.Color(0x000000);
+      }
+      obj.material.emissive.setHex(0x222222);
+      setTimeout(() => obj.material.emissive.setHex(originalEmissive), 250);
+    }
+
+    // ====== SPEECH ======
+    function say(text) {
+      try {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(msg);
+      } catch(e){}
+    }
+
+    // ====== MODES / UI ======
+    const scoreEl = document.getElementById('score');
+    const modeEl  = document.getElementById('mode');
+    const statusEl = document.getElementById('status');
+    const btnReset = document.getElementById('btn-reset');
+    const btnSpeak = document.getElementById('btn-speak');
+    const btnQuiz  = document.getElementById('btn-quiz');
+    const btnSort  = document.getElementById('btn-sort');
+    const sndOK = document.getElementById('sound-correct');
+    const sndNG = document.getElementById('sound-wrong');
+
+    let score = 0;
+    function addScore(n){ score += n; scoreEl.textContent = score; }
+
+    let currentMode = 'free'; // 'free' | 'quiz' | 'sort'
+    function setMode(m){
+      currentMode = m;
+      modeEl.textContent = m === 'free' ? 'Free Play' : (m === 'quiz' ? 'Find the Shape' : 'Sorting');
+      statusEl.textContent = '';
+      // Reset bin highlighting
+      document.querySelectorAll('.bin').forEach(b => b.classList.remove('correct','wrong'));
+      if(m === 'quiz') newQuizRound();
+      if(m === 'sort') setupBins();
+    }
+
+    // Reset scene positions
+    function resetScene(){
+      shapes.forEach(({mesh}) => {
+        mesh.position.copy(mesh.userData.originalPosition);
+      });
+      selected = null;
+      setMode('free');
+      score = 0; scoreEl.textContent = '0';
+    }
+
+    btnReset.onclick = resetScene;
+    btnSpeak.onclick = () => {
+      if (selected?.userData?.name) say(selected.userData.name);
+      else say('Click a shape first, then press Say Shape.');
+    };
+    btnQuiz.onclick = () => setMode(currentMode === 'quiz' ? 'free' : 'quiz');
+    btnSort.onclick = () => setMode(currentMode === 'sort' ? 'free' : 'sort');
+
+    // ====== QUIZ MODE ======
+    const shapeNames = shapes.map(s => s.name);
+    let quizTarget = null;
+
+    function newQuizRound(){
+      quizTarget = shapeNames[Math.floor(Math.random() * shapeNames.length)];
+      statusEl.textContent = `Find and click: ${quizTarget}`;
+      say(`Find the ${quizTarget}`);
+    }
+    function handleQuizClick(clickedName){
+      if(!quizTarget) return;
+      if(clickedName === quizTarget){
+        statusEl.textContent = `✅ Correct! That is the ${clickedName}.`;
+        addScore(5); sndOK.play();
+        setTimeout(newQuizRound, 900);
+      } else {
+        statusEl.textContent = `❌ Nope — that was ${clickedName}. Try again for ${quizTarget}.`;
+        sndNG.play();
+      }
+    }
+
+    // ====== SORTING MODE ======
+    // Define 2D bin hitboxes mapped in world coordinates (right side of ground)
+    const binsDom = [...document.querySelectorAll('.bin')];
+    const binAreas = {
+      "Cube": new THREE.Box2(new THREE.Vector2(3.5, -0.5),  new THREE.Vector2(5.5, 1.5)),
+      "Sphere": new THREE.Box2(new THREE.Vector2(6.0, -0.5), new THREE.Vector2(8.0, 1.5)),
+      "Cylinder": new THREE.Box2(new THREE.Vector2(3.5, 1.7), new THREE.Vector2(5.5, 3.7)),
+      "Cone": new THREE.Box2(new THREE.Vector2(6.0, 1.7),  new THREE.Vector2(8.0, 3.7)),
+      "Rectangular Prism": new THREE.Box2(new THREE.Vector2(3.5, 3.9), new THREE.Vector2(5.5, 5.9)),
+      "Pyramid": new THREE.Box2(new THREE.Vector2(6.0, 3.9), new THREE.Vector2(8.0, 5.9)),
+    };
+
+    // Visualize bin zones on ground (subtle)
+    const binVizMat = new THREE.MeshStandardMaterial({ color: 0xdbeafe, transparent: true, opacity: 0.65 });
+    const binViz = [];
+    function setupBins(){
+      // remove previous
+      binViz.forEach(m => scene.remove(m));
+      binViz.length = 0;
+      Object.entries(binAreas).forEach(([name, box]) => {
+        const size = new THREE.Vector2().subVectors(box.max, box.min);
+        const mid  = new THREE.Vector2().addVectors(box.max, box.min).multiplyScalar(0.5);
+        const mesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(size.x, size.y),
+          binVizMat.clone()
+        );
+        mesh.rotation.x = -Math.PI/2;
+        mesh.position.set(mid.x, -0.49, mid.y);
+        scene.add(mesh);
+        binViz.push(mesh);
+      });
+      statusEl.textContent = 'Drag each shape into its matching bin area on the right.';
+      say('Drag each shape into its matching bin.');
+    }
+
+    function checkDrop(obj){
+      // Project object XZ to 2D box2
+      const p = new THREE.Vector2(obj.position.x, obj.position.z);
+      const need = obj.userData.name;
+      const area = binAreas[need];
+      const binEl = binsDom.find(b => b.dataset.name === need);
+      if(area?.containsPoint(p)){
+        // snap near center of its box
+        const center = new THREE.Vector2().addVectors(area.max, area.min).multiplyScalar(0.5);
+        obj.position.x = center.x; obj.position.z = center.y;
+        statusEl.textContent = `✅ Sorted: ${need}`;
+        binEl?.classList.remove('wrong'); binEl?.classList.add('correct');
+        addScore(5); sndOK.play();
+      } else {
+        statusEl.textContent = `❌ That’s not the ${need} bin.`;
+        // mark wrong briefly
+        binEl?.classList.add('wrong');
+        setTimeout(()=>binEl?.classList.remove('wrong'), 800);
+        sndNG.play();
+      }
+    }
+
+    // ====== RENDER LOOP ======
+    function animate() {
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    fitRenderer();
+    animate();
+    window.addEventListener('resize', fitRenderer);
+
+    // ====== ACCESSIBILITY SHORTCUTS ======
+    // Press "S" to speak selected shape, "Q" to toggle quiz, "O" to toggle sorting
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 's') btnSpeak.click();
+      if (e.key.toLowerCase() === 'q') btnQuiz.click();
+      if (e.key.toLowerCase() === 'o') btnSort.click();
+      if (e.key.toLowerCase() === 'r') btnReset.click();
+    });
+  </script>
+</body>
+</html>

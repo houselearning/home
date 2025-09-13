@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Area & Perimeter of Rectangles</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9ff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4cafef;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .lesson {
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    h2 {
+      color: #4cafef;
+    }
+    .example, .practice, .quiz, .canvas-area {
+      background: white;
+      margin: 15px 0;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #4cafef;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #3b9add;
+    }
+    input {
+      padding: 6px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    canvas {
+      border: 2px solid #4cafef;
+      display: block;
+      margin: 15px auto;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header>Grade 3 Math: Area & Perimeter of Rectangles</header>
+  <div class="lesson">
+
+    <div class="intro">
+      <h2>📖 Introduction</h2>
+      <p>
+        Today we’ll learn about <b>Area</b> and <b>Perimeter</b> of rectangles.  
+        - The <b>Perimeter</b> is the distance around the rectangle. Formula: <b>P = 2 × (Length + Width)</b>  
+        - The <b>Area</b> is the amount of space inside the rectangle. Formula: <b>A = Length × Width</b>  
+      </p>
+    </div>
+
+    <div class="example">
+      <h2>📝 Example</h2>
+      <p>A rectangle has length = 8 units and width = 5 units.</p>
+      <ul>
+        <li>Perimeter = 2 × (8 + 5) = 26 units</li>
+        <li>Area = 8 × 5 = 40 square units</li>
+      </ul>
+      <canvas id="exampleCanvas" width="200" height="140"></canvas>
+    </div>
+
+    <div class="practice">
+      <h2>🎮 Interactive Practice</h2>
+      <p>Enter Length and Width:</p>
+      <input type="number" id="len" placeholder="Length">
+      <input type="number" id="wid" placeholder="Width">
+      <button onclick="calc()">Calculate</button>
+      <p id="result"></p>
+      <canvas id="pracCanvas" width="300" height="200"></canvas>
+    </div>
+
+    <div class="canvas-area">
+      <h2>🖼 Draw Your Own Rectangle</h2>
+      <p>Use the buttons to grow/shrink the rectangle!</p>
+      <canvas id="drawCanvas" width="400" height="300"></canvas><br>
+      <button onclick="changeSize(10,0)">Increase Length</button>
+      <button onclick="changeSize(-10,0)">Decrease Length</button>
+      <button onclick="changeSize(0,10)">Increase Width</button>
+      <button onclick="changeSize(0,-10)">Decrease Width</button>
+      <p id="drawResult"></p>
+    </div>
+
+    <div class="quiz">
+      <h2>🧠 Quiz</h2>
+      <p id="quizQ">Click below to start!</p>
+      <input type="number" id="quizA" placeholder="Your Answer">
+      <button onclick="checkQuiz()">Submit</button>
+      <p id="quizFeedback"></p>
+      <button onclick="nextQuiz()">Next Question</button><br><br>
+      <button onclick="downloadCSV()">📥 Download Practice Problems (CSV)</button>
+    </div>
+
+  </div>
+
+  <script>
+    // Example Canvas
+    let ex = document.getElementById("exampleCanvas").getContext("2d");
+    ex.fillStyle = "#4cafef";
+    ex.fillRect(20,20,160,100);
+
+    // Practice calculation
+    function calc() {
+      let l = +document.getElementById("len").value;
+      let w = +document.getElementById("wid").value;
+      let per = 2*(l+w);
+      let area = l*w;
+      document.getElementById("result").innerText =
+        `Perimeter = ${per}, Area = ${area}`;
+      let ctx = document.getElementById("pracCanvas").getContext("2d");
+      ctx.clearRect(0,0,300,200);
+      ctx.fillStyle = "#4cafef";
+      ctx.fillRect(20,20,l*10,w*10);
+    }
+
+    // Draw Canvas controls
+    let length = 50, width = 40;
+    function drawRect() {
+      let c = document.getElementById("drawCanvas").getContext("2d");
+      c.clearRect(0,0,400,300);
+      c.fillStyle = "#ff9e4a";
+      c.fillRect(50,50,length,width);
+      document.getElementById("drawResult").innerText =
+        `Length = ${length}, Width = ${width}, P = ${2*(length+width)}, A = ${length*width}`;
+    }
+    function changeSize(dl,dw) {
+      length = Math.max(10, length+dl);
+      width = Math.max(10, width+dw);
+      drawRect();
+    }
+    drawRect();
+
+    // Quiz system
+    let qIndex = 0;
+    let quizData = [
+      {l: 6, w: 4, type:"area"},
+      {l: 10, w: 2, type:"perimeter"},
+      {l: 7, w: 5, type:"area"},
+      {l: 9, w: 3, type:"perimeter"}
+    ];
+    function loadQuiz() {
+      let q = quizData[qIndex];
+      document.getElementById("quizQ").innerText =
+        (q.type==="area")
+        ? `What is the AREA of a rectangle with L=${q.l}, W=${q.w}?`
+        : `What is the PERIMETER of a rectangle with L=${q.l}, W=${q.w}?`;
+    }
+    function checkQuiz() {
+      let ans = +document.getElementById("quizA").value;
+      let q = quizData[qIndex];
+      let correct = (q.type==="area") ? q.l*q.w : 2*(q.l+q.w);
+      document.getElementById("quizFeedback").innerText =
+        (ans===correct) ? "✅ Correct!" : `❌ Wrong. Correct = ${correct}`;
+    }
+    function nextQuiz() {
+      qIndex = (qIndex+1) % quizData.length;
+      loadQuiz();
+      document.getElementById("quizA").value="";
+      document.getElementById("quizFeedback").innerText="";
+    }
+    loadQuiz();
+
+    // CSV Download
+    function downloadCSV() {
+      let rows = [["Length","Width","Perimeter","Area"]];
+      for (let i=1;i<=12;i++){
+        let l = Math.floor(Math.random()*12)+1;
+        let w = Math.floor(Math.random()*12)+1;
+        rows.push([l,w,2*(l+w),l*w]);
+      }
+      let csv = rows.map(r=>r.join(",")).join("\n");
+      let blob = new Blob([csv],{type:"text/csv"});
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement("a");
+      a.href = url;
+      a.download = "area_perimeter_practice.csv";
+      a.click();
+    }
+  </script>
+</body>
+</html>

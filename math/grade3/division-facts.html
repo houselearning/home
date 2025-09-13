@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 3 — Division Facts 0–12 (Advanced Lesson + Speed Quiz + CSV)</title>
+<style>
+  :root{
+    --bg:#f7fbff; --panel:#fff; --accent:#0ea5e9; --accent2:#0284c7; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+  header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+  header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+  main{max-width:1100px;margin:20px auto;padding:14px}
+  section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+  h2{color:var(--accent2);margin:0 0 10px 0}
+  p{margin:8px 0}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  button.secondary{background:#06b6d4}
+  button.ghost{background:#e8f9ff;color:var(--accent2);border:1px solid #d1f3ff}
+  button.warn{background:#f97316}
+  input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #dbeafe;font-size:1rem}
+  canvas{width:100%;height:auto;border-radius:8px;background:linear-gradient(180deg,#fff,#f3fbff);display:block;border:1px solid #e6f6ff}
+  .grid{display:grid;gap:10px}
+  .grid.cols-4{grid-template-columns:repeat(4,1fr)}
+  .tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #eef6ff;cursor:pointer;font-weight:700}
+  .status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+  .muted{color:var(--muted)}
+  footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+  .answer{font-weight:800;margin-top:8px}
+  .ok{color:var(--ok)}
+  .bad{color:var(--bad)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Grade 3 — Division Facts 0–12 (Advanced)</h1>
+  <p style="margin:6px 0 0 0;opacity:.95">Practice facts • chart • speed quiz • export CSV — built for rapid mastery.</p>
+</header>
+
+<main>
+  <!-- Intro -->
+  <section aria-labelledby="introTitle">
+    <h2 id="introTitle">Intro & Concept</h2>
+    <p>Division splits a number into equal groups. It's the inverse of multiplication. If you know your multiplication table, division becomes quick: <strong>12 ÷ 3 = 4</strong> because 3 × 4 = 12.</p>
+    <div class="status" style="margin-top:8px">
+      <div class="pill" id="score">Score: 0</div>
+      <div class="muted" id="streak">Streak: 0</div>
+    </div>
+  </section>
+
+  <!-- Chart -->
+  <section aria-labelledby="chartTitle">
+    <h2 id="chartTitle">Division Chart (0–12)</h2>
+    <p class="muted">Click a cell to preload a practice question. Use the arrows to scroll (visual scroll).</p>
+    <div class="controls" style="margin-bottom:10px">
+      <button id="downloadCSVBtn" class="secondary">⬇️ Download CSV (0–12)</button>
+      <button id="showAllBtn" class="ghost">Show All</button>
+      <button id="printBtn" class="ghost">Print Chart</button>
+    </div>
+    <div style="border-radius:8px;overflow:hidden;border:1px solid #e6f6ff">
+      <canvas id="chartCanvas" width="900" height="420" aria-label="division facts chart"></canvas>
+    </div>
+    <div style="margin-top:8px" class="controls">
+      <button id="chartUp">⬆️ Up</button>
+      <button id="chartDown">⬇️ Down</button>
+      <div class="muted" id="chartInfo"></div>
+    </div>
+  </section>
+
+  <!-- Quick practice -->
+  <section aria-labelledby="practiceTitle">
+    <h2 id="practiceTitle">Quick Practice</h2>
+    <p>Type the answer and check — instant feedback.</p>
+    <div class="grid cols-4" style="margin-top:10px">
+      <div class="tile">
+        <div style="font-weight:700">16 ÷ 4 = ?</div>
+        <input id="q1" type="number" placeholder="answer">
+        <div style="margin-top:6px"><button onclick="check('q1',4)">Check</button></div>
+        <div id="r1" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">35 ÷ 7 = ?</div>
+        <input id="q2" type="number" placeholder="answer">
+        <div style="margin-top:6px"><button onclick="check('q2',5)">Check</button></div>
+        <div id="r2" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">56 ÷ 8 = ?</div>
+        <input id="q3" type="number" placeholder="answer">
+        <div style="margin-top:6px"><button onclick="check('q3',7)">Check</button></div>
+        <div id="r3" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">24 ÷ 6 = ?</div>
+        <input id="q4" type="number" placeholder="answer">
+        <div style="margin-top:6px"><button onclick="check('q4',4)">Check</button></div>
+        <div id="r4" class="answer"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Challenge -->
+  <section aria-labelledby="challengeTitle">
+    <h2 id="challengeTitle">Interactive Division Challenge</h2>
+    <p>Randomized facts — press New to get a question. Use the check button or press Enter.</p>
+    <div class="controls" style="margin-top:10px;align-items:center">
+      <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+      <input id="challengeInput" type="number" placeholder="your answer" style="width:110px">
+      <button id="challengeCheck">Check</button>
+      <button id="challengeNew" class="secondary">New Question</button>
+      <div id="challengeResult" class="answer"></div>
+    </div>
+  </section>
+
+  <!-- Speed Quiz -->
+  <section aria-labelledby="speedTitle">
+    <h2 id="speedTitle">⚡ Division Speed Quiz (timed)</h2>
+    <p>Pick a duration, press Start, answer as many as you can. Score & accuracy tracked.</p>
+    <div class="controls" style="align-items:center">
+      <label>Duration:
+        <select id="quizDuration">
+          <option value="30">30s</option>
+          <option value="45">45s</option>
+          <option value="60" selected>60s</option>
+        </select>
+      </label>
+      <button id="startQuiz" class="warn">Start Quiz</button>
+      <button id="stopQuiz" class="ghost">Stop</button>
+      <div class="muted" id="quizTimer">Time: 0</div>
+      <div id="quizScore" class="pill">Correct: 0</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+      <div style="margin-top:8px" class="controls">
+        <input id="quizInput" type="number" placeholder="answer" style="width:140px">
+        <button id="quizCheck" class="secondary">Submit</button>
+        <div id="quizFeedback" class="answer"></div>
+      </div>
+      <p class="muted" style="margin-top:8px">Shortcut: press Enter to submit while input active. Space to seed new question (during quiz).</p>
+    </div>
+  </section>
+
+  <!-- Word problems -->
+  <section aria-labelledby="wordTitle">
+    <h2 id="wordTitle">Word Problems (division)</h2>
+    <div style="margin-top:8px" class="grid cols-4">
+      <div class="tile">
+        <div style="font-weight:700">1) 24 apples into 6 baskets. Each basket gets?</div>
+        <input id="w1" type="number"><button style="margin-top:6px" onclick="check('w1',4)">Check</button>
+        <div id="wr1" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">2) 30 students, 5 per row. How many rows?</div>
+        <input id="w2" type="number"><button style="margin-top:6px" onclick="check('w2',6)">Check</button>
+        <div id="wr2" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">3) 45 cookies shared by 9 kids. Each gets?</div>
+        <input id="w3" type="number"><button style="margin-top:6px" onclick="check('w3',5)">Check</button>
+        <div id="wr3" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">4) 56 ÷ 7 = ?</div>
+        <input id="w4" type="number"><button style="margin-top:6px" onclick="check('w4',8)">Check</button>
+        <div id="wr4" class="answer"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Tip: division facts are just multiplication facts reversed. Practice quick sprints daily. Keyboard: Enter to submit quiz answers.</footer>
+</main>
+
+<script>
+/* ===== utilities ===== */
+const speak = (t)=>{ try{ const s=new SpeechSynthesisUtterance(t); s.lang='en-US'; speechSynthesis.cancel(); speechSynthesis.speak(s);}catch(e){} };
+const tone = (f=880,d=0.06)=>{ try{ const A=new (window.AudioContext||window.webkitAudioContext)(); const o=A.createOscillator(); const g=A.createGain(); o.type='sine'; o.frequency.value=f; g.gain.value=0.0001; o.connect(g); g.connect(A.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d); setTimeout(()=>{ o.stop(); A.close().catch(()=>{}); }, d*1000+50);}catch(e){} };
+
+/* ===== Chart drawing (division table 0-12) ===== */
+const chartCanvas = document.getElementById('chartCanvas');
+const ctx = chartCanvas.getContext('2d');
+const COLS = 13, ROWS = 13;
+let chartOffset = 0; // scroll offset in rows (0..)
+function drawChart(){
+  ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
+  const pad=12;
+  const w = chartCanvas.width - pad*2, h = chartCanvas.height - pad*2;
+  const cellW = Math.floor(w / COLS), cellH = Math.floor(h / ROWS);
+  ctx.font = `${Math.min(16, Math.floor(cellH*0.45))}px Arial`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const x = pad + c*cellW, y = pad + r*cellH;
+      ctx.strokeStyle = '#e6f6ff';
+      ctx.strokeRect(x,y,cellW,cellH);
+      if(r===0 && c===0) continue;
+      // header row or header col
+      if(r===0 || c===0){
+        ctx.fillStyle = '#eef9ff';
+        ctx.fillRect(x,y,cellW,cellH);
+        ctx.fillStyle = '#04263b';
+        const label = r===0 ? c : r;
+        ctx.fillText(label.toString(), x + cellW/2, y + cellH/2);
+        continue;
+      }
+      // fill cell with "dividend ÷ divisor = quotient"
+      // dividend is r*c, divisor is c, quotient r
+      const dividend = r*c;
+      const divisor = c;
+      const quotient = r;
+      // if the vertical scroll offset shifts rows, adjust visibility
+      ctx.fillStyle = '#04263b';
+      ctx.fillText(`${dividend} ÷ ${divisor} = ${quotient}`, x + cellW/2, y + cellH/2);
+    }
+  }
+  document.getElementById('chartInfo').textContent = `Showing full 0–12 table`;
+}
+drawChart();
+
+document.getElementById('chartUp').addEventListener('click', ()=>{
+  chartOffset = Math.max(0, chartOffset-1);
+  // currently full chart; kept for future enhancement
+  drawChart();
+});
+document.getElementById('chartDown').addEventListener('click', ()=>{
+  chartOffset++;
+  drawChart();
+});
+document.getElementById('showAllBtn').addEventListener('click', ()=> drawChart());
+document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+
+/* download CSV */
+document.getElementById('downloadCSVBtn').addEventListener('click', ()=>{
+  let rows = [];
+  // produce header
+  rows.push(['dividend','divisor','quotient']);
+  for(let d=0; d<=12; d++){
+    for(let div=1; div<=12; div++){
+      const q = (div===0)? '' : (d/div);
+      // The conventional mapping for division facts 0-12 often uses product/divisor mapping.
+      // We'll include dividend from 0..144, divisor 1..12, quotient decimal if needed.
+      rows.push([d*div, div, d]); // ensure consistent pairs: (d*div) ÷ div = d
+    }
+  }
+  // create CSV text
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'division_facts_0-12.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ===== Quick check function used by many small tiles ===== */
+function check(inputId, correct){
+  const val = parseInt(document.getElementById(inputId).value,10);
+  const resId = 'r' + inputId.replace(/[^\d]/g,'');
+  // some tiles use r1..r4, others use wr1 etc; fallback detection:
+  const candidateIds = [ 'r' + inputId.replace(/[^\d]/g,''), 'wr' + inputId.replace(/[^\d]/g,''), 'a' + inputId ];
+  let target = null;
+  for(const id of candidateIds){
+    if(document.getElementById(id)){ target = document.getElementById(id); break; }
+  }
+  if(!target) target = document.getElementById(inputId) || document.createElement('div');
+  if(!isNaN(val) && val === correct){
+    target.textContent = '✅ Correct!';
+    target.className = 'answer ok';
+    tone(880,0.06); updateScore(1);
+  } else {
+    target.textContent = '❌ Try again';
+    target.className = 'answer bad';
+    tone(220,0.06); updateScore(0);
+  }
+}
+
+/* ===== Interactive Challenge (single random question) ===== */
+let currentCorrect = null;
+function newChallenge(){
+  const a = randomInt(0,12);
+  const b = randomInt(1,12);
+  const product = a*b;
+  document.getElementById('challengeQ').textContent = `${product} ÷ ${b} = ?`;
+  currentCorrect = a;
+  document.getElementById('challengeInput').value = '';
+  document.getElementById('challengeResult').textContent = '';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', ()=>{
+  const v = parseInt(document.getElementById('challengeInput').value,10);
+  const res = document.getElementById('challengeResult');
+  if(v === currentCorrect){
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880,0.06); updateScore(1);
+  } else {
+    res.textContent = '❌ Nope — try again';
+    res.className = 'answer bad';
+    tone(220,0.06); updateScore(0);
+  }
+});
+newChallenge();
+
+/* ===== Speed Quiz logic ===== */
+let quizTimer = null;
+let quizTimeLeft = 0;
+let quizRunning = false;
+let quizCorrect = 0;
+let quizQuestion = null;
+
+function seedQuizQuestion(){
+  // ask product ÷ divisor = ?
+  const a = randomInt(0,12);
+  const b = randomInt(1,12);
+  const product = a*b;
+  quizQuestion = {a, b, product};
+  document.getElementById('quizQ').textContent = `${product} ÷ ${b} = ?`;
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+function updateQuizTimerUI(){
+  document.getElementById('quizTimer').textContent = `Time: ${quizTimeLeft}`;
+}
+function startQuiz(){
+  if(quizRunning) return;
+  const dur = parseInt(document.getElementById('quizDuration').value,10);
+  quizTimeLeft = dur;
+  quizCorrect = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizCorrect}`;
+  quizRunning = true;
+  seedQuizQuestion();
+  updateQuizTimerUI();
+  quizTimer = setInterval(()=>{
+    quizTimeLeft--;
+    updateQuizTimerUI();
+    if(quizTimeLeft <= 0){
+      stopQuiz();
+      document.getElementById('quizFeedback').textContent = `Time's up! You got ${quizCorrect} correct.`;
+      speak(`Time's up. You got ${quizCorrect} correct.`);
+    }
+  },1000);
+}
+function stopQuiz(){
+  quizRunning = false;
+  clearInterval(quizTimer);
+  quizTimer = null;
+}
+document.getElementById('startQuiz').addEventListener('click', startQuiz);
+document.getElementById('stopQuiz').addEventListener('click', ()=>{ stopQuiz(); document.getElementById('quizTimer').textContent='Time: 0'; });
+
+document.getElementById('quizCheck').addEventListener('click', ()=>{
+  if(!quizQuestion) return;
+  const v = parseInt(document.getElementById('quizInput').value,10);
+  const fb = document.getElementById('quizFeedback');
+  if(v === quizQuestion.a){
+    quizCorrect++;
+    fb.textContent = '✅ Good!';
+    fb.className = 'answer ok';
+    tone(880,0.06);
+    updateScore(1);
+    if(quizRunning) seedQuizQuestion();
+  } else {
+    fb.textContent = '❌ Nope';
+    fb.className = 'answer bad';
+    tone(220,0.06);
+    updateScore(0);
+  }
+  document.getElementById('quizScore').textContent = `Correct: ${quizCorrect}`;
+});
+
+/* keyboard submit for inputs: Enter submits challenge & quiz input if focused */
+document.body.addEventListener('keydown',(e)=>{
+  const active = document.activeElement;
+  if(e.key === 'Enter'){
+    if(active && active.id === 'challengeInput'){ document.getElementById('challengeCheck').click(); }
+    if(active && active.id === 'quizInput'){ document.getElementById('quizCheck').click(); }
+    if(active && active.id === 'quizInput' && !quizRunning) { /* no-op */ }
+  }
+  if(e.key === ' ' && quizRunning){ // seed new question quickly
+    e.preventDefault();
+    seedQuizQuestion();
+  }
+});
+
+/* ===== scoreboard updates ===== */
+let totalScore = 0, streak = 0;
+function updateScore(points){
+  if(points>0){ totalScore += points; streak++; } else { streak=0; }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== helpers ===== */
+function randomInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+/* ===== init ===== */
+drawChart();
+newChallenge();
+
+/* small UI niceties */
+document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+</script>
+</body>
+</html>

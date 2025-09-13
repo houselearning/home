@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Grade 3 — Multiplication Facts 0–12 (HUGE Lesson)</title>
+<style>
+  :root{
+    --bg:#f7fbff; --card:#ffffff; --accent:#0ea5e9; --accent-2:#0284c7; --ok:#16a34a; --bad:#ef4444;
+    --muted:#475569;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: "Segoe UI", Roboto, "Comic Sans MS", system-ui, -apple-system;
+    background:var(--bg); color:#0f172a; line-height:1.45;
+  }
+  header{
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:white; padding:22px 14px; text-align:center; box-shadow:0 6px 20px rgba(2,6,23,0.12);
+  }
+  header h1{margin:0;font-size:clamp(20px,3.2vw,32px)}
+  header p{margin:6px 0 0; opacity:.95}
+  main{max-width:1200px;margin:20px auto;padding:16px}
+  section{background:var(--card); border-radius:12px; padding:16px; margin:16px 0; box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+  h2{color:var(--accent-2); margin:0 0 10px 0}
+  .intro-grid{display:grid; gap:12px}
+  @media(min-width:900px){ .intro-grid{grid-template-columns:1fr 420px} }
+
+  .box { padding:12px; border-radius:10px; background:#fbfeff; border:1px solid #e6f6ff }
+  .inline-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{background:var(--accent-2); color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700}
+  button.alt{background:#06b6d4}
+  button.ghost{background:#e6f6ff; color:var(--accent-2); font-weight:700; border:1px solid #d1f3ff}
+  button.warn{background:#f97316}
+  .small{padding:6px 10px; font-size:.95rem}
+  input[type=number], input[type=text], select{
+    padding:8px;border-radius:8px;border:1px solid #dbeafe;font-size:1rem;
+  }
+  .canvas-wrap{border-radius:10px; overflow:hidden; border:1px solid #e6f6ff}
+  canvas{display:block;width:100%;height:auto;background:linear-gradient(180deg,#ffffff,#f0fbff);}
+
+  /* Flashcard area */
+  .flash {
+    display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap;
+  }
+  .card {
+    width:260px; height:160px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:36px; font-weight:800; background:linear-gradient(180deg,#fff,#f6faff); border:2px solid #e6f6ff;
+    box-shadow:0 8px 18px rgba(2,6,23,0.06);
+    user-select:none;
+  }
+  .controls{display:flex;gap:8px;flex-wrap:wrap; justify-content:center; margin-top:10px}
+
+  /* grid games */
+  .grid{display:grid; gap:10px}
+  .grid.cols-6{grid-template-columns:repeat(6,1fr)}
+  .grid.cols-4{grid-template-columns:repeat(4,1fr)}
+  .tile{background:#fff;padding:10px;border-radius:8px;text-align:center;border:1px solid #eef6ff;cursor:pointer;font-weight:700}
+
+  .status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .score-pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+  .progress{height:12px;background:#eef2ff;border-radius:999px;overflow:hidden;width:180px}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,#06b6d4,#0ea5e9);width:0%}
+
+  .muted{color:var(--muted)}
+  footer{padding:14px;text-align:center;color:#334155;font-size:.95rem}
+  a.plain{color:var(--accent-2); text-decoration:underline}
+
+  /* small helpers */
+  .hint{font-size:.95rem;color:#334155;background:#f8fcff;padding:8px;border-radius:8px;border:1px dashed #d9f5ff}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>GRADE 3 — Multiplication Facts 0–12 (Huge Lesson)</h1>
+  <p>Arrays • Skip-counting • Facts • Drill modes • Timed sprints • Mastery tracking — all in one place.</p>
+</header>
+
+<main>
+  <!-- Intro -->
+  <section>
+    <h2>Intro & Why It Matters</h2>
+    <div class="intro-grid">
+      <div>
+        <p>Multiplication is repeated addition. Grade 3 goal: know facts 0×–12× from memory. You’ll build speed and understanding via visuals and practice. This lesson has multiple activities — pick one or blast through them all.</p>
+
+        <div class="status" style="margin-top:12px">
+          <div class="score-pill" id="scoreDisplay">Score: 0</div>
+          <div class="progress" aria-hidden="true"><i id="masterBar" style="width:0%"></i></div>
+          <div class="muted" id="streak">Streak: 0</div>
+        </div>
+
+        <div style="margin-top:10px" class="hint">
+          Tip: multiplication is commutative — 3×5 = 5×3. Learn half the chart and you get the other half free.
+        </div>
+      </div>
+
+      <div class="box">
+        <h3 style="margin:6px 0">Quick Guide</h3>
+        <ul style="margin:6px 0 0 18px">
+          <li>Start with arrays (visual)</li>
+          <li>Master basic facts (0–5) then 6–12</li>
+          <li>Use the timed sprint for quick recall</li>
+          <li>Practice matching and fill-ins to reinforce</li>
+        </ul>
+        <div style="margin-top:10px" class="inline-row">
+          <button id="btnPlayAudio" class="small">🔊 Read Tips</button>
+          <button id="btnResetMaster" class="ghost small">Reset Progress</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Arrays & Visuals -->
+  <section>
+    <h2>Arrays & Visuals</h2>
+    <p>Arrays show multiplication as rows × columns. Try the controls to visualize.</p>
+    <div class="canvas-wrap">
+      <canvas id="arrayCanvas" width="760" height="260" aria-label="Multiplication arrays"></canvas>
+    </div>
+    <div class="controls" style="margin-top:8px">
+      <label>Rows
+        <select id="rowsSel">
+          <!-- 0 allowed to show nothing, but default 3 -->
+          <option>0</option><option>1</option><option>2</option><option selected>3</option>
+          <option>4</option><option>5</option><option>6</option><option>8</option><option>10</option>
+        </select>
+      </label>
+      <label>Cols
+        <select id="colsSel">
+          <option>0</option><option>1</option><option>2</option><option selected>4</option>
+          <option>5</option><option>6</option><option>8</option><option>10</option>
+        </select>
+      </label>
+      <button id="drawArrayBtn" class="alt">Draw Array</button>
+      <button id="explainArray" class="ghost">Explain</button>
+    </div>
+    <p class="muted" id="arrayLabel"></p>
+  </section>
+
+  <!-- Skip counting & Number line -->
+  <section>
+    <h2>Skip-Counting & Number Line</h2>
+    <p>Skip-counting helps memorization: for 4×, count by 4s. Use the number line to see jumps.</p>
+    <div class="inline-row" style="margin-top:8px">
+      <label>Count by
+        <select id="skipBy">
+          <!-- 0–12 options -->
+          <option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option>
+          <option>10</option><option>11</option><option>12</option>
+        </select>
+      </label>
+      <button id="skipBtn" class="alt">Show Jumps</button>
+    </div>
+
+    <div class="canvas-wrap" style="margin-top:12px">
+      <canvas id="lineCanvas" width="760" height="140" aria-label="number line"></canvas>
+    </div>
+  </section>
+
+  <!-- Multiplication chart 0-12 -->
+  <section>
+    <h2>Multiplication Chart (0–12)</h2>
+    <p>Click a cell to hear/use it. Use the buttons to show/hide facts or to print the table.</p>
+    <div class="inline-row" style="margin-bottom:8px">
+      <button id="showAll" class="small">Show All</button>
+      <button id="hideOnes" class="small ghost">Hide Ones (0× or ×0)</button>
+      <button id="printChart" class="small">Print Chart</button>
+      <button id="downloadChart" class="small alt">Download CSV</button>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="chartCanvas" width="760" height="420" aria-label="multiplication chart"></canvas>
+    </div>
+    <p class="muted">Tip: practice rows & columns by clicking numbers — the drill area will preload facts for you.</p>
+  </section>
+
+  <!-- Flashcards -->
+  <section>
+    <h2>Flashcards (Auto / Manual)</h2>
+    <p>Use flashcards to build automatic recall. Toggle auto mode for a spaced practice vibe.</p>
+    <div class="flash" aria-live="polite">
+      <div class="card" id="flashCard" role="status" aria-atomic="true">3 × 4</div>
+    </div>
+    <div class="controls">
+      <button id="prevCard" class="ghost small">◀ Prev</button>
+      <button id="showAns" class="small">Show Answer</button>
+      <button id="nextCard" class="ghost small">Next ▶</button>
+      <button id="autoToggle" class="alt small">Auto: OFF</button>
+      <label style="margin-left:8px">Speed:
+        <select id="autoSpeed">
+          <option value="2000">2s</option><option value="3000" selected>3s</option><option value="4000">4s</option>
+        </select>
+      </label>
+    </div>
+    <div style="margin-top:10px" class="muted">Keyboard: ← → = prev/next • Space = show answer • A = toggle auto</div>
+  </section>
+
+  <!-- Fill-in practice -->
+  <section>
+    <h2>Fill-in Practice (Targeted)</h2>
+    <p>Pick a row (multiplier) and practice that set. Adaptive: correct answers reduce future frequency.</p>
+    <div class="inline-row">
+      <label>Pick multiplier:
+        <select id="targetRow">
+          <option value="0">0</option><option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option>
+          <option>10</option><option>11</option><option>12</option>
+        </select>
+      </label>
+      <button id="startTarget" class="alt">Start Practice</button>
+      <button id="shuffleTarget" class="ghost">Shuffle</button>
+    </div>
+
+    <div id="targetArea" style="margin-top:12px">
+      <p id="targetPrompt" style="font-weight:800; font-size:1.25rem"></p>
+      <input id="targetInput" type="number" placeholder="Type product">
+      <button id="targetCheck">Check</button>
+      <div id="targetFeedback" class="muted"></div>
+    </div>
+  </section>
+
+  <!-- Timed Sprint -->
+  <section>
+    <h2>Timed Sprint (60s)</h2>
+    <p>Beat the clock! You’ll get random facts across 0–12. Track how many you get right in 60 seconds.</p>
+    <div class="inline-row">
+      <button id="startSprint" class="warn">Start 60s Sprint</button>
+      <span class="muted" id="sprintTimer">Time: 60</span>
+      <span style="margin-left:12px" id="sprintScore">Correct: 0</span>
+    </div>
+    <div id="sprintArea" style="margin-top:12px">
+      <p id="sprintQ" style="font-size:1.6rem;font-weight:800"></p>
+      <input id="sprintA" type="number" placeholder="Answer">
+      <button id="sprintCheck" class="small">Submit</button>
+      <div id="sprintFeedback" class="muted"></div>
+    </div>
+  </section>
+
+  <!-- Matching Game -->
+  <section>
+    <h2>Matching Game: Pair products to problems</h2>
+    <p>Drag problem tiles to match the correct answer tile. Easy mode uses 8 pairs; hard uses 16 pairs.</p>
+    <div class="inline-row">
+      <button id="startMatch8" class="small ghost">Start 8 Pairs</button>
+      <button id="startMatch16" class="small alt">Start 16 Pairs</button>
+      <span id="matchMsg" class="muted"></span>
+    </div>
+    <div id="matchBoard" style="margin-top:12px"></div>
+  </section>
+
+  <!-- Printable/Export -->
+  <section>
+    <h2>Printable & Download</h2>
+    <p>Download a printable multiplication chart or CSV of facts for practice/printing.</p>
+    <div class="inline-row">
+      <button id="downloadCSV" class="alt">Download CSV</button>
+      <button id="downloadTXT" class="ghost">Download Practice Sheet</button>
+    </div>
+  </section>
+
+  <footer>
+    Built for Grade 3 mastery — practice daily, be ruthless with mistakes, and celebrate small wins. Keyboard shortcuts: Space=show answer • ←/→ = cards • A = auto flashcards • S = start sprint.
+  </footer>
+</main>
+
+<script>
+/* ======== Utilities ======== */
+const speak = (text) => {
+  try{
+    const ut = new SpeechSynthesisUtterance(text);
+    ut.lang='en-US';
+    speechSynthesis.cancel();
+    speechSynthesis.speak(ut);
+  }catch(e){}
+};
+const tone = (f=880,d=0.08) => {
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type='sine'; o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + d);
+    setTimeout(()=>{ o.stop(); ctx.close().catch(()=>{}); }, d*1000+50);
+  }catch(e){}
+};
+
+/* ======== Array Canvas ======== */
+const arrayCanvas = document.getElementById('arrayCanvas');
+const AC = arrayCanvas.getContext('2d');
+function drawArray(rows, cols){
+  AC.clearRect(0,0,arrayCanvas.width,arrayCanvas.height);
+  if(rows<=0 || cols<=0) { document.getElementById('arrayLabel').textContent='No array'; return; }
+  const pad = 20;
+  const w = arrayCanvas.width - pad*2, h = arrayCanvas.height - pad*2;
+  const cell = Math.min(Math.floor(w/cols), Math.floor(h/rows));
+  const startX = (arrayCanvas.width - cell*cols)/2;
+  const startY = (arrayCanvas.height - cell*rows)/2;
+  AC.font = '18px Arial'; AC.textAlign='center'; AC.textBaseline='middle';
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const x = startX + c*cell, y = startY + r*cell;
+      AC.fillStyle = '#06b6d4';
+      AC.fillRect(x+4,y+4,cell-8,cell-8);
+      AC.strokeStyle = '#0284c7';
+      AC.strokeRect(x+4,y+4,cell-8,cell-8);
+    }
+  }
+  document.getElementById('arrayLabel').textContent = `${rows} × ${cols} = ${rows*cols}`;
+}
+
+/* init array controls */
+document.getElementById('drawArrayBtn').addEventListener('click', ()=>{
+  const r = parseInt(document.getElementById('rowsSel').value,10);
+  const c = parseInt(document.getElementById('colsSel').value,10);
+  drawArray(r,c);
+  speak(`${r} times ${c} equals ${r*c}`);
+});
+document.getElementById('explainArray').addEventListener('click', ()=>{
+  const r = parseInt(document.getElementById('rowsSel').value,10);
+  const c = parseInt(document.getElementById('colsSel').value,10);
+  if(r<=0||c<=0){ alert('Choose rows and columns > 0'); return; }
+  alert(`${r} groups of ${c} is ${r*c}. Visualize ${c} objects in each of ${r} rows.`);
+});
+
+/* ======== Skip counting / number line ======== */
+const lineC = document.getElementById('lineCanvas');
+const LC = lineC.getContext('2d');
+function drawNumberLine(step){
+  LC.clearRect(0,0,lineC.width,lineC.height);
+  const left=30, right=lineC.width-30, y=70;
+  LC.strokeStyle='#334155'; LC.lineWidth=2; LC.beginPath(); LC.moveTo(left,y); LC.lineTo(right,y); LC.stroke();
+  const max=60; const ticks = Math.floor((right-left)/10);
+  const scale = (right-left)/max;
+  LC.fillStyle='#334155'; LC.font='12px Arial'; LC.textAlign='center';
+  for(let v=0; v<=max; v+=step){
+    const x = left + v*scale;
+    LC.beginPath(); LC.moveTo(x,y-7); LC.lineTo(x,y+7); LC.stroke();
+    LC.fillText(v.toString(), x, y+22);
+  }
+  // illustrate first 5 jumps
+  let cur=0;
+  LC.strokeStyle='#06b6d4'; LC.lineWidth=3;
+  for(let j=0;j<5;j++){
+    const x1=left+cur*scale;
+    const x2=left+(cur+step)*scale;
+    LC.beginPath();
+    const xm = (x1+x2)/2;
+    LC.quadraticCurveTo(xm, y-30, x2, y);
+    LC.stroke();
+    cur+=step;
+  }
+}
+document.getElementById('skipBtn').addEventListener('click', ()=>{
+  const step = parseInt(document.getElementById('skipBy').value,10);
+  if(step<=0) return drawNumberLine(1);
+  drawNumberLine(step);
+  speak(`Skip counting by ${step}`);
+});
+
+/* ======== Multiplication Chart Canvas (0-12) ======== */
+const chartCanvas = document.getElementById('chartCanvas');
+const CC = chartCanvas.getContext('2d');
+const CH_COLS = 13; // 0..12 columns
+const CH_ROWS = 13; // 0..12 rows
+let chartState = { highlight: null }; // {r,c}
+function drawChart(){
+  CC.clearRect(0,0,chartCanvas.width,chartCanvas.height);
+  const pad=10; const w=chartCanvas.width-pad*2, h=chartCanvas.height-pad*2;
+  const cellW = Math.floor(w / CH_COLS), cellH = Math.floor(h / CH_ROWS);
+  CC.font = `${Math.min(cellH*0.45,18)}px Arial`; CC.textAlign='center'; CC.textBaseline='middle';
+  for(let r=0;r<CH_ROWS;r++){
+    for(let c=0;c<CH_COLS;c++){
+      const x = pad + c*cellW, y = pad + r*cellH;
+      // header row/col style
+      if(r===0 || c===0){
+        CC.fillStyle = '#eef9ff';
+        CC.fillRect(x,y,cellW,cellH);
+        CC.strokeStyle = '#d0f1ff';
+        CC.strokeRect(x,y,cellW,cellH);
+        CC.fillStyle = '#0f172a';
+        if(r===0 && c===0) continue;
+        const label = r===0? c : r;
+        CC.fillText(label.toString(), x+cellW/2, y+cellH/2);
+      } else {
+        // cell
+        const val = r*c;
+        if(chartState.highlight && chartState.highlight.r===r && chartState.highlight.c===c){
+          CC.fillStyle = '#dff6ff';
+          CC.fillRect(x,y,cellW,cellH);
+        }
+        CC.strokeStyle = '#e6f6ff';
+        CC.strokeRect(x,y,cellW,cellH);
+        CC.fillStyle = '#0f172a';
+        CC.fillText(val.toString(), x+cellW/2, y+cellH/2);
+      }
+    }
+  }
+}
+drawChart();
+
+/* chart interaction */
+chartCanvas.addEventListener('click', (e)=>{
+  const rect = chartCanvas.getBoundingClientRect();
+  const pad=10; const w=chartCanvas.width-pad*2; const h=chartCanvas.height-pad*2;
+  const cellW = Math.floor(w / CH_COLS), cellH = Math.floor(h / CH_ROWS);
+  const cx = e.clientX - rect.left - pad, cy = e.clientY - rect.top - pad;
+  const col = Math.floor(cx / cellW), row = Math.floor(cy / cellH);
+  if(row<=0 || col<=0 || row>=CH_ROWS || col>=CH_COLS) { chartState.highlight=null; drawChart(); return; }
+  chartState.highlight = {r: row, c: col};
+  drawChart();
+  const val = row*col;
+  speak(`${row} times ${col} equals ${val}`);
+  // preload flashcard with this fact
+  flashQueue = [{a:row,b:col}]; showFlash(0);
+});
+
+/* chart controls */
+document.getElementById('showAll').addEventListener('click', ()=>{ chartState.highlight=null; drawChart() });
+document.getElementById('hideOnes').addEventListener('click', ()=>{
+  // redraw with zero row/col blanked
+  const old = CC.getImageData(0,0,chartCanvas.width, chartCanvas.height);
+  // We'll simply clear the 0 row/col by redrawing and erasing
+  CC.clearRect(0,0,chartCanvas.width,chartCanvas.height);
+  drawChart();
+  // Now shade row 0 and col 0 more strongly
+  CC.fillStyle = '#fffaf0';
+  const pad=10; const w=chartCanvas.width-pad*2; const h=chartCanvas.height-pad*2;
+  const cellW = Math.floor(w / CH_COLS), cellH = Math.floor(h / CH_ROWS);
+  CC.fillRect(pad, pad, cellW, h);
+  CC.fillRect(pad, pad, w, cellH);
+});
+document.getElementById('printChart').addEventListener('click', ()=>{ window.print(); });
+document.getElementById('downloadChart').addEventListener('click', ()=>{
+  // generate CSV
+  let csv=''; for(let r=0;r<CH_ROWS;r++){ let row=[]; for(let c=0;c<CH_COLS;c++){ row.push(r*c); } csv += row.join(',') + '\n'; }
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'multiplication_table_0-12.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ======== Flashcards ======== */
+const flashCard = document.getElementById('flashCard');
+let flashQueue = []; // array of {a,b}
+let flashIndex = 0;
+let autoTimer = null;
+let autoOn = false;
+function buildFullQueue(){
+  flashQueue = [];
+  for(let a=0;a<=12;a++){
+    for(let b=0;b<=12;b++){
+      flashQueue.push({a,b});
+    }
+  }
+  shuffleArray(flashQueue);
+}
+function showFlash(i){
+  flashIndex = i % flashQueue.length;
+  const f = flashQueue[flashIndex];
+  flashCard.textContent = `${f.a} × ${f.b}`;
+  flashCard.setAttribute('data-a', f.a); flashCard.setAttribute('data-b', f.b);
+}
+function showAnswer(){
+  const a = parseInt(flashCard.getAttribute('data-a'),10);
+  const b = parseInt(flashCard.getAttribute('data-b'),10);
+  const ans = a*b;
+  flashCard.textContent = `${a} × ${b} = ${ans}`;
+  tone(880,0.07);
+}
+document.getElementById('showAns').addEventListener('click', showAnswer);
+document.getElementById('nextCard').addEventListener('click', ()=>{
+  flashIndex = (flashIndex+1) % flashQueue.length; showFlash(flashIndex);
+});
+document.getElementById('prevCard').addEventListener('click', ()=>{
+  flashIndex = (flashIndex-1 + flashQueue.length) % flashQueue.length; showFlash(flashIndex);
+});
+document.getElementById('autoToggle').addEventListener('click', ()=>{
+  autoOn = !autoOn;
+  document.getElementById('autoToggle').textContent = `Auto: ${autoOn? 'ON':'OFF'}`;
+  if(autoOn){ startAuto(); } else { stopAuto(); }
+});
+function startAuto(){
+  stopAuto();
+  const speed = parseInt(document.getElementById('autoSpeed').value,10);
+  autoTimer = setInterval(()=>{ document.getElementById('nextCard').click(); showAnswer(); }, speed);
+}
+function stopAuto(){ if(autoTimer) clearInterval(autoTimer); autoTimer=null; }
+
+/* keyboard */
+window.addEventListener('keydown',(e)=>{
+  if(e.key===' '){ e.preventDefault(); showAnswer(); }
+  if(e.key==='ArrowRight'){ document.getElementById('nextCard').click(); }
+  if(e.key==='ArrowLeft'){ document.getElementById('prevCard').click(); }
+  if(e.key.toLowerCase()==='a'){ document.getElementById('autoToggle').click(); }
+  if(e.key.toLowerCase()==='s'){ document.getElementById('startSprint').click(); }
+});
+
+/* init flash queue */
+buildFullQueue();
+showFlash(0);
+
+/* ======== Fill-in targeted practice ======== */
+let targetSequence = [];
+let targetIndex = 0;
+function makeTargetSequence(mult){
+  targetSequence = [];
+  for(let i=0;i<=12;i++) targetSequence.push({a:mult,b:i});
+  shuffleArray(targetSequence);
+  targetIndex=0;
+  loadTarget();
+}
+function loadTarget(){
+  const t = targetSequence[targetIndex];
+  if(!t) { document.getElementById('targetPrompt').textContent='Done!'; return; }
+  document.getElementById('targetPrompt').textContent = `${t.a} × ${t.b} = ?`;
+  document.getElementById('targetInput').value='';
+  document.getElementById('targetFeedback').textContent='';
+}
+document.getElementById('startTarget').addEventListener('click', ()=>{
+  const m = parseInt(document.getElementById('targetRow').value,10);
+  makeTargetSequence(m);
+});
+document.getElementById('targetCheck').addEventListener('click', ()=>{
+  const v = parseInt(document.getElementById('targetInput').value,10);
+  const t = targetSequence[targetIndex];
+  const correct = t.a*t.b;
+  if(v===correct){ document.getElementById('targetFeedback').textContent='✅ Correct'; document.getElementById('targetFeedback').style.color='#16a34a'; targetIndex++; updateProgress(); loadTarget(); tone(1000,0.06); }
+  else { document.getElementById('targetFeedback').textContent='❌ Try again'; document.getElementById('targetFeedback').style.color='#ef4444'; tone(220,0.08); }
+});
+document.getElementById('shuffleTarget').addEventListener('click', ()=>{ shuffleArray(targetSequence); loadTarget(); });
+
+/* ======== Timed Sprint ======== */
+let sprintTimer = null, sprintTimeLeft = 60, sprintCorrect=0;
+function nextSprintQ(){
+  const a = randomInt(0,12), b = randomInt(0,12);
+  document.getElementById('sprintQ').textContent = `${a} × ${b} = ?`;
+  document.getElementById('sprintQ').setAttribute('data-ans', a*b);
+  document.getElementById('sprintA').value='';
+  document.getElementById('sprintFeedback').textContent='';
+}
+document.getElementById('startSprint').addEventListener('click', ()=>{
+  sprintTimeLeft=60; sprintCorrect=0; document.getElementById('sprintScore').textContent = 'Correct: 0';
+  document.getElementById('sprintTimer').textContent = 'Time: 60';
+  nextSprintQ();
+  if(sprintTimer) clearInterval(sprintTimer);
+  sprintTimer = setInterval(()=>{
+    sprintTimeLeft--; document.getElementById('sprintTimer').textContent = `Time: ${sprintTimeLeft}`;
+    if(sprintTimeLeft<=0){
+      clearInterval(sprintTimer); sprintTimer=null;
+      document.getElementById('sprintFeedback').textContent = `Time's up! You got ${sprintCorrect}.`;
+      speak(`Time's up. You got ${sprintCorrect} correct.`);
+    }
+  },1000);
+});
+document.getElementById('sprintCheck').addEventListener('click', ()=>{
+  const ans = parseInt(document.getElementById('sprintQ').getAttribute('data-ans'),10);
+  const v = parseInt(document.getElementById('sprintA').value,10);
+  if(v===ans){ sprintCorrect++; document.getElementById('sprintScore').textContent = `Correct: ${sprintCorrect}`; document.getElementById('sprintFeedback').textContent='✅ Nice!'; tone(880,0.06); nextSprintQ(); }
+  else { document.getElementById('sprintFeedback').textContent='❌ Try again'; tone(220,0.06); }
+});
+
+/* ======== Matching Game ======== */
+function startMatching(pairs=8){
+  const board = document.getElementById('matchBoard'); board.innerHTML='';
+  const items = [];
+  while(items.length < pairs){
+    const a = randomInt(0,12), b = randomInt(0,12);
+    const val = a*b;
+    // ensure unique products on board to avoid ambiguous matches
+    if(items.some(it => it.val===val)) continue;
+    items.push({problem:`${a}×${b}`, val, a,b});
+  }
+  // create tiles array: problems and answers
+  let tiles = [];
+  items.forEach(it => { tiles.push({type:'p', label:it.problem, id:it.problem, val:it.val}); tiles.push({type:'a', label:String(it.val), id:'v'+it.val, val:it.val}); });
+  shuffleArray(tiles);
+  // render as grid
+  const cols = Math.min(8, Math.ceil(Math.sqrt(tiles.length)));
+  const grid = document.createElement('div'); grid.className = 'grid cols-4'; // simple style
+  tiles.forEach(t=>{
+    const div = document.createElement('div'); div.className='tile'; div.textContent=t.label; div.setAttribute('data-id', t.id); div.setAttribute('draggable','true');
+    div.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', t.id));
+    div.addEventListener('click', ()=>{ /* click selection fallback */ });
+    grid.appendChild(div);
+  });
+  // create drop area for answers
+  const dropzone = document.createElement('div'); dropzone.style.marginTop='10px';
+  const instructions = document.createElement('div'); instructions.textContent='Drag a problem onto its matching answer tile.';
+  board.appendChild(instructions);
+  board.appendChild(grid);
+  // make answer tiles droppable (we find them by id starting with v)
+  grid.querySelectorAll('.tile').forEach(tile=>{
+    tile.addEventListener('dragover', e=> e.preventDefault());
+    tile.addEventListener('drop', e=>{
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const targetId = tile.getAttribute('data-id');
+      // a problem will be like "3×4", answer tile 'v12'
+      const draggedElem = grid.querySelector(`[data-id="${draggedId}"]`);
+      if(!draggedElem) return;
+      const draggedText = draggedElem.textContent;
+      const targetText = tile.textContent;
+      // compute values
+      if(draggedText.includes('×')){
+        // dropped a problem on a tile (maybe answer)
+        const parts = draggedText.split('×'); const a=parseInt(parts[0],10), b=parseInt(parts[1],10);
+        const val = a*b;
+        if(String(val) === targetText){
+          // correct: mark both removed or green
+          draggedElem.style.visibility='hidden'; tile.classList.add('correct'); tile.textContent = targetText + ' ✅';
+          tone(1000,0.06);
+        } else {
+          tile.classList.add('wrong'); setTimeout(()=>tile.classList.remove('wrong'),700); tone(220,0.06);
+        }
+      } else {
+        // if dragging an answer onto problem - allow both ways
+        const parts = targetId.includes('×') ? targetId.split('×') : null;
+        if(parts){
+          const a=parseInt(parts[0],10), b=parseInt(parts[1],10);
+          const val = a*b;
+          if(String(val) === draggedElem.textContent){
+            draggedElem.style.visibility='hidden'; tile.classList.add('correct'); tile.textContent = tile.textContent + ' ✅';
+            tone(1000,0.06);
+          } else { tile.classList.add('wrong'); setTimeout(()=>tile.classList.remove('wrong'),700); tone(220,0.06); }
+        }
+      }
+    });
+  });
+}
+document.getElementById('startMatch8').addEventListener('click', ()=> startMatching(8));
+document.getElementById('startMatch16').addEventListener('click', ()=> startMatching(16));
+
+/* ======== Downloads & Printables ======== */
+document.getElementById('downloadCSV').addEventListener('click', ()=>{
+  let csv=''; for(let r=0;r<=12;r++){ let row=[]; for(let c=0;c<=12;c++){ row.push(`${r}x${c}=${r*c}`); } csv += row.join(',') + '\n'; }
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='grade3_multiplication_facts.csv'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('downloadTXT').addEventListener('click', ()=>{
+  let text='Multiplication practice sheet (0-12)\n\n';
+  for(let r=0;r<=12;r++){
+    text += `\nRow ${r}: `;
+    for(let c=0;c<=12;c++) text += `${r}×${c} = ____   `;
+  }
+  const blob = new Blob([text], {type:'text/plain'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='mult_practice_sheet.txt'; a.click(); URL.revokeObjectURL(url);
+});
+
+/* ======== Matching utilities ======== */
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+function randomInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+/* ======== Mastery & score handling ======== */
+let globalScore = 0, streak = 0;
+function updateScore(points){
+  globalScore += points; streak = (points>0) ? streak+1 : 0;
+  document.getElementById('scoreDisplay').textContent = `Score: ${globalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+  const percent = Math.min(100, Math.round((globalScore / 100)*100)); // arbitrary scaling
+  document.getElementById('masterBar').style.width = percent + '%';
+}
+document.getElementById('btnResetMaster').addEventListener('click', ()=>{
+  globalScore=0; streak=0; updateScore(0); document.getElementById('masterBar').style.width='0%';
+  speak('Progress reset');
+});
+
+/* ======== Flashcard seeding via chart click handled above ======== */
+
+/* ======== Sprint shortcut and audio tips ======== */
+document.getElementById('btnPlayAudio').addEventListener('click', ()=> speak('Practice multiplication daily to build automaticity. Start with 0 to 5 and keep stacking. Use arrays and skip counting for support.') );
+
+/* ======== Printable: print triggered via printChart button earlier ======== */
+
+/* ======== Matching: helper for startMatching uses drag events set up there ======== */
+
+/* ======== Init draw chart & default visuals ======== */
+drawArray(3,4);
+drawNumberLine(2);
+drawChart();
+
+/* ======== Download CSV (top right duplicate control) ======== */
+document.getElementById('downloadCSV').addEventListener('click', ()=>{
+  // same as other CSV button (ensures both buttons work)
+  let csv=''; for(let r=0;r<=12;r++){ let row=[]; for(let c=0;c<=12;c++){ row.push(`${r}x${c}=${r*c}`); } csv += row.join(',') + '\n'; }
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='grade3_multiplication_facts.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+/* ======== Small helpers: ensure target practice is ready ======== */
+makeTargetSequence(2); // preload with 2's
+
+/* ======== Final keyboard tips ======== */
+document.addEventListener('keydown', (e)=>{
+  if(e.key===' '){ e.preventDefault(); showAnswer(); }
+  if(e.key==='ArrowRight') document.getElementById('nextCard').click();
+  if(e.key==='ArrowLeft') document.getElementById('prevCard').click();
+});
+</script>
+</body>
+</html>

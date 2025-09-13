@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Area Under a Curve</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Area Under a Curve 📐</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is the Area Under a Curve? 🤔</h2>
+<p>
+  The **area under a curve** represents the accumulated value of a quantity over an interval. In calculus, this is one of the main applications of the **definite integral**.
+</p>
+<p>
+  If a function $f(x)$ is positive on an interval $[a, b]$, the definite integral $\int_a^b f(x) \,dx$ gives the exact area between the curve, the x-axis, and the vertical lines at $x=a$ and $x=b$.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Approximating the Area 🎬</h2>
+<p>Before integrals, mathematicians used rectangles to approximate the area. Watch this video to see how this works!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Use the Fundamental Theorem of Calculus to find the area under the curve.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Find the area under $f(x) = 2x$ from $x=0$ to $x=4$.</div>
+    <select id="q1">
+      <option value="">Choose one...</option>
+      <option value="16">16</option>
+      <option value="8">8</option>
+      <option value="4">4</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q1', '16')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Find the area under $f(x)=x^2$ from $x=0$ to $x=3$.</div>
+    <select id="q2">
+      <option value="">Choose one...</option>
+      <option value="9">9</option>
+      <option value="3">3</option>
+      <option value="9/3">9</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q2', '9')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Find the area under $f(x)=x^3$ from $x=1$ to $x=2$.</div>
+    <select id="q3">
+      <option value="">Choose one...</option>
+      <option value="3">3</option>
+      <option value="3.75">3.75</option>
+      <option value="15/4">3.75</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q3', '3.75')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Find the area under $f(x)=5$ from $x=0$ to $x=6$.</div>
+    <select id="q4">
+      <option value="">Choose one...</option>
+      <option value="6">6</option>
+      <option value="30">30</option>
+      <option value="5">5</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q4', '30')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Area Under a Curve Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Type your answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Area Under a Curve is one of the most powerful concepts in calculus!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+      const A = new (window.AudioContext || window.webkitAudioContext)();
+      const o = A.createOscillator();
+      const g = A.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(A.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+      setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+      totalScore += points;
+      streak++;
+    } else {
+      streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim().toLowerCase().replace(/ /g, '');
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+    if (!res) {
+      console.error(`Result element with ID '${resultId}' not found.`);
+      return;
+    }
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === correct.toLowerCase().replace(/ /g, ''));
+    if (isCorrect) {
+      res.textContent = '✅ Correct!';
+      res.className = 'answer ok';
+      tone(880, 0.06);
+      updateScore(1);
+    } else {
+      res.textContent = `❌ Wrong (Answer: ${correct})`;
+      res.className = 'answer bad';
+      tone(220, 0.06);
+      updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawLine(x1, y1, x2, y2, color, thickness) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.stroke();
+}
+function drawText(text, x, y, color = '#04263b', size = '20px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+const tutorialSteps = [
+    { audio: "The area under a curve is the space between the function and the x-axis.", text: "Area Under Curve", viz: "area" },
+    { audio: "We can approximate this area by adding up the areas of many rectangles.", text: "Approximation with Rectangles", viz: "rectangles" },
+    { audio: "The more rectangles we use, the more accurate our approximation.", text: "More Rectangles = Better Approximation", viz: "more-rectangles" },
+    { audio: "The definite integral gives us the exact area.", text: "The Definite Integral", viz: "integral" },
+    { audio: "The Fundamental Theorem of Calculus lets us find the area by finding the antiderivative.", text: "∫ab f(x)dx = F(b)-F(a)", viz: "ftc" },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+      if (tutorialIndex >= tutorialSteps.length) {
+        if (callback) callback();
+        return;
+      }
+      const step = tutorialSteps[tutorialIndex];
+      const utterance = new SpeechSynthesisUtterance(step.audio);
+      utterance.rate = speed;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => {
+        tutorialIndex++;
+        nextStep();
+      };
+      ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+      drawText(step.text, tutorialCanvas.width / 2, 40);
+      
+      const w = tutorialCanvas.width, h = tutorialCanvas.height;
+      const centerX = w / 2, centerY = h * 0.8;
+      
+      // Draw axes
+      drawLine(w*0.1, centerY, w*0.9, centerY, '#566270', 2);
+      drawLine(centerX, h*0.1, centerX, h*0.9, '#566270', 2);
+      
+      const curve = (x) => 0.005 * (x - 100) * (x - 300) - 100;
+
+      if (step.viz === "area" || step.viz === "rectangles" || step.viz === "more-rectangles" || step.viz === "integral") {
+          // Draw the curve
+          ctx.beginPath();
+          for (let x = 0; x <= w; x++) {
+              ctx.lineTo(x, curve(x));
+          }
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          // Shade the area
+          ctx.beginPath();
+          ctx.moveTo(100, centerY);
+          for (let x = 100; x <= 300; x++) {
+              ctx.lineTo(x, curve(x));
+          }
+          ctx.lineTo(300, centerY);
+          ctx.fillStyle = 'rgba(29, 78, 216, 0.4)';
+          ctx.fill();
+      }
+
+      if (step.viz === "rectangles") {
+          let rectWidth = 50;
+          for (let i = 100; i < 300; i += rectWidth) {
+              let rectHeight = curve(i);
+              ctx.fillStyle = 'rgba(255, 127, 80, 0.7)';
+              ctx.fillRect(i, centerY - rectHeight, rectWidth, rectHeight);
+          }
+      } else if (step.viz === "more-rectangles") {
+          let rectWidth = 20;
+          for (let i = 100; i < 300; i += rectWidth) {
+              let rectHeight = curve(i);
+              ctx.fillStyle = 'rgba(255, 127, 80, 0.7)';
+              ctx.fillRect(i, centerY - rectHeight, rectWidth, rectHeight);
+          }
+      }
+      
+      speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const problems = [
+        { q: "Find the area under $f(x)=3x^2$ from $x=0$ to $x=2$.", a: "8" },
+        { q: "What is the name for the exact area under a curve?", a: "definite integral" },
+        { q: "If you take the integral of a velocity function, what do you find?", a: "displacement" },
+        { q: "Find the area under $f(x)=x^4$ from $x=0$ to $x=1$.", a: "1/5" },
+        { q: "What is the area under $f(x) = \sin(x)$ from $x=0$ to $x=\pi$?", a: "2" },
+    ];
+    return problems[Math.floor(Math.random() * problems.length)];
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = problem.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    if (window.MathJax) {
+        window.MathJax.typesetPromise([qEl]).catch(err => console.error("MathJax typesetting failed", err));
+    }
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+      quizTime--;
+      document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+      if (quizTime <= 0) {
+        clearInterval(quizTimerInt);
+        document.getElementById('quizQ').textContent = 'Time Up!';
+      }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/ /g, '');
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a.toLowerCase().replace(/ /g, '');
+    let isCorrect = (val === correctAnswer);
+    if (correctAnswer === '1/5' && (val === '0.2')) {
+        isCorrect = true;
+    }
+    if (correctAnswer === '2' && (val === '2.0')) {
+        isCorrect = true;
+    }
+    if (isCorrect) {
+      f.textContent = '✅ Correct!';
+      f.className = 'answer ok';
+      quizScore++;
+      document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+      tone(880, 0.06);
+    } else {
+      f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+      f.className = 'answer bad';
+      tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "area_under_curve_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

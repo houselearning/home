@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Money (Coins & Cash) - Kindergarten Lesson</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, sans-serif;
+      background: #fdf6e3;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      font-size: 32px;
+    }
+    .intro {
+      background: #ffeaa7;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .coin, .bill {
+      display: inline-block;
+      margin: 15px;
+      padding: 10px;
+      border: 2px solid #2c3e50;
+      background: #ecf0f1;
+      font-weight: bold;
+      cursor: grab;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .coin img, .bill img {
+      width: 80px;
+      height: 80px;
+      display: block;
+      margin: 0 auto 8px;
+    }
+    .coin {
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+    }
+    .bill {
+      width: 140px;
+      height: 100px;
+    }
+    .dropzone {
+      display: inline-block;
+      margin: 15px;
+      padding: 15px;
+      border: 2px dashed #2c3e50;
+      border-radius: 12px;
+      width: 150px;
+      height: 140px;
+      vertical-align: top;
+      background: #fff;
+    }
+    .correct {
+      background: #55efc4 !important;
+    }
+    .wrong {
+      background: #fab1a0 !important;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 20px;
+      border: none;
+      border-radius: 12px;
+      background: #0984e3;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #74b9ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>💵 Money Lesson: Coins & Cash</h1>
+  <div class="intro">
+    <h2>Introduction</h2>
+    <p>Today we’ll learn about both <b>coins</b> and <b>cash</b> (bills)! This is the money we use to buy things.</p>
+    <ul style="text-align:left;display:inline-block;">
+      <li>🟤 Penny = 1¢</li>
+      <li>🔵 Nickel = 5¢</li>
+      <li>⚪ Dime = 10¢</li>
+      <li>⚫ Quarter = 25¢</li>
+      <li>💵 $1 Bill = 100¢</li>
+      <li>💵 $5 Bill = 500¢</li>
+      <li>💵 $10 Bill = 1000¢</li>
+    </ul>
+  </div>
+
+  <h2>🎧 Listen and Learn</h2>
+  <p><button onclick="document.getElementById('audioPenny').play()">🔊 Penny</button></p>
+  <audio id="audioPenny" src="money/coin.mp3"></audio>
+
+  <p><button onclick="document.getElementById('audioNickel').play()">🔊 Nickel</button></p>
+  <audio id="audioNickel" src="money/coin.mp3"></audio>
+
+  <p><button onclick="document.getElementById('audioDime').play()">🔊 Dime</button></p>
+  <audio id="audioDime" src="money/coin.mp3"></audio>
+
+  <p><button onclick="document.getElementById('audioQuarter').play()">🔊 Quarter</button></p>
+  <audio id="audioQuarter" src="money/coin.mp3"></audio>
+
+  <p><button onclick="document.getElementById('audioOne').play()">🔊 $1 Bill</button></p>
+  <audio id="audioOne" src="money/money.mp3"></audio>
+
+  <p><button onclick="document.getElementById('audioFive').play()">🔊 $5 Bill</button></p>
+  <audio id="audioFive" src="money/money.mp3"></audio>
+
+  <p><button onclick="document.getElementById('audioTen').play()">🔊 $10 Bill</button></p>
+  <audio id="audioTen" src="money/money.mp3"></audio>
+
+  <h2>🪙💵 Drag the Money to Its Value</h2>
+  <button onclick="randomizeMoney()">🔀 Randomize Money</button>
+  
+  <div id="moneyContainer">
+    <div class="coin" draggable="true" id="penny">
+      <img src="money/penny.png" alt="Penny">
+      Penny
+    </div>
+    <div class="coin" draggable="true" id="nickel">
+      <img src="money/nickel.png" alt="Nickel">
+      Nickel
+    </div>
+    <div class="coin" draggable="true" id="dime">
+      <img src="money/dime.png" alt="Dime">
+      Dime
+    </div>
+    <div class="coin" draggable="true" id="quarter">
+      <img src="money/quarter.png" alt="Quarter">
+      Quarter
+    </div>
+    <div class="bill" draggable="true" id="one">
+      <img src="money/one.png" alt="$1 Bill">
+      $1 Bill
+    </div>
+    <div class="bill" draggable="true" id="five">
+      <img src="money/five.png" alt="$5 Bill">
+      $5 Bill
+    </div>
+    <div class="bill" draggable="true" id="ten">
+      <img src="money/ten.png" alt="$10 Bill">
+      $10 Bill
+    </div>
+  </div>
+
+  <div>
+    <div class="dropzone" data-coin="penny">1¢</div>
+    <div class="dropzone" data-coin="nickel">5¢</div>
+    <div class="dropzone" data-coin="dime">10¢</div>
+    <div class="dropzone" data-coin="quarter">25¢</div>
+    <div class="dropzone" data-coin="one">100¢ ($1)</div>
+    <div class="dropzone" data-coin="five">500¢ ($5)</div>
+    <div class="dropzone" data-coin="ten">1000¢ ($10)</div>
+  </div>
+
+  <h2 id="result"></h2>
+
+  <script>
+    function addDragEvents() {
+      const coins = document.querySelectorAll(".coin, .bill");
+      coins.forEach(coin => {
+        coin.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", coin.id);
+        });
+      });
+    }
+
+    const dropzones = document.querySelectorAll(".dropzone");
+    let score = 0;
+
+    dropzones.forEach(zone => {
+      zone.addEventListener("dragover", e => e.preventDefault());
+      zone.addEventListener("drop", e => {
+        e.preventDefault();
+        const coinId = e.dataTransfer.getData("text/plain");
+        if (coinId === zone.dataset.coin) {
+          if (!zone.classList.contains("correct")) {
+            zone.classList.add("correct");
+            zone.innerHTML = `✅ ${zone.innerHTML}`;
+            score++;
+          }
+        } else {
+          zone.classList.add("wrong");
+          zone.innerHTML = `❌ ${zone.innerHTML}`;
+        }
+        if (score === document.querySelectorAll(".coin, .bill").length) {
+          document.getElementById("result").innerText = "🎉 Awesome job! You matched all the money!";
+        }
+      });
+    });
+
+    function randomizeMoney() {
+      const container = document.getElementById("moneyContainer");
+      const items = Array.from(container.children);
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        container.appendChild(items[j]);
+        items.splice(j, 1);
+      }
+      score = 0;
+      document.getElementById("result").innerText = "";
+      dropzones.forEach(zone => {
+        zone.classList.remove("correct", "wrong");
+        zone.innerHTML = zone.getAttribute("data-coin") === "penny" ? "1¢" :
+                         zone.getAttribute("data-coin") === "nickel" ? "5¢" :
+                         zone.getAttribute("data-coin") === "dime" ? "10¢" :
+                         zone.getAttribute("data-coin") === "quarter" ? "25¢" :
+                         zone.getAttribute("data-coin") === "one" ? "100¢ ($1)" :
+                         zone.getAttribute("data-coin") === "five" ? "500¢ ($5)" :
+                         "1000¢ ($10)";
+      });
+    }
+
+    addDragEvents();
+  </script>
+</body>
+</html>

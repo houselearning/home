@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Parametric Equations</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Parametric Equations ➡️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What Are Parametric Equations? 🕰️</h2>
+<p>
+  **Parametric equations** define a curve by expressing its coordinates ($x$ and $y$) as functions of a single independent variable, called a **parameter** (usually $t$).
+</p>
+<p>
+  Instead of writing $y = f(x)$, we have a pair of equations:
+  <ul>
+    <li>$x = x(t)$</li>
+    <li>$y = y(t)$</li>
+  </ul>
+  Think of the parameter $t$ as **time**. As $t$ changes, the point $(x,y)$ moves along a path. This is useful for describing the motion of an object.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Visualizing a Parametric Curve 🎬</h2>
+<p>Watch this video to see how a point moves along a path as the parameter changes.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Convert the given parametric equations to a single Cartesian equation by eliminating the parameter.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) $x = t+2, y = t^2+1$</div>
+    <select id="q1">
+      <option value="">Choose one...</option>
+      <option value="y=(x-2)^2+1">$y=(x-2)^2+1$</option>
+      <option value="y=x^2+1">$y=x^2+1$</option>
+      <option value="x=y^2+3">$x=y^2+3$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q1', 'y=(x-2)^2+1')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) $x = \cos\theta, y = \sin\theta$</div>
+    <select id="q2">
+      <option value="">Choose one...</option>
+      <option value="y=tan(x)">$y=\tan(x)$</option>
+      <option value="x^2+y^2=1">$x^2+y^2=1$</option>
+      <option value="y=x^2">$y=x^2$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q2', 'x^2+y^2=1')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) $x = 3\cos t, y = 2\sin t$</div>
+    <select id="q3">
+      <option value="">Choose one...</option>
+      <option value="x^2/9+y^2/4=1">$\frac{x^2}{9} + \frac{y^2}{4} = 1$</option>
+      <option value="x^2+y^2=5">$x^2+y^2=5$</option>
+      <option value="y=x^2+3">$y=x^2+3$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q3', 'x^2/9+y^2/4=1')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) $x=2t-1, y=3t+4$</div>
+    <select id="q4">
+      <option value="">Choose one...</option>
+      <option value="y=3x-1">$y=3x-1$</option>
+      <option value="y=(3/2)x+11/2">$y=\frac{3}{2}x+\frac{11}{2}$</option>
+      <option value="x=2y+3">$x=2y+3$</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q4', 'y=(3/2)x+11/2')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Parametric Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Type your answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Mastering parametric equations is a key step!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+      const A = new (window.AudioContext || window.webkitAudioContext)();
+      const o = A.createOscillator();
+      const g = A.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(A.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+      setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+      totalScore += points;
+      streak++;
+    } else {
+      streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim().toLowerCase().replace(/ /g, '');
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+    if (!res) {
+      console.error(`Result element with ID '${resultId}' not found.`);
+      return;
+    }
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === correct.toLowerCase().replace(/ /g, ''));
+    if (isCorrect) {
+      res.textContent = '✅ Correct!';
+      res.className = 'answer ok';
+      tone(880, 0.06);
+      updateScore(1);
+    } else {
+      res.textContent = `❌ Wrong (Answer: ${correct})`;
+      res.className = 'answer bad';
+      tone(220, 0.06);
+      updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawLine(x1, y1, x2, y2, color, thickness) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.stroke();
+}
+function drawCircle(x, y, r, fill) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = fill;
+    ctx.fill();
+}
+function drawText(text, x, y, color = '#04263b', size = '20px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+const tutorialSteps = [
+    { audio: "A parametric equation defines a point's x and y coordinates as a function of a parameter, t.", text: "x(t), y(t)", viz: "intro" },
+    { audio: "Think of t as time. As time passes, a point moves along a path.", text: "t = time", viz: "time" },
+    { audio: "Let's trace the curve defined by x = t, y = t squared.", text: "x=t, y=t²", viz: "parabola" },
+    { audio: "When t equals negative 2, x is negative 2 and y is 4.", text: "t=-2, point=(-2,4)", viz: "t-2" },
+    { audio: "When t equals negative 1, x is negative 1 and y is 1.", text: "t=-1, point=(-1,1)", viz: "t-1" },
+    { audio: "When t equals 0, x is 0 and y is 0.", text: "t=0, point=(0,0)", viz: "t0" },
+    { audio: "When t equals 1, x is 1 and y is 1.", text: "t=1, point=(1,1)", viz: "t1" },
+    { audio: "When t equals 2, x is 2 and y is 4.", text: "t=2, point=(2,4)", viz: "t2" },
+    { audio: "The points connect to form a parabola, traced from left to right.", text: "The curve is a parabola.", viz: "final" },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    const points = {
+        't-2': [-200, -200],
+        't-1': [-100, -100],
+        't0': [0, 0],
+        't1': [100, -100],
+        't2': [200, -200]
+    };
+    function nextStep() {
+      if (tutorialIndex >= tutorialSteps.length) {
+        if (callback) callback();
+        return;
+      }
+      const step = tutorialSteps[tutorialIndex];
+      const utterance = new SpeechSynthesisUtterance(step.audio);
+      utterance.rate = speed;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => {
+        tutorialIndex++;
+        nextStep();
+      };
+      ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+      drawText(step.text, tutorialCanvas.width / 2, 40);
+      
+      const w = tutorialCanvas.width, h = tutorialCanvas.height;
+      const centerX = w / 2, centerY = h * 0.8;
+      
+      // Draw Axes
+      drawLine(w*0.1, centerY, w*0.9, centerY, '#566270', 2);
+      drawLine(centerX, h*0.1, centerX, h*0.9, '#566270', 2);
+      
+      if (step.viz === "parabola" || step.viz === "t-2" || step.viz === "t-1" || step.viz === "t0" || step.viz === "t1" || step.viz === "t2" || step.viz === "final") {
+          // Draw the full parabola
+          ctx.beginPath();
+          ctx.moveTo(centerX - 250, centerY - 250);
+          ctx.quadraticCurveTo(centerX, centerY, centerX + 250, centerY - 250);
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+      }
+      
+      if (step.viz in points) {
+          const [px, py] = points[step.viz];
+          drawCircle(centerX + px, centerY + py, 8, '#1d4ed8');
+          drawText(step.text.split(', ')[1], centerX + px + 25, centerY + py - 20, '#1d4ed8', '16px');
+      }
+      
+      if (step.viz === "final") {
+          // Add arrows to show direction
+          drawText("Direction of motion", centerX + 100, centerY - 150, '#1d4ed8', '16px');
+          ctx.beginPath();
+          ctx.moveTo(centerX - 100, centerY - 100);
+          ctx.lineTo(centerX - 100 + 10, centerY - 100 + 10);
+          ctx.moveTo(centerX - 100, centerY - 100);
+          ctx.lineTo(centerX - 100 + 10, centerY - 100 - 10);
+          ctx.strokeStyle = '#1d4ed8';
+          ctx.stroke();
+      }
+      
+      speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const quizQuestions = [
+      { q: "What is the parameter?", a: "t" },
+      { q: "Convert $x=t-1, y=2t+3$ to Cartesian.", a: "y=2x+5" },
+      { q: "Convert $x=\\sec t, y=\\tan t$ to Cartesian.", a: "x^2-y^2=1" },
+      { q: "What is the shape of $x=\\cos t, y=\\sin t$?", a: "circle" },
+      { q: "Do parametric equations show direction of motion? (Yes/No)", a: "yes" },
+    ];
+    return quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = problem.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    if (window.MathJax) {
+        window.MathJax.typesetPromise([qEl]).catch(err => console.error("MathJax typesetting failed", err));
+    }
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+      quizTime--;
+      document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+      if (quizTime <= 0) {
+        clearInterval(quizTimerInt);
+        document.getElementById('quizQ').textContent = 'Time Up!';
+      }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/ /g, '');
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a.toLowerCase().replace(/ /g, '');
+    let isCorrect = (val === correctAnswer);
+    if (correctAnswer === "y=2x+5" && (val === "y=2(x-1)+3" || val === "y=2(x+1)+3")) {
+        // Adjust for common valid variations
+        isCorrect = true;
+    }
+    if (isCorrect) {
+      f.textContent = '✅ Correct!';
+      f.className = 'answer ok';
+      quizScore++;
+      document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+      tone(880, 0.06);
+    } else {
+      f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+      f.className = 'answer bad';
+      tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "parametric_equations_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

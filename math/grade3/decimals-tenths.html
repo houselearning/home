@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Decimals (Tenths) Lesson</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f9ff; }
+    h1, h2 { color: #2c3e50; }
+    .card {
+      background: white;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #2980b9; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 30px);
+      gap: 2px;
+      margin-top: 10px;
+    }
+    .cell {
+      width: 30px; height: 30px;
+      background: #ecf0f1;
+      border: 1px solid #ccc;
+    }
+    .cell.filled { background: #2ecc71; }
+    .question { margin: 10px 0; }
+    #chartCanvas { border: 1px solid #333; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Decimals (Tenths)</h1>
+
+  <div class="card">
+    <h2>📘 Introduction</h2>
+    <p>Decimals are a way to show numbers that are <b>between whole numbers</b>.  
+    The first decimal place is called the <b>tenths place</b>.</p>
+    <p>For example:  
+      - 0.1 = one tenth  
+      - 0.5 = five tenths  
+      - 0.7 = seven tenths  
+    </p>
+    <p>Think of tenths as dividing something into 10 equal parts!</p>
+  </div>
+
+  <div class="card">
+    <h2>🔢 Place Value Chart (Ones & Tenths)</h2>
+    <canvas id="chartCanvas" width="400" height="150"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>🎨 Tenths Grid</h2>
+    <p>Click cells to fill in tenths:</p>
+    <div class="grid" id="tenthsGrid"></div>
+    <p><b>Value:</b> <span id="tenthsValue">0.0</span></p>
+  </div>
+
+  <div class="card">
+    <h2>📝 Practice Questions</h2>
+    <div id="questions"></div>
+    <button onclick="generateQuestions()">New Questions</button>
+    <button onclick="downloadCSV()">Download as CSV</button>
+  </div>
+
+  <script>
+    // === Place Value Chart ===
+    const chart = document.getElementById("chartCanvas");
+    const ctx = chart.getContext("2d");
+
+    function drawChart() {
+      ctx.clearRect(0,0,chart.width,chart.height);
+      ctx.font = "18px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Ones", 100, 40);
+      ctx.fillText("Tenths", 300, 40);
+
+      ctx.strokeRect(50,60,100,60);
+      ctx.strokeRect(250,60,100,60);
+
+      ctx.font = "24px Arial";
+      ctx.fillText("3", 100, 100); // Example number: 3.7
+      ctx.fillText("7", 300, 100);
+      ctx.fillText("= 3.7", 200, 140);
+    }
+    drawChart();
+
+    // === Tenths Grid ===
+    const grid = document.getElementById("tenthsGrid");
+    let filled = 0;
+    for(let i=0;i<10;i++){
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.addEventListener("click", () => {
+        if(cell.classList.contains("filled")){
+          cell.classList.remove("filled");
+          filled--;
+        } else {
+          cell.classList.add("filled");
+          filled++;
+        }
+        document.getElementById("tenthsValue").textContent = (filled/10).toFixed(1);
+      });
+      grid.appendChild(cell);
+    }
+
+    // === Practice Questions ===
+    const qs = document.getElementById("questions");
+    function generateQuestions(){
+      qs.innerHTML = "";
+      let problems = [];
+      for(let i=0;i<5;i++){
+        let num = (Math.floor(Math.random()*9)+1)/10;
+        let type = Math.random()<0.5 ? "write" : "grid";
+        if(type === "write"){
+          qs.innerHTML += `<div class="question">Write ${num} in words: 
+          <input type="text" placeholder="Answer"></div>`;
+          problems.push([`Write ${num} in words`, ""]);
+        } else {
+          qs.innerHTML += `<div class="question">Shade ${num*10} tenths on the grid (conceptual question).</div>`;
+          problems.push([`Shade ${num*10} tenths`, ""]);
+        }
+      }
+      window.generatedProblems = problems;
+    }
+    generateQuestions();
+
+    // === Download as CSV ===
+    function downloadCSV(){
+      let rows = [["Question","Answer"]];
+      rows.push(...(window.generatedProblems || []));
+      let csv = rows.map(r=>r.join(",")).join("\n");
+      let blob = new Blob([csv], {type:"text/csv"});
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "decimals_tenths_practice.csv";
+      a.click();
+    }
+  </script>
+
+</body>
+</html>

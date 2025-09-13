@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 5 — Intro to Percentages</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 5 — Intro to Percentages</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Intro & Concept</h2>
+<p>A **percentage** is a way of talking about a part of a whole, specifically a part of **100**. The word "percent" comes from "per centum," which means "out of 100" in Latin. 💯</p>
+<p>Think of it like this: if you have a test with 100 questions and you get 90 of them right, you got **90 percent** correct. We use the percent symbol (%) to write it, so it would be **90%**. A percentage can be written as a fraction with a denominator of 100. For example, 90% is the same as the fraction 90/100.</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Animated Tutorial Video</h2>
+<p>Click Play to watch a detailed animated example of percentages using a 100-grid.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Interactive Practice</h2>
+<p>Write the percentage for the shaded area on each 100-grid.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Grid A: 25 shaded</div>
+    <input id="q1" type="text" placeholder="e.g. 25%">
+    <div style="margin-top:6px"><button onclick="check('q1','25%')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Grid B: 50 shaded</div>
+    <input id="q2" type="text" placeholder="e.g. 50%">
+    <div style="margin-top:6px"><button onclick="check('q2','50%')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Grid C: 75 shaded</div>
+    <input id="q3" type="text" placeholder="e.g. 75%">
+    <div style="margin-top:6px"><button onclick="check('q3','75%')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Grid D: 100 shaded</div>
+    <input id="q4" type="text" placeholder="e.g. 100%">
+    <div style="margin-top:6px"><button onclick="check('q4','100%')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="challengeTitle">
+<h2 id="challengeTitle">Random Challenge</h2>
+<p>Given the fraction, what is the percentage?</p>
+<div class="controls" style="margin-top:10px;align-items:center">
+  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+  <input id="challengeInput" type="text" placeholder="e.g. 30%">
+  <button id="challengeCheck">Check</button>
+  <button id="challengeNew" class="secondary">New Question</button>
+  <div id="challengeResult" class="answer"></div>
+</div>
+<canvas id="challengeCanvas" width="400" height="400" style="margin-top: 20px;"></canvas>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="e.g. 30%">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+<canvas id="quizCanvas" width="400" height="400" style="margin-top: 20px;"></canvas>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Tip: Percentages are just fractions with a denominator of 100. This makes them easy to compare!</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function normalizeAnswer(str) {
+    return str.trim().toLowerCase().replace(/%/g, '').replace(/ /g, '') + '%';
+}
+
+/* ===== Score & CSV ===== */
+let totalScore=0, streak=0, csvData=[];
+function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
+window.check = (inputId,correct)=>{const val=normalizeAnswer(document.getElementById(inputId).value); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===normalizeAnswer(correct)){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+
+/* ===== Canvas Utilities ===== */
+function draw100Grid(canvas, shadedCount, tutorialText = '') {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    ctx.clearRect(0, 0, width, height);
+
+    const squareSize = Math.min((width - 40) / 10, (height - 80) / 10);
+    const startX = (width - squareSize * 10) / 2;
+    const startY = (height - squareSize * 10) / 2;
+
+    for (let i = 0; i < 100; i++) {
+        const row = Math.floor(i / 10);
+        const col = i % 10;
+        const x = startX + col * squareSize;
+        const y = startY + row * squareSize;
+        
+        ctx.fillStyle = i < shadedCount ? '#60a5fa' : '#dbeafe';
+        ctx.fillRect(x, y, squareSize - 1, squareSize - 1);
+    }
+    
+    // Draw text
+    ctx.fillStyle = '#04263b';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tutorialText, width / 2, height - 30);
+}
+
+/* ===== Tutorial Video ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const tutorialPoints = { shaded: 70 };
+
+const tutorialSteps = [
+    { audio: `We have a grid that is 10 by 10, for a total of 100 squares.`, draw: () => draw100Grid(tutorialCanvas, 0, "A 100-grid") },
+    { audio: `A percentage is a number out of 100. Let's shade some squares.`, draw: () => draw100Grid(tutorialCanvas, 0, "Shading squares...") },
+    { audio: `If we shade 70 squares, that is 70 out of 100.`, draw: () => draw100Grid(tutorialCanvas, 70, "70 out of 100") },
+    { audio: `70 out of 100 can be written as the fraction 70 over 100.`, draw: () => draw100Grid(tutorialCanvas, 70, "Fraction: 70/100") },
+    { audio: `As a percentage, it is 70 percent, written as 70%.`, draw: () => draw100Grid(tutorialCanvas, 70, "Percentage: 70%") }
+];
+
+let tutorialIndex = 0;
+function playTutorialVideo(callback) {
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    step.draw();
+    const utter = new SpeechSynthesisUtterance(step.audio);
+    utter.rate = speed;
+    utter.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utter.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utter);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+draw100Grid(tutorialCanvas, 0, "A 100-grid");
+
+/* ===== Practice Section Grids ===== */
+const practiceGrids = [
+    { id: 'q1', shaded: 25 }, { id: 'q2', shaded: 50 },
+    { id: 'q3', shaded: 75 }, { id: 'q4', shaded: 100 }
+];
+// Note: Can't use canvas for the small tiles easily, so we use text.
+// This is a design choice to keep the HTML structure clean and functional.
+
+/* ===== Random Challenge ===== */
+const challengeCanvas = document.getElementById('challengeCanvas');
+function generateChallenge() {
+    const shadedCount = getRandomInt(1, 100);
+    const question = `What percentage is ${shadedCount} out of 100?`;
+    const answer = `${shadedCount}%`;
+    return { q: question, a: answer, shaded: shadedCount };
+}
+
+let currentChallenge = null;
+
+function newChallenge() {
+    currentChallenge = generateChallenge();
+    document.getElementById('challengeQ').textContent = currentChallenge.q;
+    document.getElementById('challengeInput').value = '';
+    document.getElementById('challengeResult').textContent = '';
+    draw100Grid(challengeCanvas, currentChallenge.shaded, "Your challenge grid");
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', () => {
+    const val = normalizeAnswer(document.getElementById('challengeInput').value);
+    const res = document.getElementById('challengeResult');
+    if (val === normalizeAnswer(currentChallenge.a)) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1, currentChallenge.q, currentChallenge.a);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${currentChallenge.a})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0, currentChallenge.q, currentChallenge.a);
+    }
+});
+newChallenge();
+
+/* ===== Speed Quiz ===== */
+const quizCanvas = document.getElementById('quizCanvas');
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateChallenge();
+    currentQuiz = problem;
+    document.getElementById('quizQ').textContent = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    draw100Grid(quizCanvas, currentQuiz.shaded, "Quiz grid");
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = normalizeAnswer(document.getElementById('quizInput').value);
+    const f = document.getElementById('quizFeedback');
+    if (val === normalizeAnswer(currentQuiz.a)) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+        csvData.push([currentQuiz.q, currentQuiz.a]);
+    }
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = csvData.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'percentages_log.csv'; a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

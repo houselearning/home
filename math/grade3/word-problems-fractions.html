@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 3 — Fractions 1/2, 1/3, 1/4 (Advanced Word Problems)</title>
+<style>
+  :root{
+    --bg:#f7fbff; --panel:#fff; --accent:#f472b6; --accent2:#ec4899; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+  header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+  header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+  main{max-width:1100px;margin:20px auto;padding:14px}
+  section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+  h2{color:var(--accent2);margin:0 0 10px 0}
+  p{margin:8px 0}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  button.secondary{background:#f9a8d4}
+  button.ghost{background:#ffe6f0;color:var(--accent2);border:1px solid #ffd6eb}
+  button.warn{background:#f97316}
+  input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fbcfe8;font-size:1rem}
+  canvas{width:100%;height:auto;border-radius:8px;background:linear-gradient(180deg,#fff,#fff5fb);display:block;border:1px solid #ffd6eb}
+  .grid{display:grid;gap:10px}
+  .grid.cols-4{grid-template-columns:repeat(4,1fr)}
+  .tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #ffe6f0;cursor:pointer;font-weight:700}
+  .status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+  .muted{color:var(--muted)}
+  footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+  .answer{font-weight:800;margin-top:8px}
+  .ok{color:var(--ok)}
+  .bad{color:var(--bad)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Grade 3 — Fractions 1/2, 1/3, 1/4 (Advanced)</h1>
+  <p style="margin:6px 0 0 0;opacity:.95">Interactive word problems • practice • speed quiz • export CSV — build fraction mastery!</p>
+</header>
+
+<main>
+  <!-- Intro -->
+  <section aria-labelledby="introTitle">
+    <h2 id="introTitle">Intro & Concept</h2>
+    <p>Fractions represent parts of a whole. <strong>1/2</strong> is half, <strong>1/3</strong> is a third, <strong>1/4</strong> is a quarter. Word problems help apply fractions to real life!</p>
+    <div class="status" style="margin-top:8px">
+      <div class="pill" id="score">Score: 0</div>
+      <div class="muted" id="streak">Streak: 0</div>
+    </div>
+  </section>
+
+  <!-- Word Problems -->
+  <section aria-labelledby="wordTitle">
+    <h2 id="wordTitle">Fraction Word Problems</h2>
+    <div style="margin-top:8px" class="grid cols-4">
+      <div class="tile">
+        <div style="font-weight:700">1) Sarah ate 1/2 of 8 cookies. How many cookies did she eat?</div>
+        <input id="w1" type="number"><button style="margin-top:6px" onclick="check('w1',4)">Check</button>
+        <div id="wr1" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">2) John drank 1/3 of 12 liters of juice. How many liters?</div>
+        <input id="w2" type="number"><button style="margin-top:6px" onclick="check('w2',4)">Check</button>
+        <div id="wr2" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">3) A pizza was cut into 4 pieces. Emma ate 1/4. How many slices?</div>
+        <input id="w3" type="number"><button style="margin-top:6px" onclick="check('w3',1)">Check</button>
+        <div id="wr3" class="answer"></div>
+      </div>
+      <div class="tile">
+        <div style="font-weight:700">4) 1/2 of 10 pencils are sharpened. How many?</div>
+        <input id="w4" type="number"><button style="margin-top:6px" onclick="check('w4',5)">Check</button>
+        <div id="wr4" class="answer"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Challenge -->
+  <section aria-labelledby="challengeTitle">
+    <h2 id="challengeTitle">Interactive Fraction Challenge</h2>
+    <p>Randomized fraction word problems — press New Question to start.</p>
+    <div class="controls" style="margin-top:10px;align-items:center">
+      <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
+      <input id="challengeInput" type="number" placeholder="answer" style="width:110px">
+      <button id="challengeCheck">Check</button>
+      <button id="challengeNew" class="secondary">New Question</button>
+      <div id="challengeResult" class="answer"></div>
+    </div>
+  </section>
+
+  <!-- CSV Export -->
+  <section aria-labelledby="csvTitle">
+    <h2 id="csvTitle">Download CSV Log</h2>
+    <button id="downloadCSVBtn" class="secondary">⬇️ Download Your Answers</button>
+    <p class="muted">Track your practice results!</p>
+  </section>
+
+  <footer>Tip: Apply fractions to real-life items like food, toys, and time. Practice daily for mastery!</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f=880,d=0.06)=>{ try{ const A=new (window.AudioContext||window.webkitAudioContext)(); const o=A.createOscillator(); const g=A.createGain(); o.type='sine'; o.frequency.value=f; g.gain.value=0.0001; o.connect(g); g.connect(A.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d); setTimeout(()=>{ o.stop(); A.close().catch(()=>{}); }, d*1000+50);}catch(e){} };
+let totalScore=0, streak=0;
+
+/* ===== Quick check for small tiles ===== */
+function check(inputId, correct){
+  const val = parseFloat(document.getElementById(inputId).value);
+  const resId = 'wr' + inputId.replace(/[^\d]/g,'');
+  const target = document.getElementById(resId);
+  if(!isNaN(val) && val === correct){
+    target.textContent = '✅ Correct!';
+    target.className = 'answer ok';
+    tone(880,0.06); updateScore(1);
+  } else {
+    target.textContent = `❌ Try again (Answer: ${correct})`;
+    target.className = 'answer bad';
+    tone(220,0.06); updateScore(0);
+  }
+}
+
+/* ===== Interactive Challenge ===== */
+let challengeList = [
+  {q:"1/2 of 8 cookies", a:4},
+  {q:"1/3 of 12 liters", a:4},
+  {q:"1/4 of 4 pizza slices", a:1},
+  {q:"1/2 of 10 pencils", a:5},
+  {q:"1/3 of 9 candies", a:3},
+  {q:"1/4 of 20 apples", a:5},
+  {q:"1/2 of 14 pages", a:7},
+  {q:"1/3 of 15 toys", a:5},
+  {q:"1/4 of 8 cupcakes", a:2},
+];
+let currentCorrect=null;
+
+function newChallenge(){
+  const idx = Math.floor(Math.random()*challengeList.length);
+  const problem = challengeList[idx];
+  document.getElementById('challengeQ').textContent = problem.q + " = ?";
+  currentCorrect = problem.a;
+  document.getElementById('challengeInput').value='';
+  document.getElementById('challengeResult').textContent='';
+}
+document.getElementById('challengeNew').addEventListener('click', newChallenge);
+document.getElementById('challengeCheck').addEventListener('click', ()=>{
+  const val = parseFloat(document.getElementById('challengeInput').value);
+  const res = document.getElementById('challengeResult');
+  if(val === currentCorrect){
+    res.textContent = '✅ Correct!';
+    res.className='answer ok';
+    tone(880,0.06); updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong — Answer: ${currentCorrect}`;
+    res.className='answer bad';
+    tone(220,0.06); updateScore(0);
+  }
+});
+
+/* ===== CSV Logging ===== */
+let csvData=[['Question','Answer']];
+function updateScore(points){
+  if(points>0){ totalScore+=points; streak++; } else { streak=0; }
+  document.getElementById('score').textContent=`Score: ${totalScore}`;
+  document.getElementById('streak').textContent=`Streak: ${streak}`;
+  if(currentCorrect!==null){
+    csvData.push([document.getElementById('challengeQ').textContent, currentCorrect]);
+  }
+}
+document.getElementById('downloadCSVBtn').addEventListener('click', ()=>{
+  const csvContent = csvData.map(e=>e.join(',')).join('\n');
+  const blob = new Blob([csvContent],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='fraction_word_problems.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ===== Init ===== */
+newChallenge();
+</script>
+</body>
+</html>

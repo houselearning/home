@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2D Shapes Lesson</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, sans-serif;
+      background: #f0f9ff;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff6f61;
+      font-size: 40px;
+    }
+    .lesson {
+      background: #fff;
+      padding: 20px;
+      border-radius: 20px;
+      display: inline-block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 800px;
+    }
+    .shapes {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin: 20px 0;
+    }
+    .shape-card {
+      width: 150px;
+      height: 150px;
+      border-radius: 15px;
+      background: #e0f7fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+    }
+    .shape-card:hover {
+      transform: scale(1.1);
+    }
+    canvas {
+      margin-bottom: 10px;
+    }
+    .quiz {
+      margin-top: 30px;
+      padding: 20px;
+      background: #ffe0b2;
+      border-radius: 15px;
+    }
+    .btn {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #4caf50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #388e3c;
+    }
+    .feedback {
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌟 2D Shapes Adventure 🌟</h1>
+  <div class="lesson">
+    <h2>👋 Welcome!</h2>
+    <p>Today we are learning about <strong>2D Shapes</strong>. Shapes are all around us—your plate is a circle, a book is a rectangle, and a slice of pizza is a triangle! Let’s explore!</p>
+
+
+    <h2>🔹 Meet the Shapes</h2>
+    <div class="shapes">
+      <div class="shape-card" onclick="playShape('Circle')">
+        <canvas id="circle" width="80" height="80"></canvas>
+        <span>Circle</span>
+      </div>
+      <div class="shape-card" onclick="playShape('Square')">
+        <canvas id="square" width="80" height="80"></canvas>
+        <span>Square</span>
+      </div>
+      <div class="shape-card" onclick="playShape('Triangle')">
+        <canvas id="triangle" width="80" height="80"></canvas>
+        <span>Triangle</span>
+      </div>
+      <div class="shape-card" onclick="playShape('Rectangle')">
+        <canvas id="rectangle" width="100" height="60"></canvas>
+        <span>Rectangle</span>
+      </div>
+      <div class="shape-card" onclick="playShape('Hexagon')">
+        <canvas id="hexagon" width="90" height="80"></canvas>
+        <span>Hexagon</span>
+      </div>
+    </div>
+
+    <div class="quiz">
+      <h2>📝 Shape Quiz</h2>
+      <p id="question">Which shape has 3 sides?</p>
+      <button class="btn" onclick="checkAnswer('Circle')">Circle</button>
+      <button class="btn" onclick="checkAnswer('Triangle')">Triangle</button>
+      <button class="btn" onclick="checkAnswer('Square')">Square</button>
+      <p id="feedback" class="feedback"></p>
+    </div>
+  </div>
+
+  <script>
+    // Draw shapes
+    const circle = document.getElementById("circle").getContext("2d");
+    circle.beginPath();
+    circle.arc(40, 40, 35, 0, 2 * Math.PI);
+    circle.fillStyle = "lightblue";
+    circle.fill();
+
+    const square = document.getElementById("square").getContext("2d");
+    square.fillStyle = "lightgreen";
+    square.fillRect(10, 10, 60, 60);
+
+    const triangle = document.getElementById("triangle").getContext("2d");
+    triangle.fillStyle = "pink";
+    triangle.beginPath();
+    triangle.moveTo(40, 5);
+    triangle.lineTo(75, 75);
+    triangle.lineTo(5, 75);
+    triangle.closePath();
+    triangle.fill();
+
+    const rectangle = document.getElementById("rectangle").getContext("2d");
+    rectangle.fillStyle = "orange";
+    rectangle.fillRect(5, 5, 90, 50);
+
+    const hex = document.getElementById("hexagon").getContext("2d");
+    hex.fillStyle = "purple";
+    hex.beginPath();
+    let size = 35, x = 45, y = 40;
+    for (let i = 0; i < 6; i++) {
+      hex.lineTo(x + size * Math.cos(i * Math.PI / 3), y + size * Math.sin(i * Math.PI / 3));
+    }
+    hex.closePath();
+    hex.fill();
+
+    // Audio for shapes
+    function playShape(shape) {
+      let msg = new SpeechSynthesisUtterance(shape);
+      speechSynthesis.speak(msg);
+    }
+
+    // Quiz logic
+    function checkAnswer(answer) {
+      let feedback = document.getElementById("feedback");
+      if (answer === "Triangle") {
+        feedback.textContent = "✅ Correct! A triangle has 3 sides.";
+        feedback.style.color = "green";
+      } else {
+        feedback.textContent = "❌ Oops! Try again.";
+        feedback.style.color = "red";
+      }
+    }
+  </script>
+</body>
+</html>

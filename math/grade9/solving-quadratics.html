@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Solving Quadratic Equations</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#10b981; --accent2:#059669; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:20px}
+li{margin-bottom:4px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#10b981;color:#fff}
+button.ghost{background:#d1fae5;color:var(--accent2);border:1px solid #a7f3d0}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #a7f3d0;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #a7f3d0;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #a7f3d0;border-radius:8px;display:block;margin-top:10px;width:100%;}
+.video-container { position: relative; width: 100%; }
+.video-container canvas { margin-bottom: 8px; }
+.captions-box {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fefcbf;
+    color: #000;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-size: 0.9rem;
+    max-width: 80%;
+    text-align: center;
+    visibility: hidden;
+    transition: visibility 0s, opacity 0.5s linear;
+    opacity: 0;
+}
+.captions-box.visible {
+    visibility: visible;
+    opacity: 1;
+}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Solving Quadratic Equations 🧠</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a Quadratic Equation? 🧐</h2>
+<p>
+    A **quadratic equation** is any equation that can be written in the form $ax^2 + bx + c = 0$, where a, b, and c are numbers, and a is not zero. The solutions to these equations are called roots.
+</p>
+<p>
+    The tutorial will cover the three main methods for finding these roots: **factoring**, the **quadratic formula**, and **completing the square**.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Solving Quadratics 🎬</h2>
+<p>This video will show you the three primary methods for solving quadratic equations. Turn on the captions to follow along with the audio!</p>
+<div class="video-container">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+  <div class="captions-box" id="captionsBox"></div>
+</div>
+<div class="controls" style="margin-top:10px">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+  <div class="settings">
+    <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+  </div>
+  <div class="settings">
+    <label>Volume: <input type="range" id="videoVolume" min="0" max="1" value="1" step="0.1"></label>
+  </div>
+  <div class="settings">
+    <label><input type="checkbox" id="captionsToggle"> Captions</label>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Solve for x. Enter your answers as a comma-separated list, e.g., "x=2, x=3". Order does not matter.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1.tile">
+        <div style="font-weight:700">1) Solve by Factoring: <br> $x^2 - 5x + 6 = 0$ </div>
+        <p>Answer: <input id="q1_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q1', ['2', '3'])">Check</button></div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2.tile">
+        <div style="font-weight:700">2) Solve by Formula: <br> $2x^2 + 5x - 3 = 0$ </div>
+        <p>Answer: <input id="q2_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q2', ['0.5', '-3'])">Check</button></div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3.tile">
+        <div style="font-weight:700">3) Solve by Completing the Square: <br> $x^2 + 6x + 5 = 0$ </div>
+        <p>Answer: <input id="q3_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q3', ['-1', '-5'])">Check</button></div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4.tile">
+        <div style="font-weight:700">4) Solve: <br> $x^2 - 4x + 1 = 0$ </div>
+        <p>Answer: <input id="q4_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q4', ['3.732', '0.268'])">Check</button></div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Solving Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput_ans" type="text" placeholder="Answer = ?">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Keep practicing, and soon you'll be a pro!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function normalizeAnswer(ans) {
+    return ans.replace(/\s/g, '').toLowerCase().split(',').sort().join(',');
+}
+window.check = (qId, correct) => {
+    const res = document.getElementById('r' + qId.slice(1));
+    const input = document.getElementById(qId + '_ans');
+    const userAnswer = normalizeAnswer(input.value);
+    const correctAnswer = correct.map(String).sort().join(',');
+    let isCorrect = userAnswer === correctAnswer;
+    
+    // Check for approximate equality for floating point answers
+    if (!isCorrect && correct.some(val => typeof val === 'number')) {
+        const userNums = input.value.split(',').map(s => parseFloat(s.trim()));
+        if (userNums.length === correct.length) {
+            const sortedUserNums = userNums.sort((a, b) => a - b);
+            const sortedCorrectNums = correct.sort((a, b) => a - b);
+            isCorrect = sortedUserNums.every((val, i) => Math.abs(val - sortedCorrectNums[i]) < 0.001);
+        }
+    }
+
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+    csvData.push([questionText, input.value.trim(), correct.join(', ')]);
+    
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: x=${correct.join(', ')})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+};
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const videoVolumeInput = document.getElementById('videoVolume');
+const captionsToggle = document.getElementById('captionsToggle');
+const captionsBox = document.getElementById('captionsBox');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawText(ctx, text, x, y, color) {
+    ctx.fillStyle = color;
+    ctx.font = '20px Inter, sans-serif';
+    ctx.fillText(text, x, y);
+}
+function drawLesson(step) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    if (step.draw) {
+        step.draw(ctx);
+    }
+}
+const tutorialSteps = [
+    {
+        audio: "Welcome to our tutorial on solving quadratic equations.",
+        draw: (ctx) => drawText(ctx, "Solving Quadratic Equations", tutorialCanvas.width / 2, tutorialCanvas.height / 2, '#04263b')
+    },
+    {
+        audio: "A quadratic equation is in the form a x squared plus b x plus c equals zero.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "$$ax^2 + bx + c = 0$$", tutorialCanvas.width / 2, tutorialCanvas.height / 2, '#04263b');
+        }
+    },
+    {
+        audio: "The first method is factoring. Let's solve x squared minus 5x plus 6 equals zero.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Method 1: Factoring", tutorialCanvas.width / 2, 80, '#04263b');
+            drawText(ctx, "$$x^2 - 5x + 6 = 0$$", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "We find two numbers that multiply to 6 and add to minus 5. These numbers are minus 2 and minus 3.",
+        draw: (ctx) => {
+            drawText(ctx, "Numbers that multiply to 6:", 200, 250, '#04263b');
+            drawText(ctx, "-2, -3", 200, 280, '#16a34a');
+            drawText(ctx, "Numbers that add to -5:", 600, 250, '#04263b');
+            drawText(ctx, "-2 + -3 = -5", 600, 280, '#16a34a');
+        }
+    },
+    {
+        audio: "This gives us the factored form, x minus 2 times x minus 3 equals zero.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Factored Form:", tutorialCanvas.width / 2, 100, '#04263b');
+            drawText(ctx, "$$(x - 2)(x - 3) = 0$$", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "Setting each factor to zero gives our solutions: x equals 2 and x equals 3.",
+        draw: (ctx) => {
+            drawText(ctx, "Set each to 0:", tutorialCanvas.width / 2, 220, '#04263b');
+            drawText(ctx, "$$x - 2 = 0 \\implies x=2$$", tutorialCanvas.width / 4, 280, '#04263b');
+            drawText(ctx, "$$x - 3 = 0 \\implies x=3$$", tutorialCanvas.width * 3 / 4, 280, '#04263b');
+        }
+    },
+    {
+        audio: "The second method is the quadratic formula. Use it for any quadratic equation.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Method 2: The Quadratic Formula", tutorialCanvas.width / 2, 80, '#04263b');
+            drawText(ctx, "$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "Let's solve the equation 2x squared plus 5x minus 3 equals zero.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "$$2x^2 + 5x - 3 = 0$$", tutorialCanvas.width / 2, 100, '#04263b');
+        }
+    },
+    {
+        audio: "Here, a equals 2, b equals 5, and c equals minus 3. Substitute these values into the formula.",
+        draw: (ctx) => {
+            drawText(ctx, "a=2, b=5, c=-3", tutorialCanvas.width / 2, 200, '#04263b');
+            drawText(ctx, "$$x = \\frac{-5 \\pm \\sqrt{5^2 - 4(2)(-3)}}{2(2)}$$", tutorialCanvas.width / 2, 280, '#04263b');
+        }
+    },
+    {
+        audio: "Simplifying gives us x equals minus 5 plus or minus the square root of 49, all over 4.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "$$x = \\frac{-5 \\pm \\sqrt{25 - (-24)}}{4} = \\frac{-5 \\pm \\sqrt{49}}{4}$$", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "The square root of 49 is 7. This gives us two solutions.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x = \\frac{-5 \\pm 7}{4}$$", tutorialCanvas.width / 2, 250, '#04263b');
+        }
+    },
+    {
+        audio: "The solutions are x equals 0.5 and x equals minus 3.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x = \\frac{-5 + 7}{4} = \\frac{2}{4} = 0.5$$", tutorialCanvas.width / 4, 320, '#04263b');
+            drawText(ctx, "$$x = \\frac{-5 - 7}{4} = \\frac{-12}{4} = -3$$", tutorialCanvas.width * 3 / 4, 320, '#04263b');
+        }
+    },
+    {
+        audio: "Finally, let's learn completing the square, especially useful when the equation is not easily factorable.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Method 3: Completing the Square", tutorialCanvas.width / 2, 80, '#04263b');
+            drawText(ctx, "$$x^2 + 6x + 5 = 0$$", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "Move the constant term to the other side: x squared plus 6x equals minus 5.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x^2 + 6x = -5$$", tutorialCanvas.width / 2, 250, '#04263b');
+        }
+    },
+    {
+        audio: "Take half of b, which is 6, and square it. Half of 6 is 3, and 3 squared is 9. Add 9 to both sides.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x^2 + 6x + 9 = -5 + 9$$", tutorialCanvas.width / 2, 250, '#04263b');
+        }
+    },
+    {
+        audio: "This makes the left side a perfect square. It factors to x plus 3 squared equals 4.",
+        draw: (ctx) => {
+            drawText(ctx, "$$(x + 3)^2 = 4$$", tutorialCanvas.width / 2, 250, '#04263b');
+        }
+    },
+    {
+        audio: "Take the square root of both sides. Remember the plus or minus. The square root of 4 is 2.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x + 3 = \\pm 2$$", tutorialCanvas.width / 2, 250, '#04263b');
+        }
+    },
+    {
+        audio: "Subtract 3 from both sides. Our two solutions are x equals minus 1 and x equals minus 5.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x = -3 \\pm 2$$", tutorialCanvas.width / 2, 250, '#04263b');
+            drawText(ctx, "$$x = -3 + 2 = -1$$", tutorialCanvas.width / 4, 320, '#04263b');
+            drawText(ctx, "$$x = -3 - 2 = -5$$", tutorialCanvas.width * 3 / 4, 320, '#04263b');
+        }
+    }
+];
+let tutorialIndex = 0;
+let lastMathDiv = null;
+async function playTutorialVideo() {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    const volume = parseFloat(videoVolumeInput.value) || 1;
+    const showCaptions = captionsToggle.checked;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (lastMathDiv) lastMathDiv.remove();
+            captionsBox.textContent = '';
+            captionsBox.classList.remove('visible');
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = volume;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        if (lastMathDiv) lastMathDiv.remove();
+        drawLesson(step);
+        if (showCaptions) {
+            captionsBox.textContent = step.audio;
+            captionsBox.classList.add('visible');
+        } else {
+            captionsBox.textContent = '';
+            captionsBox.classList.remove('visible');
+        }
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+videoVolumeInput.addEventListener('input', () => {});
+captionsToggle.addEventListener('change', () => {
+    if (!captionsToggle.checked) {
+        captionsBox.classList.remove('visible');
+    } else {
+        if (speechSynthesis.speaking) {
+            const currentStep = tutorialSteps[tutorialIndex - 1] || tutorialSteps[0];
+            captionsBox.textContent = currentStep.audio;
+            captionsBox.classList.add('visible');
+        }
+    }
+});
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const type = Math.random();
+    let a, b, c;
+    if (type < 0.5) { // Factorable
+        const p = Math.floor(Math.random() * 10) - 5;
+        const q = Math.floor(Math.random() * 10) - 5;
+        a = 1;
+        b = p + q;
+        c = p * q;
+        return {q: `$x^2 ${b >= 0 ? '+' : '-'} ${Math.abs(b)}x ${c >= 0 ? '+' : '-'} ${Math.abs(c)} = 0$`, a: [p, q]};
+    } else if (type < 0.8) { // Completing the square (b is even)
+        const root = Math.floor(Math.random() * 5) + 2;
+        const rootSign = Math.random() < 0.5 ? -1 : 1;
+        const p = Math.floor(Math.random() * 4) + 1;
+        a = 1;
+        b = 2 * p * rootSign;
+        c = p * p - root * root;
+        return {q: `$x^2 ${b >= 0 ? '+' : '-'} ${Math.abs(b)}x ${c >= 0 ? '+' : '-'} ${Math.abs(c)} = 0$`, a: [-p*rootSign + root, -p*rootSign - root]};
+    } else { // Quadratic formula (non-integer solutions)
+        a = Math.floor(Math.random() * 3) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        c = Math.floor(Math.random() * 10) + 1;
+        const discriminant = b*b - 4*a*c;
+        if (discriminant < 0) return generateProblem(); // Recurse if no real solutions
+        const sol1 = (-b + Math.sqrt(discriminant)) / (2*a);
+        const sol2 = (-b - Math.sqrt(discriminant)) / (2*a);
+        return {q: `$${a}x^2 + ${b}x + ${c} = 0$`, a: [sol1, sol2]};
+    }
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = currentQuiz.q;
+    MathJax.typesetPromise([qEl]);
+    document.getElementById('quizInput_ans').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput_ans').value;
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val.split(',').map(s => parseFloat(s.trim())).sort((a,b) => a-b);
+    let isCorrect = false;
+
+    const correctAnswers = currentQuiz.a.sort((a,b) => a-b);
+    
+    if (userAnswer.length === correctAnswers.length) {
+        isCorrect = userAnswer.every((val, i) => Math.abs(val - correctAnswers[i]) < 0.001);
+    }
+    
+    if (isCorrect) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: x=${correctAnswers.join(', ')})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, document.getElementById('quizInput_ans').value, correctAnswers.join(', ')]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "solving_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

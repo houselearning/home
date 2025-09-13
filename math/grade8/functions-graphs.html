@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Functions & Graphs</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#fbbf24; --accent2:#eab308; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#fbbf24;color:#fff}
+button.ghost{background:#fefce8;color:var(--accent2);border:1px solid #fde68a}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fde68a;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #fde68a;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #fde68a;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Functions & Graphs 📊</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a Function? ⚙️</h2>
+<p>
+    A **function** is a relationship where every input has exactly one output. Think of it like a machine: you put in a number (the **input** or $$x$$), the machine does some work, and a single number comes out (the **output** or $$y$$). We often write functions using **function notation**, like $$f(x)$$ which is read "f of x".
+</p>
+<p>
+    The **domain** is the set of all possible input values ($$x$$). The **range** is the set of all possible output values ($$y$$).
+</p>
+<p>
+    When we graph a function, we plot the pairs of inputs and outputs ($$x, y$$) on a coordinate plane. The graph is a visual representation of the function's behavior.
+</p>
+<div class="status" style="margin-top:8px">
+    <div class="pill" id="score">Score: 0</div>
+    <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Graphing a Function from a Table 🎬</h2>
+<p>This video will walk you through how to create a graph from a function table step-by-step.</p>
+<div class="canvas-wrapper">
+    <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+    <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+    <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Evaluate the function for the given value of x.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1.tile">
+        <div style="font-weight:700">1) If $$f(x) = 3x + 2$$, find $$f(4)$$</div>
+        <p>$$f(4)$$ = <input id="q1_ans" type="number" step="0.1" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q1', '14')">Check</button></div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2.tile">
+        <div style="font-weight:700">2) If $$f(x) = x^2 - 1$$, find $$f(3)$$</div>
+        <p>$$f(3)$$ = <input id="q2_ans" type="number" step="0.1" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q2', '8')">Check</button></div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3.tile">
+        <div style="font-weight:700">3) If $$f(x) = 5 - x$$, find $$f(-2)$$</div>
+        <p>$$f(-2)$$ = <input id="q3_ans" type="number" step="0.1" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q3', '7')">Check</button></div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4.tile">
+        <div style="font-weight:700">4) If $$f(x) = \frac{x}{2} + 3$$, find $$f(6)$$</div>
+        <p>$$f(6)$$ = <input id="q4_ans" type="number" step="0.1" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q4', '6')">Check</button></div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Functions Speed Quiz</h2>
+<div class="controls">
+    <label>Duration:
+        <select id="quizDuration">
+            <option value="30">30s</option>
+            <option value="60" selected>60s</option>
+            <option value="90">90s</option>
+        </select>
+    </label>
+    <button id="startQuiz" class="warn">Start Quiz</button>
+    <button id="stopQuiz" class="ghost">Stop</button>
+    <div class="muted" id="quizTimer">Time: 0</div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+    <div style="margin-top:8px" class="controls">
+        <input id="quizInput_ans" type="number" step="0.1" placeholder="Answer = ?">
+        <button id="quizCheck" class="secondary">Submit</button>
+        <div id="quizFeedback" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You've got this! Practice makes perfect.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+window.check = (qId, correct) => {
+    const input = document.getElementById(qId + '_ans');
+    const val = parseFloat(input.value);
+    const correctVal = parseFloat(correct);
+    const res = document.getElementById('r' + qId.slice(1));
+    const isCorrect = val === correctVal;
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correctVal})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, `Answer=${val}`, `Answer=${correctVal}`]);
+};
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+const tutorialSteps = [
+    { 
+        audio: "Let's learn how to graph the function f of x equals 2x plus 1. We'll start by making an input-output table.", 
+        text: "Function: $$f(x) = 2x + 1$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawTable(ctx, "x", "y", [], true);
+        }
+    },
+    {
+        audio: "Let's choose a few simple input values for x, like negative 1, zero, and 2.",
+        text: "Choose input values ($$x$$)",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawTable(ctx, "x", "y", [{x: -1}, {x: 0}, {x: 2}], true);
+        }
+    },
+    {
+        audio: "Now, we'll find the output for each input. First, if x is negative 1, we calculate 2 times negative 1 plus 1, which equals negative 1. So our first point is negative 1, negative 1.",
+        text: "Calculate outputs ($$y$$)",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawTable(ctx, "x", "y", [{x: -1, y: -1}, {x: 0}, {x: 2}], true);
+        }
+    },
+    {
+        audio: "Next, if x is zero, we calculate 2 times zero plus 1, which equals 1. Our next point is zero, 1.",
+        text: "Calculate outputs ($$y$$)",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawTable(ctx, "x", "y", [{x: -1, y: -1}, {x: 0, y: 1}, {x: 2}], true);
+        }
+    },
+    {
+        audio: "Finally, if x is 2, we calculate 2 times 2 plus 1, which equals 5. Our last point is 2, 5.",
+        text: "Calculate outputs ($$y$$)",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawTable(ctx, "x", "y", [{x: -1, y: -1}, {x: 0, y: 1}, {x: 2, y: 5}], true);
+        }
+    },
+    {
+        audio: "Now we have three points: negative 1, negative 1, zero, 1, and 2, 5. Let's plot these points on a graph.",
+        text: "Plot the points ($$x, y$$) on a graph",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawGraph(ctx);
+            drawPoints(ctx, [{x: -1, y: -1}, {x: 0, y: 1}, {x: 2, y: 5}], true);
+        }
+    },
+    {
+        audio: "Once all the points are plotted, connect them with a straight line. This line is the graph of the function f of x equals 2x plus 1.",
+        text: "Connect the points to form the graph",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawGraph(ctx);
+            drawPoints(ctx, [{x: -1, y: -1}, {x: 0, y: 1}, {x: 2, y: 5}], false);
+            drawLine(ctx, -1, -1, 2, 5);
+        }
+    }
+];
+
+function drawTable(ctx, xHeader, yHeader, rows, showValues = true) {
+    ctx.font = '20px Inter, sans-serif';
+    ctx.fillStyle = '#04263b';
+    const cellWidth = 100;
+    const cellHeight = 40;
+    const startX = tutorialCanvas.width / 2 - cellWidth;
+    const startY = tutorialCanvas.height / 2 - (rows.length + 1) * cellHeight / 2;
+
+    ctx.fillText(xHeader, startX + cellWidth / 2, startY + cellHeight / 2 + 7);
+    ctx.fillText(yHeader, startX + cellWidth * 1.5, startY + cellHeight / 2 + 7);
+
+    for (let i = 0; i < rows.length; i++) {
+        ctx.fillText(rows[i].x !== undefined ? rows[i].x.toString() : "", startX + cellWidth / 2, startY + cellHeight * (i + 1.5) + 7);
+        if (showValues && rows[i].y !== undefined) {
+            ctx.fillText(rows[i].y.toString(), startX + cellWidth * 1.5, startY + cellHeight * (i + 1.5) + 7);
+        }
+    }
+
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(startX, startY, cellWidth * 2, cellHeight * (rows.length + 1));
+    ctx.beginPath();
+    ctx.moveTo(startX, startY + cellHeight);
+    ctx.lineTo(startX + cellWidth * 2, startY + cellHeight);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(startX + cellWidth, startY);
+    ctx.lineTo(startX + cellWidth, startY + cellHeight * (rows.length + 1));
+    ctx.stroke();
+}
+
+function drawGraph(ctx) {
+    const scale = 20;
+    const originX = tutorialCanvas.width / 2;
+    const originY = tutorialCanvas.height / 2;
+    
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    
+    // Draw axes
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, originY);
+    ctx.lineTo(tutorialCanvas.width, originY);
+    ctx.moveTo(originX, 0);
+    ctx.lineTo(originX, tutorialCanvas.height);
+    ctx.stroke();
+
+    // Draw grid
+    ctx.strokeStyle = '#d4d4d4';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < tutorialCanvas.width; i += scale) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, tutorialCanvas.height);
+        ctx.stroke();
+    }
+    for (let i = 0; i < tutorialCanvas.height; i += scale) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(tutorialCanvas.width, i);
+        ctx.stroke();
+    }
+
+    // Y-axis label
+    ctx.font = '16px Inter, sans-serif';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'right';
+    ctx.fillText('y', originX - 5, 20);
+    ctx.textAlign = 'center';
+    ctx.fillText('x', tutorialCanvas.width - 20, originY + 20);
+}
+
+function drawPoints(ctx, points, showLabel) {
+    const scale = 20;
+    const originX = tutorialCanvas.width / 2;
+    const originY = tutorialCanvas.height / 2;
+    
+    ctx.fillStyle = '#eab308';
+    points.forEach(p => {
+        const plotX = originX + p.x * scale;
+        const plotY = originY - p.y * scale;
+        ctx.beginPath();
+        ctx.arc(plotX, plotY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        if (showLabel) {
+            ctx.font = '12px Inter, sans-serif';
+            ctx.fillText(`(${p.x}, ${p.y})`, plotX + 15, plotY - 10);
+        }
+    });
+}
+
+function drawLine(ctx, x1, y1, x2, y2) {
+    const scale = 20;
+    const originX = tutorialCanvas.width / 2;
+    const originY = tutorialCanvas.height / 2;
+    
+    const plotX1 = originX + x1 * scale;
+    const plotY1 = originY - y1 * scale;
+    const plotX2 = originX + x2 * scale;
+    const plotY2 = originY - y2 * scale;
+    
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(plotX1, plotY1);
+    ctx.lineTo(plotX2, plotY2);
+    ctx.stroke();
+}
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        step.draw(ctx);
+        ctx.textAlign = 'center';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillStyle = '#04263b';
+        ctx.fillText(step.text, tutorialCanvas.width / 2, 40);
+        MathJax.typeset([document.getElementById('tutorialCanvas').parentNode.parentNode]);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const funcs = [
+        (x) => ({ q: `$$f(x) = 2x + 3$$, find $$f(${x})$$`, a: 2*x + 3 }),
+        (x) => ({ q: `$$f(x) = 4x - 1$$, find $$f(${x})$$`, a: 4*x - 1 }),
+        (x) => ({ q: `$$f(x) = 5 - x$$, find $$f(${x})$$`, a: 5 - x }),
+        (x) => ({ q: `$$f(x) = x^2$$, find $$f(${x})$$`, a: x*x }),
+        (x) => ({ q: `$$f(x) = \frac{x}{2}$$, find $$f(${x})$$`, a: x/2 })
+    ];
+    const func = funcs[Math.floor(Math.random() * funcs.length)];
+    const x = Math.floor(Math.random() * 10) - 5;
+    return func(x);
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.innerHTML = currentQuiz.q;
+    MathJax.typeset([qEl]);
+    document.getElementById('quizInput_ans').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = parseFloat(document.getElementById('quizInput_ans').value);
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = `Answer=${val}`;
+    let correctAnswer = `Answer=${currentQuiz.a}`;
+    if (val === currentQuiz.a) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q.replace(/\\/g, ''), userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "functions_graphs_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Applications of Derivatives</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Applications of Derivatives 🎯</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What Can Derivatives Do? 🚀</h2>
+<p>
+  Derivatives are used to find the **rate of change**, **optimize** functions (finding maximums and minimums), and **analyze the shape of a graph**. They help us understand a function's behavior in detail.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Derivative Applications 🎬</h2>
+<p>Watch this video to see how derivatives help us understand motion and function behavior.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Answer questions about real-world derivative applications.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) If $s(t)$ is position, what is $s'(t)$?</div>
+    <select id="q1">
+      <option value="">Choose one...</option>
+      <option value="velocity">Velocity</option>
+      <option value="acceleration">Acceleration</option>
+      <option value="jerk">Jerk</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q1', 'velocity')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) A function has a local maximum when its derivative is...</div>
+    <select id="q2">
+      <option value="">Choose one...</option>
+      <option value="zero">Zero</option>
+      <option value="positive">Positive</option>
+      <option value="negative">Negative</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q2', 'zero')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) If $f'(x) > 0$ on an interval, is $f(x)$ increasing or decreasing?</div>
+    <select id="q3">
+      <option value="">Choose one...</option>
+      <option value="increasing">Increasing</option>
+      <option value="decreasing">Decreasing</option>
+      <option value="constant">Constant</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q3', 'increasing')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Marginal cost is the derivative of what?</div>
+    <select id="q4">
+      <option value="">Choose one...</option>
+      <option value="revenue">Revenue</option>
+      <option value="cost">Total Cost</option>
+      <option value="profit">Profit</option>
+    </select>
+    <div style="margin-top:6px"><button onclick="check('q4', 'cost')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Application Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Type your answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Derivatives are a powerful tool for understanding the world!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+      const A = new (window.AudioContext || window.webkitAudioContext)();
+      const o = A.createOscillator();
+      const g = A.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(A.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+      setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+      totalScore += points;
+      streak++;
+    } else {
+      streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim().toLowerCase().replace(/ /g, '');
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+    if (!res) {
+      console.error(`Result element with ID '${resultId}' not found.`);
+      return;
+    }
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === correct.toLowerCase().replace(/ /g, ''));
+    if (isCorrect) {
+      res.textContent = '✅ Correct!';
+      res.className = 'answer ok';
+      tone(880, 0.06);
+      updateScore(1);
+    } else {
+      res.textContent = `❌ Wrong (Answer: ${correct})`;
+      res.className = 'answer bad';
+      tone(220, 0.06);
+      updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawLine(x1, y1, x2, y2, color, thickness, dash) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.setLineDash(dash || []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+function drawText(text, x, y, color = '#04263b', size = '20px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+const tutorialSteps = [
+    { audio: "Derivatives are used to find the rate of change of a function.", text: "Rate of Change", viz: "rate-change" },
+    { audio: "For a position function, the derivative is velocity.", text: "d/dt(Position) = Velocity", viz: "velocity" },
+    { audio: "The second derivative is acceleration.", text: "d²/dt²(Position) = Acceleration", viz: "acceleration" },
+    { audio: "Derivatives help find local maximums and minimums.", text: "Optimization: Max/Min", viz: "optimization" },
+    { audio: "At a local maximum, the derivative is zero.", text: "f'(x) = 0 at Max/Min", viz: "max-min" },
+    { audio: "A positive derivative means the function is increasing.", text: "f'(x) > 0: Increasing", viz: "increasing" },
+    { audio: "A negative derivative means the function is decreasing.", text: "f'(x) < 0: Decreasing", viz: "decreasing" },
+    { audio: "The second derivative tells us about concavity.", text: "f''(x): Concavity", viz: "concavity" },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+      if (tutorialIndex >= tutorialSteps.length) {
+        if (callback) callback();
+        return;
+      }
+      const step = tutorialSteps[tutorialIndex];
+      const utterance = new SpeechSynthesisUtterance(step.audio);
+      utterance.rate = speed;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => {
+        tutorialIndex++;
+        nextStep();
+      };
+      ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+      drawText(step.text, tutorialCanvas.width / 2, 40);
+      
+      const w = tutorialCanvas.width, h = tutorialCanvas.height;
+      const centerX = w / 2, centerY = h * 0.8;
+      
+      // Draw axes
+      drawLine(w*0.1, centerY, w*0.9, centerY, '#566270', 2);
+      drawLine(centerX, h*0.1, centerX, h*0.9, '#566270', 2);
+      
+      if (step.viz === "velocity" || step.viz === "acceleration") {
+          ctx.font = '16px Inter, sans-serif';
+          ctx.textAlign = 'left';
+          drawText("Position", w*0.15, h*0.3, '#1d4ed8', '20px');
+          drawText("Velocity", w*0.45, h*0.3, '#f97316', '20px');
+          drawText("Acceleration", w*0.75, h*0.3, '#16a34a', '20px');
+          ctx.textAlign = 'center';
+      } else if (step.viz === "optimization" || step.viz === "max-min") {
+          // Draw a curve with a max and min
+          ctx.beginPath();
+          for (let x = -200; x <= 200; x++) {
+              ctx.lineTo(centerX + x, centerY - 0.0001 * x * (x - 200) * (x + 200));
+          }
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          
+          // Draw tangent lines at extrema
+          drawLine(centerX + 140, centerY - 0.0001*140*(-60)*(340) - 80, centerX + 140, centerY - 0.0001*140*(-60)*(340) + 80, '#16a34a', 2);
+          drawText("Max", centerX + 140, centerY - 0.0001*140*(-60)*(340) - 20, '#16a34a', '16px');
+
+          drawLine(centerX - 140, centerY - 0.0001*(-140)*(-340)*(60) - 80, centerX - 140, centerY - 0.0001*(-140)*(-340)*(60) + 80, '#16a34a', 2);
+          drawText("Min", centerX - 140, centerY - 0.0001*(-140)*(-340)*(60) - 20, '#16a34a', '16px');
+      } else if (step.viz === "increasing" || step.viz === "decreasing") {
+          ctx.beginPath();
+          for (let x = -200; x <= 200; x++) {
+              ctx.lineTo(centerX + x, centerY - 0.0001 * x * x * x + 100);
+          }
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          drawLine(centerX - 100, centerY - 0.0001*(-100)*(-100)*(-100) + 100 - 50, centerX - 100, centerY - 0.0001*(-100)*(-100)*(-100) + 100 + 50, '#16a34a', 2);
+          drawText("Positive Slope", centerX - 100, centerY - 0.0001*(-100)*(-100)*(-100) + 100 - 20, '#16a34a', '16px');
+      } else if (step.viz === "concavity") {
+          ctx.beginPath();
+          for (let x = -200; x <= 200; x++) {
+              ctx.lineTo(centerX + x, centerY - 0.00005 * x * x * x);
+          }
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 5, 0, 2*Math.PI);
+          ctx.fillStyle = '#1d4ed8';
+          ctx.fill();
+          drawText("Inflection Point", centerX, centerY+20, '#1d4ed8', '16px');
+      }
+      
+      speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const problems = [
+        { q: "What is the derivative of velocity?", a: "acceleration" },
+        { q: "What is the slope of the tangent at a local minimum?", a: "zero" },
+        { q: "If a function is decreasing, its derivative is...", a: "negative" },
+        { q: "The second derivative tells you about a function's...", a: "concavity" },
+        { q: "What is the term for a point where concavity changes?", a: "inflection point" },
+    ];
+    return problems[Math.floor(Math.random() * problems.length)];
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = problem.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    if (window.MathJax) {
+        window.MathJax.typesetPromise([qEl]).catch(err => console.error("MathJax typesetting failed", err));
+    }
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+      quizTime--;
+      document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+      if (quizTime <= 0) {
+        clearInterval(quizTimerInt);
+        document.getElementById('quizQ').textContent = 'Time Up!';
+      }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/ /g, '');
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a.toLowerCase().replace(/ /g, '');
+    let isCorrect = (val === correctAnswer);
+    if (isCorrect) {
+      f.textContent = '✅ Correct!';
+      f.className = 'answer ok';
+      quizScore++;
+      document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+      tone(880, 0.06);
+    } else {
+      f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+      f.className = 'answer bad';
+      tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "derivative_applications_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

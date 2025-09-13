@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Place Value (Hundreds, Tens, Ones)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5faff;
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #2a6ebb; }
+    .lesson {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    .example, .practice {
+      margin: 20px 0;
+      padding: 15px;
+      border: 2px solid #2a6ebb;
+      border-radius: 10px;
+      background: #eef6ff;
+    }
+    .htoboxes {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .box {
+      width: 120px;
+      height: 120px;
+      border: 2px solid #2a6ebb;
+      margin: 10px;
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .draggables {
+      margin: 20px;
+    }
+    .draggable {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px 15px;
+      background: #2a6ebb;
+      color: white;
+      border-radius: 8px;
+      cursor: grab;
+    }
+    canvas {
+      margin-top: 20px;
+      border: 2px solid #2a6ebb;
+      border-radius: 8px;
+    }
+    .controls {
+      margin: 10px;
+    }
+    button {
+      padding: 8px 15px;
+      margin: 5px;
+      background: #2a6ebb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1b4e87;
+    }
+  </style>
+</head>
+<body>
+  <div class="lesson">
+    <h1>Place Value: Hundreds, Tens, and Ones</h1>
+    <p>Every number is made of <b>hundreds</b>, <b>tens</b>, and <b>ones</b>.  
+       For example, the number <b>342</b> means:</p>
+    <ul style="text-align:left; display:inline-block;">
+      <li><b>3 Hundreds</b> = 300</li>
+      <li><b>4 Tens</b> = 40</li>
+      <li><b>2 Ones</b> = 2</li>
+    </ul>
+
+    <div class="example">
+      <h2>Example</h2>
+      <p>678 = 6 Hundreds, 7 Tens, 8 Ones</p>
+      <div class="htoboxes">
+        <div class="box">H<br>6</div>
+        <div class="box">T<br>7</div>
+        <div class="box">O<br>8</div>
+      </div>
+    </div>
+
+    <div class="practice">
+      <h2>Try It Yourself!</h2>
+      <p>Drag the digits into the correct place value boxes for the number <b>529</b>:</p>
+      <div class="htoboxes">
+        <div class="box" id="hundredsBox">H</div>
+        <div class="box" id="tensBox">T</div>
+        <div class="box" id="onesBox">O</div>
+      </div>
+      <div class="draggables">
+        <div class="draggable" draggable="true" id="digit5">5</div>
+        <div class="draggable" draggable="true" id="digit2">2</div>
+        <div class="draggable" draggable="true" id="digit9">9</div>
+      </div>
+      <p id="feedback" style="font-weight:bold;"></p>
+    </div>
+
+    
+
+  <script>
+    // Drag and drop practice
+    const boxes = {
+      hundredsBox: "5",
+      tensBox: "2",
+      onesBox: "9"
+    };
+
+    document.querySelectorAll(".draggable").forEach(el => {
+      el.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text", e.target.id);
+      });
+    });
+
+    document.querySelectorAll(".box").forEach(box => {
+      box.addEventListener("dragover", e => e.preventDefault());
+      box.addEventListener("drop", e => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData("text");
+        const digit = document.getElementById(data).textContent;
+        e.target.innerHTML = e.target.innerHTML.split("<br>")[0] + "<br>" + digit;
+
+        checkAnswer();
+      });
+    });
+
+    function checkAnswer() {
+      let correct = true;
+      for (let id in boxes) {
+        const box = document.getElementById(id);
+        if (!box.innerHTML.includes(boxes[id])) correct = false;
+      }
+      document.getElementById("feedback").textContent = correct ? 
+        "✅ Great job! You placed all digits correctly!" : "Keep going!";
+    }
+
+    // Canvas Number Chart
+    const canvas = document.getElementById("numberChart");
+    const ctx = canvas.getContext("2d");
+    let offset = 0;
+
+    function drawChart() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "#333";
+
+      let start = offset * 10 + 1;
+      let end = start + 99;
+
+      let x = 20, y = 30;
+      for (let i=start; i<=end && i<=1000; i++) {
+        ctx.fillText(i, x, y);
+        x += 50;
+        if (x > canvas.width - 40) {
+          x = 20;
+          y += 30;
+        }
+      }
+    }
+
+    function scrollUp() {
+      if (offset > 0) offset--;
+      drawChart();
+    }
+
+    function scrollDown() {
+      if ((offset+1)*100 < 1000) offset++;
+      drawChart();
+    }
+
+    drawChart();
+  </script>
+</body>
+</html>

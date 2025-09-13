@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Two-Digit Subtraction — Long Interactive Lesson</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ===== Theme (same cozy classroom vibe) ===== */
+    :root{
+      --bg:#fef9f5;
+      --card:#fff3e0;
+      --ink:#2c3e50;
+      --accent:#ff9800;
+      --accent-2:#ffcc80;
+      --ok:#2e7d32;
+      --bad:#c62828;
+      --muted:#6b7280;
+      --border:#f1d3aa;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Comic Sans MS", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    header{
+      background:var(--accent-2);
+      padding:22px 16px;
+      text-align:center;
+      box-shadow:0 3px 10px rgba(0,0,0,.08);
+    }
+    h1{margin:0;font-size:2.2rem}
+    main{padding:20px;max-width:1100px;margin:0 auto}
+
+    section{
+      background:var(--card);
+      border:2px solid var(--border);
+      border-radius:14px;
+      padding:18px;
+      margin:18px 0;
+      box-shadow:0 6px 18px rgba(0,0,0,.06);
+    }
+    h2{margin:0 0 10px 0}
+    .tip{
+      background:#fffef6;border:1px dashed #e3cfa6;color:#7c6a3d;
+      padding:10px;border-radius:8px;font-size:.95rem
+    }
+    .grid{
+      display:grid;gap:14px;
+    }
+    @media(min-width:800px){
+      .grid.two{grid-template-columns:1fr 1fr}
+      .grid.three{grid-template-columns:repeat(3,1fr)}
+    }
+
+    .card{
+      background:#fff; border:1px solid #f0e0c9; border-radius:12px; padding:14px
+    }
+
+    button{
+      background:var(--accent); color:white; border:none; border-radius:10px;
+      padding:10px 14px; cursor:pointer; font-weight:700;
+      box-shadow:0 2px 8px rgba(0,0,0,.08); transition:transform .05s, filter .15s
+    }
+    button:hover{filter:brightness(1.05); transform:translateY(-1px)}
+    button.secondary{background:#ffa726}
+    button.ghost{background:#ffe6c5;color:#5b3a00}
+    button.danger{background:#ef5350}
+    .btn-row{display:flex; gap:8px; flex-wrap:wrap}
+
+    input[type="number"], input[type="text"]{
+      padding:10px; border:2px solid #e8d8bd; border-radius:10px; width:120px;
+      font-size:1.1rem; text-align:center; margin-right:6px
+    }
+    .result{font-weight:800; margin-left:8px}
+    .ok{color:var(--ok)}
+    .bad{color:var(--bad)}
+    .muted{color:var(--muted)}
+
+    pre.math{
+      background:#fff; border:1px solid #f0e0c9; border-radius:10px; padding:10px;
+      display:inline-block; font-family:ui-monospace, Menlo, Consolas, monospace;
+      line-height:1.35
+    }
+
+    /* Canvas frames */
+    .canvas-wrap{border:2px solid #f0e0c9; border-radius:12px; background:#fff; padding:10px}
+    canvas{display:block; width:100%; height:auto; background:#fff8e1; border-radius:8px}
+
+    /* Table-ish layout for vertical problems */
+    .vprob{
+      display:inline-grid; grid-template-columns:auto auto; gap:6px; align-items:center;
+      padding:10px; background:#fff; border:1px solid #f0e0c9; border-radius:10px
+    }
+    .vprob .col{display:flex; flex-direction:column; align-items:flex-end; font-size:1.4rem; min-width:3ch}
+    .carry{font-size:.9rem; color:#8d6e63; height:1rem}
+    .line{height:2px; background:#333; width:100%; margin-top:4px}
+
+    .pill{display:inline-block; background:#ffe6c5; color:#6a3d00; padding:4px 10px; border-radius:999px; font-weight:800; font-size:.8rem}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>➖ Two-Digit Subtraction (Tens & Ones)</h1>
+    <p class="muted">We’re subtracting like pros — with and without regrouping. Let’s go.</p>
+  </header>
+
+  <main>
+    <!-- Intro -->
+    <section>
+      <h2>📖 What is Two-Digit Subtraction?</h2>
+      <p>
+        You’re subtracting numbers from <b>10–99</b>. Each has a <b>tens</b> digit and an <b>ones</b> digit.  
+        We subtract ones from ones, tens from tens. If the ones on top are smaller than the ones on bottom, we <b>regroup</b> (a.k.a. “borrow”): break one <b>ten</b> into <b>10 ones</b>.
+      </p>
+      <div class="tip">
+        Real talk: If ones-place on top is too small, don’t force it — regroup and keep it moving.
+      </div>
+    </section>
+
+    <!-- Step-by-step Examples -->
+    <section>
+      <h2>🧩 Step-by-Step Examples</h2>
+      <div class="grid two">
+        <div class="card">
+          <span class="pill">No Regrouping</span>
+          <p><b>54 − 21</b></p>
+          <pre class="math">
+   5 4
+ - 2 1
+ -----
+   3 3
+          </pre>
+          <ol>
+            <li>Ones: 4 − 1 = 3</li>
+            <li>Tens: 5 − 2 = 3</li>
+            <li>Answer: <b>33</b></li>
+          </ol>
+        </div>
+        <div class="card">
+          <span class="pill">With Regrouping</span>
+          <p><b>63 − 27</b></p>
+          <pre class="math">
+   6 3
+ - 2 7
+ -----
+          </pre>
+          <ol>
+            <li>Ones: 3 − 7 ❌ (too small) → borrow 1 ten → 6 tens becomes 5 tens, ones become 13.</li>
+            <li>Ones now: 13 − 7 = 6</li>
+            <li>Tens: 5 − 2 = 3</li>
+            <li>Answer: <b>36</b></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Vertical Builder -->
+    <section>
+      <h2>🧱 Build a Vertical Problem</h2>
+      <div class="vprob" aria-label="vertical subtraction">
+        <div class="col">
+          <span class="carry" id="carryTop"></span>
+          <span id="topTens">6</span><span id="topOnes">3</span>
+          <div class="line"></div>
+        </div>
+        <div class="col">
+          <span class="carry">&nbsp;</span>
+          <span id="botTens">2</span><span id="botOnes">7</span>
+          <div>&nbsp;</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <label>Minuend (top): <input type="number" id="minuend" value="63" min="10" max="99"></label>
+        <label>Subtrahend (bottom): <input type="number" id="subtrahend" value="27" min="10" max="99"></label>
+        <button onclick="loadVertical()">Set</button>
+        <button class="secondary" onclick="explainVertical()">Explain Steps</button>
+        <button class="ghost" onclick="randomVertical()">🎲 Random</button>
+        <span id="vExplain" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- Practice Set -->
+    <section>
+      <h2>✏️ Practice Problems</h2>
+      <div class="grid three">
+        <div class="card">
+          <p><b>58 − 23</b></p>
+          <input type="number" id="p1" placeholder="Answer">
+          <button onclick="check('p1', 35)">Check</button>
+          <span id="p1r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>72 − 48</b></p>
+          <input type="number" id="p2" placeholder="Answer">
+          <button onclick="check('p2', 24)">Check</button>
+          <span id="p2r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>64 − 39</b></p>
+          <input type="number" id="p3" placeholder="Answer">
+          <button onclick="check('p3', 25)">Check</button>
+          <span id="p3r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>90 − 54</b></p>
+          <input type="number" id="p4" placeholder="Answer">
+          <button onclick="check('p4', 36)">Check</button>
+          <span id="p4r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>41 − 17</b></p>
+          <input type="number" id="p5" placeholder="Answer">
+          <button onclick="check('p5', 24)">Check</button>
+          <span id="p5r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>53 − 28</b></p>
+          <input type="number" id="p6" placeholder="Answer">
+          <button onclick="check('p6', 25)">Check</button>
+          <span id="p6r" class="result"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Challenge Set -->
+    <section>
+      <h2>🔥 Challenge Problems</h2>
+      <div class="grid three">
+        <div class="card">
+          <p><b>87 − 69</b></p>
+          <input type="number" id="c1" placeholder="Answer">
+          <button onclick="check('c1', 18)">Check</button>
+          <span id="c1r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>75 − 58</b></p>
+          <input type="number" id="c2" placeholder="Answer">
+          <button onclick="check('c2', 17)">Check</button>
+          <span id="c2r" class="result"></span>
+        </div>
+        <div class="card">
+          <p><b>94 − 37</b></p>
+          <input type="number" id="c3" placeholder="Answer">
+          <button onclick="check('c3', 57)">Check</button>
+          <span id="c3r" class="result"></span>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button onclick="randomizeSet()">🎲 Randomize New Set</button>
+        <span id="setMsg" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- Regrouping Lab (Canvas base-ten blocks) -->
+    <section>
+      <h2>🧪 Regrouping Lab (Base-Ten Blocks)</h2>
+      <p>See borrowing happen for real: one <b>ten</b> becomes <b>ten ones</b>. Enter any two-digit subtraction (top ≥ bottom).</p>
+      <div class="btn-row" style="margin-bottom:10px">
+        <label>Top (minuend): <input id="labTop" type="number" value="63" min="10" max="99"></label>
+        <label>Bottom (subtrahend): <input id="labBot" type="number" value="27" min="10" max="99"></label>
+        <button onclick="drawLab()">Show Blocks</button>
+        <button class="secondary" onclick="animateBorrow()">Borrow Step</button>
+        <button class="ghost" onclick="resetLab()">Reset</button>
+        <span id="labMsg" class="muted"></span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="labCanvas" width="900" height="260" aria-label="base ten blocks canvas"></canvas>
+      </div>
+    </section>
+
+    <!-- Number Line Visualizer -->
+    <section>
+      <h2>📉 Number Line Visualizer</h2>
+      <p>Watch backward jumps from the top number down to the answer. Perfect for building the intuition.</p>
+      <div class="btn-row">
+        <label>Top: <input id="nlTop" type="number" value="63" min="10" max="99"></label>
+        <label>Minus: <input id="nlMinus" type="number" value="27" min="0" max="99"></label>
+        <button onclick="drawNumberLine()">Draw</button>
+        <button class="secondary" onclick="demoNumberLine()">Demo</button>
+        <span id="nlMsg" class="muted"></span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="lineCanvas" width="900" height="220"></canvas>
+      </div>
+    </section>
+
+    <!-- Scrollable Number Chart -->
+    <section>
+      <h2>🔢 Number Chart (100–1000)</h2>
+      <p class="muted">Use the arrows to scroll the chart by 100s.</p>
+      <div class="btn-row">
+        <button onclick="chartUp()">⬆ Up</button>
+        <button onclick="chartDown()">⬇ Down</button>
+        <span id="chartInfo" class="muted"></span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="chartCanvas" width="900" height="360"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* ================= Utility ================= */
+    function ok(el, msg){ const s=document.getElementById(el); s.textContent="✅ "+msg; s.className="result ok"; }
+    function bad(el, msg){ const s=document.getElementById(el); s.textContent="❌ "+msg; s.className="result bad"; }
+
+    /* ================= Practice checkers ================= */
+    function check(id, ans){
+      const v = parseInt(document.getElementById(id).value, 10);
+      const r = id+"r";
+      if (v === ans) ok(r, "Correct!");
+      else if (isNaN(v)) bad(r, "Type an answer");
+      else bad(r, "Try again");
+    }
+
+    function randomInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+    function randomizeSet(){
+      // Replace the challenge problems with fresh ones (ensure top >= bottom)
+      const triples = [["c1", "c1r"],["c2","c2r"],["c3","c3r"]];
+      triples.forEach((pair)=>{
+        let top = randomInt(30,99), bot = randomInt(10,89);
+        if (bot>top) [top,bot]=[bot,top];
+        const card = pair[0].slice(0,-1); // not used, just clarity
+        document.querySelector(`#${pair[0]}`).value="";
+        document.querySelector(`#${pair[0]}`).previousElementSibling.previousElementSibling.innerHTML = `<b>${top} − ${bot}</b>`;
+        document.getElementById(pair[1]).textContent="";
+        document.getElementById(pair[0]).setAttribute("data-ans", top-bot);
+        document.getElementById(pair[0]).onblur = (e)=>{
+          const ans = parseInt(e.target.getAttribute("data-ans"),10);
+          const id = e.target.id;
+          const v = parseInt(e.target.value,10);
+          const r = id+"r";
+          if (v===ans) ok(r,"Correct!"); else if(!isNaN(v)) bad(r,"Nope — check regrouping.");
+        };
+      });
+      document.getElementById("setMsg").textContent="New challenges generated.";
+    }
+
+    /* ================= Vertical builder ================= */
+    function loadVertical(){
+      let top = clamp(parseInt(minuend.value,10),10,99);
+      let bot = clamp(parseInt(subtrahend.value,10),0,99);
+      if (bot>top){ const tmp=top; top=bot; bot=tmp; }
+      minuend.value = top; subtrahend.value = bot;
+      topTens.textContent = Math.floor(top/10);
+      topOnes.textContent = top%10;
+      botTens.textContent = Math.floor(bot/10);
+      botOnes.textContent = bot%10;
+      carryTop.textContent = "";
+      vExplain.textContent = "";
+    }
+    function clamp(v,a,b){ if(isNaN(v)) return a; return Math.min(b,Math.max(a,v)); }
+    function randomVertical(){
+      const t = randomInt(20,99), b = randomInt(10,99);
+      minuend.value = Math.max(t,b);
+      subtrahend.value = Math.min(t,b);
+      loadVertical();
+    }
+    function explainVertical(){
+      const top = parseInt(minuend.value,10), bot = parseInt(subtrahend.value,10);
+      const tT = Math.floor(top/10), tO = top%10, bT = Math.floor(bot/10), bO = bot%10;
+      if (tO >= bO){
+        vExplain.textContent = `Ones: ${tO} − ${bO} = ${tO-bO}. Tens: ${tT} − ${bT} = ${tT-bT}. Answer ${top-bot}.`;
+      } else {
+        vExplain.textContent = `Borrow: ${tT} tens → ${tT-1} tens, ones become ${tO+10}. Ones: ${(tO+10)} − ${bO} = ${(tO+10)-bO}. Tens: ${(tT-1)} − ${bT} = ${(tT-1)-bT}. Answer ${top-bot}.`;
+      }
+    }
+
+    /* ================= Regrouping Lab (Canvas) ================= */
+    const labCanvas = document.getElementById('labCanvas');
+    const L = labCanvas.getContext('2d');
+    let labState = { top:63, bot:27, borrowed:false };
+
+    function drawTen(ctx,x,y,color="#42a5f5"){
+      ctx.fillStyle=color;
+      ctx.fillRect(x,y,14,100);
+      ctx.strokeStyle="#1e88e5"; ctx.strokeRect(x,y,14,100);
+    }
+    function drawOne(ctx,x,y,color="#66bb6a"){
+      ctx.fillStyle=color;
+      ctx.fillRect(x,y,14,14);
+      ctx.strokeStyle="#2e7d32"; ctx.strokeRect(x,y,14,14);
+    }
+    function drawLabel(ctx, text, x,y){
+      ctx.fillStyle="#374151"; ctx.font="16px Arial"; ctx.fillText(text,x,y);
+    }
+    function clearLab(){
+      L.clearRect(0,0,labCanvas.width, labCanvas.height);
+      // Axes lines for aesthetics
+      L.strokeStyle="#f0e0c9"; L.lineWidth=2;
+      L.strokeRect(8,8, labCanvas.width-16, labCanvas.height-16);
+    }
+    function splitDigits(n){ return {t:Math.floor(n/10), o:n%10}; }
+
+    function drawBlocks(xStart, label, tens, ones, tint=false){
+      let x=xStart, y=60;
+      drawLabel(L, label, xStart, 30);
+      // tens rods
+      for(let i=0;i<tens;i++){
+        drawTen(L, x, y);
+        x += 18;
+      }
+      // ones in rows of 10
+      x = xStart; y = 170;
+      for(let i=0;i<ones;i++){
+        drawOne(L, x, y);
+        x += 18;
+        if((i+1)%10===0){ x=xStart; y+=18; }
+      }
+    }
+
+    function drawLab(){
+      let t = clamp(parseInt(labTop.value,10),10,99);
+      let b = clamp(parseInt(labBot.value,10),0,99);
+      if (b>t){ [t,b]=[b,t]; labTop.value=t; labBot.value=b; }
+      labState.top = t; labState.bot = b; labState.borrowed=false;
+      const A = splitDigits(t), B = splitDigits(b);
+
+      clearLab();
+      drawBlocks(40, `Top: ${t}  →  ${A.t} tens, ${A.o} ones`, A.t, A.o);
+      drawBlocks(500, `Bottom: ${b}  →  ${B.t} tens, ${B.o} ones (to remove)`, B.t, B.o, true);
+
+      // guidance
+      labMsg.textContent = (A.o < B.o)
+        ? "Ones too small — press “Borrow Step” to regroup."
+        : "No borrow needed — subtract straight across.";
+    }
+
+    function animateBorrow(){
+      const A = splitDigits(labState.top);
+      const B = splitDigits(labState.bot);
+      if (labState.borrowed) { labMsg.textContent="Already borrowed. Now imagine removing blocks: ones then tens."; return; }
+      if (A.o >= B.o) { labMsg.textContent="Borrow not required for this pair."; return; }
+
+      // Perform borrow: take 1 ten → +10 ones
+      const newT = A.t - 1, newO = A.o + 10;
+      labState.borrowed = true;
+
+      // simple tween look (not heavy animation — just redraw with a note)
+      clearLab();
+      drawBlocks(40, `Borrowed: ${labState.top} ⇒ ${newT} tens, ${newO} ones`, newT, newO);
+      drawBlocks(500, `Bottom: ${labState.bot} (to remove)`, B.t, B.o, true);
+      labMsg.textContent = `Borrowed 1 ten → ${newT} tens, ${newO} ones. Now compute: ones ${newO} − ${B.o}, tens ${newT} − ${B.t}.`;
+    }
+
+    function resetLab(){
+      labState.borrowed=false;
+      drawLab();
+    }
+
+    /* ================= Number Line Visualizer ================= */
+    const lineCanvas = document.getElementById('lineCanvas');
+    const NL = lineCanvas.getContext('2d');
+
+    function drawNumberLine(){
+      const top = clamp(parseInt(nlTop.value,10),0,120);
+      const minus = clamp(parseInt(nlMinus.value,10),0,99);
+      const ans = Math.max(0, top - minus);
+
+      NL.clearRect(0,0,lineCanvas.width,lineCanvas.height);
+      NL.strokeStyle="#333"; NL.lineWidth=2;
+
+      const left=60, right=lineCanvas.width-40, y=120;
+      NL.beginPath(); NL.moveTo(left,y); NL.lineTo(right,y); NL.stroke();
+
+      // ticks every 5
+      NL.fillStyle="#555"; NL.font="12px Arial";
+      const scale = (right-left)/120; // show 0..120
+      for(let v=0; v<=120; v+=5){
+        const x = left + v*scale;
+        NL.beginPath(); NL.moveTo(x, y-6); NL.lineTo(x, y+6); NL.stroke();
+        if(v%10===0) NL.fillText(v, x-6, y+20);
+      }
+
+      // mark top
+      drawBubble(NL, left + top*scale, y, "start "+top, "#42a5f5");
+      // jumps backward in tens then ones
+      const tensJumps = Math.floor(minus/10)*10;
+      const onesJumps = minus%10;
+
+      let cur = top;
+      NL.strokeStyle="#ef5350"; NL.lineWidth=3;
+
+      // Tens jumps
+      for(let j=10; j<=tensJumps; j+=10){
+        arcBack(NL, left+cur*scale, left+(cur-10)*scale, y);
+        cur -= 10;
+      }
+      // Ones jumps
+      for(let j=0; j<onesJumps; j++){
+        arcBack(NL, left+cur*scale, left+(cur-1)*scale, y, 10);
+        cur -= 1;
+      }
+
+      drawBubble(NL, left + ans*scale, y, "answer "+ans, "#66bb6a");
+      nlMsg.textContent = `Result: ${top} − ${minus} = ${ans}`;
+    }
+
+    function arcBack(ctx, x1, x2, y, h=26){
+      const xm = (x1+x2)/2, ym = y - h;
+      ctx.beginPath();
+      ctx.moveTo(x1,y);
+      ctx.quadraticCurveTo(xm,ym,x2,y);
+      ctx.stroke();
+    }
+    function drawBubble(ctx, x, y, text, color){
+      ctx.fillStyle=color;
+      ctx.beginPath();
+      ctx.arc(x, y-36, 16, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle="#fff"; ctx.font="11px Arial"; ctx.textAlign="center";
+      ctx.fillText("•", x, y-33);
+      ctx.fillStyle="#333"; ctx.textAlign="left";
+      ctx.fillText(text, x+10, y-32);
+    }
+    function demoNumberLine(){
+      nlTop.value = 63; nlMinus.value = 27; drawNumberLine();
+    }
+
+    /* ================= Number Chart (Canvas) ================= */
+    const chartCanvas = document.getElementById('chartCanvas');
+    const C = chartCanvas.getContext('2d');
+    let chartStart = 100; // first number in view
+    function drawChart(){
+      C.clearRect(0,0,chartCanvas.width,chartCanvas.height);
+      C.fillStyle="#333"; C.font="16px Arial";
+      const cols = 15, colW = Math.floor((chartCanvas.width-40)/cols), rowH = 28;
+      let x=20, y=30, n=chartStart;
+      for(let i=0;i<200 && n<=1000;i++, n++){
+        // highlight multiples of 10 for readability
+        if(n%10===0){
+          C.fillStyle="#ffe6c5";
+          C.fillRect(x-8, y-16, colW-6, rowH);
+          C.fillStyle="#333";
+        }
+        C.fillText(n.toString(), x, y);
+        x += colW;
+        if(x > chartCanvas.width-40){ x=20; y += rowH; }
+      }
+      chartInfo.textContent = `Showing ${chartStart}–${Math.min(chartStart+199,1000)}`;
+    }
+    function chartUp(){ if(chartStart>100){ chartStart -= 100; drawChart(); } }
+    function chartDown(){ if(chartStart<900){ chartStart += 100; drawChart(); } }
+
+    /* ================= Init ================= */
+    function init(){
+      loadVertical();
+      drawLab();
+      drawNumberLine();
+      drawChart();
+    }
+    init();
+
+    // Keyboard quickies
+    window.addEventListener('keydown',(e)=>{
+      if(e.key==='ArrowUp') chartUp();
+      if(e.key==='ArrowDown') chartDown();
+    });
+  </script>
+</body>
+</html>

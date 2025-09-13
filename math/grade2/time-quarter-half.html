@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Telling Time: Quarter & Half</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4682b4;
+      color: white;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    section {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    canvas {
+      background: #fff;
+      border: 3px solid #4682b4;
+      border-radius: 50%;
+      margin: 20px auto;
+      display: block;
+    }
+    button {
+      background: #4682b4;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin: 6px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #315f7c;
+    }
+    .question {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .feedback {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>⏰ Telling Time: Quarter & Half</header>
+  
+  <section>
+    <h2>Introduction</h2>
+    <p>Today we are learning how to tell time to the nearest <b>quarter hour</b> and <b>half hour</b>!  
+    On an analog clock, the minute hand goes all the way around in 60 minutes.  
+    - <b>Quarter past</b> means 15 minutes after the hour.  
+    - <b>Half past</b> means 30 minutes after the hour.  
+    - <b>Quarter to</b> means 45 minutes after the hour (or 15 minutes before the next hour).  
+    Let's practice with the interactive clock below!</p>
+    
+    <canvas id="clock" width="300" height="300"></canvas>
+    <div>
+      <button onclick="setTime(3,0)">Set to 3:00</button>
+      <button onclick="setTime(3,15)">Quarter Past 3</button>
+      <button onclick="setTime(3,30)">Half Past 3</button>
+      <button onclick="setTime(3,45)">Quarter To 4</button>
+    </div>
+  </section>
+  
+  <section>
+    <h2>Practice Questions</h2>
+    <div class="question" id="question">What time is it?</div>
+    <input type="text" id="answer" placeholder="e.g., Quarter Past 3">
+    <button onclick="checkAnswer()">Submit</button>
+    <div class="feedback" id="feedback"></div>
+  </section>
+  
+  <section>
+    <h2>Challenge: Match the Time!</h2>
+    <p>Click the button to get a random time. Set the clock correctly and then check!</p>
+    <button onclick="newChallenge()">New Challenge</button>
+    <div class="question" id="challengeText"></div>
+    <button onclick="checkChallenge()">Check My Clock</button>
+    <div class="feedback" id="challengeFeedback"></div>
+  </section>
+
+  <script>
+    const canvas = document.getElementById("clock");
+    const ctx = canvas.getContext("2d");
+    let currentHour = 3;
+    let currentMinute = 0;
+    let challengeHour = 3;
+    let challengeMinute = 0;
+
+    function drawClock(hour, minute) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw outer circle
+      ctx.beginPath();
+      ctx.arc(150, 150, 140, 0, Math.PI * 2);
+      ctx.fillStyle = "#f9f9f9";
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw numbers
+      ctx.font = "18px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (let num = 1; num <= 12; num++) {
+        let angle = (num * Math.PI) / 6;
+        let x = 150 + Math.cos(angle - Math.PI/2) * 110;
+        let y = 150 + Math.sin(angle - Math.PI/2) * 110;
+        ctx.fillText(num, x, y);
+      }
+
+      // Hour hand
+      let hourAngle = ((hour % 12) + minute / 60) * (Math.PI / 6);
+      ctx.beginPath();
+      ctx.moveTo(150, 150);
+      ctx.lineTo(150 + Math.cos(hourAngle - Math.PI/2) * 70, 150 + Math.sin(hourAngle - Math.PI/2) * 70);
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      // Minute hand
+      let minuteAngle = (minute * Math.PI) / 30;
+      ctx.beginPath();
+      ctx.moveTo(150, 150);
+      ctx.lineTo(150 + Math.cos(minuteAngle - Math.PI/2) * 100, 150 + Math.sin(minuteAngle - Math.PI/2) * 100);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function setTime(hour, minute) {
+      currentHour = hour;
+      currentMinute = minute;
+      drawClock(hour, minute);
+    }
+
+    function checkAnswer() {
+      let ans = document.getElementById("answer").value.toLowerCase();
+      let correct = "";
+      if (currentMinute === 0) correct = currentHour + ":00";
+      if (currentMinute === 15) correct = "quarter past " + currentHour;
+      if (currentMinute === 30) correct = "half past " + currentHour;
+      if (currentMinute === 45) correct = "quarter to " + ((currentHour % 12) + 1);
+      if (ans.includes(correct)) {
+        document.getElementById("feedback").innerText = "✅ Correct!";
+      } else {
+        document.getElementById("feedback").innerText = "❌ Try again!";
+      }
+    }
+
+    function newChallenge() {
+      let times = [
+        {h: 2, m: 15, text: "Quarter Past 2"},
+        {h: 5, m: 30, text: "Half Past 5"},
+        {h: 7, m: 45, text: "Quarter To 8"},
+        {h: 9, m: 0, text: "9:00"}
+      ];
+      let choice = times[Math.floor(Math.random() * times.length)];
+      challengeHour = choice.h;
+      challengeMinute = choice.m;
+      document.getElementById("challengeText").innerText = "Set the clock to: " + choice.text;
+    }
+
+    function checkChallenge() {
+      if (currentHour === challengeHour && currentMinute === challengeMinute) {
+        document.getElementById("challengeFeedback").innerText = "🎉 Perfect!";
+      } else {
+        document.getElementById("challengeFeedback").innerText = "Not quite! Try again.";
+      }
+    }
+
+    // Draw initial clock
+    drawClock(currentHour, currentMinute);
+  </script>
+</body>
+</html>

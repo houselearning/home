@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Exponential Functions</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#22c55e; --accent2:#16a34a; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#10b981;color:#fff}
+button.ghost{background:#d1fae5;color:var(--accent2);border:1px solid #a7f3d0}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #a7f3d0;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #a7f3d0;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #a7f3d0;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Exponential Functions 📈</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What Are Exponential Functions? 🚀</h2>
+<p>
+  **Exponential functions** describe situations where a quantity grows or shrinks at a constant rate over time. They are in the form $$y = ab^x$$, where:
+</p>
+<ul>
+  <li>**a** is the **initial value** (the value of $$y$$when$$x=0$$).</li>
+  <li>**b** is the **growth or decay factor**. If $$b > 1$$, it's growth. If $$0 < b < 1$$, it's decay.</li>
+</ul>
+<p>
+  Unlike linear functions that have a constant slope, exponential functions have a constant ratio. The graph is a smooth curve that gets very steep very quickly! 
+
+[Image of a graph of an exponential function]
+
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Graphing an Exponential Function 🎬</h2>
+<p>This video will show you how to graph an exponential function using the initial value and growth factor.</p>
+<div class="canvas-wrapper">
+  <canvas id="expCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playExp" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="expSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Solve the following problems and check your answers.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1.tile">
+    <div style="font-weight:700">1) What is the initial value?<br>$$y = 5 \cdot (2)^x$$</div>
+    <p>Initial value (a): <input id="q1_ans" type="number" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q1', 5)">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2.tile">
+    <div style="font-weight:700">2) What is the growth factor?<br>$$y = 20 \cdot (1.5)^x$$</div>
+    <p>Growth factor (b): <input id="q2_ans" type="number" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q2', 1.5)">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3.tile">
+    <div style="font-weight:700">3) Evaluate the function at $$x=2$$:<br>$$y = 3 \cdot (4)^x$$</div>
+    <p>Value: <input id="q3_ans" type="number" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q3', 48)">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4.tile">
+    <div style="font-weight:700">4) A population of bacteria starts at 100 and doubles every hour. How many bacteria are there after 3 hours?</div>
+    <p>Bacteria: <input id="q4_ans" type="number" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q4', 800)">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Exponential Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput_ans" type="number" placeholder="Answer = ?">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Keep up the great work!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+
+window.check = (qId, correct) => {
+    const input = document.getElementById(qId + '_ans');
+    const val = parseFloat(input.value);
+    const correctVal = parseFloat(correct);
+    const res = document.getElementById('r' + qId.slice(1));
+    const isCorrect = Math.abs(val - correctVal) < 0.02; // Allow for slight rounding errors
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correctVal})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText.replace(/\s+/g, ' ').trim(), `Answer=${val}`, `Answer=${correctVal}`]);
+};
+
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Canvas Drawing Functions ===== */
+function drawGrid(ctx) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= ctx.canvas.width; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, ctx.canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y <= ctx.canvas.height; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(ctx.canvas.width, y);
+        ctx.stroke();
+    }
+    ctx.strokeStyle = '#566270';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ctx.canvas.width / 2, 0);
+    ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
+    ctx.moveTo(0, ctx.canvas.height / 2);
+    ctx.lineTo(ctx.canvas.width, ctx.canvas.height / 2);
+    ctx.stroke();
+}
+
+function drawExponential(ctx, a, b, color = '#16a34a') {
+    drawGrid(ctx);
+    const scale = 20;
+    const originX = ctx.canvas.width / 2;
+    const originY = ctx.canvas.height / 2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (let i = -originX; i <= originX; i++) {
+        const x = i / scale;
+        const y = a * Math.pow(b, x);
+        if (i === -originX) {
+            ctx.moveTo(originX + x * scale, originY - y * scale);
+        } else {
+            ctx.lineTo(originX + x * scale, originY - y * scale);
+        }
+    }
+    ctx.stroke();
+}
+
+const expCanvas = document.getElementById('expCanvas');
+const expCtx = expCanvas.getContext('2d');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+const expTutorialSteps = [
+    { audio: "To graph an exponential function, we use the formula y equals a times b to the power of x. a is the initial value, and b is the growth factor. Let's graph the equation y equals 2 to the power of x.", draw: (ctx) => { drawExponential(ctx, 1, 2, '#22c55e'); }, text: "$$y = 2^x$$" },
+    { audio: "Step 1: Find the initial value. In this equation, a is 1. We can see this at x equals 0, where y is 1. We plot the point 0, 1 on the y-axis.", draw: (ctx) => { drawExponential(ctx, 1, 2, '#22c55e'); ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(ctx.canvas.width / 2, ctx.canvas.height / 2 - 20, 5, 0, 2 * Math.PI); ctx.fill(); }, text: "Initial value a = 1 at (0, 1)" },
+    { audio: "Step 2: Use the growth factor to find more points. The growth factor b is 2. This means as x increases by 1, the y value doubles.", draw: (ctx) => { drawExponential(ctx, 1, 2, '#22c55e'); ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(ctx.canvas.width / 2 + 20, ctx.canvas.height / 2 - 40, 5, 0, 2 * Math.PI); ctx.fill(); ctx.beginPath(); ctx.arc(ctx.canvas.width / 2 + 40, ctx.canvas.height / 2 - 80, 5, 0, 2 * Math.PI); ctx.fill(); }, text: "Growth factor b = 2" },
+    { audio: "Step 3: Connect the points with a smooth curve. You can see how the graph increases very quickly. This is exponential growth!", draw: (ctx) => { drawExponential(ctx, 1, 2); }, text: "Connect the points" }
+];
+
+async function playTutorial(canvasId, steps, speedInputId) {
+    if (speechSynthesis.speaking) return;
+    let tutorialIndex = 0;
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const speed = parseFloat(document.getElementById(speedInputId).value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= steps.length) {
+            return;
+        }
+        const step = steps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        step.draw(ctx);
+        ctx.textAlign = 'center';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillStyle = '#04263b';
+        ctx.fillText(step.text, canvas.width / 2, 40);
+        MathJax.typeset([canvas.parentNode.parentNode]);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+
+document.getElementById('playExp').addEventListener('click', () => playTutorial('expCanvas', expTutorialSteps, 'expSpeed'));
+
+expCtx.font = '24px Inter, sans-serif';
+expCtx.textAlign = 'center';
+expCtx.fillText("Press Play to start the video!", expCanvas.width / 2, expCanvas.height / 2);
+
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const a = Math.floor(Math.random() * 4) + 1;
+    const b = Math.floor(Math.random() * 2) + 2;
+    const x = Math.floor(Math.random() * 3) + 1;
+    const q = `Evaluate $$y = ${a} \\cdot (${b})^x$$for$$x = ${x}$$?`;
+    const a_val = a * Math.pow(b, x);
+    return { q: q, a: a_val.toString() };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.innerHTML = problem.q;
+    document.getElementById('quizInput_ans').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+    MathJax.typeset([qEl]);
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+            document.getElementById('quizCheck').disabled = true;
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const inputVal = parseFloat(document.getElementById('quizInput_ans').value);
+    const f = document.getElementById('quizFeedback');
+    const isCorrect = Math.abs(inputVal - parseFloat(currentQuiz.a)) < 0.02;
+
+    if (isCorrect) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q.replace(/\s+/g, ' ').trim(), `Answer=${inputVal}`, `Answer=${currentQuiz.a}`]);
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "exponential_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

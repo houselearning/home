@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grade 3 Math - Equivalent Fractions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4682b4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+    }
+    section {
+      padding: 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    .example, .practice, .challenge {
+      background: #fff;
+      border: 2px solid #4682b4;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    canvas {
+      border: 2px solid #333;
+      margin-top: 10px;
+    }
+    .input-area {
+      margin: 10px 0;
+    }
+    button {
+      background: #4682b4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #315f7d;
+    }
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>Grade 3 Math Lesson: Equivalent Fractions</header>
+  <section>
+    <h2>📘 Introduction</h2>
+    <p>
+      Fractions can look different but still mean the same amount.  
+      These are called <b>Equivalent Fractions</b>.  
+      For example: <b>1/2</b> is the same as <b>2/4</b>, because both mean half of a whole.  
+    </p>
+
+    <div class="example">
+      <h3>🔎 Example</h3>
+      <p>
+        If you cut a pizza into 2 equal slices and eat 1 slice, you’ve eaten <b>1/2</b>.  
+        If you cut the same pizza into 4 slices and eat 2, that’s <b>2/4</b>.  
+        Both fractions represent the same amount of pizza!
+      </p>
+      <canvas id="pizzaCanvas" width="200" height="200"></canvas>
+    </div>
+
+    <h2>⚙️ How to Find Equivalent Fractions</h2>
+    <ul>
+      <li>Multiply or divide both the numerator (top number) and denominator (bottom number) by the same number.</li>
+      <li>Example: <b>3/5 = 6/10</b> (multiply top and bottom by 2).</li>
+      <li>Example: <b>4/8 = 2/4 = 1/2</b> (divide top and bottom by 2).</li>
+    </ul>
+
+    <div class="practice">
+      <h3>📝 Practice: Check if Two Fractions Are Equivalent</h3>
+      <div class="input-area">
+        <label>Fraction 1: <input type="number" id="num1" placeholder="Numerator"> / <input type="number" id="den1" placeholder="Denominator"></label><br>
+        <label>Fraction 2: <input type="number" id="num2" placeholder="Numerator"> / <input type="number" id="den2" placeholder="Denominator"></label><br>
+        <button onclick="checkEquivalent()">Check</button>
+        <div id="fractionFeedback" class="feedback"></div>
+      </div>
+    </div>
+
+    <div class="challenge">
+      <h3>🎯 Challenge Game: Fill in the Missing Number</h3>
+      <p id="challengeText"></p>
+      <input type="number" id="challengeInput" placeholder="?">
+      <button onclick="checkChallenge()">Submit</button>
+      <div id="challengeFeedback" class="feedback"></div>
+    </div>
+  </section>
+
+  <script>
+    // --- Pizza Example Drawing ---
+    const pizza = document.getElementById("pizzaCanvas");
+    const ctx = pizza.getContext("2d");
+
+    // Draw pizza circle
+    ctx.beginPath();
+    ctx.arc(100, 100, 90, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffcc66";
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw 4 slices
+    ctx.moveTo(100, 100);
+    ctx.lineTo(100, 10);
+    ctx.moveTo(100, 100);
+    ctx.lineTo(190, 100);
+    ctx.moveTo(100, 100);
+    ctx.lineTo(100, 190);
+    ctx.moveTo(100, 100);
+    ctx.lineTo(10, 100);
+    ctx.stroke();
+
+    // Color 2/4 slices (equivalent to 1/2)
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.arc(100, 100, 90, 0, Math.PI / 2);
+    ctx.lineTo(100, 100);
+    ctx.fillStyle = "#ff6666";
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.arc(100, 100, 90, Math.PI, 1.5 * Math.PI);
+    ctx.lineTo(100, 100);
+    ctx.fillStyle = "#ff6666";
+    ctx.fill();
+
+    // --- Check Equivalent Fractions ---
+    function checkEquivalent() {
+      const n1 = parseInt(document.getElementById("num1").value);
+      const d1 = parseInt(document.getElementById("den1").value);
+      const n2 = parseInt(document.getElementById("num2").value);
+      const d2 = parseInt(document.getElementById("den2").value);
+      const feedback = document.getElementById("fractionFeedback");
+
+      if (!n1 || !d1 || !n2 || !d2) {
+        feedback.innerHTML = "⚠️ Please enter all values!";
+        feedback.style.color = "red";
+        return;
+      }
+
+      if (n1 * d2 === n2 * d1) {
+        feedback.innerHTML = `✅ Yes! ${n1}/${d1} = ${n2}/${d2}`;
+        feedback.style.color = "green";
+      } else {
+        feedback.innerHTML = `❌ Nope! ${n1}/${d1} ≠ ${n2}/${d2}`;
+        feedback.style.color = "red";
+      }
+    }
+
+    // --- Challenge Generator ---
+    const challengeText = document.getElementById("challengeText");
+    let missingNum, answer;
+
+    function generateChallenge() {
+      const baseNum = Math.floor(Math.random() * 5) + 1; // 1-5
+      const baseDen = Math.floor(Math.random() * 5) + 2; // 2-6
+      const multiplier = Math.floor(Math.random() * 5) + 2; // 2-6
+
+      if (Math.random() > 0.5) {
+        // Missing numerator
+        missingNum = "num";
+        answer = baseNum * multiplier;
+        challengeText.innerHTML = `Fill in the blank: ${baseNum}/${baseDen} = ?/${baseDen * multiplier}`;
+      } else {
+        // Missing denominator
+        missingNum = "den";
+        answer = baseDen * multiplier;
+        challengeText.innerHTML = `Fill in the blank: ${baseNum}/${baseDen} = ${baseNum * multiplier}/?`;
+      }
+    }
+
+    function checkChallenge() {
+      const input = parseInt(document.getElementById("challengeInput").value);
+      const feedback = document.getElementById("challengeFeedback");
+
+      if (input === answer) {
+        feedback.innerHTML = "🎉 Correct!";
+        feedback.style.color = "green";
+        generateChallenge(); // New problem
+        document.getElementById("challengeInput").value = "";
+      } else {
+        feedback.innerHTML = "😢 Try again!";
+        feedback.style.color = "red";
+      }
+    }
+
+    // Start first challenge
+    generateChallenge();
+  </script>
+</body>
+</html>

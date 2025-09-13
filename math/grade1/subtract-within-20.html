@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Subtract Within 20 Lesson</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #fef6e4;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: #ffb703;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      font-size: 2em;
+    }
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    section {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #fb8500;
+    }
+    .example, .practice {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .blocks {
+      display: flex;
+      gap: 5px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .block {
+      width: 40px;
+      height: 40px;
+      background: #8ecae6;
+      border-radius: 5px;
+    }
+    .number-line {
+      margin: 20px 0;
+      position: relative;
+      height: 60px;
+    }
+    .line {
+      position: absolute;
+      top: 30px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #219ebc;
+    }
+    .tick {
+      position: absolute;
+      top: 20px;
+      width: 2px;
+      height: 15px;
+      background: #333;
+      text-align: center;
+    }
+    .tick span {
+      position: absolute;
+      top: 20px;
+      font-size: 12px;
+      transform: translateX(-50%);
+    }
+    input {
+      padding: 5px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 2px solid #ccc;
+    }
+    button {
+      background: #ffb703;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #fb8500;
+      color: white;
+    }
+    #feedback {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>Subtract Within 20 ✨</header>
+  <main>
+    <section>
+      <h2>👋 Introduction</h2>
+      <p>Subtraction means taking away. When we subtract, the number gets smaller. Today, we’ll learn how to subtract numbers within 20 using blocks and number lines!</p>
+    </section>
+
+    <section>
+      <h2>🧩 How To Do It</h2>
+      <p><b>Example: 14 - 5</b></p>
+      <div class="example">Step 1: Start with 14 blocks.</div>
+      <div class="blocks" id="start-blocks"></div>
+      <div class="example">Step 2: Take away 5 blocks.</div>
+      <div class="blocks" id="takeaway-blocks"></div>
+      <div class="example">Step 3: Count how many are left = 9 ✅</div>
+      <div class="number-line" id="number-line">
+        <div class="line"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>🎮 Practice Time</h2>
+      <p class="practice">Solve: <b id="problem">12 - 7 = ?</b></p>
+      <input type="number" id="answer" placeholder="Your answer">
+      <button onclick="checkAnswer()">Check Answer</button>
+      <div id="feedback"></div>
+    </section>
+  </main>
+
+  <script>
+    // Fill in example blocks
+    function createBlocks(containerId, count) {
+      let container = document.getElementById(containerId);
+      for (let i = 0; i < count; i++) {
+        let block = document.createElement("div");
+        block.className = "block";
+        container.appendChild(block);
+      }
+    }
+    createBlocks("start-blocks", 14);
+    createBlocks("takeaway-blocks", 5);
+
+    // Number line
+    let numberLine = document.getElementById("number-line");
+    for (let i = 0; i <= 20; i++) {
+      let tick = document.createElement("div");
+      tick.className = "tick";
+      tick.style.left = (i * 5) + "%";
+      tick.innerHTML = `<span>${i}</span>`;
+      numberLine.appendChild(tick);
+    }
+
+    // Practice problems
+    let problems = [
+      { q: "12 - 7", a: 5 },
+      { q: "15 - 9", a: 6 },
+      { q: "18 - 4", a: 14 },
+      { q: "20 - 13", a: 7 },
+      { q: "9 - 3", a: 6 }
+    ];
+    let current = 0;
+
+    function checkAnswer() {
+      let userAnswer = parseInt(document.getElementById("answer").value);
+      let feedback = document.getElementById("feedback");
+      if (userAnswer === problems[current].a) {
+        feedback.innerHTML = "✅ Correct! Great job!";
+        feedback.style.color = "green";
+        setTimeout(() => {
+          nextProblem();
+        }, 1500);
+      } else {
+        feedback.innerHTML = "❌ Try again!";
+        feedback.style.color = "red";
+      }
+    }
+
+    function nextProblem() {
+      current++;
+      if (current < problems.length) {
+        document.getElementById("problem").innerText = problems[current].q + " = ?";
+        document.getElementById("answer").value = "";
+        document.getElementById("feedback").innerText = "";
+      } else {
+        document.getElementById("problem").innerText = "🎉 You finished all the problems!";
+        document.getElementById("answer").style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>

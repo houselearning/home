@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Volume: Rectangular Prisms</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;transition:transform 0.1s ease;}
+button:active{transform:scale(0.95);}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;height:350px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<header>
+<h1>Volume: Rectangular Prisms</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive 3D tutorial • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is Volume?</h2>
+<p>Volume is the amount of three-dimensional space an object occupies. For a rectangular prism, we can find its volume by multiplying its length, width, and height. </p>
+<p>The formula for volume is: $$V = l \times w \times h$$</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">3D Tutorial: Building a Prism</h2>
+<p>Interact with the 3D model below to see how a rectangular prism is built from unit cubes. Click and drag to rotate the camera.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
+  <button id="resetTutorial" class="ghost">🔄 Reset</button>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Calculate the volume of each prism and enter your answer.</p>
+<div class="grid" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) $$l=5, w=3, h=2$$</div>
+    <input id="q1" type="number" placeholder="Volume">
+    <div style="margin-top:6px"><button onclick="check('q1', '30')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) $$l=4, w=4, h=4$$</div>
+    <input id="q2" type="number" placeholder="Volume">
+    <div style="margin-top:6px"><button onclick="check('q2', '64')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) $$l=10, w=5, h=3$$</div>
+    <input id="q3" type="number" placeholder="Volume">
+    <div style="margin-top:6px"><button onclick="check('q3', '150')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) $$l=2, w=2, h=8$$</div>
+    <input id="q4" type="number" placeholder="Volume">
+    <div style="margin-top:6px"><button onclick="check('q4', '32')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Volume Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Practice makes perfect! You can do this.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim();
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+
+    if (!res) {
+        console.error(`Result element with ID '${resultId}' not found.`);
+        return;
+    }
+
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === correct);
+
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correct})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+
+/* ===== 3D Tutorial with Three.js ===== */
+let scene, camera, renderer, animationId, prismGroup;
+let isDragging = false, previousMousePosition = { x: 0, y: 0 };
+let currentStep = 0;
+let cubes = [];
+let l = 3, w = 4, h = 2; // Dimensions of the prism
+
+function init() {
+    // Scene setup
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf7fbff);
+    
+    // Camera setup
+    const canvas = document.getElementById('tutorialCanvas');
+    camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    camera.position.set(5, 5, 8);
+    camera.lookAt(0, 0, 0);
+
+    // Renderer setup
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 2); // soft white light
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 7);
+    scene.add(directionalLight);
+
+    // Prism group
+    prismGroup = new THREE.Group();
+    scene.add(prismGroup);
+
+    // Initial state: show a single unit cube
+    resetTutorial();
+
+    // Mouse control
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('mouseup', onMouseUp);
+    canvas.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('resize', onResize);
+    
+    // Start animation loop
+    animate();
+}
+
+function resetTutorial() {
+    currentStep = 0;
+    while (prismGroup.children.length > 0) {
+        prismGroup.remove(prismGroup.children[0]);
+    }
+    cubes = [];
+    document.getElementById('playTutorial').disabled = false;
+    document.getElementById('playTutorial').textContent = '▶️ Play Tutorial';
+    const cube = createCube(0.5); // A single unit cube
+    prismGroup.add(cube);
+    document.getElementById('videoTitle').nextElementSibling.textContent = "Click 'Play Tutorial' to see how the prism is built.";
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    window.MathJax.typeset();
+}
+
+function createCube(size, color = 0x60a5fa) {
+    const geometry = new THREE.BoxGeometry(size, size, size);
+    const material = new THREE.MeshLambertMaterial({ color: color });
+    return new THREE.Mesh(geometry, material);
+}
+
+const tutorialSteps = [
+    { audio: "Volume is the amount of space inside a 3D object. It's measured in cubic units.", text: "Volume: The space inside" },
+    { audio: "Let's build a rectangular prism with a length of " + l + ", a width of " + w + ", and a height of " + h + ".", text: "Building a prism: " + l + " x " + w + " x " + h },
+    { audio: "First, we create the base layer by filling in the length and the width.", text: "Step 1: The base layer (length x width)" },
+    { audio: "The base has " + (l * w) + " cubes. That's " + l + " times " + w + ".", text: l + " x " + w + " = " + (l * w) + " cubes" },
+    { audio: "Next, we stack the layers up to the height of " + h + ".", text: "Step 2: Stacking the layers" },
+    { audio: "Each layer has " + (l * w) + " cubes, and we have " + h + " layers. So the total volume is " + (l * w * h) + " cubes.", text: "Volume = " + l + " x " + w + " x " + h + " = " + (l * w * h) },
+    { audio: "The volume of a rectangular prism is its length times its width times its height.", text: "Formula: $$V = l \\times w \\times h$$" },
+    { audio: "You did it!", text: "You're a volume master!" }
+];
+
+async function playTutorial() {
+    document.getElementById('playTutorial').disabled = true;
+    document.getElementById('playTutorial').textContent = 'Playing...';
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    
+    // Step 0: Initial state (already handled by reset)
+    await speak(tutorialSteps[0].audio);
+    document.getElementById('videoTitle').nextElementSibling.textContent = tutorialSteps[0].text;
+    
+    // Step 1: Explain the dimensions
+    await speak(tutorialSteps[1].audio);
+    document.getElementById('videoTitle').nextElementSibling.textContent = tutorialSteps[1].text;
+    
+    // Step 2-3: Build the base layer
+    await speak(tutorialSteps[2].audio);
+    await animateBuildingBase();
+    await speak(tutorialSteps[3].audio);
+    document.getElementById('videoTitle').nextElementSibling.textContent = tutorialSteps[3].text;
+    
+    // Step 4-5: Stack the layers
+    await speak(tutorialSteps[4].audio);
+    await animateBuildingHeight();
+    await speak(tutorialSteps[5].audio);
+    document.getElementById('videoTitle').nextElementSibling.textContent = tutorialSteps[5].text;
+    
+    // Step 6: Final formula
+    await speak(tutorialSteps[6].audio);
+    document.getElementById('videoTitle').nextElementSibling.textContent = tutorialSteps[6].text;
+    
+    // Step 7: Final message
+    await speak(tutorialSteps[7].audio);
+    document.getElementById('videoTitle').nextElementSibling.textContent = tutorialSteps[7].text;
+
+    document.getElementById('playTutorial').disabled = false;
+    document.getElementById('playTutorial').textContent = '▶️ Play Tutorial';
+}
+
+function animateBuildingBase() {
+    return new Promise(resolve => {
+        let count = 0;
+        const totalCubes = l * w;
+        const interval = setInterval(() => {
+            if (count >= totalCubes) {
+                clearInterval(interval);
+                resolve();
+                return;
+            }
+            const x = (count % l) - (l-1)/2;
+            const y = 0 - (w-1)/2;
+            const z = Math.floor(count / l) - (h-1)/2;
+            const cube = createCube(1, 0x60a5fa);
+            cube.position.set(x, z, y);
+            prismGroup.add(cube);
+            count++;
+        }, 100);
+    });
+}
+
+function animateBuildingHeight() {
+    return new Promise(resolve => {
+        let count = 0;
+        const totalCubes = l * w * h;
+        const interval = setInterval(() => {
+            if (count >= totalCubes - (l * w)) {
+                clearInterval(interval);
+                resolve();
+                return;
+            }
+            const x = (count % l) - (l-1)/2;
+            const y = Math.floor(count / l) % w - (w-1)/2;
+            const z = Math.floor(count / (l*w)) + 1 - (h-1)/2;
+            const cube = createCube(1, 0x60a5fa);
+            cube.position.set(x, y, z);
+            prismGroup.add(cube);
+            count++;
+        }, 100);
+    });
+}
+
+function speak(text) {
+    return new Promise(resolve => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1.2;
+        if (window.speechSynthesis.getVoices().length > 0) {
+            const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+            if (voice) utterance.voice = voice;
+        }
+        utterance.onend = resolve;
+        utterance.onerror = resolve;
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
+function animate() {
+    animationId = requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+
+function onResize() {
+    const canvas = document.getElementById('tutorialCanvas');
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+}
+
+function onMouseDown(event) {
+    isDragging = true;
+    previousMousePosition.x = event.clientX;
+    previousMousePosition.y = event.clientY;
+}
+
+function onMouseUp(event) {
+    isDragging = false;
+}
+
+function onMouseMove(event) {
+    if (!isDragging) return;
+    const deltaX = event.clientX - previousMousePosition.x;
+    const deltaY = event.clientY - previousMousePosition.y;
+
+    const rotationSpeed = 0.01;
+    prismGroup.rotation.y += deltaX * rotationSpeed;
+    prismGroup.rotation.x += deltaY * rotationSpeed;
+
+    previousMousePosition.x = event.clientX;
+    previousMousePosition.y = event.clientY;
+}
+
+document.getElementById('playTutorial').addEventListener('click', () => {
+    resetTutorial();
+    playTutorial();
+});
+
+document.getElementById('resetTutorial').addEventListener('click', () => {
+    resetTutorial();
+});
+
+window.onload = init;
+
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const l = Math.floor(Math.random() * 8) + 2;
+    const w = Math.floor(Math.random() * 8) + 2;
+    const h = Math.floor(Math.random() * 8) + 2;
+    const question = `Volume: $$l = ${l}, w = ${w}, h = ${h}$$`;
+    const answer = (l * w * h).toString();
+    return { q: question, a: answer };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = currentQuiz.q;
+    window.MathJax.typeset([qEl]);
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim();
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a;
+
+    if (val === currentQuiz.a) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "volume_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

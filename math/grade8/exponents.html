@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Exponents</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#16a34a; --accent2:#22c55e; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#16a34a;color:#fff}
+button.ghost{background:#dcfce7;color:var(--accent2);border:1px solid #bbf7d0}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #bbf7d0;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #bbf7d0;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #bbf7d0;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Exponents (±) 📈</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are Exponents? 🚀</h2>
+<p>
+  An **exponent** tells us how many times to multiply a **base** number by itself. For example, in $$3^4$$, the number **3** is the base and **4** is the exponent. This means we multiply 3 by itself 4 times: $$3 \times 3 \times 3 \times 3 = 81$$.
+</p>
+<p>
+  **Negative Exponents:** A negative exponent means we need to take the reciprocal of the base and make the exponent positive. For example, $$3^{-2}$$ is the same as $$\frac{1}{3^2}$$, which equals $$\frac{1}{9}$$.
+</p>
+<p>
+  **Negative Bases:** When the base is negative, pay close attention to the exponent.
+  <ul>
+    <li>If the exponent is **even**, the result is **positive**. Example: $$(-2)^4 = (-2)(-2)(-2)(-2) = 16$$</li>
+    <li>If the exponent is **odd**, the result is **negative**. Example: $$(-2)^3 = (-2)(-2)(-2) = -8$$</li>
+  </ul>
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Exponents with Negative Bases 🎬</h2>
+<p>This video will walk you through how to evaluate exponents with negative bases.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Evaluate each exponential expression.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1.tile">
+    <div style="font-weight:700">1) $$(-3)^2$$</div>
+    <p>Answer = <input id="q1_ans" type="number" step="1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q1', '9')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2.tile">
+    <div style="font-weight:700">2) $$(-4)^3$$</div>
+    <p>Answer = <input id="q2_ans" type="number" step="1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q2', '-64')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3.tile">
+    <div style="font-weight:700">3) $$2^{-3}$$</div>
+    <p>Answer = <input id="q3_ans" type="number" step="0.001" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q3', '0.125')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4.tile">
+    <div style="font-weight:700">4) $$(-5)^2$$</div>
+    <p>Answer = <input id="q4_ans" type="number" step="1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q4', '25')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Exponents Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput_ans" type="number" step="0.001" placeholder="Answer = ?">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You've got this! Practice makes perfect.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+window.check = (qId, correct) => {
+    const input = document.getElementById(qId + '_ans');
+    const val = parseFloat(input.value);
+    const correctVal = parseFloat(correct);
+    const res = document.getElementById('r' + qId.slice(1));
+    const isCorrect = Math.abs(val - correctVal) < 0.001; // Allow for slight rounding errors
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correctVal})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, `Answer=${val}`, `Answer=${correctVal}`]);
+};
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+const tutorialSteps = [
+    { 
+        audio: "Let's explore how to handle exponents with negative bases. The rule is simple: the sign of the result depends on whether the exponent is even or odd.", 
+        text: "Rule: sign depends on exponent",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("Rule: If exponent is even, result is positive.", tutorialCanvas.width / 2, tutorialCanvas.height / 2 - 40);
+            ctx.fillText("If exponent is odd, result is negative.", tutorialCanvas.width / 2, tutorialCanvas.height / 2 + 40);
+        }
+    },
+    {
+        audio: "Example 1: Let's evaluate negative 3 raised to the power of 2. The base is negative 3, and the exponent is 2. Since 2 is an even number, our final answer will be positive.",
+        text: "$$(-3)^2$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("(-3) * (-3)", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+        }
+    },
+    {
+        audio: "Multiplying negative 3 by negative 3 gives us a positive 9. So, negative 3 to the power of 2 is 9.",
+        text: "$$(-3)^2 = 9$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("(-3) * (-3) = 9", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+        }
+    },
+    {
+        audio: "Example 2: Now let's evaluate negative 2 raised to the power of 3. The base is negative 2, and the exponent is 3. Since 3 is an odd number, our final answer will be negative.",
+        text: "$$(-2)^3$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("(-2) * (-2) * (-2)", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+        }
+    },
+    {
+        audio: "First, negative 2 times negative 2 is a positive 4. Then, multiplying positive 4 by negative 2 gives us negative 8. So, negative 2 to the power of 3 is negative 8.",
+        text: "$$(-2)^3 = -8$$",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText("(-2) * (-2) * (-2) = -8", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+        }
+    }
+];
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        step.draw(ctx);
+        ctx.textAlign = 'center';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillStyle = '#04263b';
+        ctx.fillText(step.text, tutorialCanvas.width / 2, 40);
+        MathJax.typeset([document.getElementById('tutorialCanvas').parentNode.parentNode]);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const base = Math.floor(Math.random() * 4) + 2;
+    const exponent = Math.floor(Math.random() * 3) + 2;
+    let isNegativeBase = Math.random() > 0.5;
+    let isNegativeExponent = Math.random() > 0.5;
+    let result;
+    let q;
+
+    if (isNegativeExponent) {
+        q = `$$${base}^{-${exponent}}$$`;
+        result = 1 / Math.pow(base, exponent);
+        return { q: q, a: result.toFixed(3) };
+    } else if (isNegativeBase) {
+        q = `$$(-${base})^${exponent}$$`;
+        result = Math.pow(-base, exponent);
+        return { q: q, a: result };
+    } else {
+        q = `$$${base}^${exponent}$$`;
+        result = Math.pow(base, exponent);
+        return { q: q, a: result };
+    }
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.innerHTML = currentQuiz.q;
+    MathJax.typeset([qEl]);
+    document.getElementById('quizInput_ans').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = parseFloat(document.getElementById('quizInput_ans').value);
+    const f = document.getElementById('quizFeedback');
+    const correctVal = parseFloat(currentQuiz.a);
+    let userAnswer = `Answer=${val}`;
+    let correctAnswer = `Answer=${correctVal}`;
+    if (Math.abs(val - correctVal) < 0.001) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${correctVal})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q.replace(/\\/g, ''), userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "exponents_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

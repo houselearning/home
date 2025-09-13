@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Problems Basics</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, sans-serif;
+      background: linear-gradient(to bottom right, #ffe9a9, #fff5d7);
+      text-align: center;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #ff6600;
+      font-size: 40px;
+    }
+    .lesson-box {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      padding: 20px;
+      margin: 20px auto;
+      width: 80%;
+    }
+    .btn {
+      background: #ff6600;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #e55a00;
+    }
+    .problem {
+      font-size: 22px;
+      margin: 15px 0;
+    }
+    input {
+      padding: 8px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: 2px solid #ff6600;
+      text-align: center;
+    }
+    #feedback {
+      font-size: 20px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📖 Word Problems Basics</h1>
+
+  <div class="lesson-box" id="intro">
+    <h2>Introduction</h2>
+    <p>Word problems are math problems told as a <b>story</b>!  
+    We read the story, figure out what math is needed, and solve it.  
+    Key steps:</p>
+    <ol style="text-align:left; display:inline-block; font-size:20px;">
+      <li>👀 Read the problem carefully.</li>
+      <li>🔍 Look for important numbers.</li>
+      <li>➕➖ Decide if you should add or subtract.</li>
+      <li>✏️ Write the math sentence.</li>
+      <li>✅ Solve it!</li>
+    </ol>
+    <button class="btn" onclick="startLesson()">Start Practice</button>
+  </div>
+
+  <div class="lesson-box" id="practice" style="display:none;">
+    <h2>Practice Problems</h2>
+    <p class="problem" id="problemText"></p>
+    <input type="number" id="answerBox" placeholder="Your answer">
+    <br>
+    <button class="btn" onclick="checkAnswer()">Check Answer</button>
+    <p id="feedback"></p>
+    <button class="btn" onclick="nextProblem()">Next Problem</button>
+  </div>
+
+  <script>
+    const problems = [
+      { text: "Sarah has 5 apples. She buys 3 more. How many apples does she have now?", answer: 8 },
+      { text: "Tom had 10 balloons. 4 flew away. How many balloons are left?", answer: 6 },
+      { text: "A basket has 7 oranges. Anna adds 2 more. How many oranges in total?", answer: 9 },
+      { text: "Jake had 12 candies. He ate 5. How many candies does he have now?", answer: 7 },
+      { text: "Lisa has 6 toy cars. Her friend gives her 4 more. How many toy cars does she have?", answer: 10 }
+    ];
+    let currentIndex = 0;
+
+    function startLesson() {
+      document.getElementById("intro").style.display = "none";
+      document.getElementById("practice").style.display = "block";
+      showProblem();
+    }
+
+    function showProblem() {
+      document.getElementById("problemText").textContent = problems[currentIndex].text;
+      document.getElementById("answerBox").value = "";
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(document.getElementById("answerBox").value);
+      const correct = problems[currentIndex].answer;
+      if (userAnswer === correct) {
+        document.getElementById("feedback").textContent = "🎉 Correct! Great job!";
+        document.getElementById("feedback").style.color = "green";
+      } else {
+        document.getElementById("feedback").textContent = "❌ Not quite. Try again!";
+        document.getElementById("feedback").style.color = "red";
+      }
+    }
+
+    function nextProblem() {
+      currentIndex++;
+      if (currentIndex >= problems.length) {
+        document.getElementById("problemText").textContent = "🏆 You finished all the word problems!";
+        document.getElementById("answerBox").style.display = "none";
+        document.getElementById("feedback").textContent = "Amazing work!";
+      } else {
+        showProblem();
+      }
+    }
+  </script>
+
+</body>
+</html>

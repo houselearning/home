@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rounding to 10s and 100s Lesson</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f7fa;
+    }
+    h1, h2 {
+      color: #2a6592;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input[type="number"] {
+      padding: 5px;
+      width: 80px;
+    }
+    button {
+      margin: 5px;
+      padding: 6px 10px;
+      background: #2a6592;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4666;
+    }
+    .result {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .practice-box {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Grade 3 Math Lesson: Rounding to the Nearest 10s and 100s</h1>
+
+  <div class="section">
+    <h2>📘 Introduction</h2>
+    <p>Rounding is a way to make numbers simpler while keeping their value close to what it really is.  
+    You’ll often round numbers when estimating, solving problems quickly, or checking if your answer makes sense.</p>
+    <p>We’ll practice rounding numbers to the nearest <b>10</b> and to the nearest <b>100</b>.</p>
+  </div>
+
+  <div class="section">
+    <h2>🔢 Rounding to the Nearest 10</h2>
+    <p>Look at the <b>ones place</b> digit:</p>
+    <ul>
+      <li>If it’s <b>0–4</b>, round down (keep the tens the same).</li>
+      <li>If it’s <b>5–9</b>, round up (add one more to the tens place).</li>
+    </ul>
+    <p><b>Example:</b> Round 47 to the nearest 10 → Ones digit is 7 → Round up → 50.</p>
+
+    <div class="practice-box">
+      <label>Try it: Round 86 → </label>
+      <input type="number" id="round10input">
+      <button onclick="checkRound10()">Check</button>
+      <div id="round10result" class="result"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>💯 Rounding to the Nearest 100</h2>
+    <p>Look at the <b>tens place</b> digit:</p>
+    <ul>
+      <li>If it’s <b>0–4</b>, round down (keep the hundreds the same).</li>
+      <li>If it’s <b>5–9</b>, round up (add one more to the hundreds place).</li>
+    </ul>
+    <p><b>Example:</b> Round 364 to the nearest 100 → Tens digit is 6 → Round up → 400.</p>
+
+    <div class="practice-box">
+      <label>Try it: Round 528 → </label>
+      <input type="number" id="round100input">
+      <button onclick="checkRound100()">Check</button>
+      <div id="round100result" class="result"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📝 Practice Problems</h2>
+    <p>Round these numbers to the nearest 10 and 100:</p>
+    <ol>
+      <li>243</li>
+      <li>678</li>
+      <li>951</li>
+      <li>127</li>
+      <li>845</li>
+    </ol>
+    <div class="practice-box">
+      <label>Type your answers here for checking: </label><br>
+      243 → <input type="number" id="p1"> 
+      678 → <input type="number" id="p2"> 
+      951 → <input type="number" id="p3"> 
+      127 → <input type="number" id="p4"> 
+      845 → <input type="number" id="p5"> 
+      <br><button onclick="checkPractice()">Check Answers</button>
+      <div id="practiceResult" class="result"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Generate & Download Practice Problems</h2>
+    <p>Click below to generate random rounding problems and download them as a CSV file for practice!</p>
+    <button onclick="downloadCSV()">Download CSV</button>
+  </div>
+
+  <script>
+    function checkRound10() {
+      const input = document.getElementById("round10input").value;
+      const result = document.getElementById("round10result");
+      if (input == 90) {
+        result.textContent = "✅ Correct! 86 rounds to 90.";
+      } else {
+        result.textContent = "❌ Try again. Remember to look at the ones place.";
+      }
+    }
+
+    function checkRound100() {
+      const input = document.getElementById("round100input").value;
+      const result = document.getElementById("round100result");
+      if (input == 500) {
+        result.textContent = "✅ Correct! 528 rounds to 500.";
+      } else {
+        result.textContent = "❌ Not quite. Look at the tens place.";
+      }
+    }
+
+    function checkPractice() {
+      const answers = [240, 680, 950, 130, 850]; 
+      let inputs = [];
+      for (let i = 1; i <= 5; i++) {
+        inputs.push(Number(document.getElementById("p"+i).value));
+      }
+      let correct = 0;
+      for (let i = 0; i < 5; i++) {
+        if (inputs[i] === answers[i]) correct++;
+      }
+      document.getElementById("practiceResult").textContent =
+        `You got ${correct}/5 correct.`;
+    }
+
+    function downloadCSV() {
+      let rows = [["Number", "Round to Nearest 10", "Round to Nearest 100"]];
+      for (let i = 0; i < 10; i++) {
+        let num = Math.floor(Math.random() * 999) + 1;
+        let round10 = Math.round(num / 10) * 10;
+        let round100 = Math.round(num / 100) * 100;
+        rows.push([num, round10, round100]);
+      }
+      let csvContent = "data:text/csv;charset=utf-8," 
+        + rows.map(e => e.join(",")).join("\n");
+      let link = document.createElement("a");
+      link.setAttribute("href", csvContent);
+      link.setAttribute("download", "rounding_practice.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
