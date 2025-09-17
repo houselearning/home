@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Rocks & Minerals 💎</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f6f0ff;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Rocks & Minerals 💎</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are Rocks and Minerals? 🤔</h2>
+<p>
+  A **mineral** is a solid that is found in nature. It is made of the same tiny pieces all the way through. Examples are quartz and gold.
+</p>
+<p>
+  A **rock** is made of one or more minerals mixed together! So, a rock is like a cookie, and the minerals are the ingredients inside it, like flour and chocolate chips. Rocks can be big, small, and come in all different shapes and colors.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Rock Cycle 🎬</h2>
+<p>Watch how rocks are formed and change over a very long time!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Is it a Rock or a Mineral?)</h2>
+<p>Look at the description and click if it's a rock or a mineral.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) A solid found in nature made of one thing.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'mineral', this)">Mineral</button>
+      <button onclick="checkAnswer('q1', 'rock', this)">Rock</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) A mix of different minerals.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'mineral', this)">Mineral</button>
+      <button onclick="checkAnswer('q2', 'rock', this)">Rock</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Gold</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'mineral', this)">Mineral</button>
+      <button onclick="checkAnswer('q3', 'rock', this)">Rock</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Granite</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'mineral', this)">Mineral</button>
+      <button onclick="checkAnswer('q4', 'rock', this)">Rock</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Find the Rocks & Minerals!</h2>
+<p>Click on the item that is a rock or a mineral!</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start!</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findRock" class="secondary" onclick="findItem('rock')">Find a Rock</button>
+    <button id="findMineral" class="secondary" onclick="findItem('mineral')">Find a Mineral</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Rocks and minerals are the building blocks of our planet!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  const correctAnswers = {
+    'q1': 'mineral', 'q2': 'rock', 'q3': 'mineral', 'q4': 'rock'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+// Function to draw the rock cycle
+function drawRockCycleScene(canvasCtx, currentStage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  const rockTypes = [
+    { name: 'Igneous Rock', x: w*0.7, y: h*0.2, color: '#e74c3c' },
+    { name: 'Sedimentary Rock', x: w*0.7, y: h*0.8, color: '#f39c12' },
+    { name: 'Metamorphic Rock', x: w*0.3, y: h*0.8, color: '#8e44ad' },
+    { name: 'Magma', x: w*0.3, y: h*0.2, color: '#d35400' },
+  ];
+  
+  rockTypes.forEach(rock => {
+    canvasCtx.fillStyle = rock.color;
+    canvasCtx.beginPath();
+    canvasCtx.arc(rock.x, rock.y, 40, 0, Math.PI * 2);
+    canvasCtx.fill();
+    drawText(canvasCtx, rock.name, rock.x, rock.y + 60, '#04263b');
+  });
+
+  canvasCtx.strokeStyle = '#34495e';
+  canvasCtx.lineWidth = 2;
+  canvasCtx.setLineDash([5, 5]);
+
+  // Draw arrows for the rock cycle
+  canvasCtx.beginPath();
+  // Igneous -> Sedimentary
+  canvasCtx.moveTo(rockTypes[0].x, rockTypes[0].y + 40);
+  canvasCtx.lineTo(rockTypes[1].x, rockTypes[1].y - 40);
+  // Sedimentary -> Metamorphic
+  canvasCtx.moveTo(rockTypes[1].x - 40, rockTypes[1].y);
+  canvasCtx.lineTo(rockTypes[2].x + 40, rockTypes[2].y);
+  // Metamorphic -> Magma
+  canvasCtx.moveTo(rockTypes[2].x, rockTypes[2].y - 40);
+  canvasCtx.lineTo(rockTypes[3].x, rockTypes[3].y + 40);
+  // Magma -> Igneous
+  canvasCtx.moveTo(rockTypes[3].x + 40, rockTypes[3].y);
+  canvasCtx.lineTo(rockTypes[0].x - 40, rockTypes[0].y);
+  canvasCtx.stroke();
+  
+  canvasCtx.setLineDash([]);
+  
+  if (currentStage === 'igneous') {
+    drawText(canvasCtx, "Igneous rock is made from magma cooling down.", rockTypes[0].x, h/2);
+  } else if (currentStage === 'sedimentary') {
+    drawText(canvasCtx, "Sedimentary rock is made from little pieces of other rocks.", rockTypes[1].x, h/2);
+  } else if (currentStage === 'metamorphic') {
+    drawText(canvasCtx, "Metamorphic rock is changed by heat and pressure.", rockTypes[2].x, h/2);
+  } else {
+    drawText(canvasCtx, "Press Play to learn about the Rock Cycle!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "The Rock Cycle is a slow process that changes rocks over time.", viz: 'initial' },
+  { audio: "Igneous rock is formed when hot liquid magma cools and becomes solid.", viz: 'igneous' },
+  { audio: "When wind and water break rocks into small pieces, they can form sedimentary rock.", viz: 'sedimentary' },
+  { audio: "If a rock is squeezed and heated, it can become a metamorphic rock.", viz: 'metamorphic' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawRockCycleScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawRockCycleScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawRockCycleScene(ctx, 'initial');
+
+/* ===== Quiz ===== */
+const quizItems = [
+  { type: 'rock', text: 'Granite', img: 'https://cdn.pixabay.com/photo/2016/11/29/05/44/granite-1868925_1280.jpg' },
+  { type: 'mineral', text: 'Quartz', img: 'https://cdn.pixabay.com/photo/2015/07/04/13/28/quartz-831346_1280.jpg' },
+  { type: 'rock', text: 'Sandstone', img: 'https://cdn.pixabay.com/photo/2016/11/29/05/44/sandstone-1868922_1280.jpg' },
+  { type: 'mineral', text: 'Amethyst', img: 'https://cdn.pixabay.com/photo/2017/08/29/18/34/amethyst-2694119_1280.jpg' },
+  { type: 'rock', text: 'Shale', img: 'https://cdn.pixabay.com/photo/2016/11/29/05/44/shale-1868926_1280.jpg' },
+  { type: 'mineral', text: 'Diamond', img: 'https://cdn.pixabay.com/photo/2018/10/24/09/27/diamond-3769188_1280.jpg' },
+];
+
+let currentQuizType = null;
+let quizScore = 0;
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+  const shuffledItems = [...quizItems].sort(() => 0.5 - Math.random()).slice(0, 4);
+  quizGrid.innerHTML = '';
+  let itemsLoaded = 0;
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = `item-${index}`;
+    tile.onclick = () => selectQuizItem(item.type, tile);
+    
+    const img = document.createElement('img');
+    img.src = item.img;
+    img.style.width = '100%';
+    img.style.height = '100px';
+    img.style.objectFit = 'cover';
+    img.style.borderRadius = '8px';
+    
+    img.onload = () => {
+        itemsLoaded++;
+        if (itemsLoaded === shuffledItems.length) {
+            document.getElementById('findRock').disabled = false;
+            document.getElementById('findMineral').disabled = false;
+        }
+    };
+    
+    const text = document.createElement('div');
+    text.style.fontWeight = '700';
+    text.textContent = item.text;
+
+    tile.appendChild(img);
+    tile.appendChild(text);
+    quizGrid.appendChild(tile);
+  });
+  
+  quizQuestion.textContent = `Press a button to find a rock or mineral!`;
+  quizFeedback.textContent = '';
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  document.getElementById('findRock').disabled = true;
+  document.getElementById('findMineral').disabled = true;
+}
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuizType && selectedType === currentQuizType) {
+    quizFeedback.textContent = `✅ Correct! You got it!`;
+    quizFeedback.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    setTimeout(() => newQuiz(), 1000);
+  } else {
+    quizFeedback.textContent = `❌ Wrong, that's a ${selectedType}! Try again!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+  }
+};
+
+window.findItem = (type) => {
+  currentQuizType = type;
+  quizQuestion.textContent = `Find a ${type}!`;
+  quizFeedback.textContent = '';
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const tiles = document.querySelectorAll('#quiz-grid .tile');
+  tiles.forEach(tile => tile.classList.remove('selected'));
+  newQuiz();
+};
+</script>
+</body>
+</html>
