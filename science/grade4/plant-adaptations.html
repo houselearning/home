@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Plant Adaptations 🌱</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#2ecc71; --accent2:#27ae60; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f0fff0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Plant Adaptations 🌱</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a Plant Adaptation? 🤔</h2>
+<p>
+  A **plant adaptation** is a special feature that helps a plant live and grow in its environment. Plants have different adaptations to help them get what they need to survive, like water, sunlight, and a safe place to live.
+</p>
+<p>
+  For example, a **cactus** has spines instead of leaves to save water in a hot, dry desert. A **water lily** has big, flat leaves that float on the water to get lots of sunlight. These are special ways plants have changed to fit their home!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Plants in Different Homes 🎬</h2>
+<p>Watch how plants are different in the desert, the ocean, and the rainforest!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What's the right place?)</h2>
+<p>Read about the plant and click on where you think it lives.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) A plant with very long roots to find water deep underground.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'desert', this)">Desert</button>
+      <button onclick="checkAnswer('q1', 'rainforest', this)">Rainforest</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) A plant with big, wide leaves to catch lots of sunlight.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'desert', this)">Desert</button>
+      <button onclick="checkAnswer('q2', 'rainforest', this)">Rainforest</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) A plant with thick stems to store water.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'desert', this)">Desert</button>
+      <button onclick="checkAnswer('q3', 'ocean', this)">Ocean</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) A plant with small leaves to keep water inside.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'ocean', this)">Ocean</button>
+      <button onclick="checkAnswer('q4', 'desert', this)">Desert</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Sort the Plants!</h2>
+<p>Drag the plant pictures to the correct habitat box.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Drag these plants to the right boxes!</div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="desert-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Desert 🌵</h3>
+  </div>
+  <div class="tile" id="rainforest-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Rainforest 🌴</h3>
+  </div>
+  <div class="tile" id="ocean-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Ocean 🌊</h3>
+  </div>
+</div>
+<div style="margin-top:10px;text-align:center;">
+  <div class="controls" id="drag-items">
+    <div draggable="true" ondragstart="drag(event)" id="item-1" data-habitat="desert" class="tile">Cactus 🌵</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-2" data-habitat="rainforest" class="tile">Orchid 🌸</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-3" data-habitat="ocean" class="tile">Seaweed 🌊</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-4" data-habitat="desert" class="tile">Succulent 🌱</div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Plants are amazing at living in all sorts of places!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  const correctAnswers = {
+    'q1': 'desert', 'q2': 'rainforest', 'q3': 'desert', 'q4': 'desert'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+// Function to draw different plant habitats
+function drawHabitatScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  if (stage === 'desert') {
+    canvasCtx.fillStyle = '#f1c40f';
+    canvasCtx.fillRect(0, 0, w, h);
+    canvasCtx.fillStyle = '#e67e22';
+    canvasCtx.beginPath();
+    canvasCtx.arc(w/2, h/2, 50, 0, Math.PI * 2);
+    canvasCtx.fill();
+    drawText(canvasCtx, "A cactus has spines to save water!", w/2, h/2 - 100);
+    drawText(canvasCtx, "🌵", w/2, h/2 + 5, '#000', '60px');
+  } else if (stage === 'rainforest') {
+    canvasCtx.fillStyle = '#27ae60';
+    canvasCtx.fillRect(0, 0, w, h);
+    canvasCtx.fillStyle = '#34495e';
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(w/2, h/2 - 50);
+    canvasCtx.lineTo(w/2 + 50, h/2 + 50);
+    canvasCtx.lineTo(w/2 - 50, h/2 + 50);
+    canvasCtx.closePath();
+    canvasCtx.fill();
+    drawText(canvasCtx, "Big leaves help plants get sun in the jungle.", w/2, h/2 - 100);
+    drawText(canvasCtx, "🌴", w/2, h/2 + 10, '#000', '60px');
+  } else if (stage === 'ocean') {
+    canvasCtx.fillStyle = '#3498db';
+    canvasCtx.fillRect(0, 0, w, h);
+    canvasCtx.fillStyle = '#1abc9c';
+    canvasCtx.fillRect(w/2 - 20, h/2, 40, h/2);
+    drawText(canvasCtx, "Seaweed floats to catch sunlight!", w/2, h/2 - 100);
+    drawText(canvasCtx, "🌊", w/2, h/2 + 10, '#000', '60px');
+  } else {
+    drawText(canvasCtx, "Press Play to learn about plants!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "In the desert, it is hot and dry. Plants like cactuses have adaptations to save water.", viz: 'desert' },
+  { audio: "In the rainforest, it is wet and there are many trees. Plants have big leaves to get sunlight.", viz: 'rainforest' },
+  { audio: "In the ocean, some plants float to get sunlight. Seaweed is a type of plant that lives here.", viz: 'ocean' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawHabitatScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawHabitatScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawHabitatScene(ctx, 'initial');
+
+/* ===== Sorting Quiz ===== */
+let quizScore = 0;
+const quizFeedback = document.getElementById('quizFeedback');
+const dragItems = document.getElementById('drag-items');
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drag(event) {
+  event.dataTransfer.setData("text", event.target.id);
+}
+
+function drop(event) {
+  event.preventDefault();
+  const data = event.dataTransfer.getData("text");
+  const draggableElement = document.getElementById(data);
+  const dropzone = event.target.closest('.tile');
+  
+  if (dropzone.id.includes(draggableElement.dataset.habitat)) {
+    dropzone.appendChild(draggableElement);
+    draggableElement.draggable = false;
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    checkQuizComplete();
+  } else {
+    quizFeedback.textContent = `❌ Wrong! Try again.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+  }
+}
+
+function checkQuizComplete() {
+  const allItems = document.querySelectorAll('#drag-items .tile');
+  let completed = true;
+  for (let i = 0; i < allItems.length; i++) {
+    if (allItems[i].parentElement.id === 'drag-items') {
+      completed = false;
+      break;
+    }
+  }
+  if (completed) {
+    quizFeedback.textContent = `✅ Great job! You sorted all the plants!`;
+    quizFeedback.className = 'answer ok';
+    updateScore(1);
+  }
+}
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  // Move items back to the drag area and enable dragging
+  const items = document.querySelectorAll('.grid.cols-4 .tile');
+  items.forEach(box => {
+    const children = Array.from(box.children);
+    children.forEach(child => {
+        if (child.id && child.id.startsWith('item-')) {
+            dragItems.appendChild(child);
+            child.draggable = true;
+        }
+    });
+  });
+};
+</script>
+</body>
+</html>
