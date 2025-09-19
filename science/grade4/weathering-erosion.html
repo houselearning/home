@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Weathering & Erosion ⛰️</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#3498db; --accent2:#2980b9; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #e6f7ff;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Weathering & Erosion ⛰️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are Weathering and Erosion? 🤔</h2>
+<p>
+  **Weathering** and **erosion** are two important ways that our Earth's surface changes. They both break down and move rocks and dirt, but they do it in different ways.
+</p>
+<p>
+  **Weathering** is when rocks and soil are broken into smaller pieces. This can be caused by wind, rain, ice, or even living things like plants. The tiny rock pieces don't go anywhere, they just break apart in place.
+</p>
+<p>
+  **Erosion** is when those broken pieces of rock and soil are moved away from their spot. This is also caused by wind, water, and ice. Think of a river carrying tiny pebbles downstream. That's erosion!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: See Weathering and Erosion in Action! 🎬</h2>
+<p>Watch how a mountain can change over a very long time.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Is it Weathering or Erosion?)</h2>
+<p>Read the description and click if it's weathering or erosion.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) A river carrying pebbles to the ocean.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'erosion', this)">Erosion</button>
+      <button onclick="checkAnswer('q1', 'weathering', this)">Weathering</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) A tree root cracking a big rock in half.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'erosion', this)">Erosion</button>
+      <button onclick="checkAnswer('q2', 'weathering', this)">Weathering</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Sand blowing away from a dune.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'erosion', this)">Erosion</button>
+      <button onclick="checkAnswer('q3', 'weathering', this)">Weathering</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Ice getting bigger in a crack and breaking a rock.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'erosion', this)">Erosion</button>
+      <button onclick="checkAnswer('q4', 'weathering', this)">Weathering</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Sort the Events!</h2>
+<p>Drag the event to the correct box: is it weathering or erosion?</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Drag these events to the right boxes!</div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="weathering-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Weathering 💥</h3>
+  </div>
+  <div class="tile" id="erosion-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Erosion ➡️</h3>
+  </div>
+</div>
+<div style="margin-top:10px;text-align:center;">
+  <div class="controls" id="drag-items">
+    <div draggable="true" ondragstart="drag(event)" id="item-1" data-type="erosion" class="tile">A glacier pushing dirt</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-2" data-type="weathering" class="tile">Acid rain dissolving a statue</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-3" data-type="erosion" class="tile">A landslide moving soil down a hill</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-4" data-type="weathering" class="tile">Waves breaking on a rock</div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Our Earth is always changing!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  const correctAnswers = {
+    'q1': 'erosion', 'q2': 'weathering', 'q3': 'erosion', 'q4': 'weathering'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+// Function to draw scenes for weathering and erosion
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+
+  // Draw a basic rock or mountain
+  canvasCtx.fillStyle = '#95a5a6';
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(w/4, h-50);
+  canvasCtx.lineTo(w/2, h/2);
+  canvasCtx.lineTo(w*0.75, h-50);
+  canvasCtx.closePath();
+  canvasCtx.fill();
+  drawText(canvasCtx, "A big rock", w/2, h-20);
+  
+  if (stage === 'weathering') {
+    canvasCtx.fillStyle = '#f1c40f';
+    canvasCtx.beginPath();
+    canvasCtx.arc(w/2 - 20, h/2 + 20, 5, 0, Math.PI * 2);
+    canvasCtx.fill();
+    canvasCtx.beginPath();
+    canvasCtx.arc(w/2 + 20, h/2 + 30, 8, 0, Math.PI * 2);
+    canvasCtx.fill();
+    drawText(canvasCtx, "Small pieces break off due to weathering.", w/2, h/2 - 50, '#f39c12');
+  } else if (stage === 'erosion') {
+    canvasCtx.fillStyle = '#95a5a6';
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(w/2, h/2 + 50);
+    canvasCtx.lineTo(w/2 + 100, h/2 + 70);
+    canvasCtx.lineTo(w/2 + 100, h/2 + 90);
+    canvasCtx.lineTo(w/2, h/2 + 70);
+    canvasCtx.closePath();
+    canvasCtx.fill();
+    drawText(canvasCtx, "Water or wind moves the pieces away!", w/2, h/2 - 50, '#3498db');
+  } else {
+    drawText(canvasCtx, "Press Play to start!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Weathering happens when rocks break into smaller pieces. This can be caused by rain or ice.", viz: 'weathering' },
+  { audio: "Erosion happens when those pieces are moved away. Wind and rivers can carry them far away.", viz: 'erosion' },
+  { audio: "So, weathering is breaking rocks down, and erosion is moving them away. They work together!", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Sorting Quiz ===== */
+let quizScore = 0;
+const quizFeedback = document.getElementById('quizFeedback');
+const dragItems = document.getElementById('drag-items');
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drag(event) {
+  event.dataTransfer.setData("text", event.target.id);
+}
+
+function drop(event) {
+  event.preventDefault();
+  const data = event.dataTransfer.getData("text");
+  const draggableElement = document.getElementById(data);
+  const dropzone = event.target.closest('.tile');
+  
+  if (dropzone.id.includes(draggableElement.dataset.type)) {
+    dropzone.appendChild(draggableElement);
+    draggableElement.draggable = false;
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    checkQuizComplete();
+  } else {
+    quizFeedback.textContent = `❌ Wrong! Try again.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+  }
+}
+
+function checkQuizComplete() {
+  const allItems = document.querySelectorAll('#drag-items .tile');
+  let completed = true;
+  for (let i = 0; i < allItems.length; i++) {
+    if (allItems[i].parentElement.id === 'drag-items') {
+      completed = false;
+      break;
+    }
+  }
+  if (completed) {
+    quizFeedback.textContent = `✅ Great job! You sorted all the events!`;
+    quizFeedback.className = 'answer ok';
+    updateScore(1);
+  }
+}
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const items = document.querySelectorAll('.grid.cols-4 .tile');
+  items.forEach(box => {
+    const children = Array.from(box.children);
+    children.forEach(child => {
+        if (child.id && child.id.startsWith('item-')) {
+            dragItems.appendChild(child);
+            child.draggable = true;
+        }
+    });
+  });
+};
+</script>
+</body>
+</html>

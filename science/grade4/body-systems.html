@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Human Body Systems 🧍</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#3498db; --accent2:#2980b9; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #e6f7ff;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Human Body Systems 🧍</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Your Body is a Team! 🤔</h2>
+<p>
+  The **human body** is like a big team. It is made of many different parts that all work together. We call these parts **body systems**.
+</p>
+<p>
+  Each system has a special job to do. For example, the **Skeletal System** is the bones that hold you up. The **Digestive System** helps you eat and get energy. These systems all cooperate to keep you healthy!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Meet the Body Systems! 🎬</h2>
+<p>Watch a video to see some of the main body systems and what they do.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What's the right system?)</h2>
+<p>Read the job and click on the body system that does it.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) Pumping blood all over your body.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'circulatory', this)">Circulatory</button>
+      <button onclick="checkAnswer('q1', 'nervous', this)">Nervous</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) Helping you breathe air.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'respiratory', this)">Respiratory</button>
+      <button onclick="checkAnswer('q2', 'skeletal', this)">Skeletal</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Using bones to hold you up.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'muscular', this)">Muscular</button>
+      <button onclick="checkAnswer('q3', 'skeletal', this)">Skeletal</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Sending messages from your brain.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'nervous', this)">Nervous</button>
+      <button onclick="checkAnswer('q4', 'digestive', this)">Digestive</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Sort the Body Parts!</h2>
+<p>Drag the body parts to the correct system they belong to.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Drag these parts to the right boxes!</div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="digestive-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Digestive System 😋</h3>
+  </div>
+  <div class="tile" id="respiratory-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Respiratory System 💨</h3>
+  </div>
+  <div class="tile" id="circulatory-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Circulatory System ❤️</h3>
+  </div>
+  <div class="tile" id="muscular-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h3>Muscular System 💪</h3>
+  </div>
+</div>
+<div style="margin-top:10px;text-align:center;">
+  <div class="controls" id="drag-items">
+    <div draggable="true" ondragstart="drag(event)" id="item-1" data-system="circulatory" class="tile">Heart ❤️</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-2" data-system="digestive" class="tile">Stomach 😋</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-3" data-system="respiratory" class="tile">Lungs 💨</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-4" data-system="muscular" class="tile">Biceps 💪</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-5" data-system="circulatory" class="tile">Blood Vessels ❤️</div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Your body is amazing!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  const correctAnswers = {
+    'q1': 'circulatory', 'q2': 'respiratory', 'q3': 'skeletal', 'q4': 'nervous'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+// Function to draw a simple human figure and highlight systems
+function drawBodySystemScene(canvasCtx, currentStage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  const centerX = w / 2;
+  const centerY = h / 2;
+  
+  // Draw base body figure
+  canvasCtx.strokeStyle = '#bdc3c7';
+  canvasCtx.lineWidth = 4;
+  canvasCtx.beginPath();
+  canvasCtx.arc(centerX, centerY - 100, 30, 0, Math.PI * 2); // Head
+  canvasCtx.moveTo(centerX, centerY - 70);
+  canvasCtx.lineTo(centerX, centerY + 50); // Torso
+  canvasCtx.moveTo(centerX, centerY);
+  canvasCtx.lineTo(centerX - 50, centerY - 20); // Arms
+  canvasCtx.moveTo(centerX, centerY);
+  canvasCtx.lineTo(centerX + 50, centerY - 20);
+  canvasCtx.moveTo(centerX, centerY + 50);
+  canvasCtx.lineTo(centerX - 30, centerY + 150); // Legs
+  canvasCtx.moveTo(centerX, centerY + 50);
+  canvasCtx.lineTo(centerX + 30, centerY + 150);
+  canvasCtx.stroke();
+  
+  // Highlight systems based on stage
+  if (currentStage === 'skeletal') {
+    canvasCtx.strokeStyle = '#e67e22';
+    canvasCtx.lineWidth = 6;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(centerX, centerY - 70);
+    canvasCtx.lineTo(centerX - 30, centerY + 150);
+    canvasCtx.stroke();
+    drawText(canvasCtx, "Skeletal System (Bones)", centerX + 120, centerY - 100);
+  } else if (currentStage === 'digestive') {
+    canvasCtx.fillStyle = '#f1c40f';
+    canvasCtx.beginPath();
+    canvasCtx.ellipse(centerX, centerY, 30, 50, 0, 0, Math.PI * 2);
+    canvasCtx.fill();
+    drawText(canvasCtx, "Digestive System (Stomach)", centerX + 120, centerY);
+  } else if (currentStage === 'circulatory') {
+    canvasCtx.fillStyle = '#e74c3c';
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(centerX, centerY - 40);
+    canvasCtx.lineTo(centerX + 15, centerY - 20);
+    canvasCtx.lineTo(centerX, centerY);
+    canvasCtx.lineTo(centerX - 15, centerY - 20);
+    canvasCtx.closePath();
+    canvasCtx.fill();
+    drawText(canvasCtx, "Circulatory System (Heart)", centerX + 120, centerY - 40);
+  } else {
+    drawText(canvasCtx, "Press Play to start the video!", w / 2, h / 2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "The Skeletal System is all of our bones. It gives us our shape and helps us stand up tall!", viz: 'skeletal' },
+  { audio: "The Digestive System is how our body eats and uses food to get energy. The stomach is a big part of it.", viz: 'digestive' },
+  { audio: "The Circulatory System is your heart and blood vessels. It's like a big highway for blood.", viz: 'circulatory' },
+  { audio: "All of the body systems work together like a team to keep you healthy and strong!", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawBodySystemScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawBodySystemScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawBodySystemScene(ctx, 'initial');
+
+/* ===== Sorting Quiz ===== */
+let quizScore = 0;
+const quizFeedback = document.getElementById('quizFeedback');
+const dragItems = document.getElementById('drag-items');
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drag(event) {
+  event.dataTransfer.setData("text", event.target.id);
+}
+
+function drop(event) {
+  event.preventDefault();
+  const data = event.dataTransfer.getData("text");
+  const draggableElement = document.getElementById(data);
+  const dropzone = event.target.closest('.tile');
+  
+  if (dropzone.dataset.system && dropzone.dataset.system === draggableElement.dataset.system) {
+    dropzone.appendChild(draggableElement);
+    draggableElement.draggable = false;
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    checkQuizComplete();
+  } else {
+    quizFeedback.textContent = `❌ Wrong! Try again.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+  }
+}
+
+function checkQuizComplete() {
+  if (quizScore >= 5) {
+    quizFeedback.textContent = `✅ Great job! You sorted all the parts!`;
+    quizFeedback.className = 'answer ok';
+    updateScore(1);
+    // You could add a button here to play again
+  }
+}
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  // Move items back to the drag area and enable dragging
+  const items = document.querySelectorAll('#drag-items .tile');
+  items.forEach(item => {
+    dragItems.appendChild(item);
+    item.draggable = true;
+  });
+};
+</script>
+</body>
+</html>
