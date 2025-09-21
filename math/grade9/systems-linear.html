@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Systems of Linear Equations</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#2979ff; --accent2:#1d63e9; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:20px}
+li{margin-bottom:4px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#448aff;color:#fff}
+button.ghost{background:#e3f2fd;color:var(--accent2);border:1px solid #bbdefb}
+button.warn{background:#ff9800}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #bbdefb;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #bbdefb;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e3f2fd;color:var(--accent2);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #bbdefb;border-radius:8px;display:block;margin-top:10px;width:100%;}
+.video-container { position: relative; width: 100%; }
+.video-container canvas { margin-bottom: 8px; }
+.captions-box {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fefcbf;
+    color: #000;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-size: 0.9rem;
+    max-width: 80%;
+    text-align: center;
+    visibility: hidden;
+    transition: visibility 0s, opacity 0.5s linear;
+    opacity: 0;
+}
+.captions-box.visible {
+    visibility: visible;
+    opacity: 1;
+}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Solving Systems of Linear Equations 📊</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a System of Linear Equations? 🧐</h2>
+<p>
+    A **system of linear equations** is a set of two or more equations with the same variables. The solution is a point (an x and a y value) that satisfies all equations in the system. Graphically, this is the point where all the lines intersect.
+</p>
+<p>
+    This tutorial will cover the three main methods for finding these solutions: **graphing**, **substitution**, and **elimination**.
+</p>
+<div class="status" style="margin-top:8px">
+    <div class="pill" id="score">Score: 0</div>
+    <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Solving Systems of Linear Equations 🎬</h2>
+<p>This video will show you the three primary methods for solving systems of linear equations. Turn on the captions to follow along with the audio!</p>
+<div class="video-container">
+    <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+    <div class="captions-box" id="captionsBox"></div>
+</div>
+<div class="controls" style="margin-top:10px">
+    <button id="playTutorial" class="secondary">▶️ Play Video</button>
+    <div class="settings">
+        <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+    </div>
+    <div class="settings">
+        <label>Volume: <input type="range" id="videoVolume" min="0" max="1" value="1" step="0.1"></label>
+    </div>
+    <div class="settings">
+        <label><input type="checkbox" id="captionsToggle"> Captions</label>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Solve for x and y. Enter your answers as a comma-separated list, e.g., "x=2, y=3". Order does not matter.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1.tile">
+        <div style="font-weight:700">1) Solve by Substitution: <br> $y = 3x - 1$ <br> $2x + y = 9$ </div>
+        <p>Answer: <input id="q1_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q1', {x: 2, y: 5})">Check</button></div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2.tile">
+        <div style="font-weight:700">2) Solve by Elimination: <br> $x + 2y = 7$ <br> $x - 2y = 3$ </div>
+        <p>Answer: <input id="q2_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q2', {x: 5, y: 1})">Check</button></div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3.tile">
+        <div style="font-weight:700">3) Solve: <br> $2x + 3y = 8$ <br> $4x + 2y = 4$ </div>
+        <p>Answer: <input id="q3_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q3', {x: -1, y: 3.3333333333333335})">Check</button></div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4.tile">
+        <div style="font-weight:700">4) Solve: <br> $3x - y = 8$ <br> $x + 2y = 5$ </div>
+        <p>Answer: <input id="q4_ans" type="text" placeholder="?"></p>
+        <div style="margin-top:6px"><button onclick="check('q4', {x: 3, y: 1})">Check</button></div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Solving Speed Quiz</h2>
+<div class="controls">
+    <label>Duration:
+        <select id="quizDuration">
+            <option value="30">30s</option>
+            <option value="60" selected>60s</option>
+            <option value="90">90s</option>
+        </select>
+    </label>
+    <button id="startQuiz" class="warn">Start Quiz</button>
+    <button id="stopQuiz" class="ghost">Stop</button>
+    <div class="muted" id="quizTimer">Time: 0</div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+    <div style="margin-top:8px" class="controls">
+        <input id="quizInput_ans" type="text" placeholder="Answer = x=?, y=?">
+        <button id="quizCheck" class="secondary">Submit</button>
+        <div id="quizFeedback" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Keep practicing, and soon you'll be a pro!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function normalizeAnswer(ans) {
+    const parts = ans.toLowerCase().split(',').map(p => p.trim());
+    const xPart = parts.find(p => p.startsWith('x='));
+    const yPart = parts.find(p => p.startsWith('y='));
+    const xVal = xPart ? parseFloat(xPart.substring(2)) : NaN;
+    const yVal = yPart ? parseFloat(yPart.substring(2)) : NaN;
+    return {x: xVal, y: yVal};
+}
+window.check = (qId, correct) => {
+    const res = document.getElementById('r' + qId.slice(1));
+    const input = document.getElementById(qId + '_ans');
+    const userAnswer = normalizeAnswer(input.value);
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+
+    let isCorrect = Math.abs(userAnswer.x - correct.x) < 0.001 && Math.abs(userAnswer.y - correct.y) < 0.001;
+    
+    csvData.push([questionText, input.value.trim(), `x=${correct.x}, y=${correct.y}`]);
+    
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: x=${correct.x}, y=${correct.y})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+};
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const videoVolumeInput = document.getElementById('videoVolume');
+const captionsToggle = document.getElementById('captionsToggle');
+const captionsBox = document.getElementById('captionsBox');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawText(ctx, text, x, y, color, size = 20) {
+    ctx.fillStyle = color;
+    ctx.font = `${size}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(text, x, y);
+}
+function drawLine(ctx, x1, y1, x2, y2, color, thickness = 2) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+}
+function drawAxes(ctx) {
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, tutorialCanvas.height / 2);
+    ctx.lineTo(tutorialCanvas.width, tutorialCanvas.height / 2);
+    ctx.moveTo(tutorialCanvas.width / 2, 0);
+    ctx.lineTo(tutorialCanvas.width / 2, tutorialCanvas.height);
+    ctx.stroke();
+    drawText(ctx, 'x', tutorialCanvas.width - 20, tutorialCanvas.height / 2 - 10, '#333');
+    drawText(ctx, 'y', tutorialCanvas.width / 2 + 15, 20, '#333');
+}
+
+function drawLesson(step) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    drawAxes(ctx);
+    if (step.draw) {
+        step.draw(ctx);
+    }
+    MathJax.typesetPromise([document.getElementById('captionsBox')]).then(() => {
+        MathJax.typesetPromise([document.getElementById('quizQ')]);
+    }).catch((err) => console.log('MathJax Error:', err));
+}
+
+const tutorialSteps = [
+    {
+        audio: "Welcome to our tutorial on solving systems of linear equations.",
+        draw: (ctx) => drawText(ctx, "Solving Systems of Linear Equations", tutorialCanvas.width / 2, tutorialCanvas.height / 2, '#04263b')
+    },
+    {
+        audio: "A system of equations is a set of two or more equations, like x plus y equals 5 and x minus y equals 1.",
+        draw: (ctx) => {
+            drawText(ctx, "$$x + y = 5$$", tutorialCanvas.width / 2, 150, '#04263b');
+            drawText(ctx, "$$x - y = 1$$", tutorialCanvas.width / 2, 200, '#04263b');
+        }
+    },
+    {
+        audio: "The solution is a single point that works for both equations. We will explore three methods to find it.",
+        draw: (ctx) => {}
+    },
+    {
+        audio: "Method 1: Graphing. The solution is the point where the lines intersect.",
+        draw: (ctx) => {
+            drawText(ctx, "Method 1: Graphing", tutorialCanvas.width / 2, 80, '#04263b');
+            const toCanvas = (x, y) => ({
+                x: tutorialCanvas.width / 2 + x * 20,
+                y: tutorialCanvas.height / 2 - y * 20
+            });
+            const p1 = toCanvas(3, 2);
+            drawLine(ctx, toCanvas(0, 5).x, toCanvas(0, 5).y, toCanvas(5, 0).x, toCanvas(5, 0).y, '#2979ff');
+            drawLine(ctx, toCanvas(0, -1).x, toCanvas(0, -1).y, toCanvas(5, 4).x, toCanvas(5, 4).y, '#1d63e9');
+            ctx.fillStyle = '#ff9800';
+            ctx.beginPath();
+            ctx.arc(p1.x, p1.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            drawText(ctx, "(3, 2)", p1.x, p1.y + 20, '#000', 16);
+        }
+    },
+    {
+        audio: "Method 2: Substitution. We have y equals 2x plus 1 and x plus y equals 7.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Method 2: Substitution", tutorialCanvas.width / 2, 80, '#04263b');
+            drawText(ctx, "$$y = 2x + 1$$", tutorialCanvas.width / 2, 150, '#04263b');
+            drawText(ctx, "$$x + y = 7$$", tutorialCanvas.width / 2, 200, '#04263b');
+        }
+    },
+    {
+        audio: "Substitute the first equation into the second. This gives us x plus two x plus one equals seven.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Method 2: Substitution", tutorialCanvas.width / 2, 80, '#04263b');
+            drawText(ctx, "$$x + (2x + 1) = 7$$", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "Solving for x, we find that x equals 2. Now substitute this back into the first equation.",
+        draw: (ctx) => {
+            drawText(ctx, "$$3x + 1 = 7$$", tutorialCanvas.width / 2, 250, '#04263b');
+            drawText(ctx, "$$3x = 6 \\implies x = 2$$", tutorialCanvas.width / 2, 300, '#04263b');
+        }
+    },
+    {
+        audio: "This gives us our solution: x equals 2, y equals 5.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Solution: (2, 5)", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    },
+    {
+        audio: "Method 3: Elimination. Let's solve 2x plus y equals 5 and x minus y equals 1.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Method 3: Elimination", tutorialCanvas.width / 2, 80, '#04263b');
+            drawText(ctx, "$$2x + y = 5$$", tutorialCanvas.width / 2, 150, '#04263b');
+            drawText(ctx, "$$x - y = 1$$", tutorialCanvas.width / 2, 200, '#04263b');
+        }
+    },
+    {
+        audio: "Notice that the y terms have opposite signs. We can add the equations to eliminate y.",
+        draw: (ctx) => {
+            drawText(ctx, "Add the equations:", tutorialCanvas.width / 2, 250, '#04263b');
+            drawText(ctx, "$$(2x + y) + (x - y) = 5 + 1$$", tutorialCanvas.width / 2, 300, '#04263b');
+        }
+    },
+    {
+        audio: "This simplifies to 3x equals 6, so x equals 2.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "$$3x = 6$$", tutorialCanvas.width / 2, 150, '#04263b');
+            drawText(ctx, "$$x = 2$$", tutorialCanvas.width / 2, 200, '#04263b');
+        }
+    },
+    {
+        audio: "Substitute x equals 2 back into either original equation to find y. Let's use the second one.",
+        draw: (ctx) => {
+            drawText(ctx, "Substitute x=2 into $x-y=1$:", tutorialCanvas.width / 2, 250, '#04263b');
+            drawText(ctx, "$$2 - y = 1$$", tutorialCanvas.width / 2, 300, '#04263b');
+        }
+    },
+    {
+        audio: "This gives us y equals 1. Our solution is the point 2, 1.",
+        draw: (ctx) => {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawText(ctx, "Solution: (2, 1)", tutorialCanvas.width / 2, 150, '#04263b');
+        }
+    }
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    const volume = parseFloat(videoVolumeInput.value) || 1;
+    const showCaptions = captionsToggle.checked;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            captionsBox.textContent = '';
+            captionsBox.classList.remove('visible');
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = volume;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        drawLesson(step);
+        if (showCaptions) {
+            captionsBox.textContent = step.audio;
+            captionsBox.classList.add('visible');
+        } else {
+            captionsBox.textContent = '';
+            captionsBox.classList.remove('visible');
+        }
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+videoVolumeInput.addEventListener('input', () => {});
+captionsToggle.addEventListener('change', () => {
+    if (!captionsToggle.checked) {
+        captionsBox.classList.remove('visible');
+    } else {
+        if (speechSynthesis.speaking) {
+            const currentStep = tutorialSteps[tutorialIndex - 1] || tutorialSteps[0];
+            captionsBox.textContent = currentStep.audio;
+            captionsBox.classList.add('visible');
+        }
+    }
+});
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const method = Math.floor(Math.random() * 2); // 0 = substitution, 1 = elimination
+    let x, y, eq1, eq2;
+
+    if (method === 0) { // Substitution
+        x = Math.floor(Math.random() * 5) + 1;
+        y = Math.floor(Math.random() * 5) + 1;
+        const c1 = Math.floor(Math.random() * 3) + 1;
+        const c2 = Math.floor(Math.random() * 3) + 1;
+        eq1 = `y = ${c1}x + ${y - c1 * x}`;
+        eq2 = `${c2}x + y = ${c2 * x + y}`;
+    } else { // Elimination
+        x = Math.floor(Math.random() * 5) + 1;
+        y = Math.floor(Math.random() * 5) + 1;
+        const a1 = Math.floor(Math.random() * 3) + 1;
+        const a2 = Math.floor(Math.random() * 3) + 1;
+        const b = Math.floor(Math.random() * 3) + 1;
+        const bsign = Math.random() < 0.5 ? 1 : -1;
+        eq1 = `${a1}x + ${b}y = ${a1 * x + b * y}`;
+        eq2 = `${a2}x + ${bsign * b}y = ${a2 * x + bsign * b * y}`;
+    }
+    return {q: `$${eq1}$<br>$${eq2}$`, a: {x: x, y: y}};
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.innerHTML = currentQuiz.q;
+    MathJax.typesetPromise([qEl]);
+    document.getElementById('quizInput_ans').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput_ans').value;
+    const f = document.getElementById('quizFeedback');
+    const userAnswer = normalizeAnswer(val);
+
+    let isCorrect = Math.abs(userAnswer.x - currentQuiz.a.x) < 0.001 && Math.abs(userAnswer.y - currentQuiz.a.y) < 0.001;
+    
+    if (isCorrect) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: x=${currentQuiz.a.x}, y=${currentQuiz.a.y})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, document.getElementById('quizInput_ans').value, `x=${currentQuiz.a.x}, y=${currentQuiz.a.y}`]);
+    if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "solving_linear_systems_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

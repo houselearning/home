@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Weather & Climate</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#3498db; --accent2:#2980b9; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+    border: 2px solid var(--accent2);
+    box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+.quiz-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Weather & Climate ☀️☁️❄️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What's the Difference? 🤔</h2>
+<p>
+    **Weather** is what the sky is doing right now! It can be sunny, rainy, windy, or cloudy. Weather can change from day to day, or even from hour to hour!
+</p>
+<p>
+    **Climate** is what the weather is usually like in a place over a very, very long time. For example, the climate in Florida is usually warm and sunny, but the climate in Alaska is usually cold and snowy. Climate is like a place's personality, and weather is like its mood for the day.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: A Look at the Sky! 🎬</h2>
+<p>Watch how weather and climate are different.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Is it Weather or Climate?)</h2>
+<p>Click on the correct answer for each example.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1-tile">
+        <div style="font-weight:700">1) It rained yesterday. 🌧️</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q1', 'weather', this)">Weather</button>
+            <button onclick="checkAnswer('q1', 'climate', this)">Climate</button>
+        </div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2-tile">
+        <div style="font-weight:700">2) The desert is hot and dry. 🏜️</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q2', 'weather', this)">Weather</button>
+            <button onclick="checkAnswer('q2', 'climate', this)">Climate</button>
+        </div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3-tile">
+        <div style="font-weight:700">3) It is snowing right now. ❄️</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q3', 'weather', this)">Weather</button>
+            <button onclick="checkAnswer('q3', 'climate', this)">Climate</button>
+        </div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4-tile">
+        <div style="font-weight:700">4) It is cold in Antarctica. 🐧</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q4', 'weather', this)">Weather</button>
+            <button onclick="checkAnswer('q4', 'climate', this)">Climate</button>
+        </div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Find the Weather or Climate!</h2>
+<p>Click on the button to see if you can find the correct example!</p>
+<div class="controls">
+    <div class="muted" id="quizTimer">Time: 0</div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start!</div>
+    <div style="margin-top:8px" class="controls">
+        <button id="findWeather" class="secondary" onclick="findItem('weather')">Find Weather</button>
+        <button id="findClimate" class="secondary" onclick="findItem('climate')">Find Climate</button>
+    </div>
+    <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+    </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The weather changes, but the climate stays for a long, long time!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+    const correctAnswers = {
+        'q1': 'weather', 'q2': 'climate', 'q3': 'weather', 'q4': 'climate'
+    };
+    const resultId = 'r' + questionId.slice(1);
+    const res = document.getElementById(resultId);
+    
+    // Disable all buttons for this question after an answer is selected
+    const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (selectedAnswer === correctAnswers[questionId]) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+    canvasCtx.textAlign = 'center';
+    canvasCtx.font = `${size} Inter, sans-serif`;
+    canvasCtx.fillStyle = color;
+    canvasCtx.fillText(text, x, y);
+}
+
+function drawWeatherOrClimate(stage) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    const w = tutorialCanvas.width;
+    const h = tutorialCanvas.height;
+    
+    if (stage === 'weather') {
+        // Draw a sun and a cloud, showing it's changing
+        ctx.fillStyle = '#FFD700'; // Sun
+        ctx.beginPath();
+        ctx.arc(w/4, h/2 - 50, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ccc'; // Cloud
+        ctx.beginPath();
+        ctx.arc(w*3/4, h/2 - 50, 45, 0, Math.PI * 2);
+        ctx.arc(w*3/4 - 30, h/2 - 50, 40, 0, Math.PI * 2);
+        ctx.arc(w*3/4 + 30, h/2 - 50, 40, 0, Math.PI * 2);
+        ctx.fill();
+
+        drawText(ctx, "Weather: Today's change", w/2, h - 50);
+
+    } else if (stage === 'climate') {
+        // Draw a hot climate (desert) and a cold one (snow)
+        ctx.fillStyle = '#F4A460'; // Desert
+        ctx.beginPath();
+        ctx.fillRect(w/4 - 70, h/2 - 50, 140, 100);
+        ctx.fill();
+        ctx.fillStyle = '#fff'; // Snow
+        ctx.beginPath();
+        ctx.fillRect(w*3/4 - 70, h/2 - 50, 140, 100);
+        ctx.fill();
+        
+        ctx.fillStyle = '#04263b';
+        drawText(ctx, "Climate: A long, long time", w/2, h - 50);
+        drawText(ctx, "Hot Desert", w/4, h/2 + 20);
+        drawText(ctx, "Cold Antarctica", w*3/4, h/2 + 20);
+    } else {
+        drawText(ctx, "Weather is today, Climate is always!", w/2, h/2 - 50);
+    }
+}
+
+const tutorialSteps = [
+    { audio: "Weather is what you see outside right now. It can be sunny one minute and cloudy the next!", text: "Weather: Changes a lot!", viz: 'weather' },
+    { audio: "Climate is the usual weather for a place. It's what we expect the weather to be over many years.", text: "Climate: A place's 'personality'", viz: 'climate' },
+    { audio: "So, a hot day in a cold place is weather, but a cold place is its climate.", text: "Weather vs. Climate", viz: 'weather' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            drawWeatherOrClimate(ctx, 'climate'); // Show final scene
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        drawWeatherOrClimate(step.viz);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+
+/* ===== Speed Quiz ===== */
+const quizItems = [
+    { type: 'weather', text: 'It is a windy day.', emoji: '💨' },
+    { type: 'climate', text: 'It is usually hot in Mexico.', emoji: '🇲🇽' },
+    { type: 'weather', text: 'It snowed last night.', emoji: '❄️' },
+    { type: 'climate', text: 'It is very rainy in the jungle.', emoji: '🌳' },
+    { type: 'weather', text: 'The sun is out today.', emoji: '☀️' },
+    { type: 'climate', text: 'Antarctica is always cold.', emoji: '🐧' },
+];
+
+let currentQuizType = null;
+let quizScore = 0;
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+    const shuffledItems = [...quizItems].sort(() => 0.5 - Math.random());
+    quizGrid.innerHTML = '';
+    shuffledItems.forEach((item, index) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = `item-${index}`;
+        tile.onclick = () => selectQuizItem(item.type, tile);
+        
+        const emoji = document.createElement('div');
+        emoji.style.fontSize = '2rem';
+        emoji.textContent = item.emoji;
+
+        const text = document.createElement('div');
+        text.style.fontWeight = '700';
+        text.textContent = item.text;
+
+        tile.appendChild(emoji);
+        tile.appendChild(text);
+        quizGrid.appendChild(tile);
+    });
+    const randomType = ['weather', 'climate'][Math.floor(Math.random() * 2)];
+    currentQuizType = randomType;
+    quizQuestion.textContent = `Find an example of ${randomType}!`;
+    quizFeedback.textContent = '';
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+}
+window.selectQuizItem = (selectedType, tile) => {
+    if (selectedType === currentQuizType) {
+        quizFeedback.textContent = `✅ Correct! Good job!`;
+        quizFeedback.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        tile.classList.add('selected');
+        setTimeout(() => newQuiz(), 1000);
+    } else {
+        quizFeedback.textContent = `❌ That's ${selectedType}, try again!`;
+        quizFeedback.className = 'answer bad';
+        tone(220, 0.06);
+    }
+};
+
+window.findItem = (type) => {
+    currentQuizType = type;
+    quizQuestion.textContent = `Find an example of ${type}!`;
+    quizFeedback.textContent = '';
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+    totalScore = 0;
+    streak = 0;
+    document.getElementById('score').textContent = `Score: 0`;
+    document.getElementById('streak').textContent = `Streak: 0`;
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: 0`;
+    quizFeedback.textContent = '';
+    const tiles = document.querySelectorAll('#quiz-grid .tile');
+    tiles.forEach(tile => tile.classList.remove('selected'));
+    newQuiz();
+};
+</script>
+</body>
+</html>

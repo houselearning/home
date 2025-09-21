@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Advanced Human Anatomy 🧠</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+h3{color:var(--accent);margin:10px 0 5px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;transition:background-color 0.2s, box-shadow 0.2s}
+button:hover{background-color:#8e44ad;box-shadow:0 4px 8px rgba(0,0,0,0.1)}
+button.secondary{background:#3498db;color:#fff}
+button.ghost{background:#e6e6fa;color:var(--accent2);border:1px solid #c8bfe7}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.system-diagram {
+    text-align: center;
+    margin: 20px 0;
+}
+.system-diagram img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.system-diagram figcaption {
+    margin-top: 10px;
+    font-style: italic;
+    color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Advanced Human Anatomy 🧠</h1>
+<p style="margin:6px 0 0 0;opacity:.95">A Comprehensive Look at the Body's Organ Systems</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Anatomical Overview</h2>
+<p>
+  **Human Anatomy** is the study of the structure of the human body, while **Physiology** is the study of how those structures function. The body is an intricate collection of organ systems working in harmony to maintain **homeostasis**, a state of internal balance and stability.
+</p>
+<div class="system-diagram">
+  <canvas id="overviewCanvas" width="800" height="600"></canvas>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+---
+
+<section aria-labelledby="systemsTitle">
+<h2 id="systemsTitle">Major Organ Systems</h2>
+
+<h3>Skeletal System 🦴</h3>
+<p>
+  The **skeletal system** provides the body's structural framework, protection for vital organs, and a storage depot for minerals. It's composed of bones, which are living tissues containing marrow where **hematopoiesis** (blood cell formation) occurs.
+</p>
+<div class="system-diagram">
+  <canvas id="skeletalCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A detailed anterior view of the human skeletal system, with a focus on major bones.</figcaption>
+
+---
+
+<h3>Muscular System 💪</h3>
+<p>
+  The **muscular system** is comprised of three muscle types: **skeletal muscle** (voluntary movement), **smooth muscle** (involuntary control of internal organs), and **cardiac muscle** (the heart's tireless pump).
+</p>
+<div class="system-diagram">
+  <canvas id="muscularCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A detailed anterior view of the human muscular system, highlighting superficial muscles.</figcaption>
+
+---
+
+<h3>Cardiovascular & Respiratory Systems ❤️💨</h3>
+<p>
+  The **cardiovascular system** (heart and blood vessels) and the **respiratory system** (lungs and airways) are deeply interconnected. The heart pumps deoxygenated blood to the lungs where **gas exchange** occurs in tiny air sacs called **alveoli**. Oxygen is absorbed and carbon dioxide is expelled. This oxygenated blood then returns to the heart to be pumped to the rest of the body.
+</p>
+<div class="system-diagram">
+  <canvas id="cardiorespiratoryCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>Detailed illustration of the interconnected cardiovascular and respiratory systems, showing the heart, lungs, and major blood vessels.</figcaption>
+<div class="controls">
+  <button id="playCardioDemo" class="secondary">▶️ Animate Blood Flow</button>
+</div>
+
+---
+
+<h3>Digestive System 🍽️</h3>
+<p>
+  The **digestive system** breaks down food into absorbable nutrients, a process that involves mechanical digestion (chewing) and chemical digestion (enzymes). This process begins in the mouth, and continues through the esophagus, stomach, and intestines, where nutrients are absorbed.
+</p>
+<div class="system-diagram">
+  <canvas id="digestiveCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A detailed diagram showing the major organs of the human digestive system.</figcaption>
+
+---
+
+<h3>Urinary System 💧</h3>
+<p>
+  The **urinary system** is responsible for filtering waste products from the blood and maintaining fluid and electrolyte balance. This process is centered in the **kidneys**, which filter blood to create urine. The urine then travels down the **ureters** to the **bladder** for storage, and is finally expelled through the **urethra**.
+</p>
+<div class="system-diagram">
+  <canvas id="maleUrinaryCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>An animated view of the male urinary system, demonstrating blood filtration in the kidneys and urine flow to the bladder.</figcaption>
+<div class="controls">
+  <button id="playUrinaryDemo" class="secondary">▶️ Animate Urinary Filtration</button>
+</div>
+
+---
+
+<h3>Nervous System 🧠</h3>
+<p>
+  The **nervous system** is the body's command center, consisting of the **brain**, **spinal cord**, and a vast network of **nerves**. It processes sensory information, coordinates voluntary and involuntary actions, and is the seat of thought, emotion, and memory.
+</p>
+<div class="system-diagram">
+  <canvas id="nervousCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A detailed illustration of the central and peripheral nervous system.</figcaption>
+
+---
+
+<h3>Endocrine System 🧪</h3>
+<p>
+  The **endocrine system** is a collection of glands that produce and secrete hormones, chemical messengers that regulate various body functions such as metabolism, growth, development, tissue function, sleep, and mood.
+</p>
+<div class="system-diagram">
+  <canvas id="endocrineCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A detailed diagram showing the major endocrine glands and their locations in the human body.</figcaption>
+
+---
+
+<h3>Immune & Lymphatic Systems 🛡️</h3>
+<p>
+  The **immune system** is a complex network of cells, tissues, and organs that work together to protect the body from pathogens (like bacteria, viruses, fungi, and parasites) and abnormal cells (like cancer cells). The **lymphatic system** is a vital part of this defense, composed of lymph nodes, lymphatic vessels, and organs such as the spleen and thymus. It collects excess interstitial fluid, filters it, and returns it to the bloodstream, while also housing immune cells critical for defense.
+</p>
+<div class="system-diagram">
+  <canvas id="immuneCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A detailed illustration of the human immune and lymphatic systems, including lymph nodes, vessels, and key organs.</figcaption>
+
+---
+
+<section aria-labelledby="reproductiveTitle">
+<h2 id="reproductiveTitle">The Reproductive Systems</h2>
+<p>
+  The reproductive systems are responsible for producing gametes and hormones, and for the continuation of the species. They are anatomically and functionally distinct between sexes.
+</p>
+
+<h3>Male Reproductive System ♂️</h3>
+<p>
+  The male system includes the **testes** (primary organs for sperm and testosterone production), the **epididymis** (site of sperm maturation and storage), and the **vas deferens** (a duct for sperm transport). Glands like the **prostate** and **seminal vesicles** contribute fluids to create semen. The urethra is the final common passageway for both urine and semen.
+</p>
+<div class="system-diagram">
+  <canvas id="maleReproCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A highly detailed sagittal view of the human male reproductive system.</figcaption>
+<p style="margin-top:10px;">**Quiz:** Which structure is responsible for sperm maturation and storage?</p>
+<div class="controls">
+  <button onclick="checkReproductiveAnswer('male', 'Epididymis', this)">Epididymis</button>
+  <button onclick="checkReproductiveAnswer('male', 'Prostate Gland', this)">Prostate Gland</button>
+  <button onclick="checkReproductiveAnswer('male', 'Seminal Vesicle', this)">Seminal Vesicle</button>
+</div>
+<div id="maleReproFeedback" class="answer"></div>
+
+---
+
+<h3>Female Reproductive System ♀️</h3>
+<p>
+  The female system includes the internal organs of the **ovaries** (produce ova and hormones), the **fallopian tubes** (site of fertilization), and the **uterus**, a muscular organ where a fertilized egg implants and develops. The **vagina** is the muscular canal that connects the uterus to the external environment. The **menstrual cycle** is a hormonal process that prepares the uterus for pregnancy.
+</p>
+<div class="system-diagram">
+  <canvas id="femaleReproCanvas" width="800" height="600"></canvas>
+</div>
+<figcaption>A highly detailed sagittal view of the human female reproductive system.</figcaption>
+<p style="margin-top:10px;">**Quiz:** Where does a fertilized egg typically implant and develop?</p>
+<div class="controls">
+  <button onclick="checkReproductiveAnswer('female', 'Uterus', this)">Uterus</button>
+  <button onclick="checkReproductiveAnswer('female', 'Ovary', this)">Ovary</button>
+  <button onclick="checkReproductiveAnswer('female', 'Fallopian Tube', this)">Fallopian Tube</button>
+</div>
+<div id="femaleReproFeedback" class="answer"></div>
+</section>
+
+---
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to try the quizzes again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The human body: a masterpiece of biological engineering.</footer>
+</main>
+<script>
+/* ===== Utilities & Global State ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+let cardioAnimFrame = null;
+let urinaryAnimFrame = null;
+
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+function drawText(ctx, text, x, y, color = '#04263b', size = '16px', align = 'center') {
+  ctx.textAlign = align;
+  ctx.font = `${size} Inter, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function clearCanvas(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+/* ===== Drawing Functions for all Systems ===== */
+function drawOverview() {
+  const ctx = document.getElementById('overviewCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#f7f7f7'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#c0c0c0'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(w/2, h/2 - 250, 40, 0, Math.PI*2);
+  ctx.moveTo(w/2, h/2 - 210); ctx.lineTo(w/2, h/2 + 100);
+  ctx.lineTo(w/2 - 100, h/2 + 200); ctx.moveTo(w/2, h/2 + 100); ctx.lineTo(w/2 + 100, h/2 + 200);
+  ctx.moveTo(w/2 - 50, h/2 - 100); ctx.lineTo(w/2 - 150, h/2 + 50);
+  ctx.moveTo(w/2 + 50, h/2 - 100); ctx.lineTo(w/2 + 150, h/2 + 50);
+  ctx.stroke();
+
+  // Draw simplified system representations
+  ctx.fillStyle = 'rgba(231, 76, 60, 0.5)'; // Cardio
+  ctx.beginPath(); ctx.moveTo(w/2, h/2 - 100); ctx.lineTo(w/2, h/2+50); ctx.arc(w/2, h/2, 20, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(52, 152, 219, 0.5)'; // Respiratory
+  ctx.beginPath(); ctx.moveTo(w/2 - 50, h/2-150); ctx.bezierCurveTo(w/2 - 100, h/2-100, w/2-150, h/2-50, w/2-100, h/2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(w/2 + 50, h/2-150); ctx.bezierCurveTo(w/2 + 100, h/2-100, w/2+150, h/2-50, w/2+100, h/2); ctx.fill();
+  ctx.fillStyle = 'rgba(241, 196, 15, 0.5)'; // Nervous
+  ctx.beginPath(); ctx.arc(w/2, h/2-250, 40, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(46, 204, 113, 0.5)'; // Digestive
+  ctx.beginPath(); ctx.arc(w/2, h/2 + 100, 50, 0, Math.PI*2); ctx.fill();
+}
+
+function drawSkeletal() {
+  const ctx = document.getElementById('skeletalCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = '#d3d3d3'; ctx.lineWidth = 2;
+  // Skull
+  ctx.beginPath(); ctx.arc(w/2, 100, 50, 0, Math.PI*2); ctx.stroke();
+  // Spine
+  ctx.beginPath(); ctx.moveTo(w/2, 150); ctx.lineTo(w/2, 400); ctx.stroke();
+  // Rib Cage
+  ctx.beginPath(); ctx.ellipse(w/2, 250, 100, 70, 0, 0, Math.PI*2); ctx.stroke();
+  // Pelvis
+  ctx.beginPath(); ctx.ellipse(w/2, 450, 80, 40, 0, 0, Math.PI*2); ctx.stroke();
+  // Limbs
+  ctx.beginPath(); ctx.moveTo(w/2-100, 200); ctx.lineTo(w/2-200, 350); ctx.moveTo(w/2+100, 200); ctx.lineTo(w/2+200, 350); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w/2-50, 470); ctx.lineTo(w/2-80, 580); ctx.moveTo(w/2+50, 470); ctx.lineTo(w/2+80, 580); ctx.stroke();
+}
+
+function drawMuscular() {
+  const ctx = document.getElementById('muscularCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#c0392b';
+  // Head
+  ctx.beginPath(); ctx.arc(w/2, 100, 50, 0, Math.PI*2); ctx.fill();
+  // Torso
+  ctx.beginPath(); ctx.ellipse(w/2, 250, 100, 150, 0, 0, Math.PI*2); ctx.fill();
+  // Arms
+  ctx.beginPath(); ctx.ellipse(w/2 - 120, 250, 20, 70, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(w/2 + 120, 250, 20, 70, 0, 0, Math.PI*2); ctx.fill();
+  // Legs
+  ctx.beginPath(); ctx.ellipse(w/2 - 50, 450, 30, 100, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(w/2 + 50, 450, 30, 100, 0, 0, Math.PI*2); ctx.fill();
+}
+
+function drawCardiorespiratory() {
+  const ctx = document.getElementById('cardiorespiratoryCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  // Heart
+  ctx.fillStyle = '#c0392b';
+  ctx.beginPath(); ctx.moveTo(w/2, h/2); ctx.arc(w/2-20, h/2-20, 30, Math.PI/2, Math.PI*1.5); ctx.arc(w/2+20, h/2-20, 30, Math.PI*1.5, Math.PI/2); ctx.lineTo(w/2, h/2-5); ctx.fill();
+  // Lungs
+  ctx.fillStyle = '#bdc3c7';
+  ctx.beginPath(); ctx.ellipse(w/2-150, h/2-50, 80, 120, 0, 0, 2*Math.PI); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(w/2+150, h/2-50, 80, 120, 0, 0, 2*Math.PI); ctx.fill();
+  // Arteries & Veins
+  ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(w/2+20, h/2-20); ctx.lineTo(w/2+150, h/2-50); ctx.stroke();
+  ctx.strokeStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(w/2-20, h/2-20); ctx.lineTo(w/2-150, h/2-50); ctx.stroke();
+}
+
+let bloodParticles = [];
+function animateCardio() {
+  const ctx = document.getElementById('cardiorespiratoryCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  drawCardiorespiratory();
+  if (Math.random() < 0.5) {
+    bloodParticles.push({x: w/2 + 20, y: h/2 - 20, vx: 2, vy: -0.5, type: 'arterial'});
+  }
+  bloodParticles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    ctx.fillStyle = p.type === 'arterial' ? '#e74c3c' : '#3498db';
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
+  });
+  bloodParticles = bloodParticles.filter(p => p.x < w-50 && p.x > 50 && p.y > 50 && p.y < h-50);
+  cardioAnimFrame = requestAnimationFrame(animateCardio);
+}
+
+function drawDigestive() {
+  const ctx = document.getElementById('digestiveCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#27ae60';
+  // Esophagus
+  ctx.fillRect(w/2 - 10, 50, 20, 100);
+  // Stomach
+  ctx.beginPath(); ctx.ellipse(w/2-50, 200, 40, 60, Math.PI/4, 0, 2*Math.PI); ctx.fill();
+  // Intestines
+  ctx.beginPath(); ctx.arc(w/2, 400, 150, 0, Math.PI*2); ctx.stroke();
+}
+
+function drawMaleUrinary() {
+  const ctx = document.getElementById('maleUrinaryCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#c0392b';
+  // Kidneys
+  ctx.beginPath(); ctx.ellipse(w/2 - 100, 200, 30, 50, 0, 0, 2*Math.PI); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(w/2 + 100, 200, 30, 50, 0, 0, 2*Math.PI); ctx.fill();
+  // Ureters
+  ctx.strokeStyle = '#3498db'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(w/2 - 100, 250); ctx.lineTo(w/2 - 50, 400); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w/2 + 100, 250); ctx.lineTo(w/2 + 50, 400); ctx.stroke();
+  // Bladder
+  ctx.beginPath(); ctx.ellipse(w/2, 450, 80, 50, 0, 0, 2*Math.PI); ctx.stroke();
+}
+
+let bloodParticlesUrinary = [];
+let urineParticles = [];
+function animateUrinary() {
+  const ctx = document.getElementById('maleUrinaryCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  drawMaleUrinary();
+  if (Math.random() < 0.5) { // Blood flow into kidney
+    bloodParticlesUrinary.push({x: w/2 - 200, y: 200, vx: 2, vy: 0});
+  }
+  bloodParticlesUrinary.forEach(p => {
+    p.x += p.vx;
+    ctx.fillStyle = p.vx > 0 ? '#e74c3c' : '#bdc3c7'; // Red blood, then filtered blood
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+    if(p.x > w/2 - 100 && p.vx > 0) {
+      p.vx = -1; // Filtered blood changes direction
+      urineParticles.push({x: p.x, y: p.y, vy: 1}); // Urine starts here
+    }
+  });
+  urineParticles.forEach(p => {
+    p.y += p.vy;
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+  });
+  bloodParticlesUrinary = bloodParticlesUrinary.filter(p => p.x < w+50 && p.x > w/2-200);
+  urineParticles = urineParticles.filter(p => p.y < 450);
+  urinaryAnimFrame = requestAnimationFrame(animateUrinary);
+}
+
+function drawNervous() {
+  const ctx = document.getElementById('nervousCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#f1c40f';
+  // Brain
+  ctx.beginPath(); ctx.arc(w/2, 100, 50, 0, Math.PI*2); ctx.fill();
+  // Spinal Cord
+  ctx.fillRect(w/2-10, 150, 20, 300);
+}
+
+function drawEndocrine() {
+  const ctx = document.getElementById('endocrineCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#e67e22';
+  // Pituitary
+  ctx.beginPath(); ctx.arc(w/2, 100, 10, 0, Math.PI*2); ctx.fill();
+  // Thyroid
+  ctx.beginPath(); ctx.ellipse(w/2, 250, 40, 20, 0, 0, Math.PI*2); ctx.fill();
+  // Adrenal
+  ctx.beginPath(); ctx.ellipse(w/2 - 100, 400, 20, 15, 0, 0, Math.PI*2); ctx.fill();
+}
+
+function drawImmune() {
+  const ctx = document.getElementById('immuneCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#2ecc71';
+  // Lymph nodes
+  ctx.beginPath(); ctx.arc(w/2, 200, 20, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w/2-100, 350, 20, 0, Math.PI*2); ctx.fill();
+  // Spleen
+  ctx.beginPath(); ctx.ellipse(w/2-150, 400, 30, 50, 0, 0, Math.PI*2); ctx.fill();
+}
+
+function drawMaleRepro() {
+  const ctx = document.getElementById('maleReproCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#9b59b6';
+  ctx.fillRect(w/2 - 50, h/2 - 50, 100, 100);
+  ctx.fillStyle = '#f39c12';
+  ctx.fillRect(w/2 - 20, h/2 + 50, 40, 40);
+}
+
+function drawFemaleRepro() {
+  const ctx = document.getElementById('femaleReproCanvas').getContext('2d');
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath(); ctx.ellipse(w/2, h/2, 50, 70, 0, 0, 2*Math.PI); ctx.fill();
+  ctx.fillStyle = '#f39c12';
+  ctx.beginPath(); ctx.arc(w/2-80, h/2, 15, 0, 2*Math.PI); ctx.fill();
+  ctx.beginPath(); ctx.arc(w/2+80, h/2, 15, 0, 2*Math.PI); ctx.fill();
+}
+
+/* ===== Quizzes & Demos Logic ===== */
+window.checkReproductiveAnswer = (system, selectedAnswer, button) => {
+  const correctAnswers = {
+    'male': 'Epididymis',
+    'female': 'Uterus'
+  };
+  const feedbackDiv = document.getElementById(system + 'ReproFeedback');
+  const buttons = button.parentElement.querySelectorAll('button');
+  buttons.forEach(btn => btn.disabled = true);
+  if (selectedAnswer === correctAnswers[system]) {
+    feedbackDiv.textContent = '✅ Correct!';
+    feedbackDiv.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(10);
+    button.classList.add('selected');
+  } else {
+    feedbackDiv.textContent = `❌ Incorrect. The correct answer is ${correctAnswers[system]}.`;
+    feedbackDiv.className = 'answer bad';
+    tone(220, 0.06);
+    button.classList.add('bad');
+    buttons.forEach(btn => {
+      if (btn.textContent === correctAnswers[system]) {
+        btn.classList.add('selected');
+      }
+    });
+    updateScore(0);
+  }
+};
+
+document.getElementById('playCardioDemo').addEventListener('click', () => {
+  if (cardioAnimFrame) {
+    cancelAnimationFrame(cardioAnimFrame);
+    cardioAnimFrame = null;
+    document.getElementById('playCardioDemo').textContent = '▶️ Animate Blood Flow';
+    bloodParticles = [];
+    drawCardiorespiratory();
+  } else {
+    document.getElementById('playCardioDemo').textContent = '⏸️ Stop Animation';
+    animateCardio();
+  }
+});
+
+document.getElementById('playUrinaryDemo').addEventListener('click', () => {
+  if (urinaryAnimFrame) {
+    cancelAnimationFrame(urinaryAnimFrame);
+    urinaryAnimFrame = null;
+    document.getElementById('playUrinaryDemo').textContent = '▶️ Animate Urinary Filtration';
+    bloodParticlesUrinary = [];
+    urineParticles = [];
+    drawMaleUrinary();
+  } else {
+    document.getElementById('playUrinaryDemo').textContent = '⏸️ Stop Animation';
+    animateUrinary();
+  }
+});
+
+/* ===== Reset Function ===== */
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  
+  const feedbackDivs = document.querySelectorAll('.answer');
+  feedbackDivs.forEach(div => {
+    div.textContent = '';
+    div.classList.remove('ok', 'bad');
+  });
+
+  const allButtons = document.querySelectorAll('.controls button');
+  allButtons.forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('selected', 'bad');
+  });
+
+  if (cardioAnimFrame) cancelAnimationFrame(cardioAnimFrame);
+  cardioAnimFrame = null;
+  document.getElementById('playCardioDemo').textContent = '▶️ Animate Blood Flow';
+  bloodParticles = [];
+  
+  if (urinaryAnimFrame) cancelAnimationFrame(urinaryAnimFrame);
+  urinaryAnimFrame = null;
+  document.getElementById('playUrinaryDemo').textContent = '▶️ Animate Urinary Filtration';
+  bloodParticlesUrinary = [];
+  urineParticles = [];
+  
+  // Redraw all canvases
+  drawOverview();
+  drawSkeletal();
+  drawMuscular();
+  drawCardiorespiratory();
+  drawDigestive();
+  drawMaleUrinary();
+  drawNervous();
+  drawEndocrine();
+  drawImmune();
+  drawMaleRepro();
+  drawFemaleRepro();
+};
+
+// Initial draw calls for all canvases
+document.addEventListener('DOMContentLoaded', () => {
+  drawOverview();
+  drawSkeletal();
+  drawMuscular();
+  drawCardiorespiratory();
+  drawDigestive();
+  drawMaleUrinary();
+  drawNervous();
+  drawEndocrine();
+  drawImmune();
+  drawMaleRepro();
+  drawFemaleRepro();
+});
+</script>
+</body>
+</html>

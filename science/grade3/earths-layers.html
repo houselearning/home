@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Earth's Layers 🌍</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#3498db; --accent2:#2980b9; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #e6f7ff;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Earth's Layers 🌎</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What's Inside Earth? 🤔</h2>
+<p>
+  Just like an onion, our planet Earth is made up of different **layers**. There are four main layers: the **crust**, the **mantle**, the **outer core**, and the **inner core**.
+</p>
+<p>
+  We live on the very top layer called the **crust**. It's the thinnest layer. Below the crust is the **mantle**, which is the thickest layer and is made of hot, flowing rock. Deeper still is the **outer core**, a liquid layer of very hot metal, and finally, the **inner core**, a solid ball of hot metal at the center of the Earth.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Exploring the Layers 🎬</h2>
+<p>Watch a 3D model of the Earth to see each layer!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+  <button id="showInnerCore" class="secondary">Show Inner Core</button>
+  <button id="showOuterCore" class="secondary">Show Outer Core</button>
+  <button id="showMantle" class="secondary">Show Mantle</button>
+  <button id="showCrust" class="secondary">Show Crust</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What is this layer?)</h2>
+<p>Read the description and click on the correct layer of Earth.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) The thinnest, top layer we live on.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'crust', this)">Crust</button>
+      <button onclick="checkAnswer('q1', 'mantle', this)">Mantle</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) The thickest layer of hot, flowing rock.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'mantle', this)">Mantle</button>
+      <button onclick="checkAnswer('q2', 'outer core', this)">Outer Core</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) The solid ball of metal at the center.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'outer core', this)">Outer Core</button>
+      <button onclick="checkAnswer('q3', 'inner core', this)">Inner Core</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) The liquid layer of hot metal below the mantle.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'outer core', this)">Outer Core</button>
+      <button onclick="checkAnswer('q4', 'crust', this)">Crust</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Order the Layers!</h2>
+<p>Put the layers in order from the outside of Earth to the center.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Click on the layers in the correct order!</div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+  <div class="tile" id="layer-1" onclick="selectQuizItem('crust', this)">Crust</div>
+  <div class="tile" id="layer-2" onclick="selectQuizItem('mantle', this)">Mantle</div>
+  <div class="tile" id="layer-3" onclick="selectQuizItem('outer core', this)">Outer Core</div>
+  <div class="tile" id="layer-4" onclick="selectQuizItem('inner core', this)">Inner Core</div>
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Earth's layers are like a puzzle, all fitting together!</footer>
+</main>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.145.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/"
+    }
+  }
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  /* ===== Utilities ===== */
+  const tone = (f = 880, d = 0.06) => {
+    try {
+      const A = new (window.AudioContext || window.webkitAudioContext)();
+      const o = A.createOscillator();
+      const g = A.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(A.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+      setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+  };
+  let totalScore = 0, streak = 0;
+  function updateScore(points) {
+    if (points > 0) {
+      totalScore += points;
+      streak++;
+    } else {
+      streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+  }
+  window.checkAnswer = (questionId, selectedAnswer, button) => {
+    const correctAnswers = {
+      'q1': 'crust', 'q2': 'mantle', 'q3': 'inner core', 'q4': 'outer core'
+    };
+    const resultId = 'r' + questionId.slice(1);
+    const res = document.getElementById(resultId);
+    
+    const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (selectedAnswer === correctAnswers[questionId]) {
+      res.textContent = '✅ Correct!';
+      res.className = 'answer ok';
+      tone(880, 0.06);
+      updateScore(1);
+    } else {
+      res.textContent = `❌ Wrong`;
+      res.className = 'answer bad';
+      tone(220, 0.06);
+      updateScore(0);
+    }
+  };
+
+  /* ===== 3D Model Tutorial ===== */
+  let scene, camera, renderer, controls;
+  let crust, mantle, outerCore, innerCore;
+  let currentLayer = null;
+
+  function init3D() {
+    const canvas = document.getElementById('tutorialCanvas');
+    if (!canvas) {
+      console.error("Canvas element not found!");
+      return;
+    }
+    const { offsetWidth, offsetHeight } = canvas.parentElement;
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, offsetWidth / offsetHeight, 0.1, 1000);
+    camera.position.z = 2.5;
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(offsetWidth, offsetHeight);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(0, 1, 1);
+    scene.add(directionalLight);
+
+    // Create the layers
+    innerCore = new THREE.Mesh(
+      new THREE.SphereGeometry(0.3, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0xe74c3c, metalness: 0.8, roughness: 0.2 })
+    );
+    outerCore = new THREE.Mesh(
+      new THREE.SphereGeometry(0.6, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0xf39c12, transparent: true, opacity: 0.7 })
+    );
+    mantle = new THREE.Mesh(
+      new THREE.SphereGeometry(0.9, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0x9b59b6, transparent: true, opacity: 0.6 })
+    );
+    crust = new THREE.Mesh(
+      new THREE.SphereGeometry(1.0, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0x2ecc71, transparent: true, opacity: 0.5 })
+    );
+
+    scene.add(innerCore, outerCore, mantle, crust);
+    
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.minDistance = 2;
+    controls.maxDistance = 4;
+    controls.update();
+
+    window.addEventListener('resize', () => {
+      const { offsetWidth, offsetHeight } = canvas.parentElement;
+      camera.aspect = offsetWidth / offsetHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(offsetWidth, offsetHeight);
+    });
+
+    animate();
+    showAllLayers();
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  function setLayerOpacity(layer, opacity) {
+    if (layer) layer.material.opacity = opacity;
+  }
+  
+  function setLayerVisibility(layer, visible) {
+    if (layer) layer.visible = visible;
+  }
+
+  function showAllLayers() {
+    setLayerOpacity(crust, 0.5);
+    setLayerOpacity(mantle, 0.6);
+    setLayerOpacity(outerCore, 0.7);
+    setLayerOpacity(innerCore, 1.0);
+    setLayerVisibility(crust, true);
+    setLayerVisibility(mantle, true);
+    setLayerVisibility(outerCore, true);
+    setLayerVisibility(innerCore, true);
+  }
+
+  window.showInnerCore = () => {
+    setLayerVisibility(crust, false);
+    setLayerVisibility(mantle, false);
+    setLayerVisibility(outerCore, false);
+    setLayerVisibility(innerCore, true);
+  };
+  window.showOuterCore = () => {
+    setLayerVisibility(crust, false);
+    setLayerVisibility(mantle, false);
+    setLayerVisibility(outerCore, true);
+    setLayerVisibility(innerCore, true);
+  };
+  window.showMantle = () => {
+    setLayerVisibility(crust, false);
+    setLayerVisibility(mantle, true);
+    setLayerVisibility(outerCore, true);
+    setLayerVisibility(innerCore, true);
+  };
+  window.showCrust = () => {
+    setLayerVisibility(crust, true);
+    setLayerVisibility(mantle, true);
+    setLayerVisibility(outerCore, true);
+    setLayerVisibility(innerCore, true);
+  };
+
+  const tutorialSteps = [
+    { audio: "The first layer is the crust, which is the very thin layer we live on.", action: window.showCrust },
+    { audio: "Next is the mantle, a thick layer of hot, flowing rock.", action: window.showMantle },
+    { audio: "Below that is the outer core, a super hot liquid layer of metal.", action: window.showOuterCore },
+    { audio: "And finally, at the center, is the inner core, a solid ball of hot metal.", action: window.showInnerCore }
+  ];
+  let tutorialIndex = 0;
+  const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+  window.playTutorialVideo = async () => {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(document.getElementById('videoSpeed').value) || 1;
+    function nextStep() {
+      if (tutorialIndex >= tutorialSteps.length) {
+        showAllLayers();
+        return;
+      }
+      const step = tutorialSteps[tutorialIndex];
+      const utterance = new SpeechSynthesisUtterance(step.audio);
+      utterance.rate = speed;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => {
+        tutorialIndex++;
+        nextStep();
+      };
+      if (step.action) step.action();
+      speechSynthesis.speak(utterance);
+    }
+    nextStep();
+  };
+
+  init3D();
+
+  /* ===== Sorting Quiz ===== */
+  const correctOrder = ['crust', 'mantle', 'outer core', 'inner core'];
+  let currentSelection = [];
+  let quizScore = 0;
+  const quizFeedback = document.getElementById('quizFeedback');
+  const quizGrid = document.getElementById('quiz-grid');
+
+  window.selectQuizItem = (layer, tile) => {
+    if (tile.classList.contains('selected')) return;
+
+    currentSelection.push(layer);
+    tile.classList.add('selected');
+    tile.style.order = currentSelection.length;
+    
+    if (currentSelection.length === correctOrder.length) {
+      checkOrder();
+    }
+  };
+
+  function checkOrder() {
+    let isCorrect = true;
+    for (let i = 0; i < correctOrder.length; i++) {
+      if (currentSelection[i] !== correctOrder[i]) {
+        isCorrect = false;
+        break;
+      }
+    }
+    
+    if (isCorrect) {
+      quizFeedback.textContent = `✅ Correct! You ordered the layers perfectly.`;
+      quizFeedback.className = 'answer ok';
+      quizScore++;
+      document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+      tone(880, 0.06);
+      setTimeout(() => resetQuiz(), 1500);
+    } else {
+      quizFeedback.textContent = `❌ That's not the correct order. Try again!`;
+      quizFeedback.className = 'answer bad';
+      tone(220, 0.06);
+      setTimeout(() => resetQuiz(), 1500);
+    }
+  }
+
+  function resetQuiz() {
+    currentSelection = [];
+    const tiles = document.querySelectorAll('#quiz-grid .tile');
+    tiles.forEach(tile => {
+      tile.classList.remove('selected');
+      tile.style.order = '';
+    });
+    quizFeedback.textContent = '';
+  }
+
+  // Reset Score Button
+  window.reset = () => {
+    totalScore = 0;
+    streak = 0;
+    document.getElementById('score').textContent = `Score: 0`;
+    document.getElementById('streak').textContent = `Streak: 0`;
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: 0`;
+    quizFeedback.textContent = '';
+    const tiles = document.querySelectorAll('#quiz-grid .tile');
+    tiles.forEach(tile => tile.classList.remove('selected'));
+    resetQuiz();
+  };
+</script>
+</body>
+</html>

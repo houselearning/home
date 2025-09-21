@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Systems of Equations</title>
+<style>
+:root{
+    --bg:#f7fbff; --panel:#fff; --accent:#7c3aed; --accent2:#4338ca; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center;border-radius:0 0 12px 12px}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#7c3aed;color:#fff}
+button.ghost{background:#eef2ff;color:var(--accent2);border:1px solid #c7d2fe}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #a5b4fc;font-size:1rem;min-width:100px;}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #a5b4fc;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #a5b4fc;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Solving Systems of Equations 🤝</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a System of Equations? 📝</h2>
+<p>
+  A **system of equations** is a set of two or more equations that contain the same variables. The goal is to find the values for the variables that satisfy ALL equations in the system at the same time. This solution is a single point ($$x, y$$) where the graphs of the lines intersect.
+</p>
+<p>
+  We will focus on two main methods for solving systems of linear equations:
+</p>
+<p>
+  **1. Substitution:** Solve one equation for one variable, then substitute that expression into the other equation.
+</p>
+<p>
+  **2. Elimination:** Add or subtract the equations to eliminate one of the variables.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Substitution Method 🎬</h2>
+<p>Watch this video to learn how to solve a system of equations using the substitution method.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Solve each system of equations. Find the value for x and y.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1.tile">
+    <div style="font-weight:700">1) $$y = x + 1$$<br>$$2x + y = 7$$</div>
+    <p>x = <input id="q1_x" type="number" step="0.1" placeholder="?"></p>
+    <p>y = <input id="q1_y" type="number" step="0.1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q1', '2,3')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2.tile">
+    <div style="font-weight:700">2) $$x + y = 10$$<br>$$x - y = 4$$</div>
+    <p>x = <input id="q2_x" type="number" step="0.1" placeholder="?"></p>
+    <p>y = <input id="q2_y" type="number" step="0.1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q2', '7,3')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3.tile">
+    <div style="font-weight:700">3) $$3x + 2y = 12$$<br>$$y = 3$$</div>
+    <p>x = <input id="q3_x" type="number" step="0.1" placeholder="?"></p>
+    <p>y = <input id="q3_y" type="number" step="0.1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q3', '2,3')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4.tile">
+    <div style="font-weight:700">4) $$4x - y = 5$$<br>$$2x + y = 1$$</div>
+    <p>x = <input id="q4_x" type="number" step="0.1" placeholder="?"></p>
+    <p>y = <input id="q4_y" type="number" step="0.1" placeholder="?"></p>
+    <div style="margin-top:6px"><button onclick="check('q4', '1,-1')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Systems Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput_x" type="number" step="0.1" placeholder="x = ?">
+    <input id="quizInput_y" type="number" step="0.1" placeholder="y = ?">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You've got this! Practice makes perfect.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+window.check = (qId, correct) => {
+    const xInput = document.getElementById(qId + '_x');
+    const yInput = document.getElementById(qId + '_y');
+    const xVal = parseFloat(xInput.value);
+    const yVal = parseFloat(yInput.value);
+    const [xCorrect, yCorrect] = correct.split(',').map(Number);
+    const res = document.getElementById('r' + qId.slice(1));
+    const isCorrect = xVal === xCorrect && yVal === yCorrect;
+    const questionText = document.querySelector(`#${qId}\\.tile div`).textContent;
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: x=${xCorrect}, y=${yCorrect})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, `x=${xVal}, y=${yVal}`, `x=${xCorrect}, y=${yCorrect}`]);
+};
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+const tutorialSteps = [
+    { audio: "Let's solve the system: y equals x plus 2, and 2x plus y equals 8. First, solve one equation for a variable. The first equation is already solved for y.", text: "$$y = x + 2$$ and $$2x + y = 8$$" },
+    { audio: "Step 1: Substitute the expression for y from the first equation into the second equation. The new equation is 2x plus (x plus 2) equals 8.", text: "$$2x + (x + 2) = 8$$" },
+    { audio: "Step 2: Solve this new, single-variable equation for x. Combine like terms to get 3x plus 2 equals 8.", text: "$$3x + 2 = 8$$" },
+    { audio: "Next, subtract 2 from both sides, which gives you 3x equals 6. Then, divide by 3 to find that x equals 2.", text: "$$3x = 6$$ so $$x = 2$$" },
+    { audio: "Step 3: Now that you have x, substitute x equals 2 back into one of the original equations to solve for y. Let's use the first equation: y equals 2 plus 2.", text: "$$y = 2 + 2$$ so $$y = 4$$" },
+    { audio: "The solution to the system is the point (2, 4), where the two lines would cross on a graph.", text: "Solution: (2, 4)" }
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+        ctx.textAlign = 'center';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillStyle = '#04263b';
+        ctx.fillText(step.text, tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const solutions = [
+        {x: 2, y: 3}, {x: 3, y: 1}, {x: 1, y: 5}, {x: -1, y: 4}, {x: 0, y: 2}
+    ];
+    const sol = solutions[Math.floor(Math.random() * solutions.length)];
+    const m1 = Math.floor(Math.random() * 3) + 1;
+    const b1 = sol.y - m1 * sol.x;
+    const eq1 = `y = ${m1 === 1 ? '' : m1}x ${b1 > 0 ? '+' : '-'} ${Math.abs(b1)}`;
+    const m2 = Math.floor(Math.random() * 3) + 1;
+    const b2 = sol.y - m2 * sol.x;
+    const eq2 = `y = ${m2 === 1 ? '' : m2}x ${b2 > 0 ? '+' : '-'} ${Math.abs(b2)}`;
+    
+    return { q: `${eq1}\\\\${eq2}`, a: sol };
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.innerHTML = `$$${currentQuiz.q}$$`;
+    MathJax.typeset([qEl]);
+    document.getElementById('quizInput_x').value = '';
+    document.getElementById('quizInput_y').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const xVal = parseFloat(document.getElementById('quizInput_x').value);
+    const yVal = parseFloat(document.getElementById('quizInput_y').value);
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = `x=${xVal}, y=${yVal}`;
+    let correctAnswer = `x=${currentQuiz.a.x}, y=${currentQuiz.a.y}`;
+    if (xVal === currentQuiz.a.x && yVal === currentQuiz.a.y) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${correctAnswer})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q.replace(/\\/g, ''), userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "systems_of_equations_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

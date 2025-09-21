@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Simple Machines</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+    border: 2px solid var(--accent2);
+    box-shadow: 0 0 8px rgba(29, 78, 216, 0.5);
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Simple Machines ⚙️🔩🪚</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are simple machines? 🤔</h2>
+<p>
+    Simple machines are tools that make work easier for us. They help us change the amount of force we need or the direction of the force. There are six main types of simple machines: **lever**, **wheel and axle**, **pulley**, **inclined plane**, **wedge**, and **screw**.
+</p>
+<p>
+    By using these simple tools, we can move heavy objects, lift things high up, or split things apart more easily than we could with just our hands!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Lever 🎬</h2>
+<p>Watch how a lever can make lifting a heavy object much easier.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Match the Machine)</h2>
+<p>Click on the simple machine that matches each description.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1-tile">
+        <div style="font-weight:700">1) A stiff bar that rotates on a pivot point?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q1', 'lever', this)">Lever</button>
+            <button onclick="checkAnswer('q1', 'pulley', this)">Pulley</button>
+            <button onclick="checkAnswer('q1', 'ramp', this)">Ramp</button>
+        </div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2-tile">
+        <div style="font-weight:700">2) A slanted surface used to move objects up or down?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q2', 'pulley', this)">Pulley</button>
+            <button onclick="checkAnswer('q2', 'ramp', this)">Ramp</button>
+            <button onclick="checkAnswer('q2', 'screw', this)">Screw</button>
+        </div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3-tile">
+        <div style="font-weight:700">3) A wheel with a groove for a rope?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q3', 'pulley', this)">Pulley</button>
+            <button onclick="checkAnswer('q3', 'wheel', this)">Wheel</button>
+            <button onclick="checkAnswer('q3', 'lever', this)">Lever</button>
+        </div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4-tile">
+        <div style="font-weight:700">4) An inclined plane wrapped around a cylinder?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q4', 'ramp', this)">Ramp</button>
+            <button onclick="checkAnswer('q4', 'screw', this)">Screw</button>
+            <button onclick="checkAnswer('q4', 'wedge', this)">Wedge</button>
+        </div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Simple Machine Sorting Game</h2>
+<p>Click on the button and then click the item that matches the question!</p>
+<div class="controls">
+    <div class="muted" id="quizTimer"></div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start Game!</div>
+    <div style="margin-top:8px" class="controls">
+        <button id="startQuiz" class="secondary">Start Game</button>
+    </div>
+    <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+    <!-- Items will be placed here by JavaScript -->
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Simple machines make our lives easier!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+    const correctAnswers = {
+        'q1': 'lever', 'q2': 'ramp', 'q3': 'pulley', 'q4': 'screw'
+    };
+    const resultId = 'r' + questionId.slice(1);
+    const res = document.getElementById(resultId);
+    
+    const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (selectedAnswer === correctAnswers[questionId]) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(text, x, y, color = '#04263b', size = '20px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+
+function drawLever(position) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    
+    // Fulcrum (triangle)
+    ctx.fillStyle = '#60a5fa';
+    ctx.beginPath();
+    ctx.moveTo(400, 300);
+    ctx.lineTo(380, 340);
+    ctx.lineTo(420, 340);
+    ctx.closePath();
+    ctx.fill();
+    drawText('Fulcrum', 400, 360, '#334155', '14px');
+
+    // Lever arm
+    ctx.fillStyle = '#1d4ed8';
+    ctx.fillRect(200, 295 - position, 400, 10);
+    drawText('Lever', 400, 280, '#334155', '14px');
+
+    // Load (heavy box)
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(220, 265 - position, 50, 30);
+    drawText('Load', 245, 250, '#334155', '14px');
+
+    // Effort (downward arrow)
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath();
+    ctx.moveTo(550, 295 - position);
+    ctx.lineTo(545, 305 - position);
+    ctx.lineTo(555, 305 - position);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(550 - 2, 295 - position, 4, 30);
+    drawText('Effort', 550, 340, '#334155', '14px');
+}
+
+let animationId;
+const tutorialSteps = [
+    { audio: "This is a lever. It has a stiff bar and a pivot point called a fulcrum.", text: "The Lever", startPos: 0, endPos: 0 },
+    { audio: "To lift the heavy load, we apply effort to the other side of the lever.", text: "Applying Force", startPos: 0, endPos: 30 },
+    { audio: "Because of the fulcrum, the lever makes the load easier to lift.", text: "Work is Easier", startPos: 30, endPos: 30 },
+    { audio: "This simple machine helps us lift heavy objects that we couldn't lift on our own.", text: "Making Work Easier", startPos: 30, endPos: 0 },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+    if (window.speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    
+    let animationProgress = 0;
+    let currentStep = tutorialSteps[0];
+    let animating = false;
+    let startFrame = 0;
+    let endFrame = 0;
+
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            cancelAnimationFrame(animationId);
+            drawLever(0);
+            drawText("Video Finished!", tutorialCanvas.width / 2, 40);
+            return;
+        }
+        currentStep = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(currentStep.audio);
+        utterance.rate = speed;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            animating = false;
+            tutorialIndex++;
+            nextStep();
+        };
+
+        startFrame = animationProgress;
+        endFrame = currentStep.endPos;
+        animating = true;
+        
+        drawText(currentStep.text, tutorialCanvas.width / 2, 40);
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function animateLoop() {
+        if (animating) {
+            if (Math.abs(animationProgress - endFrame) > 1) {
+                animationProgress += (endFrame - animationProgress) * 0.05;
+            } else {
+                animationProgress = endFrame;
+            }
+        }
+        drawLever(animationProgress);
+        drawText(currentStep.text, tutorialCanvas.width / 2, 40);
+        animationId = requestAnimationFrame(animateLoop);
+    }
+    
+    drawLever(0);
+    animateLoop();
+    setTimeout(() => nextStep(), 500);
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+drawLever(0);
+
+/* ===== Speed Quiz ===== */
+const quizItems = [
+    { type: 'lever', emoji: '⚖️', text: 'Seesaw' },
+    { type: 'inclined_plane', emoji: '📐', text: 'Ramp' },
+    { type: 'wheel_and_axle', emoji: '🚗', text: 'Doorknob' },
+    { type: 'pulley', emoji: '🚩', text: 'Flagpole' },
+    { type: 'wedge', emoji: '🔪', text: 'Knife' },
+    { type: 'screw', emoji: '🔩', text: 'Lightbulb' },
+    { type: 'lever', emoji: '🪚', text: 'Crowbar' },
+    { type: 'inclined_plane', emoji: '🏞️', text: 'Slide' }
+];
+
+let currentQuizType = null;
+let quizScore = 0;
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+    const shuffledItems = [...quizItems].sort(() => 0.5 - Math.random());
+    quizGrid.innerHTML = '';
+    shuffledItems.forEach((item, index) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = `item-${index}`;
+        tile.innerHTML = `<div style="font-size: 2rem;">${item.emoji}</div><div style="font-weight:700">${item.text}</div>`;
+        tile.onclick = () => selectQuizItem(item.type, tile);
+        quizGrid.appendChild(tile);
+    });
+    const randomTypes = ['lever', 'inclined_plane', 'wheel_and_axle', 'pulley', 'wedge', 'screw'];
+    const randomType = randomTypes[Math.floor(Math.random() * randomTypes.length)];
+    currentQuizType = randomType;
+    quizQuestion.textContent = `Find a ${randomType.replace('_', ' ')}!`;
+    quizFeedback.textContent = '';
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+}
+window.selectQuizItem = (selectedType, tile) => {
+    if (selectedType === currentQuizType) {
+        quizFeedback.textContent = `✅ Correct! Good job!`;
+        quizFeedback.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        tile.classList.add('selected');
+        setTimeout(() => {
+            tile.classList.remove('selected');
+            newQuiz();
+        }, 1000);
+    } else {
+        quizFeedback.textContent = `❌ That's a ${selectedType.replace('_', ' ')}, try again!`;
+        quizFeedback.className = 'answer bad';
+        tone(220, 0.06);
+    }
+};
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    newQuiz();
+});
+
+// Reset Score Button
+window.reset = () => {
+    totalScore = 0;
+    streak = 0;
+    document.getElementById('score').textContent = `Score: 0`;
+    document.getElementById('streak').textContent = `Streak: 0`;
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: 0`;
+    quizFeedback.textContent = '';
+    const tiles = document.querySelectorAll('#quiz-grid .tile');
+    tiles.forEach(tile => tile.classList.remove('selected'));
+    newQuiz();
+};
+</script>
+</body>
+</html>

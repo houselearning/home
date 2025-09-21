@@ -1,202 +1,486 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P42LD5XN48"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-P42LD5XN48');
-  </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>K–12 Science Lessons | CoolScienceTime</title>
+    <style>
+        /* ---------------- base resets ---------------- */
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #f7f8fa;
+            color: #222;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.25s, color 0.25s;
+        }
+        body.dark-mode {
+            background: #0f1113;
+            color: #eaeaea;
+        }
 
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CoolScienceTime - Science Lessons & Games</title>
+        /* ---------------- navbar ---------------- */
+        .navbar {
+            background-color: #1e2a1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 12px 12px;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+        }
+        body.dark-mode .navbar {
+            background-color: #151515;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+        .navbar-inner {
+            display: flex;
+            gap: 8px;
+            white-space: nowrap;
+            padding: 0 6px;
+        }
+        .navbar a {
+            color: #2ecc71;
+            text-decoration: none;
+            padding: 10px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            transition: background 0.15s, color 0.15s, transform 0.06s;
+        }
+        .navbar a:hover { transform: translateY(-2px); }
+        .navbar a:focus { outline: 3px solid rgba(46, 204, 113, 0.2); }
 
-  <style>
-    * { box-sizing: border-box; }
-    html,body { height:100%; margin:0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #f9f9f9;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      transition: background .25s, color .25s;
-    }
-    body.dark-mode { background:#0f1113; color:#eaeaea; }
+        /* ---------------- layout containers ---------------- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        main { flex: 1; padding: 20px; display: block; }
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
 
-    /* Navbar */
-    
-    body.dark-mode .navbar { background:#151515; }
-    nav {
-  background: #20232a;
-  display: flex;
-  justify-content: center;
-  padding: 20px 0; /* makes navbar taller */
-}
+        .section {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgb(2 8 23 / 6%);
+            transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+        }
+        body.dark-mode .section {
+            background: #1e1e1e;
+            color: #f1f1f1;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+        }
 
-nav a {
-  color: white;
-  text-decoration: none;
-  margin: 0 25px; /* spreads links out more */
-  font-size: 20px; /* makes text bigger */
-  font-weight: bold;
-  padding: 10px 15px; /* gives links more clickable area */
-}
+        h2 {
+            font-weight: 700;
+            color: #28b463;
+            border-bottom: 3px solid #2ecc71;
+            padding-bottom: 8px;
+            margin: 0 0 14px 0;
+        }
+        body.dark-mode h2 { color: #58d68d; }
+        
+        h1 {
+            color: #28b463;
+        }
+        body.dark-mode h1 { color: #58d68d; }
 
-nav a:hover {
-  color: #61dafb;
-}
+        /* ---------------- grid of cards ---------------- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 14px;
+        }
 
+        .lesson-card, .game-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            box-shadow: 2px 6px 16px rgba(2, 8, 23, 0.06);
+            transition: transform 0.12s, box-shadow 0.12s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 110px;
+        }
+        .lesson-card:hover, .game-card:hover { transform: translateY(-6px); }
+        body.dark-mode .lesson-card, body.dark-mode .game-card {
+            background: #262626;
+            box-shadow: 2px 6px 16px rgba(0, 0, 0, 0.6);
+        }
 
-    /* Page layout */
-    main { flex:1; padding:20px; }
-    .page {
-      max-width:1200px;
-      margin:0 auto;
-      display:grid;
-      gap:20px;
-    }
+        .lesson-card h3, .game-card h3 {
+            color: #28b463;
+            font-size: 16px;
+            margin: 6px 0 8px 0;
+        }
+        body.dark-mode .lesson-card h3, body.dark-mode .game-card h3 { color: #58d68d; }
 
-    .section {
-      background:white;
-      padding:18px;
-      border-radius:10px;
-      box-shadow:0 6px 18px rgb(2 8 23 / 6%);
-      transition: background .25s, color .25s;
-    }
-    body.dark-mode .section { background:#1e1e1e; color:#f1f1f1; }
+        .lesson-card a, .game-card a {
+            text-decoration: none;
+            color: white;
+            background: #28b463;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: auto;
+            align-self: center;
+            font-weight: 600;
+        }
+        .lesson-card a:hover, .game-card a:hover { background: #1e8449; }
 
-    h2 {
-      font-weight:700;
-      color:#20232a;
-      border-bottom:3px solid #61dafb;
-      padding-bottom:6px;
-      margin:0 0 14px 0;
-    }
-    body.dark-mode h2 { color:#9be7ff; }
+        /* ---------------- theme switcher (floating) ---------------- */
+        .theme-switch-wrapper {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1200;
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(2, 8, 23, 0.08);
+        }
+        body.dark-mode .theme-switch-wrapper {
+            background: rgba(20, 20, 20, 0.85);
+        }
+        .theme-switch-wrapper button {
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.12s, transform 0.08s;
+        }
+        .theme-switch-wrapper button[aria-pressed="true"] {
+            background: rgba(46, 204, 113, 0.14);
+            box-shadow: inset 0 -2px 0 rgba(46, 204, 113, 0.16);
+            transform: translateY(-1px);
+        }
+        .theme-switch-wrapper button:focus { outline: 2px solid rgba(46, 204, 113, 0.2); }
 
-    /* Cards */
-    .grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-      gap:14px;
-    }
-    .lesson-card,.game-card {
-      background:#fff;
-      border-radius:10px;
-      padding:14px;
-      text-align:center;
-      box-shadow:2px 6px 16px rgba(2,8,23,0.06);
-      transition: transform .12s, box-shadow .12s;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-height:110px;
-    }
-    .lesson-card:hover,.game-card:hover { transform:translateY(-6px); }
-    body.dark-mode .lesson-card,body.dark-mode .game-card { background:#262626; }
+        /* ---------------- responsive tweaks ---------------- */
+        @media (max-width: 900px) {
+            .page { padding: 0 6px; }
+            .navbar { padding: 8px; }
+            .navbar-inner { gap: 6px; }
+            .content-wrapper {
+                flex-direction: column;
+            }
+            .games-section {
+                max-width: none;
+            }
+        }
+        @media (max-width: 420px) {
+            .theme-switch-wrapper { right: 12px; bottom: 12px; padding: 4px; gap: 4px; }
+            .lesson-card, .game-card { padding: 10px; }
+        }
 
-    .lesson-card h3,.game-card h3 {
-      color:#0288d1;
-      font-size:16px;
-      margin:6px 0 8px 0;
-    }
-    body.dark-mode .lesson-card h3,body.dark-mode .game-card h3 { color:#61dafb; }
-
-    .lesson-card a,.game-card a {
-      text-decoration:none;
-      color:#fff;
-      background:#0288d1;
-      padding:8px 12px;
-      border-radius:6px;
-      font-weight:600;
-      margin-top:auto;
-    }
-    .lesson-card a:hover,.game-card a:hover { background:#01579b; }
-
-    .game-card img {
-      max-width:100%;
-      height:auto;
-      border-radius:8px;
-      object-fit:cover;
-    }
-
-    /* Theme switcher */
-    .theme-switch-wrapper {
-      position:fixed;
-      bottom:20px;
-      right:20px;
-      display:flex;
-      gap:6px;
-      background:rgba(255,255,255,0.9);
-      padding:6px;
-      border-radius:10px;
-      box-shadow:0 6px 18px rgba(2,8,23,0.08);
-    }
-    body.dark-mode .theme-switch-wrapper { background:rgba(20,20,20,0.85); }
-    .theme-switch-wrapper button {
-      border:none;
-      background:transparent;
-      font-size:18px;
-      padding:8px;
-      border-radius:8px;
-      cursor:pointer;
-    }
-    .theme-switch-wrapper button[aria-pressed="true"]{
-      background:rgba(2,136,209,0.14);
-      box-shadow:inset 0 -2px 0 rgba(2,136,209,0.16);
-    }
-
-    @media(max-width:420px){
-      .lesson-card,.game-card{padding:10px;}
-      .theme-switch-wrapper{right:12px;bottom:12px;}
-    }
-  </style>
+        /* ---------------- new styles for layout adjustment ---------------- */
+        .content-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        .main-content {
+            flex: 3;
+        }
+        .games-section {
+            flex: 1;
+            max-width: 300px;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        body.dark-mode .search-bar input {
+            background: #262626;
+            color: #f1f1f1;
+            border-color: #444;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+        }
+        .warp-buttons {
+            margin-bottom: 20px;
+        }
+        .warp-buttons h2 {
+            font-weight: 700;
+            color: #28b463;
+            border-bottom: none;
+            padding-bottom: 0;
+            margin: 0;
+            font-size: 20px;
+        }
+        .warp-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .warp-buttons-container a {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #e0f2f1;
+            color: #28b463;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.1s, background 0.1s;
+        }
+        .warp-buttons-container a:hover {
+            background: #cff0f0;
+            transform: translateY(-2px);
+        }
+        body.dark-mode .warp-buttons-container a {
+            background: #1a3628;
+            color: #58d68d;
+        }
+        body.dark-mode .warp-buttons-container a:hover {
+            background: #254432;
+        }
+        .game-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+    </style>
 </head>
 <body>
-  <nav class="navbar">
-    <a href="/index.html">Home</a>
-    <a href="/home/science-page.html">Science</a>
-    <a href="/home/math-page.html">Math</a>
-    <a href="/home/computer-science-page.html">Coding</a>
-    <a href="/about.html">About</a>
-  </nav>
-<div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-  <strong>🛠️ Renovation:</strong> We’re currently making updates.  
-  <a href="https://github.com/houselearning/developer-notes/discussions/5" target="_blank" style="color: #856404; font-weight: bold; text-decoration: underline;">
-    Learn more here
-  </a>.
-</div>
-  <main>
-    <div class="page">
-      <section class="section">
-        <h2>K-8 Science Lessons</h2>
+    <div class="navbar">
+        <div class="navbar-inner">
+                  <a href="https://houselearning.github.io/home/">Home</a>
+      <a href="https://houselearning.github.io/home/math-page.html">Math Games</a>
+      <a href="https://houselearning.github.io/home/science-page.html">Science Fun</a>
+      <a href="https://houselearning.github.io/home/computer-science-page.html">Coding Challenges</a>
+      <a href="https://houselearning.github.io/home/games.html">Random Games</a>
+      <a href="https://houselearning.github.io/safe-library">Safe Library</a>
+      <a href="https://houselearning.github.io/home/blog.html">Blog</a> <!-- ✅ Added Blog tab -->
+      <a href="https://houselearning.github.io/home/about">About</a>
+      <a href="https://houselearning.github.io/apply">Apply</a>
+        </div>
+    </div>
+    <main>
+        <div class="container">
+            <div class="content-wrapper">
+                <div class="main-content">
+                    <h1>K–12 Science Lessons | CoolScienceTime</h1>
+
+                    <!-- Warp Buttons Section -->
+                    <div class="warp-buttons">
+                        <h2>Warp to Grade:</h2>
+                        <div class="warp-buttons-container" id="warp-buttons-container"></div>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Search for a science lesson...">
+                    </div>
+
+                    <!-- Kindergarten -->
+                    <section class="section" aria-labelledby="kindergarten">
+                        <h2 id="kindergarten">Kindergarten</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>The Five Senses</h3><a href="/home/science/k/five-senses.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Seasons & Weather</h3><a href="/home/science/k/seasons-weather.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Animal Homes</h3><a href="/home/science/k/animal-homes.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Parts of a Plant</h3><a href="/home/science/k/parts-of-plant.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Sorting Living & Non-Living</h3><a href="/home/science/k/living-nonliving.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+                    
+                    <!-- Grade 1 -->
+                    <section class="section" aria-labelledby="grade1">
+                        <h2 id="grade1">Grade 1</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>States of Matter</h3><a href="/home/science/grade1/states-of-matter.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Parts of the Body</h3><a href="/home/science/grade1/body-parts.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Day & Night Sky</h3><a href="/home/science/grade1/day-night-sky.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Simple Machines</h3><a href="/home/science/grade1/simple-machines.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Animal Habitats</h3><a href="/home/science/grade1/animal-habitats.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 2 -->
+                    <section class="section" aria-labelledby="grade2">
+                        <h2 id="grade2">Grade 2</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Plant Life Cycles</h3><a href="/home/science/grade2/plant-life-cycles.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>The Water Cycle</h3><a href="/home/science/grade2/water-cycle.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Food Chains</h3><a href="/home/science/grade2/food-chains.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Magnets & Force</h3><a href="/home/science/grade2/magnets-force.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Weather & Climate</h3><a href="/home/science/grade2/weather-climate.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 3 -->
+                    <section class="section" aria-labelledby="grade3">
+                        <h2 id="grade3">Grade 3</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Ecosystems</h3><a href="/home/science/grade3/ecosystems.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Force & Motion</h3><a href="/home/science/grade3/force-motion.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Earth's Layers</h3><a href="/home/science/grade3/earths-layers.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>The Solar System</h3><a href="/home/science/grade3/solar-system.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Simple Circuits</h3><a href="/home/science/grade3/simple-circuits.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 4 -->
+                    <section class="section" aria-labelledby="grade4">
+                        <h2 id="grade4">Grade 4</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Human Body Systems</h3><a href="/home/science/grade4/body-systems.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Plant Adaptations</h3><a href="/home/science/grade4/plant-adaptations.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Sound & Light Energy</h3><a href="/home/science/grade4/sound-light.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Rocks & Minerals</h3><a href="/home/science/grade4/rocks-minerals.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Weathering & Erosion</h3><a href="/home/science/grade4/weathering-erosion.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 5 -->
+                    <section class="section" aria-labelledby="grade5">
+                        <h2 id="grade5">Grade 5</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Introduction to Cells</h3><a href="/home/science/grade5/intro-to-cells.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Photosynthesis</h3><a href="/home/science/grade5/photosynthesis.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Properties of Matter</h3><a href="/home/science/grade5/properties-of-matter.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Gravity & Space</h3><a href="/home/science/grade5/gravity-space.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Earth's Biomes</h3><a href="/home/science/grade5/earths-biomes.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 6 -->
+                    <section class="section" aria-labelledby="grade6">
+                        <h2 id="grade6">Grade 6</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Atoms & Molecules</h3><a href="/home/science/grade6/atoms-molecules.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Chemical Reactions</h3><a href="/home/science/grade6/chemical-reactions.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Cell Structure</h3><a href="/home/science/grade6/cell-structure.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Genetics (Intro)</h3><a href="/home/science/grade6/genetics-intro.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Plate Tectonics</h3><a href="/home/science/grade6/plate-tectonics.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 7 -->
+                    <section class="section" aria-labelledby="grade7">
+                        <h2 id="grade7">Grade 7</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>The Periodic Table</h3><a href="/home/science/grade7/periodic-table.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Newton's Laws</h3><a href="/home/science/grade7/newtons-laws.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Human Digestive System</h3><a href="/home/science/grade7/digestive-system.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Circulatory System</h3><a href="/home/science/grade7/circulatory-system.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Microorganisms</h3><a href="/home/science/grade7/microorganisms.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 8 -->
+                    <section class="section" aria-labelledby="grade8">
+                        <h2 id="grade8">Grade 8</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Acids & Bases</h3><a href="/home/science/grade8/acids-bases.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Work, Power & Energy</h3><a href="/home/science/grade8/work-power-energy.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Evolution & Adaptation</h3><a href="/home/science/grade8/evolution-adaptation.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Earth's Climate</h3><a href="/home/science/grade8/earths-climate.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Ecology Basics</h3><a href="/home/science/grade8/ecology-basics.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 9 (Biology) -->
+                    <section class="section" aria-labelledby="grade9">
+                        <h2 id="grade9">Grade 9 (Biology)</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Cellular Respiration</h3><a href="/home/science/grade9/cellular-respiration.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>DNA & RNA</h3><a href="/home/science/grade9/dna-rna.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Mendelian Genetics</h3><a href="/home/science/grade9/mendelian-genetics.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Taxonomy & Classification</h3><a href="/home/science/grade9/taxonomy-classification.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Human Anatomy</h3><a href="/home/science/grade9/human-anatomy.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 10 (Chemistry) -->
+                    <section class="section" aria-labelledby="grade10">
+                        <h2 id="grade10">Grade 10 (Chemistry)</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Chemical Bonding</h3><a href="/home/science/grade10/chemical-bonding.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Stoichiometry</h3><a href="/home/science/grade10/stoichiometry.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Chemical Reactions</h3><a href="/home/science/grade10/chemical-reactions.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Gases & Their Laws</h3><a href="/home/science/grade10/gases-laws.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Acids, Bases & Salts</h3><a href="/home/science/grade10/acids-bases-salts.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 11 (Physics) -->
+                    <section class="section" aria-labelledby="grade11">
+                        <h2 id="grade11">Grade 11 (Physics)</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Kinematics</h3><a href="/home/science/grade11/kinematics.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Newton's Laws of Motion</h3><a href="/home/science/grade11/newtons-laws-motion.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Waves & Sound</h3><a href="/home/science/grade11/waves-sound.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Electricity & Magnetism</h3><a href="/home/science/grade11/electricity-magnetism.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Thermodynamics</h3><a href="/home/science/grade11/thermodynamics.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+
+                    <!-- Grade 12 (Earth & Environmental Science) -->
+                    <section class="section" aria-labelledby="grade12">
+                        <h2 id="grade12">Grade 12 (Earth & Environmental Science)</h2>
+                        <div class="grid">
+                            <div class="lesson-card"><h3>Earth's Systems</h3><a href="/home/science/grade12/earths-systems.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Hydrology & Oceanography</h3><a href="/home/science/grade12/hydrology-oceanography.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Ecology & Biomes</h3><a href="/home/science/grade12/ecology-biomes.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Environmental Issues</h3><a href="/home/science/grade12/environmental-issues.html">Start Lesson</a></div>
+                            <div class="lesson-card"><h3>Astronomy</h3><a href="/home/science/grade12/astronomy.html">Start Lesson</a></div>
+                        </div>
+                    </section>
+                    <section class="section" aria-labelledby="bin">
+        <h2 id="old-lessons-binned">Old CoolMathTime lessons</h2>
         <div class="grid">
-          <div class="lesson-card"><h3>Earth & Ecosystems</h3><a href="https://houselearning.github.io/home/science/ecosystems.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Forces & Motion</h3><a href="https://houselearning.github.io/home/science/forcesandmotion.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>States of Matter</h3><a href="https://houselearning.github.io/home/science/statesofmatter.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Electricity & Magnetism</h3><a href="https://houselearning.github.io/home/science/electricity.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Plants & Photosynthesis</h3><a href="https://houselearning.github.io/home/science/photosynthesis.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Animals & Adaptations</h3><a href="https://houselearning.github.io/home/science/animalsandadaptations.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Solar System & Space</h3><a href="https://houselearning.github.io/home/science/solarsystem.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Human Body Systems</h3><a href="https://houselearning.github.io/home/science/humanbody.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Weather & Climate</h3><a href="https://houselearning.github.io/home/science/weather.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Rocks & Minerals</h3><a href="https://houselearning.github.io/home/science/rocksandminerals.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Sound & Waves</h3><a href="https://houselearning.github.io/home/science/soundwaves.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Light & Optics</h3><a href="https://houselearning.github.io/home/science/lightandoptics.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Fossils & Dinosaurs</h3><a href="https://houselearning.github.io/home/science/dinosaurfossils.html">Start Lesson</a></div>
-          <div class="lesson-card"><h3>Biomes & Habitats</h3><a href="https://houselearning.github.io/home/science/biomes.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Earth & Ecosystems</h3><a href="https://houselearning.github.io/home/science/bin/ecosystems.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Forces & Motion</h3><a href="https://houselearning.github.io/home/science/bin/forcesandmotion.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>States of Matter</h3><a href="https://houselearning.github.io/home/science/bin/statesofmatter.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Electricity & Magnetism</h3><a href="https://houselearning.github.io/home/science/bin/electricity.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Plants & Photosynthesis</h3><a href="https://houselearning.github.io/home/science/bin/photosynthesis.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Animals & Adaptations</h3><a href="https://houselearning.github.io/home/science/bin/animalsandadaptations.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Solar System & Space</h3><a href="https://houselearning.github.io/home/science/bin/solarsystem.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Human Body Systems</h3><a href="https://houselearning.github.io/home/science/bin/humanbody.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Weather & Climate</h3><a href="https://houselearning.github.io/home/science/bin/weather.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Rocks & Minerals</h3><a href="https://houselearning.github.io/home/science/bin/rocksandminerals.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Sound & Waves</h3><a href="https://houselearning.github.io/home/science/bin/soundwaves.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Light & Optics</h3><a href="https://houselearning.github.io/home/science/bin/lightandoptics.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Fossils & Dinosaurs</h3><a href="https://houselearning.github.io/home/bin/home/science/dinosaurfossils.html">Start Lesson</a></div>
+          <div class="lesson-card"><h3>Biomes & Habitats</h3><a href="https://houselearning.github.io/home/bin/home/science/biomes.html">Start Lesson</a></div>
         </div>
       </section>
-
-      <section class="section">
-        <h2>Science Games</h2>
-        <div class="grid">
-          <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/ecoexplorer.png" alt=""><h3>Eco Explorer</h3><a href="https://houselearning.github.io/home/science/games/ecoexplorer.html">Play Now</a></div>
+                </div>
+                <div class="games-section">
+                    <section class="section" aria-labelledby="games-title">
+                        <h2 id="games-title">Science Games</h2>
+                        <div class="grid" id="games-grid">
+                            <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/ecoexplorer.png" alt=""><h3>Eco Explorer</h3><a href="https://houselearning.github.io/home/science/games/ecoexplorer.html">Play Now</a></div>
           <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/gravityjump.png" alt=""><h3>Gravity Jump</h3><a href="https://houselearning.github.io/home/science/games/gravityjump.html">Play Now</a></div>
           <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/energyquest.png" alt=""><h3>Energy Quest</h3><a href="https://houselearning.github.io/home/science/games/energyquest.html">Play Now</a></div>
           <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/animalkingdom.png" alt=""><h3>Animal Kingdom</h3><a href="https://houselearning.github.io/home/science/games/animalkingdom.html">Play Now</a></div>
@@ -205,59 +489,86 @@ nav a:hover {
           <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/weatherwizard.png" alt=""><h3>Weather Wizard</h3><a href="https://houselearning.github.io/home/science/games/weatherwizard.html">Play Now</a></div>
           <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/rockhunter.png" alt=""><h3>Rock Hunter</h3><a href="https://houselearning.github.io/home/science/games/rockhunter.html">Play Now</a></div>
           <div class="game-card"><img src="https://houselearning.github.io/home/assets/main/lightlab.png" alt=""><h3>Light Lab</h3><a href="https://houselearning.github.io/home/science/games/lightlab.html">Play Now</a></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
         </div>
-      </section>
+    </main>
+
+    <!-- Theme Switcher -->
+    <div class="theme-switch-wrapper">
+        <button id="lightModeBtn" aria-pressed="true">☀️</button>
+        <button id="darkModeBtn" aria-pressed="false">🌙</button>
     </div>
-  </main>
 
-  <!-- Theme switch -->
-  <div class="theme-switch-wrapper">
-    <button id="light-mode-btn" aria-pressed="false">☀️</button>
-    <button id="dark-mode-btn" aria-pressed="false">🌙</button>
-    <button id="auto-mode-btn" aria-pressed="true">🌓</button>
-  </div>
+    <!-- JavaScript for functionality -->
+    <script>
+        const sections = document.querySelectorAll('.section');
+        const warpButtonsContainer = document.getElementById('warp-buttons-container');
+        const searchInput = document.getElementById('searchInput');
+        const lessonsGrid = document.querySelectorAll('.grid');
 
-  <script>
-    (function(){
-      const MODE_KEY='coolsciencetime_theme';
-      const body=document.body;
-      const btns={
-        light:document.getElementById('light-mode-btn'),
-        dark:document.getElementById('dark-mode-btn'),
-        auto:document.getElementById('auto-mode-btn')
-      };
+        // Create warp buttons
+        sections.forEach(section => {
+            const gradeTitle = section.querySelector('h2');
+            if (gradeTitle) {
+                const gradeName = gradeTitle.textContent;
+                const gradeId = gradeTitle.id;
+                const button = document.createElement('a');
+                button.href = `#${gradeId}`;
+                button.textContent = gradeName;
+                warpButtonsContainer.appendChild(button);
+            }
+        });
 
-      function apply(mode){
-        body.classList.remove('dark-mode');
-        if(mode==='dark') body.classList.add('dark-mode');
-        else if(mode==='auto'){
-          if(window.matchMedia('(prefers-color-scheme: dark)').matches)
-            body.classList.add('dark-mode');
+        // Search functionality
+        searchInput.addEventListener('keyup', () => {
+            const searchText = searchInput.value.toLowerCase();
+            lessonsGrid.forEach(grid => {
+                const lessons = grid.querySelectorAll('.lesson-card, .game-card');
+                lessons.forEach(lesson => {
+                    const title = lesson.querySelector('h3').textContent.toLowerCase();
+                    if (title.includes(searchText)) {
+                        lesson.style.display = 'flex';
+                    } else {
+                        lesson.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Dark mode functionality
+        const lightModeBtn = document.getElementById('lightModeBtn');
+        const darkModeBtn = document.getElementById('darkModeBtn');
+        const body = document.body;
+
+        function setDarkMode(isDark) {
+            if (isDark) {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+                lightModeBtn.setAttribute('aria-pressed', 'false');
+                darkModeBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+                lightModeBtn.setAttribute('aria-pressed', 'true');
+                darkModeBtn.setAttribute('aria-pressed', 'false');
+            }
         }
-        Object.entries(btns).forEach(([k,b])=>b.setAttribute('aria-pressed',k===mode));
-      }
 
-      function save(m){ localStorage.setItem(MODE_KEY,m); }
-      function load(){ return localStorage.getItem(MODE_KEY)||'auto'; }
+        darkModeBtn.addEventListener('click', () => setDarkMode(true));
+        lightModeBtn.addEventListener('click', () => setDarkMode(false));
 
-      Object.entries(btns).forEach(([k,b])=>{
-        b.addEventListener('click',()=>{ save(k); apply(k); });
-      });
-
-      // keyboard shortcut "T"
-      window.addEventListener('keydown',e=>{
-        if(e.key.toLowerCase()==='t'&&!/input|textarea/i.test(document.activeElement.tagName)){
-          const map={auto:'light',light:'dark',dark:'auto'};
-          const next=map[load()]||'auto';
-          save(next); apply(next);
-        }
-      });
-
-      if(window.matchMedia){
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(load()==='auto') apply('auto'); });
-      }
-      apply(load());
-    })();
-  </script>
+        // Load saved theme from local storage
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                setDarkMode(true);
+            } else {
+                setDarkMode(false);
+            }
+        });
+    </script>
 </body>
 </html>

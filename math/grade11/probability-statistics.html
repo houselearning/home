@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 11 — Probability & Statistics</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Grade 11 — Probability & Statistics</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive lesson • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What's the difference?</h2>
+<p>**Probability** is the measure of the likelihood that an event will occur. It's about predicting the future based on known outcomes. The probability of an event $A$ is written as $P(A)$, and is calculated as: $$P(A) = \frac{\text{Number of favorable outcomes}}{\text{Total number of possible outcomes}}$$</p>
+<p>**Statistics** is the science of collecting, analyzing, interpreting, and presenting data. It's about drawing conclusions from past or current data to describe a sample or make inferences about a population.</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Key Concepts & Visuals!</h2>
+<p>Watch this video to visualize key concepts like independent events and data distributions! 🎲</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Solve these problems about probability and statistics!</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) What is the probability of rolling a 6 on a standard six-sided die? (e.g., 1/6)</div>
+    <input id="q1" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q1', '1/6')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) What is the mean (average) of the data set: {2, 5, 5, 8}?</div>
+    <input id="q2" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q2', '5')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) What is the probability of flipping heads twice in a row? (e.g., 1/4)</div>
+    <input id="q3" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q3', '1/4')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) What is the mode of the data set: {3, 7, 7, 8, 9}?</div>
+    <input id="q4" type="number" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q4', '7')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Probability & Statistics Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You can do it! It's all about patterns and predictions.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+  const inputEl = document.getElementById(inputId);
+  const val = inputEl.value.trim().toLowerCase().replace(/\s/g, '');
+  
+  const resultId = 'r' + inputId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  if (!res) {
+    console.error(`Result element with ID '${resultId}' not found.`);
+    return;
+  }
+
+  const questionText = inputEl.previousElementSibling.textContent;
+  const isCorrect = (val === correct.toLowerCase().replace(/\s/g, ''));
+
+  if (isCorrect) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong (Answer: ${correct})`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+  csvData.push([questionText, val, correct]);
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+  ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+  const textX = tutorialCanvas.width / 2;
+  const textY = 40;
+  
+  ctx.font = '32px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#04263b';
+  ctx.fillText(step.text, textX, textY);
+  
+  if (step.diagram) {
+    ctx.strokeStyle = '#93c5fd';
+    ctx.lineWidth = 2;
+    const center = {x: tutorialCanvas.width / 2, y: tutorialCanvas.height / 2 + 20};
+    
+    // Draw Cartesian plane
+    const drawPlane = () => {
+      ctx.beginPath();
+      ctx.moveTo(0, center.y);
+      ctx.lineTo(tutorialCanvas.width, center.y);
+      ctx.moveTo(center.x, 0);
+      ctx.lineTo(center.x, tutorialCanvas.height);
+      ctx.stroke();
+    };
+    
+    const drawDistribution = (points) => {
+      ctx.strokeStyle = '#1d4ed8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(center.x + points[0].x * 20, center.y - points[0].y * 20);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(center.x + points[i].x * 20, center.y - points[i].y * 20);
+      }
+      ctx.stroke();
+    };
+    
+    if (step.diagram.distribution) {
+      drawPlane();
+      drawDistribution([{x:-8,y:1},{x:-6,y:3},{x:-4,y:5},{x:-2,y:7},{x:0,y:8},{x:2,y:7},{x:4,y:5},{x:6,y:3},{x:8,y:1}]);
+      ctx.fillStyle = '#04263b';
+      ctx.font = '20px Arial';
+      ctx.fillText('Normal Distribution (Bell Curve)', tutorialCanvas.width / 2, 350);
+      ctx.fillText('Most data points are near the mean', tutorialCanvas.width / 2, 375);
+    }
+  }
+
+  if (step.textLines) {
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    let y = tutorialCanvas.height / 2 + 50;
+    step.textLines.forEach((line) => {
+      ctx.fillText(line, tutorialCanvas.width / 2, y);
+      y += 40;
+    });
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Probability is the chance of an event happening. Statistics is the analysis of data to find patterns and draw conclusions.", text: "Probability vs. Statistics" },
+  { audio: "An event is independent if the outcome of one event does not affect the outcome of the other. The probability of two independent events both happening is the product of their individual probabilities.", text: "Independent Events" },
+  { audio: "Measures of central tendency, like the mean, median, and mode, help describe the center of a data set.", text: "Measures of Center" },
+  { audio: "The mean is the average. The median is the middle value when the data is ordered. The mode is the most frequent value.", text: "Mean, Median, and Mode" },
+  { audio: "A normal distribution is a common pattern in statistics where most data points cluster around the mean, creating a bell-shaped curve.", text: "Normal Distribution", diagram: { distribution: true } },
+  { audio: "You've got this! Now let's practice.", text: "You did it!" }
+];
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    drawLesson(step);
+    
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utterance.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Probability & Statistics"});
+
+
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+  const problems = [
+    { q: "The probability of rolling a 1 or a 2 on a six-sided die is?", a: "2/6" },
+    { q: "The mean of {10, 10, 20} is?", a: "13.33" },
+    { q: "The median of {5, 2, 8, 3, 10} is?", a: "5" },
+    { q: "What is the probability of a coin landing on tails?", a: "1/2" },
+    { q: "What measure of central tendency is the average?", a: "mean" },
+    { q: "What is the mode of {1, 1, 2, 3, 5}?", a: "1" }
+  ];
+  const problem = problems[Math.floor(Math.random() * problems.length)];
+  return { q: problem.q, a: problem.a };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+  const problem = generateProblem();
+  currentQuiz = problem;
+  document.getElementById('quizQ').textContent = currentQuiz.q;
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt = setInterval(() => {
+    quizTime--;
+    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+    if (quizTime <= 0) {
+      clearInterval(quizTimerInt);
+      document.getElementById('quizQ').textContent = 'Time Up!';
+    }
+  }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+  clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+  const val = document.getElementById('quizInput').value.trim().toLowerCase().replace(/\s/g, '');
+  const f = document.getElementById('quizFeedback');
+  let userAnswer = val;
+  let correctAnswer = currentQuiz.a.toLowerCase().replace(/\s/g, '');
+
+  if (userAnswer === correctAnswer) {
+    f.textContent = '✅ Correct!';
+    f.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+  } else {
+    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+    f.className = 'answer bad';
+    tone(220, 0.06);
+  }
+  csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+  if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+  const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "probability_statistics_log.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

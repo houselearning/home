@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 10 — Geometric Constructions</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Grade 10 — Geometric Constructions</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive lesson • practice problems • speed quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are Geometric Constructions?</h2>
+<p>**Geometric constructions** are a set of rules for drawing geometric shapes and figures using only two tools: a **compass** and an unmarked **straightedge**. You can think of it as pure geometry, where you use a compass to draw circles and arcs and a straightedge to draw straight lines.</p>
+<p>There are several fundamental constructions you should know:</p>
+<ul>
+  <li>**Perpendicular Bisector**: A line that cuts a segment in half at a $90^\circ$ angle.</li>
+  <li>**Angle Bisector**: A line that divides an angle into two equal parts.</li>
+  <li>**Copying a Segment**: Creating a new line segment with the exact same length as an existing one.</li>
+  <li>**Copying an Angle**: Creating a new angle with the exact same measure as an existing one.</li>
+</ul>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Step-by-Step Constructions!</h2>
+<p>Watch this video to see how these fundamental constructions are performed! 📐</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Test your knowledge of constructions!</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) What two tools are used in classic geometric constructions? (e.g., compass,straightedge)</div>
+    <input id="q1" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q1', 'compass,straightedge')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) What is the name of a line that cuts a segment in half at 90°?</div>
+    <input id="q2" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q2', 'perpendicular bisector')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) What construction divides an angle into two equal parts?</div>
+    <input id="q3" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q3', 'angle bisector')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) What is the first step to construct a perpendicular bisector?</div>
+    <input id="q4" type="text" placeholder="Answer">
+    <div style="margin-top:6px"><button onclick="check('q4', 'set compass greater than half')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Constructions Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>You can do it! Construction is about precision.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+  const inputEl = document.getElementById(inputId);
+  const val = inputEl.value.trim().toLowerCase().replace(/\s/g, '');
+  
+  const resultId = 'r' + inputId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  if (!res) {
+    console.error(`Result element with ID '${resultId}' not found.`);
+    return;
+  }
+
+  const questionText = inputEl.previousElementSibling.textContent;
+  const isCorrect = (val === correct.toLowerCase().replace(/\s/g, ''));
+
+  if (isCorrect) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong (Answer: ${correct})`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+  csvData.push([questionText, val, correct]);
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawLesson(step) {
+  ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+  const textX = tutorialCanvas.width / 2;
+  const textY = 40;
+  
+  ctx.font = '32px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#04263b';
+  ctx.fillText(step.text, textX, textY);
+  
+  if (step.diagram) {
+    ctx.strokeStyle = '#93c5fd';
+    ctx.lineWidth = 2;
+    
+    // Draw Perpendicular Bisector
+    const drawPerpBisector = () => {
+      const p1 = { x: 100, y: 250 };
+      const p2 = { x: 400, y: 250 };
+      const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+      
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+      
+      ctx.strokeStyle = 'red';
+      ctx.beginPath();
+      ctx.moveTo(mid.x, mid.y - 100);
+      ctx.lineTo(mid.x, mid.y + 100);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#04263b';
+      ctx.fillText('Perpendicular Bisector', 250, 100);
+    };
+
+    // Draw Angle Bisector
+    const drawAngleBisector = () => {
+      const vertex = { x: 250, y: 300 };
+      const p1 = { x: 100, y: 150 };
+      const p2 = { x: 400, y: 150 };
+      
+      ctx.beginPath();
+      ctx.moveTo(vertex.x, vertex.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.moveTo(vertex.x, vertex.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+      
+      ctx.strokeStyle = 'red';
+      ctx.beginPath();
+      ctx.moveTo(vertex.x, vertex.y);
+      ctx.lineTo(300, 200);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#04263b';
+      ctx.fillText('Angle Bisector', 250, 100);
+    };
+
+    if (step.diagram.perpBisector) {
+      drawPerpBisector();
+    }
+    
+    if (step.diagram.angleBisector) {
+      drawAngleBisector();
+    }
+  }
+
+  if (step.textLines) {
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    let y = tutorialCanvas.height / 2 + 50;
+    step.textLines.forEach((line) => {
+      ctx.fillText(line, tutorialCanvas.width / 2, y);
+      y += 40;
+    });
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Geometric constructions are about using only a compass and a straightedge. No rulers or protractors allowed!", text: "Tools of the Trade" },
+  { audio: "A perpendicular bisector is a line that cuts a segment in half at a 90-degree angle. First, set your compass to more than half the segment's length.", text: "Constructing a Perpendicular Bisector", diagram: { perpBisector: true } },
+  { audio: "Then, from each endpoint, draw arcs that intersect above and below the line. Connect the intersection points with your straightedge.", text: "Constructing a Perpendicular Bisector", diagram: { perpBisector: true } },
+  { audio: "An angle bisector is a line that divides an angle into two equal parts. Place the compass at the vertex and draw an arc that intersects both rays of the angle.", text: "Constructing an Angle Bisector", diagram: { angleBisector: true } },
+  { audio: "From each of the arc's intersection points on the rays, draw new arcs that intersect inside the angle. Draw a line from the vertex through that new intersection point.", text: "Constructing an Angle Bisector", diagram: { angleBisector: true } },
+  { audio: "You've got this! Now let's practice.", text: "You did it!" }
+];
+
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      if (callback) callback();
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    drawLesson(step);
+    
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    utterance.onerror = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawLesson({text: "Geometric Constructions"});
+
+
+/* ===== Speed Quiz ===== */
+function generateConstructionsProblem() {
+  const problems = [
+    { q: "What is a compass used for in constructions?", a: "drawing circles or arcs" },
+    { q: "What is an unmarked straightedge used for?", a: "drawing straight lines" },
+    { q: "The perpendicular bisector creates a 90-degree angle and what else?", a: "divides segment in half" },
+    { q: "What is the name of the construction that divides an angle in two?", a: "angle bisector" },
+    { q: "What tool allows you to 'measure' a length without numbers?", a: "compass" },
+    { q: "What construction do you use to find the center of a circle?", a: "perpendicular bisectors" }
+  ];
+  const problem = problems[Math.floor(Math.random() * problems.length)];
+  return { q: problem.q, a: problem.a };
+}
+
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+function newQuizQuestion() {
+  const problem = generateConstructionsProblem();
+  currentQuiz = problem;
+  document.getElementById('quizQ').textContent = currentQuiz.q;
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizFeedback').textContent = '';
+}
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+  newQuizQuestion();
+  clearInterval(quizTimerInt);
+  quizTimerInt = setInterval(() => {
+    quizTime--;
+    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+    if (quizTime <= 0) {
+      clearInterval(quizTimerInt);
+      document.getElementById('quizQ').textContent = 'Time Up!';
+    }
+  }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+  clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+  const val = document.getElementById('quizInput').value.trim().toLowerCase();
+  const f = document.getElementById('quizFeedback');
+  let userAnswer = val;
+  let correctAnswer = currentQuiz.a.toLowerCase();
+
+  if (userAnswer === correctAnswer) {
+    f.textContent = '✅ Correct!';
+    f.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+  } else {
+    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+    f.className = 'answer bad';
+    tone(220, 0.06);
+  }
+  csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+  if (quizTime > 0) newQuizQuestion();
+});
+
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+  const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "constructions_log.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Magnets & Force</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#e74c3c; --accent2:#c0392b; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+    border: 2px solid var(--accent2);
+    box-shadow: 0 0 8px rgba(192, 57, 43, 0.5);
+}
+.quiz-canvas {
+    width: 100%;
+    height: 150px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-color: #ffe0e0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Magnets & Force 🧲</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are Magnets and Force? 🤔</h2>
+<p>
+    A **magnet** is a special kind of object that can pull on or push away certain metals without even touching them! This push or pull is called **force**.
+</p>
+<p>
+    Every magnet has two ends, called **poles**: a North pole (N) and a South pole (S). When you put two magnets together, **opposite poles** (like N and S) will **attract** or pull each other. But when you put two of the **same poles** together (like N and N or S and S), they will **repel** or push each other away!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: See the Force! 🎬</h2>
+<p>Watch how magnets push and pull!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What is the force?)</h2>
+<p>Look at the magnets and click on the correct force.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1-tile">
+        <div style="font-weight:700">1) A North pole and a South pole</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q1', 'attract', this)">Attract</button>
+            <button onclick="checkAnswer('q1', 'repel', this)">Repel</button>
+        </div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2-tile">
+        <div style="font-weight:700">2) Two North poles</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q2', 'attract', this)">Attract</button>
+            <button onclick="checkAnswer('q2', 'repel', this)">Repel</button>
+        </div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3-tile">
+        <div style="font-weight:700">3) Two South poles</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q3', 'attract', this)">Attract</button>
+            <button onclick="checkAnswer('q3', 'repel', this)">Repel</button>
+        </div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4-tile">
+        <div style="font-weight:700">4) A South pole and a North pole</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q4', 'attract', this)">Attract</button>
+            <button onclick="checkAnswer('q4', 'repel', this)">Repel</button>
+        </div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Find the Attract or Repel!</h2>
+<p>Click on the button to see if you can find the correct force!</p>
+<div class="controls">
+    <div class="muted" id="quizTimer">Time: 0</div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start!</div>
+    <div style="margin-top:8px" class="controls">
+        <button id="findAttract" class="secondary" onclick="findItem('attract')">Find Attraction</button>
+        <button id="findRepel" class="secondary" onclick="findItem('repel')">Find Repulsion</button>
+    </div>
+    <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+    </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Magnets are a great example of a force we can't see!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+    const correctAnswers = {
+        'q1': 'attract', 'q2': 'repel', 'q3': 'repel', 'q4': 'attract'
+    };
+    const resultId = 'r' + questionId.slice(1);
+    const res = document.getElementById(resultId);
+    
+    // Disable all buttons for this question after an answer is selected
+    const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (selectedAnswer === correctAnswers[questionId]) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+    canvasCtx.textAlign = 'center';
+    canvasCtx.font = `${size} Inter, sans-serif`;
+    canvasCtx.fillStyle = color;
+    canvasCtx.fillText(text, x, y);
+}
+
+// Function to draw a simple magnet
+function drawMagnet(canvasCtx, x, y, pole, size = 1) {
+    const w = 40 * size, h = 100 * size;
+    canvasCtx.fillStyle = '#60a5fa'; // Blue for South
+    canvasCtx.fillRect(x - w/2, y - h/2, w, h);
+    canvasCtx.fillStyle = '#e74c3c'; // Red for North
+    if (pole === 'N') {
+        canvasCtx.fillRect(x - w/2, y - h/2, w, h/2);
+        drawText(canvasCtx, "N", x, y - h/4, '#fff', `${24 * size}px`);
+        drawText(canvasCtx, "S", x, y + h/4, '#fff', `${24 * size}px`);
+    } else {
+        canvasCtx.fillRect(x - w/2, y + h/2 - h/2, w, h/2);
+        drawText(canvasCtx, "S", x, y - h/4, '#fff', `${24 * size}px`);
+        drawText(canvasCtx, "N", x, y + h/4, '#fff', `${24 * size}px`);
+    }
+}
+
+// Function to draw a line with arrows
+function drawArrowLine(canvasCtx, startX, startY, endX, endY, color) {
+    const headlen = 10;
+    const angle = Math.atan2(endY - startY, endX - startX);
+    canvasCtx.strokeStyle = color;
+    canvasCtx.lineWidth = 3;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(startX, startY);
+    canvasCtx.lineTo(endX, endY);
+    canvasCtx.lineTo(endX - headlen * Math.cos(angle - Math.PI / 6), endY - headlen * Math.sin(angle - Math.PI / 6));
+    canvasCtx.moveTo(endX, endY);
+    canvasCtx.lineTo(endX - headlen * Math.cos(angle + Math.PI / 6), endY - headlen * Math.sin(angle + Math.PI / 6));
+    canvasCtx.stroke();
+}
+
+function drawMagneticScene(canvasCtx, currentStage) {
+    canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+    const w = canvasCtx.canvas.width;
+    const h = canvasCtx.canvas.height;
+
+    if (currentStage === 'attract') {
+        drawMagnet(canvasCtx, w/4, h/2, 'N', 1.5);
+        drawMagnet(canvasCtx, w*3/4, h/2, 'S', 1.5);
+        drawArrowLine(canvasCtx, w/4 + 50, h/2, w*3/4 - 50, h/2, '#e74c3c');
+        drawText(canvasCtx, "N and S Poles: Attract", w/2, h/2 - 80);
+    } else if (currentStage === 'repel') {
+        drawMagnet(canvasCtx, w/4, h/2, 'N', 1.5);
+        drawMagnet(canvasCtx, w*3/4, h/2, 'N', 1.5);
+        drawArrowLine(canvasCtx, w/4 + 50, h/2, w/4 + 10, h/2 - 50, '#e74c3c');
+        drawArrowLine(canvasCtx, w*3/4 - 50, h/2, w*3/4 - 10, h/2 - 50, '#e74c3c');
+        drawText(canvasCtx, "N and N Poles: Repel", w/2, h/2 - 80);
+    } else {
+        drawText(canvasCtx, "Watch the magnets attract and repel!", w/2, h/2);
+    }
+}
+
+const tutorialSteps = [
+    { audio: "When you put a North pole and a South pole together, they attract! They pull toward each other.", text: "Opposite Poles: Attract", viz: 'attract' },
+    { audio: "But when you put two North poles together, they repel! They push each other away.", text: "Same Poles: Repel", viz: 'repel' },
+    { audio: "The same thing happens if you try to put two South poles together. They repel!", text: "Same Poles: Repel", viz: 'repel' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            drawMagneticScene(ctx, 'attract');
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        drawMagneticScene(ctx, step.viz);
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+
+/* ===== Speed Quiz ===== */
+const quizItems = [
+    { type: 'attract', text: 'N-S', draw: (c, x, y) => { drawMagnet(c, x-40, y, 'N', 0.8); drawMagnet(c, x+40, y, 'S', 0.8); } },
+    { type: 'repel', text: 'N-N', draw: (c, x, y) => { drawMagnet(c, x-40, y, 'N', 0.8); drawMagnet(c, x+40, y, 'N', 0.8); } },
+    { type: 'attract', text: 'S-N', draw: (c, x, y) => { drawMagnet(c, x-40, y, 'S', 0.8); drawMagnet(c, x+40, y, 'N', 0.8); } },
+    { type: 'repel', text: 'S-S', draw: (c, x, y) => { drawMagnet(c, x-40, y, 'S', 0.8); drawMagnet(c, x+40, y, 'S', 0.8); } },
+    { type: 'attract', text: 'N-S', draw: (c, x, y) => { drawMagnet(c, x-40, y, 'N', 0.8); drawMagnet(c, x+40, y, 'S', 0.8); } },
+    { type: 'repel', text: 'N-N', draw: (c, x, y) => { drawMagnet(c, x-40, y, 'N', 0.8); drawMagnet(c, x+40, y, 'N', 0.8); } },
+];
+
+let currentQuizType = null;
+let quizScore = 0;
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+    const shuffledItems = [...quizItems].sort(() => 0.5 - Math.random());
+    quizGrid.innerHTML = '';
+    shuffledItems.forEach((item, index) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = `item-${index}`;
+        tile.onclick = () => selectQuizItem(item.type, tile);
+        
+        const canvas = document.createElement('canvas');
+        canvas.className = 'quiz-canvas';
+        canvas.width = 200;
+        canvas.height = 100;
+        const tileCtx = canvas.getContext('2d');
+        tileCtx.fillStyle = '#ffe0e0';
+        tileCtx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        item.draw(tileCtx, canvas.width / 2, canvas.height / 2);
+        
+        const text = document.createElement('div');
+        text.style.fontWeight = '700';
+        text.textContent = item.text;
+
+        tile.appendChild(canvas);
+        tile.appendChild(text);
+        quizGrid.appendChild(tile);
+    });
+    const randomType = ['attract', 'repel'][Math.floor(Math.random() * 2)];
+    currentQuizType = randomType;
+    quizQuestion.textContent = `Find a magnet pair that will ${randomType}!`;
+    quizFeedback.textContent = '';
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+}
+window.selectQuizItem = (selectedType, tile) => {
+    if (selectedType === currentQuizType) {
+        quizFeedback.textContent = `✅ Correct! Good job!`;
+        quizFeedback.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        tile.classList.add('selected');
+        setTimeout(() => newQuiz(), 1000);
+    } else {
+        quizFeedback.textContent = `❌ Wrong, that's ${selectedType}! Try again!`;
+        quizFeedback.className = 'answer bad';
+        tone(220, 0.06);
+    }
+};
+
+window.findItem = (type) => {
+    currentQuizType = type;
+    quizQuestion.textContent = `Find a magnet pair that will ${type}!`;
+    quizFeedback.textContent = '';
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+    totalScore = 0;
+    streak = 0;
+    document.getElementById('score').textContent = `Score: 0`;
+    document.getElementById('streak').textContent = `Streak: 0`;
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: 0`;
+    quizFeedback.textContent = '';
+    const tiles = document.querySelectorAll('#quiz-grid .tile');
+    tiles.forEach(tile => tile.classList.remove('selected'));
+    newQuiz();
+};
+</script>
+</body>
+</html>

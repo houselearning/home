@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Parts of the Body</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+    border: 2px solid var(--accent2);
+    box-shadow: 0 0 8px rgba(29, 78, 216, 0.5);
+}
+</style>
+</head>
+<body>
+<header>
+<h1>The Parts of the Body 🧠💪🫁</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What makes up our bodies? 🤔</h2>
+<p>
+    Our bodies are amazing machines, made of many different parts that work together to help us live, grow, and play. These parts include organs like our **heart** and **brain**, as well as bones and muscles.
+</p>
+<p>
+    Every part has a special job. Your heart pumps blood, your lungs help you breathe, and your brain is the boss that tells every other part what to do!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Our Amazing Organs 🎬</h2>
+<p>Watch a simple diagram show you where some of the most important organs are located inside the body.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Match the Job)</h2>
+<p>Click on the body part that does each job.</p>
+<div class="grid cols-4" style="margin-top:10px">
+    <div class="tile" id="q1-tile">
+        <div style="font-weight:700">1) Pumps blood to your body?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q1', 'heart', this)">Heart</button>
+            <button onclick="checkAnswer('q1', 'lungs', this)">Lungs</button>
+            <button onclick="checkAnswer('q1', 'brain', this)">Brain</button>
+        </div>
+        <div id="r1" class="answer"></div>
+    </div>
+    <div class="tile" id="q2-tile">
+        <div style="font-weight:700">2) Helps you breathe?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q2', 'heart', this)">Heart</button>
+            <button onclick="checkAnswer('q2', 'lungs', this)">Lungs</button>
+            <button onclick="checkAnswer('q2', 'brain', this)">Brain</button>
+        </div>
+        <div id="r2" class="answer"></div>
+    </div>
+    <div class="tile" id="q3-tile">
+        <div style="font-weight:700">3) Helps you see and read?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q3', 'eyes', this)">Eyes</button>
+            <button onclick="checkAnswer('q3', 'ears', this)">Ears</button>
+            <button onclick="checkAnswer('q3', 'stomach', this)">Stomach</button>
+        </div>
+        <div id="r3" class="answer"></div>
+    </div>
+    <div class="tile" id="q4-tile">
+        <div style="font-weight:700">4) The boss of the body?</div>
+        <div class="controls" style="margin-top:6px">
+            <button onclick="checkAnswer('q4', 'bones', this)">Bones</button>
+            <button onclick="checkAnswer('q4', 'muscles', this)">Muscles</button>
+            <button onclick="checkAnswer('q4', 'brain', this)">Brain</button>
+        </div>
+        <div id="r4" class="answer"></div>
+    </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Body Part Sorting Game</h2>
+<p>Click on the item that matches the question!</p>
+<div class="controls">
+    <div class="muted" id="quizTimer"></div>
+    <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+    <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start!</div>
+    <div style="margin-top:8px" class="controls">
+        <button id="startQuiz" class="secondary">Start Game</button>
+    </div>
+    <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+    <!-- Items will be placed here by JavaScript -->
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Our bodies are complex, and every part is important!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+    const correctAnswers = {
+        'q1': 'heart', 'q2': 'lungs', 'q3': 'eyes', 'q4': 'brain'
+    };
+    const resultId = 'r' + questionId.slice(1);
+    const res = document.getElementById(resultId);
+    
+    const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (selectedAnswer === correctAnswers[questionId]) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawBodyOutline() {
+    ctx.beginPath();
+    ctx.moveTo(400, 100);
+    ctx.bezierCurveTo(350, 50, 450, 50, 400, 100);
+    ctx.arc(400, 100, 50, 0, Math.PI * 2);
+    ctx.moveTo(400, 150);
+    ctx.lineTo(400, 300);
+    ctx.moveTo(400, 200);
+    ctx.lineTo(300, 250);
+    ctx.moveTo(400, 200);
+    ctx.lineTo(500, 250);
+    ctx.moveTo(400, 300);
+    ctx.lineTo(350, 380);
+    ctx.moveTo(400, 300);
+    ctx.lineTo(450, 380);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+}
+
+function drawOrgan(organ, highlight) {
+    if (organ === 'brain') {
+        if (highlight) {
+            ctx.fillStyle = '#f97316';
+            ctx.strokeStyle = '#f97316';
+        } else {
+            ctx.fillStyle = '#dbeafe';
+            ctx.strokeStyle = '#dbeafe';
+        }
+        ctx.beginPath();
+        ctx.arc(400, 100, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+    } else if (organ === 'heart') {
+        if (highlight) {
+            ctx.fillStyle = '#ef4444';
+            ctx.strokeStyle = '#ef4444';
+        } else {
+            ctx.fillStyle = '#dbeafe';
+            ctx.strokeStyle = '#dbeafe';
+        }
+        ctx.beginPath();
+        ctx.moveTo(400, 200);
+        ctx.bezierCurveTo(370, 170, 330, 200, 400, 240);
+        ctx.bezierCurveTo(470, 200, 430, 170, 400, 200);
+        ctx.fill();
+        ctx.stroke();
+    } else if (organ === 'lungs') {
+        if (highlight) {
+            ctx.fillStyle = '#dbeafe';
+            ctx.strokeStyle = '#dbeafe';
+        } else {
+            ctx.fillStyle = '#dbeafe';
+            ctx.strokeStyle = '#dbeafe';
+        }
+        ctx.beginPath();
+        ctx.moveTo(350, 190);
+        ctx.bezierCurveTo(280, 150, 250, 250, 350, 280);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(450, 190);
+        ctx.bezierCurveTo(520, 150, 550, 250, 450, 280);
+        ctx.fill();
+        ctx.stroke();
+    } else if (organ === 'stomach') {
+        if (highlight) {
+            ctx.fillStyle = '#16a34a';
+            ctx.strokeStyle = '#16a34a';
+        } else {
+            ctx.fillStyle = '#dbeafe';
+            ctx.strokeStyle = '#dbeafe';
+        }
+        ctx.beginPath();
+        ctx.ellipse(420, 280, 50, 30, Math.PI / 4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+    }
+}
+
+function drawText(text, x, y, color = '#04263b', size = '20px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+
+const tutorialSteps = [
+    { audio: "This is a simple outline of a human body.", text: "Our body has many parts!", viz: "body" },
+    { audio: "The brain is the command center that controls everything you do.", text: "The Brain 🧠", viz: "brain" },
+    { audio: "The heart pumps blood and keeps you going all day long.", text: "The Heart ❤️", viz: "heart" },
+    { audio: "Our lungs take in air so we can breathe and get oxygen.", text: "The Lungs 🫁", viz: "lungs" },
+    { audio: "The stomach and digestive system help break down food for energy.", text: "The Digestive System", viz: "stomach" },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+    if (window.speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+            drawBodyOutline();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+        drawBodyOutline();
+        if (step.viz !== "body") {
+            drawOrgan(step.viz, true);
+        }
+        drawText(step.text, tutorialCanvas.width / 2, 40);
+        window.speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+drawBodyOutline();
+
+/* ===== Speed Quiz ===== */
+const quizItems = [
+    { type: 'heart', emoji: '❤️', text: 'Heart' },
+    { type: 'brain', emoji: '🧠', text: 'Brain' },
+    { type: 'lungs', emoji: '🫁', text: 'Lungs' },
+    { type: 'stomach', emoji: ' estómago', text: 'Stomach' },
+    { type: 'bone', emoji: '🦴', text: 'Bone' },
+    { type: 'muscle', emoji: '💪', text: 'Muscle' },
+    { type: 'eye', emoji: '👀', text: 'Eye' },
+    { type: 'ear', emoji: '👂', text: 'Ear' }
+];
+
+let currentQuizType = null;
+let quizScore = 0;
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+    const shuffledItems = [...quizItems].sort(() => 0.5 - Math.random());
+    quizGrid.innerHTML = '';
+    shuffledItems.forEach((item, index) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = `item-${index}`;
+        tile.innerHTML = `<div style="font-size: 2rem;">${item.emoji}</div><div style="font-weight:700">${item.text}</div>`;
+        tile.onclick = () => selectQuizItem(item.type, tile);
+        quizGrid.appendChild(tile);
+    });
+    const randomType = ['heart', 'brain', 'lungs', 'stomach', 'bone', 'muscle', 'eye', 'ear'][Math.floor(Math.random() * quizItems.length)];
+    currentQuizType = randomType;
+    quizQuestion.textContent = `Find the ${randomType}!`;
+    quizFeedback.textContent = '';
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+}
+window.selectQuizItem = (selectedType, tile) => {
+    if (selectedType === currentQuizType) {
+        quizFeedback.textContent = `✅ Correct! Good job!`;
+        quizFeedback.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+        tile.classList.add('selected');
+        setTimeout(() => {
+            tile.classList.remove('selected');
+            newQuiz();
+        }, 1000);
+    } else {
+        quizFeedback.textContent = `❌ That's a ${selectedType}, try again!`;
+        quizFeedback.className = 'answer bad';
+        tone(220, 0.06);
+    }
+};
+
+document.getElementById('startQuiz').addEventListener('click', () => {
+    newQuiz();
+});
+
+// Reset Score Button
+window.reset = () => {
+    totalScore = 0;
+    streak = 0;
+    document.getElementById('score').textContent = `Score: 0`;
+    document.getElementById('streak').textContent = `Streak: 0`;
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: 0`;
+    quizFeedback.textContent = '';
+    const tiles = document.querySelectorAll('#quiz-grid .tile');
+    tiles.forEach(tile => tile.classList.remove('selected'));
+};
+</script>
+</body>
+</html>

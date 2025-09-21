@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Circles: Area & Circumference</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>Circles: Area & Circumference</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Circles: Key Concepts 🟡</h2>
+<p>Circles have unique properties. The **circumference** is the distance around the circle (like the perimeter of a square), and the **area** is the space inside the circle.</p>
+<p>
+  The **radius (r)** is the distance from the center to any point on the edge. The **diameter (d)** is the distance across the circle through the center.
+  $$d = 2r$$
+</p>
+<p>
+  **Pi ($\pi$)** is a special number, approximately **3.14159**, which represents the ratio of a circle's circumference to its diameter.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Formulas! 📐</h2>
+<p>Watch this video to visualize the formulas for a circle's area and circumference.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Calculate the circumference or area for each problem. Use 3.14 for $\pi$ and round your answer to two decimal places.</p>
+<div class="grid" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Circumference with radius 5.</div>
+    <p>$$C = 2 \pi r$$</p>
+    <input id="q1" type="number" step="0.01" placeholder="C = ?">
+    <div style="margin-top:6px"><button onclick="check('q1', '31.40')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Area with radius 4.</div>
+    <p>$$A = \pi r^2$$</p>
+    <input id="q2" type="number" step="0.01" placeholder="A = ?">
+    <div style="margin-top:6px"><button onclick="check('q2', '50.24')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Circumference with diameter 10.</div>
+    <p>$$C = \pi d$$</p>
+    <input id="q3" type="number" step="0.01" placeholder="C = ?">
+    <div style="margin-top:6px"><button onclick="check('q3', '31.40')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Area with diameter 8.</div>
+    <p>$$A = \pi r^2$$</p>
+    <input id="q4" type="number" step="0.01" placeholder="A = ?">
+    <div style="margin-top:6px"><button onclick="check('q4', '50.24')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Circles Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="number" step="0.01" placeholder="Answer (e.g., 12.34)">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Practice makes perfect! You can do this.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = parseFloat(inputEl.value).toFixed(2);
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+    if (!res) {
+        console.error(`Result element with ID '${resultId}' not found.`);
+        return;
+    }
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === parseFloat(correct).toFixed(2));
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correct})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+const PI = 3.14;
+function drawCircle(x, y, r, fillColor, borderColor) {
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+}
+function drawText(text, x, y, color = '#04263b', size = '24px') {
+    ctx.textAlign = 'center';
+    ctx.font = `${size} Inter, sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+}
+const tutorialSteps = [
+    { audio: "There are two main formulas for circles: one for circumference, and one for area.", text: "Circumference & Area" },
+    { audio: "The circumference, or the distance around the circle, is C equals 2 times pi times r, where r is the radius.", text: "Circumference: $$C = 2 \\pi r$$", formula: "C" },
+    { audio: "Alternatively, since the diameter is two times the radius, the circumference can also be calculated as C equals pi times d.", text: "$$C = \\pi d$$" },
+    { audio: "The area, or the space inside the circle, is A equals pi times r squared. Remember to square the radius, not the entire term!", text: "Area: $$A = \\pi r^2$$", formula: "A" },
+    { audio: "Let's see the two formulas in action. The circumference is the distance around the circle, like a track.", text: "Circumference vs. Area", viz: "C" },
+    { audio: "The area is the space inside the circle, like a pizza. You're ready to practice!", text: "Circumference vs. Area", viz: "A" }
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+        drawText(step.text, tutorialCanvas.width / 2, 40);
+        if (step.formula) {
+            drawCircle(tutorialCanvas.width / 2, tutorialCanvas.height / 2, 100, '#e6efff', '#1d4ed8');
+            if (step.formula === "C") {
+                ctx.beginPath();
+                ctx.moveTo(tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+                ctx.lineTo(tutorialCanvas.width / 2 + 100, tutorialCanvas.height / 2);
+                ctx.stroke();
+                drawText("r", tutorialCanvas.width / 2 + 50, tutorialCanvas.height / 2 + 15, '#1d4ed8', '16px');
+            } else {
+                drawCircle(tutorialCanvas.width / 2, tutorialCanvas.height / 2, 100, '#c3e0ff', '#1d4ed8');
+                ctx.fillStyle = '#1d4ed8';
+                ctx.beginPath();
+                ctx.arc(tutorialCanvas.width / 2, tutorialCanvas.height / 2, 100, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (step.viz) {
+            drawCircle(tutorialCanvas.width / 2, tutorialCanvas.height / 2, 100, '#fff', '#1d4ed8');
+            if (step.viz === "C") {
+                ctx.strokeStyle = '#60a5fa';
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.arc(tutorialCanvas.width / 2, tutorialCanvas.height / 2, 100, 0, 2 * Math.PI);
+                ctx.stroke();
+            } else if (step.viz === "A") {
+                ctx.fillStyle = '#60a5fa';
+                ctx.beginPath();
+                ctx.arc(tutorialCanvas.width / 2, tutorialCanvas.height / 2, 95, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const type = Math.random() < 0.5 ? 'area' : 'circumference';
+    const useDiameter = Math.random() < 0.5;
+    let value;
+    if (useDiameter) {
+        value = Math.floor(Math.random() * 8) + 4;
+    } else {
+        value = Math.floor(Math.random() * 6) + 2;
+    }
+    let question, answer;
+    if (type === 'area') {
+        const r = useDiameter ? value / 2 : value;
+        question = `Find the Area. ${useDiameter ? 'd' : 'r'} = ${value}`;
+        answer = (PI * r * r).toFixed(2);
+    } else {
+        const r = useDiameter ? value / 2 : value;
+        question = `Find the Circumference. ${useDiameter ? 'd' : 'r'} = ${value}`;
+        answer = (2 * PI * r).toFixed(2);
+    }
+    return { q: question, a: answer };
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = currentQuiz.q;
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = parseFloat(document.getElementById('quizInput').value).toFixed(2);
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = parseFloat(currentQuiz.a).toFixed(2);
+    if (val === correctAnswer) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, currentQuiz.a]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "circles_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>

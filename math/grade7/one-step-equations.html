@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>One-Step Equations</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+</style>
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+<h1>One-Step Equations</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Tutorial • Practice Problems • Speed Quiz</p>
+</header>
+
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What are One-Step Equations?</h2>
+<p>An equation is a mathematical statement that shows two expressions are equal. A **one-step equation** requires just one operation to solve for the unknown variable.</p>
+<p>
+  The key is to use **inverse operations** to "undo" what's been done to the variable.
+  The goal is to get the variable all by itself on one side of the equals sign.
+  $$x + 5 = 12$$
+  The variable, x, has 5 added to it. To "undo" this, we subtract 5 from both sides.
+  $$x + 5 - 5 = 12 - 5$$
+  $$x = 7$$
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Balance Analogy ⚖️</h2>
+<p>Watch this video to understand the concept of inverse operations using a balance scale.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems</h2>
+<p>Solve each equation for the variable and enter your answer.</p>
+<div class="grid" style="margin-top:10px">
+  <div class="tile">
+    <div style="font-weight:700">1) Addition: $$x + 8 = 15$$</div>
+    <input id="q1" type="number" placeholder="x = ?">
+    <div style="margin-top:6px"><button onclick="check('q1', '7')">Check</button></div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">2) Subtraction: $$y - 4 = 9$$</div>
+    <input id="q2" type="number" placeholder="y = ?">
+    <div style="margin-top:6px"><button onclick="check('q2', '13')">Check</button></div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">3) Multiplication: $$3m = 21$$</div>
+    <input id="q3" type="number" placeholder="m = ?">
+    <div style="margin-top:6px"><button onclick="check('q3', '7')">Check</button></div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile">
+    <div style="font-weight:700">4) Division: $$\frac{p}{5} = 4$$</div>
+    <input id="q4" type="number" placeholder="p = ?">
+    <div style="margin-top:6px"><button onclick="check('q4', '20')">Check</button></div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Equation Speed Quiz</h2>
+<div class="controls">
+  <label>Duration:
+    <select id="quizDuration">
+      <option value="30">30s</option>
+      <option value="60" selected>60s</option>
+      <option value="90">90s</option>
+    </select>
+  </label>
+  <button id="startQuiz" class="warn">Start Quiz</button>
+  <button id="stopQuiz" class="ghost">Stop</button>
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+  <div style="margin-top:8px" class="controls">
+    <input id="quizInput" type="text" placeholder="Answer">
+    <button id="quizCheck" class="secondary">Submit</button>
+    <div id="quizFeedback" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="csvTitle">
+<h2 id="csvTitle">Download CSV Log</h2>
+<p>Track all practice & quiz answers in a CSV file.</p>
+<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+</section>
+
+<footer>Practice makes perfect! You can do this.</footer>
+</main>
+
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+    try {
+        const A = new (window.AudioContext || window.webkitAudioContext)();
+        const o = A.createOscillator();
+        const g = A.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(A.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+        setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+    } catch (e) {}
+};
+let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+function updateScore(points) {
+    if (points > 0) {
+        totalScore += points;
+        streak++;
+    } else {
+        streak = 0;
+    }
+    document.getElementById('score').textContent = `Score: ${totalScore}`;
+    document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.check = (inputId, correct) => {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim();
+    const resultId = 'r' + inputId.slice(1);
+    const res = document.getElementById(resultId);
+    if (!res) {
+        console.error(`Result element with ID '${resultId}' not found.`);
+        return;
+    }
+    const questionText = inputEl.previousElementSibling.textContent;
+    const isCorrect = (val === correct);
+    if (isCorrect) {
+        res.textContent = '✅ Correct!';
+        res.className = 'answer ok';
+        tone(880, 0.06);
+        updateScore(1);
+    } else {
+        res.textContent = `❌ Wrong (Answer: ${correct})`;
+        res.className = 'answer bad';
+        tone(220, 0.06);
+        updateScore(0);
+    }
+    csvData.push([questionText, val, correct]);
+};
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+function drawBalance(leftVal, rightVal, animate = false) {
+    ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+    const center = tutorialCanvas.width / 2;
+    const beamLength = 300;
+    const pivotY = tutorialCanvas.height - 100;
+    const panRadius = 50;
+    const leftX = center - beamLength / 2;
+    const rightX = center + beamLength / 2;
+
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#334155';
+    
+    let tilt = 0;
+    if (leftVal > rightVal) tilt = -Math.PI / 30;
+    if (leftVal < rightVal) tilt = Math.PI / 30;
+    
+    // Draw beam
+    ctx.save();
+    ctx.translate(center, pivotY);
+    ctx.rotate(tilt);
+    ctx.beginPath();
+    ctx.moveTo(-beamLength / 2, 0);
+    ctx.lineTo(beamLength / 2, 0);
+    ctx.stroke();
+
+    // Draw pans
+    ctx.beginPath();
+    ctx.arc(-beamLength / 2, panRadius, panRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#dbeafe';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(beamLength / 2, panRadius, panRadius, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw pivot
+    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(center, pivotY);
+    ctx.lineTo(center - 20, pivotY + 30);
+    ctx.lineTo(center + 20, pivotY + 30);
+    ctx.closePath();
+    ctx.fillStyle = '#60a5fa';
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw values
+    ctx.font = '24px Inter, sans-serif';
+    ctx.fillStyle = '#04263b';
+    ctx.textAlign = 'center';
+    ctx.fillText(leftVal, leftX, pivotY + panRadius + 10);
+    ctx.fillText(rightVal, rightX, pivotY + panRadius + 10);
+}
+function drawEquation(equationText) {
+    ctx.textAlign = 'center';
+    ctx.font = '24px Inter, sans-serif';
+    ctx.fillStyle = '#04263b';
+    ctx.fillText(equationText, tutorialCanvas.width / 2, 40);
+    window.MathJax.typeset();
+}
+const tutorialSteps = [
+    { audio: "An equation is like a balance scale. The two sides must always be equal.", text: "Equations are like a balance scale." },
+    { audio: "Let's solve for x in this equation: x + 3 = 8.", text: "$$x + 3 = 8$$", left: "x + 3", right: "8" },
+    { audio: "On the left side, we have our unknown variable 'x' and the number 3. On the right, we have 8.", text: "Left: x + 3, Right: 8", left: "x + 3", right: "8" },
+    { audio: "To get x by itself, we need to do the opposite, or inverse, of adding 3. The opposite of adding is subtracting.", text: "Inverse of Adding is Subtracting." },
+    { audio: "We subtract 3 from the left side. What happens to our scale?", text: "Subtract 3 from the left side.", left: "x", right: "8", text2: "Now the scale is uneven!" },
+    { audio: "To keep the scale balanced, we must do the exact same thing to the other side. So, we subtract 3 from the right side as well.", text: "Subtract 3 from the right side.", left: "x", right: "5", text2: "The scale is balanced again!" },
+    { audio: "Now we have our answer. x equals 5.", text: "$$x = 5$$", left: "x", right: "5" },
+    { audio: "This same rule applies to all one-step equations.", text: "Remember to use inverse operations." },
+    { audio: "For x minus 4 equals 10, what's the inverse of subtracting 4?", text: "$$x - 4 = 10$$" },
+    { audio: "Adding 4! So we add 4 to both sides.", text: "Add 4 to both sides.", text2: "$$x - 4 + 4 = 10 + 4$$" },
+    { audio: "The result is x equals 14.", text: "$$x = 14$$" },
+    { audio: "You're now ready to put your new knowledge to the test!", text: "You did it!" }
+];
+let tutorialIndex = 0;
+async function playTutorialVideo(callback) {
+    if (speechSynthesis.speaking) return;
+    tutorialIndex = 0;
+    const speed = parseFloat(tutorialSpeedInput.value) || 1;
+    function nextStep() {
+        if (tutorialIndex >= tutorialSteps.length) {
+            if (callback) callback();
+            return;
+        }
+        const step = tutorialSteps[tutorialIndex];
+        const utterance = new SpeechSynthesisUtterance(step.audio);
+        utterance.rate = speed;
+        utterance.pitch = 1.2;
+        utterance.volume = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        utterance.onerror = () => {
+            tutorialIndex++;
+            nextStep();
+        };
+        ctx.clearRect(0, 0, tutorialCanvas.width, tutorialCanvas.height);
+        drawEquation(step.text || step.text2 || "");
+        if (step.left && step.right) {
+            drawBalance(step.left, step.right);
+        } else {
+            drawBalance("?", "?", false);
+        }
+        speechSynthesis.speak(utterance);
+    }
+    nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+ctx.font = '24px Inter, sans-serif';
+ctx.textAlign = 'center';
+ctx.fillText("Press Play to start the video!", tutorialCanvas.width / 2, tutorialCanvas.height / 2);
+/* ===== Speed Quiz ===== */
+function generateProblem() {
+    const op = Math.floor(Math.random() * 4); // 0: +, 1: -, 2: *, 3: /
+    const num1 = Math.floor(Math.random() * 10) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    let question, answer;
+    if (op === 0) {
+        question = `$$x + ${num1} = ${num1 + num2}$$`;
+        answer = num2.toString();
+    } else if (op === 1) {
+        question = `$$x - ${num1} = ${num2}$$`;
+        answer = (num1 + num2).toString();
+    } else if (op === 2) {
+        question = `$$${num1}x = ${num1 * num2}$$`;
+        answer = num2.toString();
+    } else {
+        question = `$$\\frac{x}{${num1}} = ${num2}$$`;
+        answer = (num1 * num2).toString();
+    }
+    return { q: question, a: answer };
+}
+let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+function newQuizQuestion() {
+    const problem = generateProblem();
+    currentQuiz = problem;
+    const qEl = document.getElementById('quizQ');
+    qEl.textContent = currentQuiz.q;
+    window.MathJax.typeset([qEl]);
+    document.getElementById('quizInput').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+}
+document.getElementById('startQuiz').addEventListener('click', () => {
+    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+    quizScore = 0;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    newQuizQuestion();
+    clearInterval(quizTimerInt);
+    quizTimerInt = setInterval(() => {
+        quizTime--;
+        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+        if (quizTime <= 0) {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = 'Time Up!';
+        }
+    }, 1000);
+});
+document.getElementById('stopQuiz').addEventListener('click', () => {
+    clearInterval(quizTimerInt);
+});
+document.getElementById('quizCheck').addEventListener('click', () => {
+    const val = document.getElementById('quizInput').value.trim();
+    const f = document.getElementById('quizFeedback');
+    let userAnswer = val;
+    let correctAnswer = currentQuiz.a;
+    if (val === currentQuiz.a) {
+        f.textContent = '✅ Correct!';
+        f.className = 'answer ok';
+        quizScore++;
+        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+        tone(880, 0.06);
+    } else {
+        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+        f.className = 'answer bad';
+        tone(220, 0.06);
+    }
+    csvData.push([currentQuiz.q, userAnswer, correctAnswer]);
+    if (quizTime > 0) newQuizQuestion();
+});
+/* ===== CSV Download ===== */
+document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+    const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "one_step_equations_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+</body>
+</html>
