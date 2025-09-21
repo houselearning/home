@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cell Structure 🔬</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#3498db; --accent2:#2980b9; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #e6f7ff;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Cell Structure 🔬</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Building Blocks of Life 🤔</h2>
+<p>
+  A **cell** is the most basic unit of life. Think of it as the smallest building block of all living things, from tiny bacteria to big elephants—and even you! Just like a house is made of bricks, a living thing is made of cells.
+</p>
+<p>
+  Cells have different parts inside them that each have a special job. These parts are called **organelles**. They are like tiny organs that keep the cell working. The main parts we'll look at are the nucleus, which is the brain of the cell, and the cytoplasm, which is the jelly-like substance inside.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: A Tour Inside the Cell! 🎬</h2>
+<p>Watch how the different parts of a cell work together.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What's that part?)</h2>
+<p>Read the description and choose the correct cell part.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) The "brain" of the cell.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'nucleus', this)">Nucleus</button>
+      <button onclick="checkAnswer('q1', 'cytoplasm', this)">Cytoplasm</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) The jelly-like fluid inside.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'nucleus', this)">Nucleus</button>
+      <button onclick="checkAnswer('q2', 'cytoplasm', this)">Cytoplasm</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) The outer layer that protects the cell.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'membrane', this)">Membrane</button>
+      <button onclick="checkAnswer('q3', 'vacuole', this)">Vacuole</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) The part that makes food for plant cells.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'chloroplast', this)">Chloroplast</button>
+      <button onclick="checkAnswer('q4', 'nucleus', this)">Nucleus</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Build the Cell!</h2>
+<p>Drag the parts to the correct place on the cell diagram!</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px;text-align:center">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Drag the parts to the right spots!</div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div style="position:relative;width:100%;max-width:800px;margin:20px auto;">
+  <canvas id="quizCanvas" width="800" height="400" style="border: 2px solid #ccc;"></canvas>
+</div>
+<div style="margin-top:10px;text-align:center;">
+  <div class="controls" id="drag-items">
+    <div draggable="true" ondragstart="drag(event)" id="item-1" data-part="nucleus" class="tile">Nucleus 🧠</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-2" data-part="cytoplasm" class="tile">Cytoplasm 🥣</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-3" data-part="membrane" class="tile">Cell Membrane 🧱</div>
+    <div draggable="true" ondragstart="drag(event)" id="item-4" data-part="vacuole" class="tile">Vacuole 💧</div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Cells are the tiny miracles that make up all of life!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  const correctAnswers = {
+    'q1': 'nucleus', 'q2': 'cytoplasm', 'q3': 'membrane', 'q4': 'chloroplast'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  // Draw cell membrane
+  canvasCtx.strokeStyle = '#3498db';
+  canvasCtx.lineWidth = 10;
+  canvasCtx.beginPath();
+  canvasCtx.arc(w/2, h/2, 100, 0, Math.PI * 2);
+  canvasCtx.stroke();
+  
+  // Draw cytoplasm
+  canvasCtx.fillStyle = '#e6f7ff';
+  canvasCtx.beginPath();
+  canvasCtx.arc(w/2, h/2, 95, 0, Math.PI * 2);
+  canvasCtx.fill();
+  
+  // Draw nucleus
+  canvasCtx.fillStyle = '#2980b9';
+  canvasCtx.beginPath();
+  canvasCtx.arc(w/2 - 40, h/2 - 20, 30, 0, Math.PI * 2);
+  canvasCtx.fill();
+
+  if (stage === 'nucleus') {
+    drawText(canvasCtx, "The nucleus is the cell's control center!", w/2, 50);
+  } else if (stage === 'cytoplasm') {
+    drawText(canvasCtx, "The cytoplasm fills the cell, holding everything in place.", w/2, 50);
+  } else if (stage === 'membrane') {
+    drawText(canvasCtx, "The cell membrane protects the cell!", w/2, 50);
+  } else {
+    drawText(canvasCtx, "Press Play to learn about cell parts!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "A cell is the basic unit of life. It has different parts with different jobs.", viz: 'initial' },
+  { audio: "The nucleus is like the brain. It controls everything the cell does.", viz: 'nucleus' },
+  { audio: "The cytoplasm is the jelly-like substance that fills the cell and holds everything in place.", viz: 'cytoplasm' },
+  { audio: "The cell membrane is the outer layer that protects the cell and controls what goes in and out.", viz: 'membrane' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz ===== */
+let quizScore = 0;
+const quizFeedback = document.getElementById('quizFeedback');
+const dragItems = document.getElementById('drag-items');
+const quizCanvas = document.getElementById('quizCanvas');
+const quizCtx = quizCanvas.getContext('2d');
+
+const dropzones = {
+  nucleus: { x: 360, y: 180, radius: 40, color: '#2980b9', name: 'Nucleus' },
+  cytoplasm: { x: 400, y: 200, radius: 100, color: '#e6f7ff', name: 'Cytoplasm' },
+  membrane: { x: 400, y: 200, radius: 110, color: '#3498db', name: 'Cell Membrane' },
+  vacuole: { x: 500, y: 300, radius: 35, color: '#60a5fa', name: 'Vacuole' },
+};
+
+function drawQuizScene() {
+  quizCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
+  const w = quizCanvas.width;
+  const h = quizCanvas.height;
+  
+  // Draw cell membrane
+  quizCtx.strokeStyle = dropzones.membrane.color;
+  quizCtx.lineWidth = 10;
+  quizCtx.beginPath();
+  quizCtx.arc(dropzones.membrane.x, dropzones.membrane.y, dropzones.membrane.radius, 0, Math.PI * 2);
+  quizCtx.stroke();
+  drawText(quizCtx, "Cell Membrane", dropzones.membrane.x + 100, dropzones.membrane.y, '#3498db', '16px');
+  
+  // Draw cytoplasm
+  quizCtx.fillStyle = dropzones.cytoplasm.color;
+  quizCtx.beginPath();
+  quizCtx.arc(dropzones.cytoplasm.x, dropzones.cytoplasm.y, dropzones.cytoplasm.radius, 0, Math.PI * 2);
+  quizCtx.fill();
+  drawText(quizCtx, "Cytoplasm", dropzones.cytoplasm.x + 80, dropzones.cytoplasm.y + 40, '#2980b9', '16px');
+
+  // Draw nucleus
+  quizCtx.fillStyle = dropzones.nucleus.color;
+  quizCtx.beginPath();
+  quizCtx.arc(dropzones.nucleus.x, dropzones.nucleus.y, dropzones.nucleus.radius, 0, Math.PI * 2);
+  quizCtx.fill();
+  drawText(quizCtx, "Nucleus", dropzones.nucleus.x - 50, dropzones.nucleus.y - 20, '#2980b9', '16px');
+
+  // Draw vacuole
+  quizCtx.fillStyle = dropzones.vacuole.color;
+  quizCtx.beginPath();
+  quizCtx.arc(dropzones.vacuole.x, dropzones.vacuole.y, dropzones.vacuole.radius, 0, Math.PI * 2);
+  quizCtx.fill();
+  drawText(quizCtx, "Vacuole", dropzones.vacuole.x + 30, dropzones.vacuole.y, '#60a5fa', '16px');
+}
+drawQuizScene();
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drag(event) {
+  event.dataTransfer.setData("text", event.target.id);
+  event.dataTransfer.setData("part", event.target.dataset.part);
+}
+
+quizCanvas.addEventListener('drop', (event) => {
+  event.preventDefault();
+  const data = event.dataTransfer.getData("text");
+  const part = event.dataTransfer.getData("part");
+  const draggableElement = document.getElementById(data);
+  const rect = quizCanvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const targetZone = dropzones[part];
+  if (targetZone) {
+    const dist = Math.sqrt(Math.pow(x - targetZone.x, 2) + Math.pow(y - targetZone.y, 2));
+    if (dist <= targetZone.radius + 30) {
+      quizFeedback.textContent = `✅ Correct! You placed the ${targetZone.name}!`;
+      quizFeedback.className = 'answer ok';
+      quizScore++;
+      document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+      tone(880, 0.06);
+      draggableElement.style.display = 'none';
+      updateScore(1);
+    } else {
+      quizFeedback.textContent = `❌ Wrong! That part goes somewhere else.`;
+      quizFeedback.className = 'answer bad';
+      tone(220, 0.06);
+    }
+  }
+});
+
+quizCanvas.addEventListener('dragover', allowDrop);
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const dragItems = document.getElementById('drag-items');
+  const items = dragItems.querySelectorAll('.tile');
+  items.forEach(item => item.style.display = 'block');
+};
+</script>
+</body>
+</html>
