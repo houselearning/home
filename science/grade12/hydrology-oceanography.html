@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 12: Hydrology & Oceanography 💧🌊</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#2c3e50; --accent2:#34495e; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --hydro-color: #3498db;
+  --ground-color: #27ae60;
+  --ocean-prop-color: #f39c12;
+  --ocean-circ-color: #e74c3c;
+  --formula-color: #9b59b6;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:#ef4444}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.type-tile {
+  flex: 1 1 140px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--formula-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 12: Hydrology & Oceanography 💧🌊</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Water}$ $\text{Cycle}$ • $\text{Aquifers}$ • $\text{Salinity}$ • $\text{Thermohaline}$ $\text{Circulation}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Hydrology: $\text{The}$ $\text{Water}$ $\text{Cycle}$ 🌧️</h2>
+<p>
+  **$\text{Hydrology}$** is the study of the $\text{distribution}$ and $\text{movement}$ of $\text{water}$ on $\text{Earth}$. The $\text{Water}$ $\text{Cycle}$ is the key process driving this movement.
+</p>
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--hydro-color);">
+    <h3>$\text{Evaporation}$</h3>
+    <p>Liquid $\to$ $\text{Gas}$ (from $\text{surface}$ $\text{water}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--hydro-color);">
+    <h3>$\text{Transpiration}$</h3>
+    <p>Liquid $\to$ $\text{Gas}$ (from $\text{plants}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--hydro-color);">
+    <h3>$\text{Condensation}$</h3>
+    <p>Gas $\to$ $\text{Liquid}$ (forms $\text{clouds}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--hydro-color);">
+    <h3>$\text{Precipitation}$</h3>
+    <p>Water $\text{falling}$ back to $\text{Earth}$ ($\text{rain}$, $\text{snow}$).</p>
+  </div>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="groundwaterTitle">
+<h2 id="groundwaterTitle">Groundwater $\text{Resources}$ ⛏️</h2>
+<p>
+  $\text{Groundwater}$ is water held $\text{underground}$ in the $\text{soil}$ or in $\text{pores}$ and $\text{crevices}$ in $\text{rock}$. It is a critical, but often overused, $\text{freshwater}$ $\text{resource}$.
+</p>
+<div class="grid cols-3">
+  <div class="concept-box" style="border-color: var(--ground-color);">
+    <h3>$\text{Porosity}$</h3>
+    <p>The $\text{percentage}$ of $\text{open}$ $\text{space}$ in a $\text{rock}$ or $\text{sediment}$ ($\text{determines}$ how much water it $\text{can}$ $\text{hold}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--ground-color);">
+    <h3>$\text{Permeability}$</h3>
+    <p>The $\text{ability}$ of $\text{rock}$ or $\text{sediment}$ to $\text{transmit}$ $\text{fluid}$ ($\text{determines}$ how fast water $\text{can}$ $\text{flow}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--ground-color);">
+    <h3>$\text{Aquifer}$</h3>
+    <p>A $\text{body}$ of $\text{rock}$ or $\text{sediment}$ that is $\text{porous}$ and $\text{permeable}$ $\text{enough}$ to $\text{yield}$ $\text{significant}$ $\text{quantities}$ of $\text{water}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="oceanPropTitle">
+<h2 id="oceanPropTitle">Oceanography: $\text{Properties}$ $\text{of}$ $\text{Seawater}$ 🧂</h2>
+
+<div class="grid cols-3">
+  <div class="concept-box" style="border-color: var(--ocean-prop-color);">
+    <h3>$\text{Salinity}$</h3>
+    <p>The total amount of $\text{dissolved}$ $\text{salts}$ in $\text{seawater}$. $\text{Averaged}$ at **35 $\text{parts}$ $\text{per}$ $\text{thousand}$** ($\text{ppt}$ or $\%_{o}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--ocean-prop-color);">
+    <h3>$\text{Density}$ ($\rho$)</h3>
+    <p>Controlled by both $\text{temperature}$ ($T$) and $\text{salinity}$ ($S$). $\text{Cold}$, $\text{salty}$ water is $\text{most}$ $\text{dense}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--ocean-prop-color);">
+    <h3>$\text{Pycnocline}$</h3>
+    <p>A $\text{layer}$ in the $\text{water}$ $\text{column}$ where the $\text{water}$ $\text{density}$ $\text{changes}$ $\text{rapidly}$ with $\text{depth}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="oceanCircTitle">
+<h2 id="oceanCircTitle">Ocean $\text{Circulation}$ $\text{and}$ $\text{Energy}$ $\text{Transfer}$ 🔄</h2>
+<div class="grid cols-3">
+  <div class="concept-box" style="border-color: var(--ocean-circ-color);">
+    <h3>$\text{Surface}$ $\text{Currents}$</h3>
+    <p>Primarily driven by $\text{wind}$ ($\text{e.g.,}$ $\text{Gulf}$ $\text{Stream}$). $\text{Affected}$ by the $\text{Coriolis}$ $\text{Effect}$ (rotation of $\text{Earth}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--ocean-circ-color);">
+    <h3>$\text{Tides}$</h3>
+    <p>The $\text{periodic}$ $\text{rise}$ and $\text{fall}$ of $\text{sea}$ $\text{level}$ caused by the $\text{gravitational}$ $\text{pull}$ of the $\text{Moon}$ and the $\text{Sun}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--ocean-circ-color);">
+    <h3>$\text{Thermohaline}$ $\text{Circulation}$</h3>
+    <p>Deep $\text{ocean}$ $\text{currents}$ driven by $\text{differences}$ in $\text{temperature}$ ($\text{thermo}$) and $\text{salinity}$ ($\text{haline}$), forming the $\text{Global}$ $\text{Conveyor}$ $\text{Belt}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Hydrology}$ $\text{and}$ $\text{Oceanography}$ $\text{Check}$!</h2>
+<p>Identify the $\text{term}$ that best describes the following statement.</p>
+
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">The $\text{layer}$ where $\text{ocean}$ $\text{density}$ $\text{changes}$ $\text{most}$ $\text{quickly}$ with $\text{depth}$.</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Question</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Water: The lifeblood of Earth.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Quiz (Concept Identification) ===== */
+const hydroOceanQuestions = [
+  { 
+    question: 'The $\\text{layer}$ where $\\text{ocean}$ $\\text{density}$ $\\text{changes}$ $\\text{most}$ $\\text{quickly}$ with $\\text{depth}$.', 
+    answer: 'Pycnocline', 
+    hint: 'This boundary is driven by $\\text{temperature}$ and $\\text{salinity}$ changes.'
+  },
+  { 
+    question: 'The $\\text{process}$ of $\\text{water}$ $\\text{vapour}$ $\\text{released}$ from $\\text{plant}$ $\\text{leaves}$ into the $\\text{atmosphere}$.', 
+    answer: 'Transpiration', 
+    hint: 'It\'s like $\\text{evaporation}$ for $\\text{plants}$ (part of the $\\text{water}$ $\\text{cycle}$).'
+  },
+  { 
+    question: 'The $\\text{measure}$ of how $\\text{easily}$ $\\text{water}$ $\\text{can}$ $\\text{flow}$ $\\text{through}$ an $\\text{aquifer}$.', 
+    answer: 'Permeability', 
+    hint: '$\\text{Permeate}$ means $\\text{to}$ $\\text{spread}$ $\\text{through}$.'
+  },
+  { 
+    question: 'Deep $\\text{ocean}$ $\\text{currents}$ driven by $\\text{differences}$ in $\\text{water}$ $\\text{density}$ (due to $\\text{heat}$ and $\\text{salt}$).', 
+    answer: 'Thermohaline Circulation', 
+    hint: 'The name literally means $\\text{Heat}$-$\text{Salt}$ $\\text{movement}$.'
+  },
+  { 
+    question: 'The $\\text{overall}$ $\\text{saltiness}$ of $\\text{seawater}$, typically $35$ $\\text{parts}$ $\\text{per}$ $\\text{thousand}$.', 
+    answer: 'Salinity', 
+    hint: 'This is a key property determining $\\text{ocean}$ $\\text{density}$.'
+  },
+];
+
+const quizChoices = ['Salinity', 'Pycnocline', 'Evaporation', 'Transpiration', 'Permeability', 'Thermohaline Circulation'];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = hydroOceanQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct concept.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the choices
+  const shuffledTypes = [...quizChoices].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledTypes.forEach((type) => {
+    const tile = document.createElement('div');
+    tile.className = 'type-tile';
+    tile.dataset.type = type;
+    tile.onclick = () => selectQuizItem(type, tile);
+    // Assign colors based on the type
+    let color;
+    if (type === 'Transpiration' || type === 'Evaporation') color = 'var(--hydro-color)';
+    else if (type === 'Permeability') color = 'var(--ground-color)';
+    else if (type === 'Salinity' || type === 'Pycnocline') color = 'var(--ocean-prop-color)';
+    else color = 'var(--ocean-circ-color)';
+    
+    tile.style.borderColor = color;
+    tile.innerHTML = `<div style="font-weight:800; color:${color};">${type}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .type-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    tile.querySelector('div').style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct answer is **${currentQuestion.answer}**. Hint: ${currentQuestion.hint}`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    tile.querySelector('div').style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .type-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+        t.style.backgroundColor = '#e6ffef';
+        t.querySelector('div').style.color = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
