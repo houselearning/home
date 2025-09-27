@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>9th Grade: Cellular Respiration 🔋</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --glycolysis-color: #f39c12;
+  --krebs-color: #e74c3c;
+  --etc-color: #3498db;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.stage-tile {
+  flex: 1 1 200px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--glycolysis-color);
+  text-align: center;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>9th Grade: Cellular Respiration 🔋</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{ATP}$ Production • $\text{Three}$ $\text{Stages}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Cell's Power Plant 🔌</h2>
+<p>
+  **$\text{Cellular}$ $\text{Respiration}$** is the process that all living organisms (plants, animals, fungi, bacteria) use to convert the chemical energy stored in **$\text{glucose}$** ($\text{a}$ $\text{sugar}$) into a usable form of energy called **$\text{ATP}$** ($\text{Adenosine}$ $\text{Triphosphate}$). This process requires $\text{oxygen}$ ($\text{aerobic}$) and mainly occurs in the **$\text{Mitochondria}$** of $\text{eukaryotic}$ cells.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="equationTitle">
+<h2 id="equationTitle">The $\text{Cellular}$ $\text{Respiration}$ $\text{Equation}$ 🧪</h2>
+<p>This equation shows that $\text{glucose}$ and $\text{oxygen}$ are the inputs ($\text{reactants}$), and $\text{carbon}$ $\text{dioxide}$, $\text{water}$, and $\text{energy}$ ($\text{ATP}$) are the outputs ($\text{products}$).</p>
+
+<div class="concept-box" style="border-color: var(--etc-color); text-align: center;">
+    $$\text{C}_6\text{H}_{12}\text{O}_6 + 6\text{O}_2 \longrightarrow 6\text{CO}_2 + 6\text{H}_2\text{O} + \text{ATP (Energy)}$$
+</div>
+<p>Notice how this is the exact reverse of the overall $\text{Photosynthesis}$ equation! Life on $\text{Earth}$ is a grand chemical cycle.</p>
+</section>
+
+<section aria-labelledby="stagesTitle">
+<h2 id="stagesTitle">The $\text{Three}$ $\text{Main}$ $\text{Stages}$ of $\text{Aerobic}$ $\text{Respiration}$ ➡️</h2>
+
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--glycolysis-color);">
+    <h3>1. $\text{Glycolysis}$</h3>
+    <p><strong>Location:</strong> $\text{Cytoplasm}$</p>
+    <p><strong>Action:</strong> $\text{Glucose}$ is broken down into two molecules of $\text{Pyruvic}$ $\text{Acid}$ ($\text{Pyruvate}$).</p>
+    <p><strong>$\text{ATP}$ Yield:</strong> Net 2 $\text{ATP}$</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--krebs-color);">
+    <h3>2. $\text{Krebs}$ $\text{Cycle}$ ($\text{Citric}$ $\text{Acid}$ $\text{Cycle}$)</h3>
+    <p><strong>Location:</strong> $\text{Mitochondrial}$ $\text{Matrix}$</p>
+    <p><strong>Action:</strong> $\text{Pyruvate}$ is converted and broken down, releasing $\text{CO}_2$ and high-energy electrons (carried by $\text{NADH}$ and $\text{FADH}_2$).</p>
+    <p><strong>$\text{ATP}$ Yield:</strong> Net 2 $\text{ATP}$</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--etc-color);">
+    <h3>3. $\text{Electron}$ $\text{Transport}$ $\text{Chain}$ ($\text{ETC}$)</h3>
+    <p><strong>Location:</strong> $\text{Inner}$ $\text{Mitochondrial}$ $\text{Membrane}$</p>
+    <p><strong>Action:</strong> $\text{NADH}$ and $\text{FADH}_2$ drop off electrons, which power a chain reaction that produces large amounts of $\text{ATP}$ using $\text{oxygen}$.</p>
+    <p><strong>$\text{ATP}$ Yield:</strong> $\approx$ 32-34 $\text{ATP}$</p>
+  </div>
+</div>
+<p style="margin-top:15px; font-weight:bold;">Total $\text{ATP}$ Production (Aerobic): $\approx$ 36-38 $\text{ATP}$ per molecule of $\text{glucose}$.</p>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems ($\text{Concept}$ $\text{Check}$)</h2>
+<p>Click the correct term to complete the statement.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) The molecule that provides usable energy to the cell.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'atp', this)">ATP</button>
+      <button onclick="checkAnswer('q1', 'glucose', this)">Glucose</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) The main organelle where $\text{ATP}$ is produced.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'ribosome', this)">Ribosome</button>
+      <button onclick="checkAnswer('q2', 'mito', this)">Mitochondria</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) The final electron acceptor in the $\text{ETC}$.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'oxygen', this)">Oxygen ($\text{O}_2$)</button>
+      <button onclick="checkAnswer('q3', 'co2', this)">Carbon Dioxide ($\text{CO}_2$)</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) The process of splitting $\text{glucose}$ into $\text{pyruvate}$.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'krebs', this)">Krebs Cycle</button>
+      <button onclick="checkAnswer('q4', 'glycolysis', this)">Glycolysis</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ $\text{Cellular}$ $\text{Respiration}$ $\text{Stage}$ $\text{Match}$ $\text{Up}$!</h2>
+<p>Match the key event to the correct stage of $\text{cellular}$ $\text{respiration}$ (click the correct tile).</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Where does $\text{O}_2$ act as the final electron acceptor?</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Event</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The study of life is fueled by $\text{ATP}$!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Cellular Respiration Specific Answers
+  const correctAnswers = {
+    'q1': 'atp', 
+    'q2': 'mito', 
+    'q3': 'oxygen', 
+    'q4': 'glycolysis' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Quiz (Stage Match Up) ===== */
+const quizEvents = [
+  { question: 'Where is the majority of the $\\text{ATP}$ produced (32-34 $\\text{ATP}$)?', answer: 'etc', hint: 'The big payoff.' },
+  { question: 'Where is $\\text{glucose}$ first split into two molecules of $\\text{pyruvate}$?', answer: 'glycolysis', hint: 'First step, happens outside the $\\text{mito}$.' },
+  { question: 'Where are $\\text{CO}_2$ molecules released as a waste product?', answer: 'krebs', hint: 'This is a cyclical process.' },
+  { question: 'Where are high-energy electron carriers ($\text{NADH}$, $\text{FADH}_2$) dropped off?', answer: 'etc', hint: 'Requires $\\text{O}_2$.' },
+  { question: 'Which stage occurs in the $\\text{cytoplasm}$?', answer: 'glycolysis', hint: 'Used by $\\text{anaerobic}$ $\\text{respiration}$ too.' },
+  { question: 'Which stage occurs in the $\\text{mitochondrial}$ $\\text{matrix}$?', answer: 'krebs', hint: 'The core of the $\\text{mito}$.' },
+];
+
+const quizStages = [
+  { name: 'Glycolysis', type: 'glycolysis', color: 'var(--glycolysis-color)' },
+  { name: 'Krebs Cycle', type: 'krebs', color: 'var(--krebs-color)' },
+  { name: 'Electron Transport Chain', type: 'etc', color: 'var(--etc-color)' },
+];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = quizEvents.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.textContent = currentQuestion.question;
+  quizFeedback.textContent = 'Click the stage where this event occurs.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the stage tiles
+  const shuffledStages = [...quizStages].sort(() => 0.5 - Math.random());
+  shuffledStages.forEach((stage) => {
+    const tile = document.createElement('div');
+    tile.className = 'stage-tile';
+    tile.dataset.type = stage.type;
+    tile.onclick = () => selectQuizItem(stage.type, tile);
+    tile.style.borderColor = stage.color;
+    tile.innerHTML = `<div style="font-weight:800; color:${stage.color};">${stage.name}</div>`;
+    quizGrid.appendChild(tile);
+  });
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .stage-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct! This event happens during the ${tile.textContent}!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. This event happens in the **${quizStages.find(s => s.type === currentQuestion.answer).name}**.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .stage-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 2500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
