@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>9th Grade: Mendelian Genetics 🧬</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --dominant-color: #e74c3c;
+  --recessive-color: #3498db;
+  --hetero-color: #f1c40f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+/* Punnett Square styles */
+.punnett-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+}
+.punnett-grid {
+  display: grid;
+  grid-template-columns: 50px repeat(2, 1fr);
+  grid-template-rows: 50px repeat(2, 1fr);
+  gap: 1px;
+  background: #333;
+  width: 300px;
+  border: 1px solid #333;
+}
+.punnett-cell {
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.punnett-cell.header {
+  background: #eee;
+}
+.punnett-cell.off-grid {
+  background: transparent;
+}
+.punnett-result {
+  color: #04263b;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.punnett-result:hover {
+  background: #ffe6e6;
+}
+.punnett-result.correct {
+  background: var(--ok);
+  color: #fff;
+}
+.punnett-result.incorrect {
+  background: var(--bad);
+  color: #fff;
+}
+.allele-input {
+  width: 40px;
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>9th Grade: Mendelian Genetics  मटर</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Mendel}$'s $\text{Laws}$ • $\text{Punnett}$ $\text{Squares}$ • $\text{Probability}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is $\text{Mendelian}$ $\text{Genetics}$? 🧑‍🔬</h2>
+<p>
+  **$\text{Mendelian}$ $\text{Genetics}$** is the foundation of modern genetics, based on the work of **$\text{Gregor}$ $\text{Mendel}$** and his experiments with $\text{pea}$ $\text{plants}$. He discovered that traits are passed down in discrete units (which we now call **$\text{genes}$**), and these units separate and combine in predictable ways.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="vocabTitle">
+<h2 id="vocabTitle">Key $\text{Vocabulary}$ and $\text{Concepts}$ 🔑</h2>
+
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--dominant-color);">
+    <h3>$\text{Allele}$</h3>
+    <p>A variation of a gene (e.g., the $\text{allele}$ for tall vs. short pea plants).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--recessive-color);">
+    <h3>$\text{Genotype}$</h3>
+    <p>The genetic makeup; the actual $\text{alleles}$ inherited ($\text{e.g.,} \text{ TT}, \text{ Tt}, \text{ or } \text{tt}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--hetero-color);">
+    <h3>$\text{Phenotype}$</h3>
+    <p>The physical appearance resulting from the $\text{genotype}$ ($\text{e.g.,}$ $\text{tall}$ $\text{plant}$ or $\text{short}$ $\text{plant}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--dominant-color);">
+    <h3>$\text{Homozygous}$ / $\text{Heterozygous}$</h3>
+    <p>$\text{Homo}$ ($\text{TT}$ or $\text{tt}$) means the $\text{alleles}$ are the $\text{same}$. $\text{Hetero}$ ($\text{Tt}$) means they are $\text{different}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="lawsTitle">
+<h2 id="lawsTitle">Mendel's $\text{Three}$ $\text{Laws}$ 📜</h2>
+
+<div class="concept-box" style="border-color: var(--dominant-color);">
+  <h3>1. $\text{Law}$ of $\text{Dominance}$</h3>
+  <p>When an organism is **$\text{heterozygous}$** ($\text{Tt}$), the **$\text{dominant}$ $\text{allele}$** ($\text{T}$) will mask, or cover up, the expression of the **$\text{recessive}$ $\text{allele}$** ($\text{t}$).</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--recessive-color);">
+  <h3>2. $\text{Law}$ of $\text{Segregation}$</h3>
+  <p>During $\text{gamete}$ ($\text{sex}$ $\text{cell}$) formation, the two $\text{alleles}$ for a trait separate from each other so that each $\text{gamete}$ receives only one $\text{allele}$.</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--hetero-color);">
+  <h3>3. $\text{Law}$ of $\text{Independent}$ $\text{Assortment}$</h3>
+  <p>Genes for different traits can segregate ($\text{separate}$) independently during the formation of $\text{gametes}$. ($\text{e.g.,}$ $\text{the}$ $\text{allele}$ $\text{for}$ $\text{height}$ $\text{separates}$ $\text{independently}$ $\text{from}$ $\text{the}$ $\text{allele}$ $\text{for}$ $\text{seed}$ $\text{color}$).</p>
+</div>
+</section>
+
+<section aria-labelledby="punnettTitle">
+<h2 id="punnettTitle">Interactive $\text{Punnett}$ $\text{Square}$ ($\text{Monohybrid}$ $\text{Cross}$) 📊</h2>
+<p>Use the $\text{Punnett}$ $\text{Square}$ below to calculate the genetic probability of offspring. **$\text{Tall}$** ($\text{T}$) is $\text{dominant}$ to **$\text{short}$** ($\text{t}$).</p>
+
+<div class="punnett-container">
+  <div style="display: flex; gap: 20px; margin-bottom: 10px;">
+    <div style="font-weight: bold;">Parent 1 ($\text{Male}$): 
+      <input type="text" id="p1a1" class="allele-input" maxlength="1" value="T" oninput="drawPunnett()">
+      <input type="text" id="p1a2" class="allele-input" maxlength="1" value="t" oninput="drawPunnett()">
+    </div>
+    <div style="font-weight: bold;">Parent 2 ($\text{Female}$): 
+      <input type="text" id="p2a1" class="allele-input" maxlength="1" value="T" oninput="drawPunnett()">
+      <input type="text" id="p2a2" class="allele-input" maxlength="1" value="t" oninput="drawPunnett()">
+    </div>
+  </div>
+  
+  <div class="punnett-grid">
+    <div class="punnett-cell off-grid"></div>
+    <div class="punnett-cell header" id="allele_p1a1">T</div>
+    <div class="punnett-cell header" id="allele_p1a2">t</div>
+    <div class="punnett-cell header" id="allele_p2a1">T</div>
+    <div class="punnett-cell punnett-result" id="r11" onclick="checkPunnett(this, 'TT')">TT</div>
+    <div class="punnett-cell punnett-result" id="r12" onclick="checkPunnett(this, 'Tt')">Tt</div>
+    <div class="punnett-cell header" id="allele_p2a2">t</div>
+    <div class="punnett-cell punnett-result" id="r21" onclick="checkPunnett(this, 'Tt')">Tt</div>
+    <div class="punnett-cell punnett-result" id="r22" onclick="checkPunnett(this, 'tt')">tt</div>
+  </div>
+  
+  <div style="margin-top: 15px; text-align: center;">
+      <h3>Probabilities (Click a square to check its $\text{genotype}$!)</h3>
+      <p id="genotypeRatio" style="font-size: 1.1rem;">Genotype $\text{Ratio}$: 1 $\text{TT}$ : 2 $\text{Tt}$ : 1 $\text{tt}$</p>
+      <p id="phenotypeRatio" style="font-size: 1.1rem; color: var(--ok);">Phenotype $\text{Ratio}$: 3 $\text{Tall}$ : 1 $\text{Short}$ (75% $\text{Tall}$, 25% $\text{Short}$)</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems ($\text{Genotype}$ $\text{Check}$)</h2>
+<p>For the $\text{genotype}$ shown, what is the correct term to describe it?</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) $\text{Genotype}$ $\text{Gg}$</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkVocab('q1', 'hetero', this)">Heterozygous</button>
+      <button onclick="checkVocab('q1', 'homo', this)">Homozygous</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) $\text{Genotype}$ $\text{BB}$</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkVocab('q2', 'homo_rec', this)">Homozygous Recessive</button>
+      <button onclick="checkVocab('q2', 'homo_dom', this)">Homozygous Dominant</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) $\text{Genotype}$ $\text{rr}$</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkVocab('q3', 'phenotype', this)">Phenotype</button>
+      <button onclick="checkVocab('q3', 'homo_rec', this)">Homozygous Recessive</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) $\text{The}$ $\text{physical}$ $\text{trait}$ ($\text{e.g.,}$ $\text{Blue}$ $\text{Eyes}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkVocab('q4', 'phenotype', this)">Phenotype</button>
+      <button onclick="checkVocab('q4', 'genotype', this)">Genotype</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Genetics is the language of life!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+window.checkVocab = (questionId, selectedAnswer, button) => {
+  // Vocab Answers
+  const correctAnswers = {
+    'q1': 'hetero', 
+    'q2': 'homo_dom', 
+    'q3': 'homo_rec', 
+    'q4': 'phenotype' 
+  };
+  const correctText = {
+    'hetero': 'Heterozygous (different alleles)', 
+    'homo_dom': 'Homozygous Dominant (two capital letters)', 
+    'homo_rec': 'Homozygous Recessive (two lowercase letters)', 
+    'phenotype': 'Phenotype (physical trait)' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct term is **${correctText[correctAnswers[questionId]]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+
+/* ===== Punnett Square Logic ===== */
+
+function normalizeGenotype(g) {
+  // Ensures the dominant allele (uppercase) is always listed first (e.g., tT becomes Tt)
+  if (g.length === 2) {
+    if (g[0] === g[0].toLowerCase() && g[1] === g[1].toUpperCase()) {
+      return g[1] + g[0];
+    }
+    return g;
+  }
+  return g;
+}
+
+function getGenotype(a1, a2) {
+  let g = a1 + a2;
+  if (g.length === 2) {
+    // Sorts alleles for consistent representation (e.g., Tt, not tT)
+    const sortedG = g.split('').sort((a, b) => {
+      if (a === a.toUpperCase() && b === b.toLowerCase()) return -1;
+      if (a === a.toLowerCase() && b === b.toUpperCase()) return 1;
+      return 0;
+    }).join('');
+    return sortedG;
+  }
+  return g;
+}
+
+function drawPunnett() {
+  const p1a1 = document.getElementById('p1a1').value.toUpperCase();
+  const p1a2 = document.getElementById('p1a2').value.toUpperCase();
+  const p2a1 = document.getElementById('p2a1').value.toUpperCase();
+  const p2a2 = document.getElementById('p2a2').value.toUpperCase();
+
+  if (!p1a1 || !p1a2 || !p2a1 || !p2a2) return;
+
+  // Update Punnett Grid Headers
+  document.getElementById('allele_p1a1').textContent = p1a1;
+  document.getElementById('allele_p1a2').textContent = p1a2;
+  document.getElementById('allele_p2a1').textContent = p2a1;
+  document.getElementById('allele_p2a2').textContent = p2a2;
+
+  // Calculate and update the four cells
+  const results = {
+    r11: getGenotype(p1a1, p2a1),
+    r12: getGenotype(p1a2, p2a1),
+    r21: getGenotype(p1a1, p2a2),
+    r22: getGenotype(p1a2, p2a2)
+  };
+  
+  let counts = {};
+  let totalCount = 0;
+
+  for (const id in results) {
+    const cell = document.getElementById(id);
+    const genotype = results[id];
+    cell.textContent = genotype;
+    cell.dataset.genotype = genotype;
+    cell.className = 'punnett-cell punnett-result'; // Reset class
+    
+    // Count for ratio calculation
+    counts[genotype] = (counts[genotype] || 0) + 1;
+    totalCount++;
+  }
+  
+  // Calculate and display Ratios
+  const sortedGenotypes = Object.keys(counts).sort();
+  const genotypeRatioText = sortedGenotypes.map(g => `${counts[g]} ${g}`).join(' : ');
+  document.getElementById('genotypeRatio').textContent = `Genotype Ratio: ${genotypeRatioText}`;
+
+  // Phenotype (Assuming the first letter's uppercase is dominant)
+  const dominantAllele = p1a1.toUpperCase();
+  const recessiveAllele = p1a1.toLowerCase();
+  let domCount = 0;
+  let recCount = 0;
+
+  for (const g in counts) {
+    // If the genotype contains the dominant allele (T_), it is the dominant phenotype (Tall)
+    if (g.includes(dominantAllele)) {
+      domCount += counts[g];
+    } 
+    // If it is homozygous recessive (tt), it is the recessive phenotype (Short)
+    else if (g === recessiveAllele + recessiveAllele) {
+      recCount += counts[g];
+    }
+  }
+
+  const phenotypeRatioText = `${domCount} Dominant : ${recCount} Recessive (${(domCount/totalCount)*100}% Dominant, ${(recCount/totalCount)*100}% Recessive)`;
+  document.getElementById('phenotypeRatio').textContent = `Phenotype Ratio: ${phenotypeRatioText}`;
+  document.getElementById('phenotypeRatio').style.color = (domCount > recCount) ? 'var(--dominant-color)' : 'var(--recessive-color)';
+}
+
+window.checkPunnett = (cell, expected) => {
+  // Logic for the click-to-check feature
+  if (cell.classList.contains('correct') || cell.classList.contains('incorrect')) return;
+  
+  const actual = cell.dataset.genotype;
+  
+  // Since the user can input any letter, we just check if the calculated genotype matches
+  if (actual === expected || normalizeGenotype(actual) === normalizeGenotype(expected)) {
+    cell.classList.add('correct');
+    quizFeedback.textContent = `🎉 Correct! The genotype is ${actual}.`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(5);
+  } else {
+    cell.classList.add('incorrect');
+    quizFeedback.textContent = `❌ Incorrect. The correct $\\text{genotype}$ is **${expected}**.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+// Initial Draw and Reset
+drawPunnett();
+
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelectorAll('.controls button').forEach(btn => btn.disabled = false);
+    tile.querySelector('.answer').textContent = '';
+  });
+
+  // Reset Punnett cells
+  document.querySelectorAll('.punnett-result').forEach(cell => {
+    cell.className = 'punnett-cell punnett-result';
+  });
+  
+  // Redraw with default Tt x Tt
+  document.getElementById('p1a1').value = 'T';
+  document.getElementById('p1a2').value = 't';
+  document.getElementById('p2a1').value = 'T';
+  document.getElementById('p2a2').value = 't';
+  drawPunnett();
+};
+</script>
+</body>
+</html>
