@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>10th Grade: Chemical Reactions ⚛️🔥</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --law-color: #f39c12;
+  --balance-color: #3498db;
+  --type-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.balance-input {
+  width: 50px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: 1px solid var(--balance-color);
+}
+</style>
+</head>
+<body>
+<header>
+<h1>10th Grade: Chemical Reactions ⚛️🔥</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Conservation}$ $\text{of}$ $\text{Mass}$ • $\text{Balancing}$ $\text{Equations}$ • $\text{Reaction}$ $\text{Types}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The $\text{Law}$ of $\text{Conservation}$ of $\text{Mass}$ ⚖️</h2>
+<p>
+  A **$\text{Chemical}$ $\text{Reaction}$** is a process that changes one set of chemicals ($\text{reactants}$) into a new set ($\text{products}$). Crucially, every reaction must obey the **$\text{Law}$ of $\text{Conservation}$ of $\text{Mass}$**:
+</p>
+<div class="concept-box" style="border-color: var(--law-color); text-align: center;">
+    <h3>$\text{Mass}$ $\text{is}$ $\text{neither}$ $\text{created}$ $\text{nor}$ $\text{destroyed}$.</h3>
+    <p>$$\text{Total} \text{ Mass} \text{ of} \text{ Reactants} = \text{Total} \text{ Mass} \text{ of} \text{ Products}$$</p>
+    <p style="font-size: 1.1rem; font-weight: bold;">This means the number of $\text{atoms}$ of $\text{each}$ $\text{element}$ must be the $\text{same}$ on both sides of the $\text{equation}$!</p>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="balancingTitle">
+<h2 id="balancingTitle">Balancing $\text{Chemical}$ $\text{Equations}$ 🔢</h2>
+<p>To satisfy the $\text{Law}$ of $\text{Conservation}$ of $\text{Mass}$, we place $\text{coefficients}$ (large numbers) in front of the chemical formulas to equalize the number of atoms on both sides.</p>
+<div class="concept-box" style="border-color: var(--balance-color);">
+    <h3>$\text{Balancing}$ $\text{Challenge}$: $\text{Combustion}$ $\text{of}$ $\text{Propane}$</h3>
+    <p>Balance the following unbalanced $\text{reaction}$ by entering the correct $\text{coefficients}$ (if the coefficient is $1$, you can leave the box empty or enter $1$).</p>
+    <p style="font-size: 1.5rem; font-family: monospace;">
+        <input type="number" min="1" id="c1" class="balance-input" value="1" placeholder="1"> $\text{C}_3\text{H}_8 +$
+        <input type="number" min="1" id="c2" class="balance-input" placeholder="O2"> $\text{O}_2 \longrightarrow$
+        <input type="number" min="1" id="c3" class="balance-input" placeholder="CO2"> $\text{CO}_2 +$
+        <input type="number" min="1" id="c4" class="balance-input" placeholder="H2O"> $\text{H}_2\text{O}$
+    </p>
+    <div class="controls" style="margin-top: 10px;">
+        <button onclick="checkBalance()">Check Balance</button>
+    </div>
+    <div id="balanceResult" class="answer" style="margin-top: 10px;"></div>
+</div>
+</section>
+
+<section aria-labelledby="typesTitle">
+<h2 id="typesTitle">The $\text{Five}$ $\text{Major}$ $\text{Reaction}$ $\text{Types}$  분류</h2>
+<p>Reactions are categorized based on how the $\text{reactants}$ rearrange to form $\text{products}$.</p>
+
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--type-color);">
+    <h3>1. $\text{Synthesis}$ ($\text{Combination}$)</h3>
+    <p>$$\text{A} + \text{B} \longrightarrow \text{AB}$$</p>
+    <p>Two or more simple substances combine to form a single, more complex substance ($\text{e.g.,} \text{ } \text{Na} + \text{Cl}_2 \to \text{NaCl}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--type-color);">
+    <h3>2. $\text{Decomposition}$</h3>
+    <p>$$\text{AB} \longrightarrow \text{A} + \text{B}$$</p>
+    <p>A single compound breaks down into two or more simpler substances ($\text{e.g.,} \text{ } \text{H}_2\text{O} \to \text{H}_2 + \text{O}_2$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--type-color);">
+    <h3>3. $\text{Single}$ $\text{Replacement}$</h3>
+    <p>$$\text{A} + \text{BC} \longrightarrow \text{AC} + \text{B}$$</p>
+    <p>One element trades places with another element in a compound ($\text{e.g.,} \text{ } \text{Zn} + \text{HCl} \to \text{ZnCl}_2 + \text{H}_2$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--type-color);">
+    <h3>4. $\text{Double}$ $\text{Replacement}$</h3>
+    <p>$$\text{AB} + \text{CD} \longrightarrow \text{AD} + \text{CB}$$</p>
+    <p>The $\text{cations}$ (positive ions) of two different compounds switch places ($\text{e.g.,} \text{ } \text{AgNO}_3 + \text{NaCl} \to \text{AgCl} + \text{NaNO}_3$).</p>
+  </div>
+</div>
+<div class="concept-box" style="border-color: var(--type-color); grid-column: span 2; margin-top: 10px;">
+    <h3>5. $\text{Combustion}$</h3>
+    <p>A substance ($\text{fuel}$), usually a $\text{hydrocarbon}$, reacts with $\text{Oxygen}$ ($\text{O}_2$), releasing $\text{energy}$ (heat and light). If the $\text{fuel}$ contains only $\text{C}$ and $\text{H}$ ($\text{or}$ $\text{C}, \text{H}, \text{O}$), the products are always $\text{Carbon}$ $\text{Dioxide}$ ($\text{CO}_2$) and $\text{Water}$ ($\text{H}_2\text{O}$).</p>
+</div>
+</section>
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Reaction}$ $\text{Type}$ $\text{Challenge}$!</h2>
+<p>Classify the following reactions by type (click the correct tile).</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ"></div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Reaction</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Reactions are just atoms rearranging to find stability!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Balancing Challenge Logic ===== */
+window.checkBalance = () => {
+  const c1 = parseInt(document.getElementById('c1').value) || 1;
+  const c2 = parseInt(document.getElementById('c2').value);
+  const c3 = parseInt(document.getElementById('c3').value);
+  const c4 = parseInt(document.getElementById('c4').value);
+  const resultElement = document.getElementById('balanceResult');
+
+  // Correct coefficients for C3H8 + O2 -> CO2 + H2O are 1, 5, 3, 4
+  const correct = { c1: 1, c2: 5, c3: 3, c4: 4 };
+
+  if (c1 !== 1 || c2 !== correct.c2 || c3 !== correct.c3 || c4 !== correct.c4) {
+    resultElement.innerHTML = `❌ Incorrect. Check your $\\text{C}$ $\\text{atoms}$, then $\\text{H}$ $\\text{atoms}$, and finally $\\text{O}$ $\\text{atoms}$.`;
+    resultElement.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  } else {
+    resultElement.innerHTML = `✅ Perfectly $\\text{Balanced}$! $1\\text{C}_3\\text{H}_8 + 5\\text{O}_2 \\longrightarrow 3\\text{CO}_2 + 4\\text{H}_2\\text{O}$. ($\text{C}: 3, \text{H}: 8, \text{O}: 10$ on both sides)`;
+    resultElement.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(10);
+  }
+};
+
+/* ===== Quiz (Reaction Type Match Up) ===== */
+const reactionQuestions = [
+  { eq: '$\\text{KClO}_3 \\longrightarrow \\text{KCl} + \\text{O}_2$', answer: 'Decomposition', hint: 'One compound breaks into multiple simpler substances.' },
+  { eq: '$\\text{Zn} + \\text{CuSO}_4 \\longrightarrow \\text{ZnSO}_4 + \\text{Cu}$', answer: 'Single Replacement', hint: 'One element ($\text{Zn}$) replaces an element in a compound ($\text{Cu}$ in $\text{CuSO}_4$).' },
+  { eq: '$\\text{CaO} + \\text{H}_2\\text{O} \\longrightarrow \\text{Ca}(\\text{OH})_2$', answer: 'Synthesis', hint: 'Two simpler substances combine to form one compound.' },
+  { eq: '$\\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2 \\longrightarrow 6\\text{CO}_2 + 6\\text{H}_2\\text{O}$', answer: 'Combustion', hint: 'A $\\text{hydrocarbon}$ reacts with $\\text{O}_2$ to produce $\\text{CO}_2$ and $\\text{H}_2\\text{O}$.' },
+  { eq: '$\\text{AgNO}_3 + \\text{NaCl} \\longrightarrow \\text{AgCl} + \\text{NaNO}_3$', answer: 'Double Replacement', hint: 'Two compounds trade $\\text{cations}$ (the first element in each formula).' },
+];
+
+const quizTypes = ['Synthesis', 'Decomposition', 'Single Replacement', 'Double Replacement', 'Combustion'];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = reactionQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = `Classify this reaction: ${currentQuestion.eq}`;
+  quizFeedback.textContent = 'Click the correct reaction type.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the reaction type tiles
+  const shuffledTypes = [...quizTypes].sort(() => 0.5 - Math.random());
+  shuffledTypes.forEach((type) => {
+    const tile = document.createElement('div');
+    tile.className = 'calc-tile';
+    tile.dataset.type = type;
+    tile.onclick = () => selectQuizItem(type, tile);
+    tile.style.borderColor = 'var(--type-color)';
+    tile.innerHTML = `<div style="font-weight:800; color:var(--type-color);">${type}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .calc-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct! This is a **${selectedType}** reaction.`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct answer is **${currentQuestion.answer}**. ${currentQuestion.hint}`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .calc-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  document.getElementById('balanceResult').textContent = '';
+  
+  // Reset balance inputs to default
+  document.getElementById('c1').value = 1;
+  document.getElementById('c2').value = null;
+  document.getElementById('c3').value = null;
+  document.getElementById('c4').value = null;
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
