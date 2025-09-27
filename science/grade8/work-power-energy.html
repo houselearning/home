@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>8th Grade: Work, Power & Energy 🛠️</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --work-color: #3498db;
+  --power-color: #e74c3c;
+  --energy-color: #f1c40f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+.formula-tile {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--work-color);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>8th Grade: Work, Power & Energy 🛠️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Formulas • Concepts Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Fundamentals of Physics! 🚀</h2>
+<p>
+  These three concepts—**Work**, **Power**, and **Energy**—are the core building blocks of physics. They are all related and describe how forces cause motion and how quickly that motion occurs.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: ${streak}</div>
+</div>
+</section>
+
+<section aria-labelledby="formulasTitle">
+<h2 id="formulasTitle">Key Definitions and Formulas 💡</h2>
+
+<div class="concept-box" style="border-color: var(--work-color);">
+  <h3>1. Work ($\text{W}$)</h3>
+  <p>Work is done when a **force** causes an object to move a certain **distance**. If you push on a wall but it doesn't move, you've done **zero** scientific work!</p>
+    $\text{W} = \text{F} \times \text{d}$
+  <p>Units: The unit for work is the **Joule** ($\text{J}$).</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--power-color);">
+  <h3>2. Power ($\text{P}$)</h3>
+  <p>Power is the **rate** at which work is done, or how fast energy is transferred. It's the difference between doing a job slowly or quickly.</p>
+    $\text{P} = \frac{\text{W}}{\text{t}} \quad \text{or} \quad \text{P} = \frac{\text{E}}{\text{t}}$
+  <p>Units: The unit for power is the **Watt** ($\text{W}$).</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--energy-color);">
+  <h3>3. Energy ($\text{E}$)</h3>
+  <p>Energy is the **ability to do work**. The two main forms of mechanical energy are Kinetic (motion) and Potential (stored).</p>
+    $\text{E}_{\text{k}} = \frac{1}{2} \text{mv}^2 \quad \text{and} \quad \text{E}_{\text{p}} = \text{mgh}$
+  <p>Units: The unit for energy is also the **Joule** ($\text{J}$).</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Potential vs. Kinetic Energy 🎢</h2>
+<p>Watch how energy transforms as a roller coaster moves up and down.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Energy Conversion Demo</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Units)</h2>
+<p>Click the correct $\text{SI}$ unit for each term.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) Unit of Work ($\text{W}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'joule', this)">Joule</button>
+      <button onclick="checkAnswer('q1', 'watt', this)">Watt</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) Unit of Power ($\text{P}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'newton', this)">Newton</button>
+      <button onclick="checkAnswer('q2', 'watt', this)">Watt</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Unit of Energy ($\text{E}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'joule', this)">Joule</button>
+      <button onclick="checkAnswer('q3', 'ampere', this)">Ampere</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Unit of Force ($\text{F}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'newton', this)">Newton</button>
+      <button onclick="checkAnswer('q4', 'meter', this)">Meter</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Formula Matching Challenge!</h2>
+<p>Click the correct formula for the term shown.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">What is the formula for **Potential Energy**?</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Formula</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Physics is everywhere!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Work, Power, Energy Specific Answers (Units)
+  const correctAnswers = {
+    'q1': 'joule', 
+    'q2': 'watt', 
+    'q3': 'joule', 
+    'q4': 'newton' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Energy Conversion Demo (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  // Draw a simplified ramp/roller coaster track
+  canvasCtx.strokeStyle = '#334155';
+  canvasCtx.lineWidth = 5;
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(50, h - 50);
+  canvasCtx.lineTo(w/4, 50); // High point (Potential Energy)
+  canvasCtx.lineTo(w*3/4, h - 50); // Low point (Kinetic Energy)
+  canvasCtx.lineTo(w - 50, h - 50); 
+  canvasCtx.stroke();
+  
+  const cartSize = 20;
+  
+  if (stage === 'high') {
+    // Cart at the highest point (Max Potential, Min Kinetic)
+    const x = w/4 - 10;
+    const y = 50 - cartSize;
+    canvasCtx.fillStyle = 'var(--energy-color)';
+    canvasCtx.fillRect(x, y, cartSize, cartSize);
+    drawText(canvasCtx, "MAX Potential Energy ($\text{E}_{\text{p}}$)", w/2, 40, 'var(--accent)', '24px');
+    drawText(canvasCtx, "Low speed, High height.", w/2, h/2);
+  } else if (stage === 'low') {
+    // Cart at the lowest point (Min Potential, Max Kinetic)
+    const x = w*3/4 - 10;
+    const y = h - 50 - cartSize;
+    canvasCtx.fillStyle = 'var(--power-color)';
+    canvasCtx.fillRect(x, y, cartSize, cartSize);
+    drawText(canvasCtx, "MAX Kinetic Energy ($\text{E}_{\text{k}}$)", w/2, 40, 'var(--accent)', '24px');
+    drawText(canvasCtx, "High speed, Low height.", w/2, h/2);
+  } else {
+    drawText(canvasCtx, "Press Play to see energy conversion!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "At the top of the hill, the object has maximum Potential Energy, stored energy of position.", viz: 'high' },
+  { audio: "As the object moves downward, Potential Energy is converted into Kinetic Energy, the energy of motion.", viz: 'initial' },
+  { audio: "At the bottom of the dip, Potential Energy is at its minimum, and Kinetic Energy is at its maximum.", viz: 'low' },
+  { audio: "The total amount of energy remains the same throughout the whole ride. This is the Law of Conservation of Energy.", viz: 'high' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Formula Matching) ===== */
+const quizFormulas = [
+  { name: 'Work', formula: 'W = F \\times d', type: 'work' },
+  { name: 'Power', formula: 'P = \\frac{W}{t}', type: 'power' },
+  { name: 'Kinetic Energy', formula: '\\text{E}_{\text{k}} = \\frac{1}{2} \\text{mv}^2', type: 'kinetic' },
+  { name: 'Potential Energy', formula: '\\text{E}_{\text{p}} = \text{mgh}', type: 'potential' },
+  { name: 'Incorrect Formula 1', formula: 'F = m \\times a', type: 'incorrect' },
+  { name: 'Incorrect Formula 2', formula: 'V = I \\times R', type: 'incorrect' },
+];
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestion = document.getElementById('quizQ');
+
+let currentQuestionType = '';
+
+function newQuiz() {
+  const targetNames = ['Work', 'Power', 'Kinetic Energy', 'Potential Energy'];
+  const randomTargetName = targetNames[Math.floor(Math.random() * targetNames.length)];
+  currentQuestionType = quizFormulas.find(f => f.name === randomTargetName).type;
+
+  quizQuestion.textContent = `What is the formula for **${randomTargetName}**?`;
+  quizFeedback.textContent = 'Select the correct formula below.';
+
+  // Get the correct formula and 3 random distractors (including incorrect and other correct ones)
+  const correctFormula = quizFormulas.find(f => f.type === currentQuestionType);
+  const distractors = quizFormulas
+    .filter(f => f.type !== currentQuestionType)
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 3);
+  
+  const options = [correctFormula, ...distractors].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  options.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'formula-tile';
+    tile.id = `formula-${index}`;
+    tile.dataset.type = item.type;
+    tile.onclick = () => selectQuizItem(item.type, tile, currentQuestionType);
+    
+    // Display the formula using MathJax delimiters for rendering
+    tile.innerHTML = `\$${item.formula}\$`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Trigger MathJax rendering on the new elements
+  if (window.MathJax) {
+    MathJax.typesetPromise([quizGrid]);
+  }
+}
+
+window.selectQuizItem = (selectedType, tile, correctType) => {
+  if (tile.classList.contains('disabled')) return; 
+  
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .formula-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === correctType) {
+    quizFeedback.textContent = `✅ Correct! You matched the formula!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.borderColor = 'var(--ok)';
+    updateScore(3); 
+    setTimeout(() => newQuiz(), 1500);
+  } else {
+    quizFeedback.textContent = `❌ Wrong. That is the formula for another concept.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.borderColor = 'var(--bad)';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .formula-tile`).forEach(t => {
+      if (t.dataset.type === correctType) {
+        t.style.borderColor = 'var(--ok)';
+        t.style.borderWidth = '4px';
+      }
+    });
+    setTimeout(() => newQuiz(), 3000); // Give time to see the correct answer
+  }
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
