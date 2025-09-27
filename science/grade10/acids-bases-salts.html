@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>10th Grade: Acids, Bases & Salts 🧪💧</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --acid-color: #e74c3c;
+  --base-color: #3498db;
+  --ph-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.ph-line {
+  height: 20px;
+  background: linear-gradient(to right, 
+    var(--acid-color), yellow, var(--ph-color)
+  );
+  border-radius: 5px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #333;
+}
+.ph-line span:nth-child(2) {
+  color: #000;
+}
+.ph-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.ph-label {
+  text-align: center; 
+  padding: 5px 0; 
+  border-top: 2px solid #333;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.type-tile {
+  flex: 1 1 180px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--base-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>10th Grade: Acids, Bases, and Salts 🧪💧</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Arrhenius}$ $\text{Definitions}$ • $\text{pH}$ $\text{Scale}$ • $\text{Neutralization}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The $\text{Arrhenius}$ $\text{Definitions}$ 💡</h2>
+<p>
+  The $\text{Arrhenius}$ definitions categorize substances based on how they ionize (break apart) when dissolved in $\text{water}$ ($\text{H}_2\text{O}$).
+</p>
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--acid-color);">
+    <h3>$\text{Acid}$</h3>
+    <p>A substance that produces $\text{Hydrogen}$ $\text{ions}$ ($\text{H}^+$) when dissolved in water.</p>
+    <p>$$\text{Example}: \text{HCl} (aq) \longrightarrow \text{H}^{+} (aq) + \text{Cl}^{-} (aq)$$</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--base-color);">
+    <h3>$\text{Base}$ ($\text{Alkali}$)</h3>
+    <p>A substance that produces $\text{Hydroxide}$ $\text{ions}$ ($\text{OH}^-$) when dissolved in water.</p>
+    <p>$$\text{Example}: \text{NaOH} (aq) \longrightarrow \text{Na}^{+} (aq) + \text{OH}^{-} (aq)$$</p>
+  </div>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="phTitle">
+<h2 id="phTitle">The $\text{pH}$ $\text{Scale}$ and $\text{Ion}$ $\text{Concentration}$ 🧪</h2>
+<p>
+  The **$\text{pH}$ $\text{Scale}$** measures the $\text{acidity}$ or $\text{basicity}$ of a solution based on the concentration of $\text{Hydrogen}$ $\text{ions}$ ($\text{H}^+$).
+</p>
+<div class="concept-box" style="border-color: var(--ph-color);">
+    <h3>The $\text{pH}$ $\text{Formula}$</h3>
+    <p>The concentration of $\text{H}^+$ ions is measured using the formula:</p>
+    $$\text{pH} = -\text{log} [\text{H}^+]$$
+    <p>where $[\text{H}^+]$ is the $\text{molar}$ $\text{concentration}$ of $\text{Hydrogen}$ $\text{ions}$.</p>
+</div>
+
+<div class="ph-grid">
+    <div class="concept-box" style="border-color: var(--acid-color);">
+        <h3>Acidic $\text{Solutions}$</h3>
+        <p>$\text{pH}$ **less** than 7. Have a $\text{higher}$ concentration of $\text{H}^+$ than $\text{OH}^-$.</p>
+    </div>
+    <div class="concept-box" style="border-color: var(--base-color);">
+        <h3>Basic ($\text{Alkaline}$) $\text{Solutions}$</h3>
+        <p>$\text{pH}$ **greater** than 7. Have a $\text{higher}$ concentration of $\text{OH}^-$ than $\text{H}^+$.</p>
+    </div>
+</div>
+<div style="text-align: center; margin-top: 15px;">
+    <p>The $\text{pH}$ $\text{Scale}$:</p>
+    <div class="ph-line">
+        <span>0 (Strong $\text{Acid}$)</span>
+        <span>7 ($\text{Neutral}$)</span>
+        <span>14 (Strong $\text{Base}$)</span>
+    </div>
+    <div class="ph-label" style="border-color: var(--acid-color); float: left; width: 49.5%;">**ACIDIC**</div>
+    <div class="ph-label" style="border-color: var(--base-color); float: right; width: 49.5%;">**BASIC**</div>
+    <div style="clear: both;"></div>
+</div>
+</section>
+
+<section aria-labelledby="neutralizationTitle">
+<h2 id="neutralizationTitle">Neutralization $\text{and}$ $\text{Salts}$ 💧</h2>
+<p>
+  A **$\text{Neutralization}$ $\text{Reaction}$** is a type of $\text{double}$ $\text{replacement}$ reaction between an $\text{Acid}$ and a $\text{Base}$. The products are always a **$\text{Salt}$** and **$\text{Water}$**.
+</p>
+<div class="concept-box" style="border-color: var(--ph-color); text-align: center;">
+    <h3>The $\text{General}$ $\text{Equation}$</h3>
+    $$\text{Acid} + \text{Base} \longrightarrow \text{Salt} + \text{Water}$$
+    <p style="font-size: 1.1rem; font-weight: bold;">$\text{Example}: \text{HCl} + \text{NaOH} \longrightarrow \text{NaCl} + \text{H}_2\text{O}$</p>
+    <p>In this example, $\text{NaCl}$ ($\text{Sodium}$ $\text{Chloride}$) is the $\text{Salt}$. A $\text{Salt}$ is an $\text{ionic}$ compound formed from the $\text{cation}$ of the $\text{base}$ and the $\text{anion}$ of the $\text{acid}$.</p>
+</div>
+</section>
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Classification}$ $\text{Challenge}$!</h2>
+<p>Classify the following substance/description as an $\text{Acid}$, $\text{Base}$, $\text{Salt}$, or $\text{Neutral}$ (click the correct tile).</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">A solution with a $\text{pH}$ of $12$.</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Question</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The world is a balance of $\text{H}^+$ and $\text{OH}^-$!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Quiz (Classification Challenge) ===== */
+const abnsQuestions = [
+  { 
+    question: 'A solution with a $\\text{pH}$ of $12$.', 
+    answer: 'Base', 
+    hint: 'A $\\text{pH}$ greater than 7 is $\\text{Basic}$.'
+  },
+  { 
+    question: 'The chemical $\\text{H}_2\\text{SO}_4$.', 
+    answer: 'Acid', 
+    hint: 'This compound starts with $\\text{H}$ and is $\\text{Sulfuric}$ $\\text{Acid}$.'
+  },
+  { 
+    question: 'A compound formed from the $\\text{cation}$ of a $\\text{base}$ and the $\\text{anion}$ of an $\\text{acid}$.', 
+    answer: 'Salt', 
+    hint: 'This is the definition of a $\\text{Salt}$.'
+  },
+  { 
+    question: 'A substance that produces $\\text{OH}^-$ ions in solution.', 
+    answer: 'Base', 
+    hint: 'The presence of $\\text{OH}^-$ ions (hydroxide) defines a $\\text{Base}$.'
+  },
+  { 
+    question: 'Pure distilled $\\text{water}$.', 
+    answer: 'Neutral', 
+    hint: 'Pure $\\text{water}$ has a $\\text{pH}$ of $7$, meaning it is $\\text{Neutral}$.'
+  },
+  { 
+    question: 'The reaction product $\\text{KNO}_3$.', 
+    answer: 'Salt', 
+    hint: 'This is $\\text{Potassium}$ $\\text{Nitrate}$, an $\\text{ionic}$ compound (a $\\text{Salt}$).'
+  },
+];
+
+const quizTypes = ['Acid', 'Base', 'Salt', 'Neutral'];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = abnsQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct classification.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the choices
+  const shuffledTypes = [...quizTypes].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledTypes.forEach((type) => {
+    const tile = document.createElement('div');
+    tile.className = 'type-tile';
+    tile.dataset.type = type;
+    tile.onclick = () => selectQuizItem(type, tile);
+    tile.style.borderColor = (type === 'Acid') ? 'var(--acid-color)' : ((type === 'Base') ? 'var(--base-color)' : 'var(--ph-color)');
+    tile.innerHTML = `<div style="font-weight:800; color:${tile.style.borderColor};">${type}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .type-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct answer is **${currentQuestion.answer}**. Hint: ${currentQuestion.hint}`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .type-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
