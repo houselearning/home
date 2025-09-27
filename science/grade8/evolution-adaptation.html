@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>8th Grade: Evolution & Adaptation 🧬</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --evolution-color: #00b894;
+  --adaptation-color: #fdcb6e;
+  --selection-color: #d63031;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.evidence-tile {
+  flex: 1 1 45%;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--evolution-color);
+  text-align: center;
+  cursor: pointer;
+}
+.evidence-tile:hover {
+  background: #f0fff0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>8th Grade: Evolution & Adaptation 🧬</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Natural Selection • Evidence Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Change Over Time 🕰️</h2>
+<p>
+  **Evolution** is the process by which populations of living organisms change over generations. It is driven by the interaction of organisms with their environment. The primary mechanism for evolution is $\text{Natural Selection}$, often called "survival of the fittest."
+</p>
+<p>
+  An **Adaptation** is an inherited trait that helps an organism survive and reproduce in its environment, like a polar bear's thick fur in the Arctic.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="selectionTitle">
+<h2 id="selectionTitle">Darwin's Theory: $\text{Natural Selection}$ 🐦</h2>
+<p>$\text{Natural Selection}$ works through four key steps:</p>
+
+<div class="concept-box" style="border-color: var(--adaptation-color);">
+  <h3>1. Overproduction</h3>
+  <p>Organisms produce more offspring than can possibly survive. This leads to competition.</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--evolution-color);">
+  <h3>2. Variation</h3>
+  <p>Individuals within a species have natural differences in traits (like size, color, speed). This variation comes from $\text{mutations}$ in $\text{DNA}$.</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--selection-color);">
+  <h3>3. Selection</h3>
+  <p>Some variations make an organism better suited ($\text{better adapted}$) to survive in its environment, making them more likely to live and reproduce.</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--accent);">
+  <h3>4. Adaptation & Inheritance</h3>
+  <p>The organisms that survive pass their helpful traits to their offspring. Over many generations, the beneficial trait becomes common in the population.</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Survival of the Fittest Example 🎬</h2>
+<p>Watch a simple demonstration of how an environment "selects" the best traits.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Start Camouflage Demo</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Concept Check)</h2>
+<p>Identify which term best fits the description.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) An inherited characteristic that increases survival.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'adaptation', this)">Adaptation</button>
+      <button onclick="checkAnswer('q1', 'mutation', this)">Mutation</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) The process where nature chooses the fittest organisms.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'evolution', this)">Evolution</button>
+      <button onclick="checkAnswer('q2', 'selection', this)">Natural Selection</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) The ultimate source of all new variations in a population.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'mutation', this)">Mutation</button>
+      <button onclick="checkAnswer('q3', 'fossil', this)">Fossil Record</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) The overall change in a species over millions of years.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'variation', this)">Variation</button>
+      <button onclick="checkAnswer('q4', 'evolution', this)">Evolution</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Evidence for Evolution Challenge!</h2>
+<p>Click on the examples that are considered **Strong Evidence** for the Theory of Evolution.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Find the Evidence! (There may be more than one correct answer per set)</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">New Evidence Set</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Evolution is the unifying theory of all biology.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Evolution & Adaptation Specific Answers
+  const correctAnswers = {
+    'q1': 'adaptation', 
+    'q2': 'selection', 
+    'q3': 'mutation', 
+    'q4': 'evolution' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Camouflage Demo (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+// Function to draw a simple bug (circle)
+function drawBug(canvasCtx, x, y, color) {
+  canvasCtx.fillStyle = color;
+  canvasCtx.beginPath();
+  canvasCtx.arc(x, y, 8, 0, Math.PI * 2);
+  canvasCtx.fill();
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  // Draw a simplified environment (e.g., green leaves)
+  canvasCtx.fillStyle = '#7bed9f';
+  canvasCtx.fillRect(0, 0, w, h);
+  
+  drawText(canvasCtx, "CAMOUFLAGE SELECTION", w/2, 40, '#04263b', '24px');
+  
+  const bugs = [
+    { x: w * 0.2, y: h * 0.5, color: 'green', adapted: true },
+    { x: w * 0.4, y: h * 0.7, color: 'blue', adapted: false },
+    { x: w * 0.6, y: h * 0.3, color: 'green', adapted: true },
+    { x: w * 0.8, y: h * 0.5, color: 'red', adapted: false },
+  ];
+
+  bugs.forEach(bug => drawBug(ctx, bug.x, bug.y, bug.color));
+  
+  if (stage === 'start') {
+    drawText(canvasCtx, "Variation: Bugs come in different colors.", w/2, h - 30);
+  } else if (stage === 'predation') {
+    // Highlight the non-adapted bugs (the ones that get 'eaten')
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 3;
+    bugs.filter(b => !b.adapted).forEach(bug => {
+      ctx.beginPath();
+      ctx.arc(bug.x, bug.y, 12, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+    drawText(canvasCtx, "Selection: Predators find the non-adapted (blue/red) bugs easier.", w/2, h - 30);
+  } else if (stage === 'end') {
+    // Show only the adapted bugs
+    ctx.fillStyle = 'var(--evolution-color)';
+    ctx.fillRect(0, 0, w, h); // Change background to show time passing
+    bugs.filter(b => b.adapted).forEach(bug => {
+      // Draw many more adapted bugs to simulate reproduction
+      drawBug(ctx, bug.x, bug.y, bug.color);
+      drawBug(ctx, bug.x + 30, bug.y + 10, bug.color);
+      drawBug(ctx, bug.x - 30, bug.y - 10, bug.color);
+    });
+    drawText(canvasCtx, "Inheritance: Only the adapted (green) bugs survive to reproduce.", w/2, h - 30);
+  } else {
+    drawText(canvasCtx, "Press Play to see Natural Selection in action!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "In this environment, we see bugs with different color variations.", viz: 'start' },
+  { audio: "A predator bird hunts the bugs. The bright colors stand out on the green leaves.", viz: 'predation' },
+  { audio: "The well-camouflaged green bugs survive and pass their genes on.", viz: 'end' },
+  { audio: "Over time, the entire population will be mostly green, an adaptation to this environment.", viz: 'start' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Evidence for Evolution) ===== */
+const quizEvidence = [
+  { text: 'Fossil Records showing transitional species and life changing over time.', type: 'strong', emoji: '🦴' },
+  { text: 'Homologous Structures: Similar bone structures in different species (like human arm and bat wing).', type: 'strong', emoji: '💪' },
+  { text: 'Analogous Structures: Structures with similar function but different ancestry (like a bird wing and a fly wing).', type: 'weak', emoji: '🦋' },
+  { text: 'Embryology: Similar development patterns in the early embryos of different species.', type: 'strong', emoji: '🐣' },
+  { text: 'The fact that all organisms use DNA as their genetic code.', type: 'strong', emoji: '🧬' },
+  { text: 'A random volcano eruption that kills most of the plant life in a region.', type: 'weak', emoji: '🌋' },
+];
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestion = document.getElementById('quizQ');
+
+let correctAnswersInSet = 0;
+let tilesSelected = 0;
+
+function newQuiz() {
+  // Select 2 strong and 2 weak items, then shuffle
+  const strongItems = quizEvidence.filter(item => item.type === 'strong').sort(() => 0.5 - Math.random()).slice(0, 2);
+  const weakItems = quizEvidence.filter(item => item.type === 'weak').sort(() => 0.5 - Math.random()).slice(0, 2);
+  const shuffledItems = [...strongItems, ...weakItems].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  correctAnswersInSet = 0;
+  tilesSelected = 0;
+
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'evidence-tile';
+    tile.id = `item-${index}`;
+    tile.dataset.type = item.type;
+    tile.onclick = () => selectQuizItem(item.type, tile);
+    
+    tile.innerHTML = `<div style="font-size:30px">${item.emoji}</div><div style="font-weight:700">${item.text}</div>`;
+    quizGrid.appendChild(tile);
+
+    if (item.type === 'strong') {
+      correctAnswersInSet++;
+    }
+  });
+  
+  quizQuestion.textContent = `Find ALL ${correctAnswersInSet} pieces of **Strong Evidence** for Evolution in this set!`;
+  quizFeedback.textContent = 'Click on the evidence you think supports evolution.';
+  document.getElementById('findSign').disabled = true;
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (tile.classList.contains('selected') || tile.classList.contains('disabled')) return; 
+
+  tilesSelected++;
+
+  if (selectedType === 'strong') {
+    quizFeedback.textContent = `✅ Correct! That is strong evidence. Keep going!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    tile.style.borderColor = 'var(--ok)';
+    updateScore(2);
+  } else {
+    quizFeedback.textContent = `❌ Wrong. That item is either weak evidence or not evidence for evolution.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.classList.add('disabled');
+    tile.style.borderColor = 'var(--bad)';
+    tile.onclick = null; // Disable the incorrect tile
+    updateScore(0);
+  }
+  
+  // Check for completion
+  const selectedCorrectCount = document.querySelectorAll('#quiz-grid .evidence-tile.selected').length;
+  if (selectedCorrectCount === correctAnswersInSet) {
+    quizFeedback.textContent = "🥳 Set Complete! You found all the strong evidence! Next set...";
+    document.getElementById('findSign').disabled = false;
+    document.querySelectorAll('#quiz-grid .evidence-tile').forEach(t => t.onclick = null); // Lock tiles
+    setTimeout(() => newQuiz(), 1500);
+  }
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
