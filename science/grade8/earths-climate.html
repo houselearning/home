@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>8th Grade: Earth's Climate 🌎</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --climate-color: #3498db;
+  --weather-color: #f1c40f;
+  --effect-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.factor-tile {
+  flex: 1 1 45%;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--climate-color);
+  text-align: center;
+  cursor: pointer;
+}
+.factor-tile:hover {
+  background: #f0fff0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>8th Grade: Earth's Climate 🌎</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Weather}$ vs. $\text{Climate}$ • $\text{Greenhouse Effect}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is $\text{Climate}$? 🌡️</h2>
+<p>
+  $\text{Climate}$ and $\text{Weather}$ are often confused! **$\text{Weather}$** is what's happening outside right now (e.g., "It's raining today"). **$\text{Climate}$** is the average pattern of $\text{weather}$ in a location over many years (e.g., "The $\text{climate}$ in the desert is usually hot and dry").
+</p>
+<p>
+  The most important natural process influencing $\text{Earth}$'s $\text{climate}$ is the $\text{Greenhouse Effect}$.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="effectTitle">
+<h2 id="effectTitle">The $\text{Greenhouse Effect}$ ☀️</h2>
+<p>Think of $\text{Earth}$'s atmosphere like a blanket or a greenhouse. It keeps us warm! This is done by special gases called **$\text{Greenhouse Gases}$** ($\text{GHGs}$).</p>
+
+<div class="concept-box" style="border-color: var(--effect-color);">
+  <h3>1. Solar Energy Arrives</h3>
+  <p>Shortwave $\text{radiation}$ from the sun enters the atmosphere and warms the $\text{Earth}$'s surface.</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--weather-color);">
+  <h3>2. Heat is Reradiated</h3>
+  <p>The warm $\text{Earth}$ surface releases heat back toward space as longwave infrared $\text{radiation}$.</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--climate-color);">
+  <h3>3. Trapping the Heat</h3>
+  <p>Greenhouse gases ($\text{like Carbon Dioxide ($\text{CO}_2$), Methane, and Water Vapor}$) trap some of this outgoing heat, keeping the $\text{Earth}$ warm enough for life.</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: $\text{Greenhouse Effect}$ and $\text{Climate Change}$ 🧊</h2>
+<p>Watch a simple demonstration of how $\text{GHGs}$ affect $\text{Earth}$'s temperature.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Start $\text{GHG}$ Demo</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems ($\text{Weather}$ vs. $\text{Climate}$)</h2>
+<p>Click the correct term for each statement.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) "It will be sunny and $85^\circ\text{F}$ tomorrow."</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'weather', this)">Weather</button>
+      <button onclick="checkAnswer('q1', 'climate', this)">Climate</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) The $\text{Arctic}$ region has temperatures below $0^\circ\text{C}$ most of the year.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'weather', this)">Weather</button>
+      <button onclick="checkAnswer('q2', 'climate', this)">Climate</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) The natural process that keeps $\text{Earth}$ habitable.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'effect', this)">Greenhouse Effect</button>
+      <button onclick="checkAnswer('q3', 'change', this)">Climate Change</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) The long-term rise in the average temperature of $\text{Earth}$'s $\text{climate}$.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'effect', this)">Greenhouse Effect</button>
+      <button onclick="checkAnswer('q4', 'change', this)">Climate Change</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ $\text{Greenhouse Gas}$ Challenge!</h2>
+<p>Click on the items that are considered **$\text{Greenhouse Gases}$** ($\text{GHGs}$) and contribute to warming.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Find the $\text{GHGs}$! (There are 2 correct answers per set)</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">New Gas Set</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Protect our planet's $\text{climate}$!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Climate Specific Answers (Weather vs. Climate, GH Effect vs. Change)
+  const correctAnswers = {
+    'q1': 'weather', 
+    'q2': 'climate', 
+    'q3': 'effect', 
+    'q4': 'change' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - GHG Demo (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  // Draw Earth
+  ctx.fillStyle = '#65c970';
+  ctx.beginPath();
+  ctx.arc(w/2, h + 100, 150, 0, Math.PI * 2, true);
+  ctx.fill();
+  drawText(ctx, "Earth's Surface", w/2, h - 50, '#04263b', '18px');
+  
+  // Draw atmosphere boundary
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(w/2, h + 100, 200, Math.PI * 1.25, Math.PI * 1.75);
+  ctx.stroke();
+  drawText(ctx, "Atmosphere", w/2, h/2 - 20, '#3498db', '22px');
+
+  // Draw sun rays (Shortwave)
+  ctx.strokeStyle = '#f1c40f';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(w*0.1 + i*100, 20);
+    ctx.lineTo(w*0.1 + i*100 + 50, h - 100);
+    ctx.stroke();
+  }
+  drawText(ctx, "Sunlight (Energy In)", 150, 20, '#f1c40f', '16px');
+
+  // Draw heat leaving (Longwave)
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(w*0.8 - i*100, h - 80);
+    ctx.lineTo(w*0.8 - i*100 - 50, 50);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]); // Reset line dash
+
+  if (stage === 'normal') {
+    drawText(ctx, "Natural $\\text{Greenhouse Effect}$ (Stable Climate)", w/2, 80, 'var(--effect-color)', '24px');
+    drawText(ctx, "Some heat trapped, some escapes. (Normal $\\text{GHGs}$)", w/2, h - 20);
+  } else if (stage === 'excess') {
+    ctx.fillStyle = '#d63031';
+    // Draw extra GHG molecules
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * w * 0.6 + w * 0.2, Math.random() * h * 0.6 + h * 0.2, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    drawText(ctx, "Enhanced $\\text{Greenhouse Effect}$ (Warming $\\text{Climate Change}$)", w/2, 80, 'var(--bad)', '24px');
+    drawText(ctx, "Too much heat trapped due to excess $\\text{GHGs}$!", w/2, h - 20);
+  } else {
+    drawText(ctx, "Press Play to see the $\\text{Greenhouse Effect}$!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "The natural $\\text{Greenhouse Effect}$ uses gases to trap just enough heat to keep $\\text{Earth}$ warm.", viz: 'normal' },
+  { audio: "This process is vital for life. Without it, $\\text{Earth}$ would be too cold, like Mars.", viz: 'normal' },
+  { audio: "However, human activities like burning fossil fuels release extra $\\text{GHGs}$ like $\\text{Carbon Dioxide}$.", viz: 'excess' },
+  { audio: "These extra gases trap too much heat, leading to an enhanced effect and rising global temperatures, known as $\\text{Climate Change}$.", viz: 'excess' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Greenhouse Gases) ===== */
+const quizGases = [
+  { text: 'Carbon Dioxide ($\text{CO}_2$)', type: 'ghg', emoji: '💨' },
+  { text: 'Nitrogen ($\text{N}_2$)', type: 'not-ghg', emoji: '☁️' },
+  { text: 'Methane ($\text{CH}_4$)', type: 'ghg', emoji: '🐄' },
+  { text: 'Oxygen ($\text{O}_2$)', type: 'not-ghg', emoji: '🌬️' },
+  { text: 'Water Vapor ($\text{H}_2\text{O}$)', type: 'ghg', emoji: '💧' },
+  { text: 'Argon ($\text{Ar}$)', type: 'not-ghg', emoji: '🔅' },
+];
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestion = document.getElementById('quizQ');
+
+let correctAnswersInSet = 0;
+const targetCorrectCount = 2; // Always 2 GHGs and 2 non-GHGs
+
+function newQuiz() {
+  // Select 2 GHGs and 2 non-GHGs, then shuffle
+  const ghgItems = quizGases.filter(item => item.type === 'ghg').sort(() => 0.5 - Math.random()).slice(0, targetCorrectCount);
+  const notGhgItems = quizGases.filter(item => item.type === 'not-ghg').sort(() => 0.5 - Math.random()).slice(0, targetCorrectCount);
+  const shuffledItems = [...ghgItems, ...notGhgItems].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  correctAnswersInSet = targetCorrectCount;
+
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'factor-tile';
+    tile.id = `item-${index}`;
+    tile.dataset.type = item.type;
+    tile.onclick = () => selectQuizItem(item.type, tile);
+    
+    tile.innerHTML = `<div style="font-size:30px">${item.emoji}</div><div style="font-weight:700">${item.text}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  quizQuestion.textContent = `Find ALL ${correctAnswersInSet} **Greenhouse Gases** ($\text{GHGs}$) in this set!`;
+  quizFeedback.textContent = 'Click on the gas that traps heat.';
+  document.getElementById('findSign').disabled = true;
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (tile.classList.contains('selected') || tile.classList.contains('disabled')) return; 
+
+  if (selectedType === 'ghg') {
+    quizFeedback.textContent = `✅ Correct! That is a $\\text{GHG}$. Keep going!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    tile.style.borderColor = 'var(--ok)';
+    updateScore(2);
+  } else {
+    quizFeedback.textContent = `❌ Wrong. That is not a $\\text{GHG}$ (it doesn't significantly trap heat).`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.classList.add('disabled');
+    tile.style.borderColor = 'var(--bad)';
+    tile.onclick = null; // Disable the incorrect tile
+    updateScore(0);
+  }
+  
+  // Check for completion
+  const selectedCorrectCount = document.querySelectorAll('#quiz-grid .factor-tile.selected').length;
+  if (selectedCorrectCount === correctAnswersInSet) {
+    quizFeedback.textContent = "🥳 Set Complete! You found all the $\\text{GHGs}$! Next set...";
+    document.getElementById('findSign').disabled = false;
+    document.querySelectorAll('#quiz-grid .factor-tile').forEach(t => t.onclick = null); // Lock tiles
+    setTimeout(() => newQuiz(), 1500);
+  }
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
