@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 11: Waves & Sound 🌊🔊</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --transverse-color: #f39c12;
+  --longitudinal-color: #3498db;
+  --sound-color: #e74c3c;
+  --formula-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+/* Custom style for the concepts display */
+.law-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.law-box h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.type-tile {
+  flex: 1 1 140px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--formula-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.calc-input {
+  width: 100px;
+  text-align: center;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 11: Waves & Sound 🌊🔊</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Transverse}$ $\text{vs.}$ $\text{Longitudinal}$ • $\vec{v}=f\lambda$ • $\text{Pitch}$ $\text{and}$ $\text{Loudness}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">What is a $\text{Wave}$? 🌀</h2>
+<p>
+  A **$\text{Wave}$** is a disturbance that $\text{transfers}$ $\text{energy}$ from one point to another without transferring $\text{matter}$. All waves require a **$\text{Medium}$** (the substance the wave travels through) except $\text{Electromagnetic}$ $\text{Waves}$ ($\text{light}$).
+</p>
+<div class="grid cols-3">
+  <div class="law-box" style="border-color: var(--transverse-color);">
+    <h3>1. $\text{Transverse}$ $\text{Waves}$</h3>
+    <p>The $\text{medium}$ $\text{moves}$ $\text{perpendicular}$ ($\mathbf{\perp}$) to the direction the $\text{energy}$ $\text{travels}$.</p>
+    <p style="font-weight: bold;">$\text{Examples}: \text{Water}$ $\text{waves}$, $\text{Light}$ ($\text{Electromagnetic}$ $\text{waves}$).</p>
+  </div>
+  <div class="law-box" style="border-color: var(--longitudinal-color);">
+    <h3>2. $\text{Longitudinal}$ $\text{Waves}$</h3>
+    <p>The $\text{medium}$ $\text{moves}$ $\text{parallel}$ ($\mathbf{\parallel}$) to the direction the $\text{energy}$ $\text{travels}$.</p>
+    <p style="font-weight: bold;">$\text{Examples}: \text{Sound}$ $\text{waves}$, $\text{P}$-$\text{waves}$ ($\text{Seismic}$).</p>
+  </div>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="propertiesTitle">
+<h2 id="propertiesTitle">Key $\text{Wave}$ $\text{Properties}$ and $\text{The}$ $\text{Wave}$ $\text{Equation}$ 📏</h2>
+
+<div class="grid cols-3">
+  <div class="law-box" style="border-color: var(--formula-color);">
+    <h3>$\text{Amplitude}$ ($\text{A}$)</h3>
+    <p>The maximum $\text{displacement}$ from the $\text{rest}$ $\text{position}$ ($\text{related}$ $\text{to}$ $\text{energy}$). $\text{Units}: \text{meters}$ ($\text{m}$).</p>
+  </div>
+  <div class="law-box" style="border-color: var(--formula-color);">
+    <h3>$\text{Wavelength}$ ($\lambda$)</h3>
+    <p>The distance between two consecutive identical points on a wave ($\text{e.g.,}$ $\text{crest}$ $\text{to}$ $\text{crest}$). $\text{Units}: \text{meters}$ ($\text{m}$).</p>
+  </div>
+  <div class="law-box" style="border-color: var(--formula-color);">
+    <h3>$\text{Frequency}$ ($f$)</h3>
+    <p>The number of $\text{waves}$ that $\text{pass}$ a $\text{fixed}$ $\text{point}$ per $\text{second}$. $\text{Units}: \text{Hertz}$ ($\text{Hz}$ or $\text{s}^{-1}$).</p>
+  </div>
+</div>
+<div class="law-box" style="border-color: var(--formula-color); margin-top: 15px; text-align: center;">
+    <h3>The $\text{Universal}$ $\text{Wave}$ $\text{Equation}$</h3>
+    <p>The $\text{speed}$ ($\vec{v}$) of any wave is determined by its $\text{frequency}$ ($f$) and $\text{wavelength}$ ($\lambda$).</p>
+    $$\vec{v} = f \lambda$$
+</div>
+</section>
+
+<section aria-labelledby="soundTitle">
+<h2 id="soundTitle">Sound $\text{Waves}$: $\text{Pitch}$ and $\text{Loudness}$ 🎶</h2>
+<p>
+  $\text{Sound}$ is a $\text{longitudinal}$ $\text{wave}$ created by $\text{vibrations}$ that travel through a $\text{medium}$.
+</p>
+<div class="grid cols-3">
+  <div class="law-box" style="border-color: var(--sound-color);">
+    <h3>$\text{Pitch}$</h3>
+    <p>Our perception of a sound's $\text{frequency}$.</p>
+    <p style="font-weight: bold;">$\text{High}$ $\text{Frequency}$ $\longleftrightarrow$ $\text{High}$ $\text{Pitch}$</p>
+  </div>
+  <div class="law-box" style="border-color: var(--sound-color);">
+    <h3>$\text{Loudness}$</h3>
+    <p>Our perception of a sound's $\text{intensity}$ ($\text{energy}$), which is related to its $\text{Amplitude}$.</p>
+    <p style="font-weight: bold;">$\text{Large}$ $\text{Amplitude}$ $\longleftrightarrow$ $\text{Loud}$ $\text{Sound}$</p>
+  </div>
+  <div class="law-box" style="border-color: var(--sound-color);">
+    <h3>$\text{Speed}$ $\text{of}$ $\text{Sound}$</h3>
+    <p>The speed of sound depends only on the $\text{medium}$ ($\text{material}$ $\text{and}$ $\text{temperature}$). It travels $\text{fastest}$ in $\text{solids}$ and $\text{slowest}$ in $\text{gases}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="waveCalcTitle">
+<h2 id="waveCalcTitle">Interactive $\text{Wave}$ $\text{Calculation}$ ($\vec{v} = f\lambda$) 🧮</h2>
+<p>Use the $\text{Universal}$ $\text{Wave}$ $\text{Equation}$ to calculate $\text{Wavelength}$.</p>
+
+<div class="law-box" style="border-color: var(--formula-color);">
+    <h3>Problem:</h3>
+    <p>A $\text{sound}$ $\text{wave}$ travels at $340 \text{ m}/\text{s}$ and has a $\text{frequency}$ of $680 \text{ Hz}$. What is its $\text{wavelength}$ ($\lambda$)?</p>
+
+    <p>$$\text{Calculation}: \lambda = \frac{\vec{v}}{f} = \frac{340 \text{ m}/\text{s}}{680 \text{ Hz}} = ? \text{ m}$$</p>
+
+    <div style="display: flex; gap: 15px; align-items: center; margin-top: 15px;">
+        <label for="lambdaInput" style="font-weight: bold;">Calculated $\text{Wavelength}$:</label>
+        <input type="number" step="0.1" id="lambdaInput" class="calc-input"> $\text{m}$
+        <button onclick="checkCalculation()">Check Answer</button>
+    </div>
+    <div id="calcResult" class="answer" style="margin-top: 10px;"></div>
+</div>
+</section>
+
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Wave}$ $\text{Concept}$ $\text{Check}$!</h2>
+<p>Identify the wave property or type best described by the scenario.</p>
+
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">The $\text{maximum}$ $\text{displacement}$ of a rope from its $\text{rest}$ $\text{position}$.</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Question</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Vibrations are everywhere!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Calculation Logic (Wave Equation) ===== */
+window.checkCalculation = () => {
+  const inputElement = document.getElementById('lambdaInput');
+  const resultElement = document.getElementById('calcResult');
+  const inputVal = parseFloat(inputElement.value);
+
+  // Calculation: lambda = v/f = 340 m/s / 680 Hz = 0.5 m
+  const correctVal = 0.5; 
+
+  if (isNaN(inputVal)) {
+    resultElement.textContent = 'Please enter a number.';
+    resultElement.className = 'answer bad';
+    updateScore(0);
+    return;
+  }
+
+  const tolerance = 0.01; 
+  if (Math.abs(inputVal - correctVal) < tolerance) {
+    resultElement.textContent = '✅ Excellent! $\\lambda = \\frac{340 \\text{ m}/\\text{s}}{680 \\text{ Hz}} = 0.5 \\text{ m}$';
+    resultElement.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(10);
+  } else {
+    resultElement.textContent = `❌ Incorrect. The correct answer is **$0.5$ $\\text{m}$**. Remember $\\lambda = \\vec{v}/f$.`;
+    resultElement.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+
+/* ===== Quiz (Wave Concept Identification) ===== */
+const waveQuestions = [
+  { 
+    question: 'The $\\text{maximum}$ $\\text{displacement}$ of a rope from its $\\text{rest}$ $\\text{position}$.', 
+    answer: 'Amplitude', 
+    hint: 'This measures the $\\text{energy}$ and $\\text{loudness}$ of a sound wave.'
+  },
+  { 
+    question: 'The $\\text{distance}$ between two consecutive $\\text{compressions}$ on a $\\text{sound}$ $\\text{wave}$.', 
+    answer: 'Wavelength', 
+    hint: 'This is the definition of $\\text{wavelength}$ ($\lambda$).'
+  },
+  { 
+    question: 'A wave where the $\\text{medium}$ $\\text{vibrates}$ $\\text{parallel}$ to the energy transfer direction.', 
+    answer: 'Longitudinal', 
+    hint: 'Sound waves are the most common $\\text{longitudinal}$ waves.'
+  },
+  { 
+    question: 'What property does the human ear perceive as **$\text{Pitch}$**?', 
+    answer: 'Frequency', 
+    hint: 'Higher $\\text{frequency}$ means a $\\text{higher}$ $\\text{pitch}$.'
+  },
+  { 
+    question: 'A ripple on a $\\text{water}$ $\\text{surface}$ is an example of this wave type.', 
+    answer: 'Transverse', 
+    hint: 'The water moves up/down ($\mathbf{\perp}$), while the wave travels forward.'
+  },
+];
+
+const quizChoices = ['Amplitude', 'Wavelength', 'Frequency', 'Transverse', 'Longitudinal'];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = waveQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct wave concept.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the choices
+  const shuffledTypes = [...quizChoices].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledTypes.forEach((type) => {
+    const tile = document.createElement('div');
+    tile.className = 'type-tile';
+    tile.dataset.type = type;
+    tile.onclick = () => selectQuizItem(type, tile);
+    // Assign colors based on the type
+    let color;
+    if (type.includes('Transverse')) color = 'var(--transverse-color)';
+    else if (type.includes('Longitudinal')) color = 'var(--longitudinal-color)';
+    else color = 'var(--formula-color)';
+    
+    tile.style.borderColor = color;
+    tile.innerHTML = `<div style="font-weight:800; color:${color};">${type}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .type-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct answer is **${currentQuestion.answer}**. Hint: ${currentQuestion.hint}`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .type-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  document.getElementById('calcResult').textContent = '';
+  document.getElementById('lambdaInput').value = '';
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
