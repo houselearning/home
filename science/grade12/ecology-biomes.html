@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 12: Ecology & Biomes 🌿🐻</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#2c3e50; --accent2:#34495e; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --eco-levels-color: #f39c12;
+  --trophic-color: #2ecc71;
+  --biome-color: #9b59b6;
+  --factor-color: #3498db;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:#ef4444}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.type-tile {
+  flex: 1 1 140px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--trophic-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 12: Ecology & Biomes 🌿🐻</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Ecosystems}$ • $\text{Trophic}$ $\text{Levels}$ • $\text{Energy}$ $\text{Pyramid}$ • $\text{Climate}$ $\text{Factors}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Ecology: $\text{Levels}$ $\text{of}$ $\text{Organization}$ 🔬</h2>
+<p>
+  **$\text{Ecology}$** is the study of the relationships between $\text{living}$ $\text{organisms}$ and their $\text{physical}$ $\text{environment}$.
+</p>
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--eco-levels-color);">
+    <h3>$\text{Population}$</h3>
+    <p>A $\text{group}$ of $\text{individuals}$ of the $\text{same}$ $\text{species}$ in the $\text{same}$ $\text{area}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--eco-levels-color);">
+    <h3>$\text{Community}$</h3>
+    <p>All the $\text{different}$ $\text{populations}$ of $\text{organisms}$ living in an $\text{area}$. ($\text{Biotic}$ only).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--eco-levels-color);">
+    <h3>$\text{Ecosystem}$</h3>
+    <p>The $\text{community}$ ($\text{biotic}$) $\text{interacting}$ with the $\text{abiotic}$ $\text{environment}$ ($\text{water}$, $\text{soil}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--eco-levels-color);">
+    <h3>$\text{Biosphere}$</h3>
+    <p>The $\text{sum}$ of all $\text{living}$ $\text{matter}$ on $\text{Earth}$ where $\text{life}$ $\text{exists}$.</p>
+  </div>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="energyTitle">
+<h2 id="energyTitle">Energy $\text{Flow}$: $\text{Trophic}$ $\text{Levels}$ ⬆️</h2>
+<p>
+  $\text{Energy}$ $\text{flows}$ through an $\text{ecosystem}$ starting with $\text{solar}$ $\text{energy}$, and is categorized into $\text{Trophic}$ $\text{Levels}$.
+</p>
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--trophic-color);">
+    <h3>1. $\text{Producers}$ ($\text{Autotrophs}$)</h3>
+    <p>Organisms that $\text{make}$ their $\text{own}$ $\text{food}$ ($\text{e.g.,}$ $\text{plants}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--trophic-color);">
+    <h3>2. $\text{Primary}$ $\text{Consumers}$ ($\text{Herbivores}$)</h3>
+    <p>Eat $\text{producers}$ ($\text{e.g.,}$ $\text{deer}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--trophic-color);">
+    <h3>3. $\text{Secondary}$ $\text{Consumers}$ ($\text{Carnivores}/\text{Omnivores}$)</h3>
+    <p>Eat $\text{primary}$ $\text{consumers}$ ($\text{e.g.,}$ $\text{fox}$).</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--trophic-color);">
+    <h3>$\text{The}$ $\text{10}\%$ $\text{Rule}$</h3>
+    <p>Only about **$\mathbf{10}\%$ $\text{of}$ $\text{the}$ $\text{energy}$** from one $\text{trophic}$ $\text{level}$ is $\text{transferred}$ to the $\text{next}$; the rest is $\text{lost}$ as $\text{heat}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="biomesTitle">
+<h2 id="biomesTitle">Biomes: $\text{Climate}$ $\text{and}$ $\text{Life}$ 🌍</h2>
+<p>
+  A **$\text{Biome}$** is a large $\text{regional}$ $\text{ecosystem}$ characterized by $\text{distinct}$ $\text{climate}$ $\text{and}$ $\text{plant}$ $\text{life}$. $\text{Climate}$ is the $\text{primary}$ $\text{factor}$ determining which $\text{biome}$ develops.
+</p>
+<div class="grid cols-3">
+  <div class="concept-box" style="border-color: var(--factor-color);">
+    <h3>1. $\text{Temperature}$</h3>
+    <p>The $\text{average}$ $\text{yearly}$ $\text{temperature}$ is critical. $\text{Determines}$ $\text{growing}$ $\text{season}$ $\text{length}$ and $\text{rates}$ of $\text{decay}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--factor-color);">
+    <h3>2. $\text{Precipitation}$</h3>
+    <p>The $\text{total}$ $\text{yearly}$ $\text{rainfall}/\text{snowfall}$. $\text{Limits}$ the $\text{biomass}$ $\text{that}$ $\text{can}$ $\text{grow}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--biome-color);">
+    <h3>$\text{Examples}$ $\text{of}$ $\text{Biomes}$</h3>
+    <p>$\text{Tundra}$ ($\text{low}$ $T$, $\text{low}$ $\text{P}$), $\text{Tropical}$ $\text{Rain}$ $\text{Forest}$ ($\text{high}$ $T$, $\text{high}$ $\text{P}$), $\text{Desert}$ ($\text{variable}$ $T$, $\text{very}$ $\text{low}$ $\text{P}$).</p>
+  </div>
+</div>
+</section>
+
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Ecology}$ $\text{Concept}$ $\text{Check}$!</h2>
+<p>Identify the correct $\text{Trophic}$ $\text{Level}$ for the organism described.</p>
+
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">A $\text{hawk}$ that $\text{primarily}$ $\text{eats}$ $\text{mice}$ (which $\text{eat}$ $\text{seeds}$).</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Question</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>All things are connected.</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+
+/* ===== Quiz (Trophic Level Identification) ===== */
+const quizQuestions = [
+  { 
+    question: 'A $\\text{hawk}$ that $\\text{primarily}$ $\\text{eats}$ $\\text{mice}$ (which $\\text{eat}$ $\\text{seeds}$).', 
+    answer: 'Secondary Consumer', 
+    hint: 'The $\\text{seeds}$ are $\\text{Producers}$, the $\\text{mice}$ are $\\text{Primary}$ $\\text{Consumers}$.'
+  },
+  { 
+    question: 'An $\\text{organism}$ that $\\text{uses}$ $\\text{photosynthesis}$ to $\\text{create}$ $\\text{food}$.', 
+    answer: 'Producer', 
+    hint: 'These are the foundation of $\\text{almost}$ $\\text{all}$ $\\text{food}$ $\\text{webs}$.'
+  },
+  { 
+    question: 'A $\\text{cow}$ $\\text{grazing}$ on $\\text{grass}$ in a $\\text{field}$.', 
+    answer: 'Primary Consumer', 
+    hint: 'The $\\text{cow}$ is an $\\text{herbivore}$ $\\text{eating}$ a $\\text{producer}$.'
+  },
+  { 
+    question: 'The $\\text{trophic}$ $\\text{level}$ that $\\text{contains}$ the $\\text{least}$ $\\text{energy}$ in a $\\text{four-level}$ $\\text{pyramid}$.', 
+    answer: 'Tertiary Consumer', 
+    hint: 'This is the $\\text{top}$ $\\text{carnivore}$ level.'
+  },
+  { 
+    question: 'A $\\text{mushroom}$ $\\text{breaking}$ $\\text{down}$ $\\text{dead}$ $\\text{wood}$.', 
+    answer: 'Decomposer', 
+    hint: 'These $\\text{recycle}$ $\\text{nutrients}$ back into the $\\text{ecosystem}$.'
+  },
+];
+
+const quizChoices = ['Producer', 'Primary Consumer', 'Secondary Consumer', 'Tertiary Consumer', 'Decomposer'];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = quizQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct Trophic Level or Role.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the choices
+  const shuffledTypes = [...quizChoices].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledTypes.forEach((type) => {
+    const tile = document.createElement('div');
+    tile.className = 'type-tile';
+    tile.dataset.type = type;
+    tile.onclick = () => selectQuizItem(type, tile);
+    // Color styling
+    tile.style.borderColor = 'var(--trophic-color)';
+    tile.innerHTML = `<div style="font-weight:800; color:var(--trophic-color);">${type}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .type-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    tile.querySelector('div').style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct answer is **${currentQuestion.answer}**. Hint: ${currentQuestion.hint}`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    tile.querySelector('div').style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .type-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+        t.style.backgroundColor = '#e6ffef';
+        t.querySelector('div').style.color = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>

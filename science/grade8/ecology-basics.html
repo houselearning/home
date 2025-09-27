@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>8th Grade: Ecology Basics 🌳</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --biotic-color: #2ecc71;
+  --abiotic-color: #3498db;
+  --energy-color: #f1c40f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.energy-tile {
+  flex: 1 1 200px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--energy-color);
+  text-align: center;
+  cursor: pointer;
+}
+.energy-tile.selected {
+  background: #fffbe6;
+  border-width: 4px;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>8th Grade: Ecology Basics 🌳</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Levels}$ of $\text{Organization}$ • $\text{Energy}$ $\text{Flow}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Studying the Web of Life 🕸️</h2>
+<p>
+  **$\text{Ecology}$** is the scientific study of how living things ($\text{organisms}$) interact with each other and with their surrounding environment. It explains how nature is organized into different levels, from small groups to the entire planet.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="levelsTitle">
+<h2 id="levelsTitle">Levels of $\text{Ecological}$ $\text{Organization}$ 🪜</h2>
+<p>The study of $\text{ecology}$ is organized into ascending levels of complexity:</p>
+
+<div class="concept-box" style="border-color: var(--biotic-color);">
+  <h3>1. Individual (Organism)</h3>
+  <p>A single living being (e.g., one fox 🦊).</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--biotic-color);">
+  <h3>2. Population</h3>
+  <p>A group of the **same species** living in the same area (e.g., all the foxes in a forest).</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--biotic-color);">
+  <h3>3. Community</h3>
+  <p>All the **different populations** (plants, animals, fungi) that live together in an area (e.g., foxes, rabbits, trees, and grass).</p>
+</div>
+
+<div class="concept-box" style="border-color: var(--abiotic-color);">
+  <h3>4. Ecosystem</h3>
+  <p>The **Community** ($\text{all living things}$) **PLUS** the **$\text{Abiotic}$** ($\text{non-living}$) $\text{factors}$ (e.g., foxes, rocks, water, and air).</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The $\text{Food}$ $\text{Chain}$ ($\text{Energy}$ $\text{Flow}$) 🔗</h2>
+<p>Watch how energy moves from the sun to $\text{producers}$ and $\text{consumers}$ in an $\text{ecosystem}$.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Start $\text{Food}$ $\text{Chain}$ Demo</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems ($\text{Biotic}$ vs. $\text{Abiotic}$)</h2>
+<p>Click whether the factor is **$\text{Biotic}$** ($\text{living}$) or **$\text{Abiotic}$** ($\text{non-living}$).</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) A deer drinking from a river.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'biotic', this)">Biotic</button>
+      <button onclick="checkAnswer('q1', 'abiotic', this)">Abiotic</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) The amount of sunlight hitting the forest floor.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'biotic', this)">Biotic</button>
+      <button onclick="checkAnswer('q2', 'abiotic', this)">Abiotic</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Bacteria decomposing a dead log.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'biotic', this)">Biotic</button>
+      <button onclick="checkAnswer('q3', 'abiotic', this)">Abiotic</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) The temperature of the water in a pond.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'biotic', this)">Biotic</button>
+      <button onclick="checkAnswer('q4', 'abiotic', this)">Abiotic</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ $\text{Trophic}$ $\text{Level}$ Challenge!</h2>
+<p>Click on the organisms in the correct order to form a basic **$\text{Food}$ $\text{Chain}$** (starting from $\text{Producer}$).</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Chain Length: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Start by clicking the $\text{Producer}$!</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">New $\text{Food}$ $\text{Chain}$</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Everything is connected!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Ecology Specific Answers (Biotic vs. Abiotic)
+  const correctAnswers = {
+    'q1': 'biotic', 
+    'q2': 'abiotic', 
+    'q3': 'biotic', 
+    'q4': 'abiotic' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct! (**Biotic** means living, **Abiotic** means non-living)';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Food Chain Demo (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawArrow(canvasCtx, x1, y1, x2, y2, color) {
+  const headlen = 10;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  canvasCtx.strokeStyle = color;
+  canvasCtx.lineWidth = 3;
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(x1, y1);
+  canvasCtx.lineTo(x2, y2);
+  canvasCtx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+  canvasCtx.moveTo(x2, y2);
+  canvasCtx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+  canvasCtx.stroke();
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  const y = h/2;
+  const x1 = w/5; const x2 = w/2; const x3 = w*4/5;
+  
+  drawText(ctx, "Food Chain: Energy Flow", w/2, 40, 'var(--accent)', '24px');
+  
+  // Draw Trophic Levels
+  drawText(ctx, "Grass 🌿 (Producer)", x1, y + 10, 'var(--biotic-color)');
+  drawText(ctx, "Rabbit 🐇 (Primary Consumer)", x2, y + 10, 'var(--biotic-color)');
+  drawText(ctx, "Fox 🦊 (Secondary Consumer)", x3, y + 10, 'var(--biotic-color)');
+  
+  drawText(ctx, "100% Energy", x1, y + 40, 'var(--energy-color)', '14px');
+  drawText(ctx, "10% Energy", x2, y + 40, 'var(--energy-color)', '14px');
+  drawText(ctx, "1% Energy", x3, y + 40, 'var(--energy-color)', '14px');
+  
+  if (stage === 'start') {
+    drawText(ctx, "Energy flows from Producers to Consumers.", w/2, h - 30);
+  } else if (stage === 'step1') {
+    drawArrow(ctx, x1 + 80, y, x2 - 80, y, 'var(--energy-color)');
+    drawText(ctx, "Rabbit eats Grass (Energy to Primary Consumer)", w/2, h - 30);
+  } else if (stage === 'step2') {
+    drawArrow(ctx, x1 + 80, y, x2 - 80, y, 'var(--energy-color)');
+    drawArrow(ctx, x2 + 90, y, x3 - 90, y, 'var(--energy-color)');
+    drawText(ctx, "Fox eats Rabbit (Energy to Secondary Consumer)", w/2, h - 30);
+  } else {
+    drawText(ctx, "Press Play to see the 10% Rule in action!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Energy begins with the $\\text{Producer}$, which makes its own food from the sun, like grass.", viz: 'start' },
+  { audio: "The $\\text{Primary Consumer}$, like a rabbit, eats the grass.", viz: 'step1' },
+  { audio: "When the rabbit is eaten by a $\\text{Secondary Consumer}$, like a fox, the energy continues to flow.", viz: 'step2' },
+  { audio: "Remember the 10% rule! Only about 10% of the energy is transferred to the next level.", viz: 'step2' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Food Chain Order) ===== */
+const quizChains = [
+  ['Grass', 'Grasshopper', 'Mouse', 'Snake'],
+  ['Algae', 'Zooplankton', 'Small Fish', 'Shark'],
+  ['Flower', 'Bee', 'Frog', 'Hawk'],
+  ['Tree Leaves', 'Caterpillar', 'Bird', 'Fox'],
+];
+
+let currentChain = [];
+let quizStep = 0;
+
+function newQuiz() {
+  const chain = quizChains[Math.floor(Math.random() * quizChains.length)];
+  currentChain = chain;
+  quizStep = 0;
+  
+  const shuffledChain = [...chain].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledChain.forEach((item) => {
+    const tile = document.createElement('div');
+    tile.className = 'energy-tile';
+    tile.dataset.organism = item;
+    tile.onclick = () => selectQuizItem(item, tile);
+    
+    tile.textContent = item;
+    quizGrid.appendChild(tile);
+  });
+  
+  document.getElementById('quizScore').textContent = `Chain Length: 0`;
+  quizQuestion.textContent = `Start by clicking the **Producer** (Step 1 of ${currentChain.length})!`;
+  quizFeedback.textContent = 'Energy starts with the plant.';
+  document.getElementById('findSign').disabled = true;
+}
+
+window.selectQuizItem = (selectedOrganism, tile) => {
+  if (tile.classList.contains('selected')) return; 
+
+  if (selectedOrganism === currentChain[quizStep]) {
+    quizFeedback.textContent = `✅ Correct! ${selectedOrganism} moves energy to the next level.`;
+    quizFeedback.className = 'answer ok';
+    tone(880 + (quizStep * 100), 0.06);
+    tile.classList.add('selected');
+    tile.onclick = null;
+    updateScore(3);
+    quizStep++;
+    document.getElementById('quizScore').textContent = `Chain Length: ${quizStep}`;
+
+    if (quizStep === currentChain.length) {
+      quizFeedback.textContent = "🥳 Chain Complete! Energy has reached the top consumer!";
+      document.getElementById('findSign').disabled = false;
+      setTimeout(() => newQuiz(), 1500);
+    } else {
+      quizQuestion.textContent = `Now click the next organism that eats the ${currentChain[quizStep - 1]} (Step ${quizStep + 1} of ${currentChain.length})!`;
+    }
+  } else {
+    quizFeedback.textContent = `❌ Wrong. ${selectedOrganism} is not the next consumer in this chain. Start over!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+    document.querySelectorAll('#quiz-grid .energy-tile').forEach(t => t.onclick = null);
+    document.getElementById('findSign').disabled = false;
+    setTimeout(() => newQuiz(), 3000); // Reset after delay
+  }
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  document.getElementById('quizScore').textContent = `Chain Length: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>9th Grade: DNA & RNA 🧬</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --dna-color: #3498db;
+  --rna-color: #f1c40f;
+  --synthesis-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.base-tile {
+  flex: 1 1 150px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--dna-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>9th Grade: DNA & RNA 🧬</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Structure}$ and $\text{Function}$ • $\text{Protein}$ $\text{Synthesis}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The $\text{Central}$ $\text{Dogma}$ of $\text{Biology}$ 📖</h2>
+<p>
+  **$\text{DNA}$** ($\text{Deoxyribonucleic}$ $\text{Acid}$) is the permanent genetic blueprint, stored safely in the $\text{nucleus}$. **$\text{RNA}$** ($\text{Ribonucleic}$ $\text{Acid}$) is the temporary working copy used to build $\text{proteins}$ outside the $\text{nucleus}$.
+</p>
+<div class="concept-box" style="border-color: var(--synthesis-color); text-align: center;">
+    $$\text{DNA} \xrightarrow{\text{Transcription}} \text{RNA} \xrightarrow{\text{Translation}} \text{Protein}$$
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="structureTitle">
+<h2 id="structureTitle">Comparing $\text{DNA}$ and $\text{RNA}$ 🔬</h2>
+
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--dna-color);">
+    <h3>$\text{DNA}$ ($\text{Blueprint}$)</h3>
+    <p><strong>Shape:</strong> $\text{Double}$ $\text{Helix}$ (2 strands)</p>
+    <p><strong>Sugar:</strong> $\text{Deoxyribose}$</p>
+    <p><strong>Bases:</strong> $\text{A}, \text{T}, \text{G}, \text{C}$</p>
+    <p><strong>Location:</strong> $\text{Nucleus}$</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--rna-color);">
+    <h3>$\text{RNA}$ ($\text{Worker}$)</h3>
+    <p><strong>Shape:</strong> $\text{Single}$ $\text{Strand}$</p>
+    <p><strong>Sugar:</strong> $\text{Ribose}$</p>
+    <p><strong>Bases:</strong> $\text{A}, \text{U}, \text{G}, \text{C}$</p>
+    <p><strong>Location:</strong> $\text{Nucleus}$ and $\text{Cytoplasm}$</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--dna-color);">
+    <h3>$\text{DNA}$ $\text{Base}$ $\text{Pairing}$</h3>
+    <p>Adenine ($\text{A}$) pairs with **Thymine ($\text{T}$)**.</p>
+    <p>Guanine ($\text{G}$) pairs with **Cytosine ($\text{C}$)**.</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--rna-color);">
+    <h3>$\text{RNA}$ $\text{Pairing}$ $\text{to}$ $\text{DNA}$</h3>
+    <p>Adenine ($\text{A}$) on $\text{DNA}$ pairs with **Uracil ($\text{U}$)** on $\text{RNA}$.</p>
+    <p>Thymine ($\text{T}$) on $\text{DNA}$ pairs with **Adenine ($\text{A}$)** on $\text{RNA}$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="synthesisTitle">
+<h2 id="synthesisTitle">Protein $\text{Synthesis}$ Steps 🏭</h2>
+<p>The process of turning genetic information ($\text{DNA}$) into a functional $\text{protein}$ has two main steps:</p>
+<div class="concept-box" style="border-color: var(--synthesis-color);">
+  <h3>$\text{Transcription}$ ($\text{Copying}$ $\text{the}$ $\text{Code}$)</h3>
+  <p>Occurs in the $\text{Nucleus}$. $\text{RNA}$ $\text{Polymerase}$ enzyme unwinds the $\text{DNA}$ gene and creates a single strand of messenger $\text{RNA}$ ($\text{mRNA}$) using the $\text{DNA}$ code as a template.</p>
+</div>
+<div class="concept-box" style="border-color: var(--synthesis-color);">
+  <h3>$\text{Translation}$ ($\text{Building}$ $\text{the}$ $\text{Protein}$)</h3>
+  <p>Occurs in the $\text{Cytoplasm}$ at the $\text{Ribosome}$. The $\text{mRNA}$ code is "read" in 3-base segments called **$\text{codons}$**. $\text{Transfer}$ $\text{RNA}$ ($\text{tRNA}$) brings the correct $\text{amino}$ $\text{acid}$ for each $\text{codon}$, forming a chain (the $\text{protein}$).</p>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems ($\text{Concept}$ $\text{Check}$)</h2>
+<p>Identify which molecule the statement refers to.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) Contains the base $\text{Thymine}$ ($\text{T}$).</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'dna', this)">DNA</button>
+      <button onclick="checkAnswer('q1', 'rna', this)">RNA</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) A single-stranded molecule.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'dna', this)">DNA</button>
+      <button onclick="checkAnswer('q2', 'rna', this)">RNA</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Holds the permanent, master copy of the genetic code.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'dna', this)">DNA</button>
+      <button onclick="checkAnswer('q3', 'rna', this)">RNA</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) $\text{tRNA}$ brings $\text{amino}$ $\text{acids}$ to the $\text{ribosome}$ to build $\text{protein}$.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'transcribe', this)">Transcription</button>
+      <button onclick="checkAnswer('q4', 'translate', this)">Translation</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ $\text{Base}$ $\text{Pairing}$ $\text{Challenge}$!</h2>
+<p>Click the correct base that would pair with the base shown. You are pairing the $\text{DNA}$ $\text{Template}$ to $\text{mRNA}$!</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">DNA Template Base: </div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Base</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The code for life is written in these molecules!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // DNA/RNA Specific Answers
+  const correctAnswers = {
+    'q1': 'dna', 
+    'q2': 'rna', 
+    'q3': 'dna', 
+    'q4': 'translate' 
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Quiz (Base Pairing) ===== */
+const dnaBases = ['A', 'T', 'G', 'C'];
+const rnaBases = ['U', 'A', 'C', 'G'];
+
+// Pairing rule for DNA TEMPLATE to mRNA
+function getMRNAPair(dnaBase) {
+  if (dnaBase === 'A') return 'U';
+  if (dnaBase === 'T') return 'A';
+  if (dnaBase === 'G') return 'C';
+  if (dnaBase === 'C') return 'G';
+  return null;
+}
+
+let currentDNABase = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random DNA base
+  currentDNABase = dnaBases[Math.floor(Math.random() * dnaBases.length)];
+  const correctMRNABase = getMRNAPair(currentDNABase);
+  
+  quizQuestionDisplay.textContent = `DNA Template Base: ${currentDNABase} (Pairs to mRNA Base)`;
+  quizFeedback.textContent = 'Click the corresponding mRNA base.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  
+  // Generate answer options (A, U, G, C) and shuffle
+  const options = ['A', 'U', 'G', 'C'].sort(() => 0.5 - Math.random());
+  
+  options.forEach((base) => {
+    const tile = document.createElement('div');
+    tile.className = 'base-tile';
+    tile.dataset.base = base;
+    tile.onclick = () => selectQuizItem(base, correctMRNABase, tile);
+    tile.style.borderColor = (base === correctMRNABase) ? 'var(--rna-color)' : 'var(--dna-color)';
+    tile.style.color = (base === correctMRNABase) ? 'var(--rna-color)' : 'var(--dna-color)';
+    tile.textContent = base;
+    quizGrid.appendChild(tile);
+  });
+}
+
+window.selectQuizItem = (selectedBase, correctBase, tile) => {
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .base-tile').forEach(t => t.onclick = null);
+
+  if (selectedBase === correctBase) {
+    quizFeedback.textContent = `✅ Correct! DNA ${currentDNABase} pairs with mRNA ${correctBase}.`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. DNA ${currentDNABase} pairs with mRNA **${correctBase}**. Remember $\text{T} \to \text{A}$ and $\text{A} \to \text{U}$!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .base-tile`).forEach(t => {
+      if (t.dataset.base === correctBase) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3000);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>

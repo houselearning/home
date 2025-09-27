@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The World of Microorganisms 🦠</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f7f0fb;
+}
+/* Custom style for the types display */
+.type-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.type-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>The World of Microorganisms 🦠</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Types • Good vs. Bad Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Life Too Small to See! 🔎</h2>
+<p>
+  **Microorganisms**, or microbes, are tiny living things that can only be seen using a microscope. They are everywhere—in the air, in the soil, in water, and even inside your body! The four main types we study are **Bacteria**, **Fungi**, **Protozoa**, and **Viruses** (though viruses aren't technically "living").
+</p>
+<p>
+  Most microbes are harmless, and many are actually **beneficial**! They help us digest food, clean up pollution, and make yogurt and cheese.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="typesTitle">
+<h2 id="typesTitle">The Four Main Microbes 🔬</h2>
+<p>They all look and act differently:</p>
+<div class="type-box">
+  <h3>1. Bacteria 🟢 (Single-celled)</h3>
+  <p>Simple, one-celled organisms. They can be good (like those in your gut) or bad (causing illnesses like strep throat). They reproduce very quickly!</p>
+</div>
+<div class="type-box">
+  <h3>2. Fungi 🍄 (Yeast, Molds)</h3>
+  <p>Organisms like yeast (used to bake bread) and mold (found on old food). Some cause minor infections like athlete's foot.</p>
+</div>
+<div class="type-box">
+  <h3>3. Viruses 🔴 (Non-living)</h3>
+  <p>The smallest of all. Viruses are NOT cells—they are genetic material wrapped in a protein coat. They must invade a host cell to reproduce. They cause the flu and colds.</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Germ Theory of Disease 🎬</h2>
+<p>Watch how scientists discovered that tiny microbes cause sickness.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What is it?)</h2>
+<p>Read the description and click the correct microorganism.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) Must invade a host cell to reproduce.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'virus', this)">Virus</button>
+      <button onclick="checkAnswer('q1', 'bacteria', this)">Bacteria</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) Used to make bread rise and brew beer.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'bacteria', this)">Bacteria</button>
+      <button onclick="checkAnswer('q2', 'fungi', this)">Fungi (Yeast)</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Simple single-celled organisms that cause strep throat.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'protozoa', this)">Protozoa</button>
+      <button onclick="checkAnswer('q3', 'bacteria', this)">Bacteria</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Microbe that is generally considered non-living.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'virus', this)">Virus</button>
+      <button onclick="checkAnswer('q4', 'fungi', this)">Fungi</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Good or Bad Microbe?</h2>
+<p>Click on the examples that show a **Beneficial (Good)** use for microorganisms!</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Is the microbe's job helpful or harmful?</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Set of Jobs</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>You are never truly alone—you have trillions of microbes with you!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Microorganisms Specific Answers
+  const correctAnswers = {
+    'q1': 'virus', 'q2': 'fungi', 'q3': 'bacteria', 'q4': 'virus'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. It's the **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Adapted for Microorganism Size/View (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  // Draw a simplified field of view
+  canvasCtx.strokeStyle = 'var(--muted)';
+  canvasCtx.lineWidth = 1;
+  canvasCtx.strokeRect(50, 50, w - 100, h - 100);
+  drawText(canvasCtx, "MICROSCOPE VIEW", w/2, 40, 'var(--accent)', '24px');
+  
+  if (stage === 'bacteria') {
+    // Draw bacteria (rods and spheres)
+    canvasCtx.fillStyle = '#2ecc71';
+    canvasCtx.beginPath();
+    canvasCtx.arc(w/4, h/2, 15, 0, Math.PI * 2); canvasCtx.fill();
+    canvasCtx.fillRect(w/2 - 50, h/2 - 5, 100, 10);
+    drawText(canvasCtx, "Bacteria are single cells.", w/2, h/2 + 100);
+  } else if (stage === 'virus') {
+    // Draw virus (much smaller, needs higher magnification)
+    canvasCtx.fillStyle = '#e74c3c';
+    canvasCtx.beginPath();
+    canvasCtx.arc(w/2, h/2, 5, 0, Math.PI * 2); canvasCtx.fill();
+    canvasCtx.beginPath();
+    canvasCtx.arc(w/2 + 50, h/2 - 30, 5, 0, Math.PI * 2); canvasCtx.fill();
+    drawText(canvasCtx, "Viruses are much, much smaller.", w/2, h/2 + 100);
+  } else {
+    drawText(canvasCtx, "Press Play to see the microbes in action!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Microorganisms are invisible to the naked eye. We need a microscope to see them.", viz: 'initial' },
+  { audio: "Bacteria are tiny, independent cells that come in different shapes, like spheres or rods.", viz: 'bacteria' },
+  { audio: "Viruses are smaller than bacteria. They must infect another cell to make copies of themselves.", viz: 'virus' },
+  { audio: "Fungi include yeast, which can also be seen under a scope.", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Good vs. Bad) ===== */
+const quizItems = [
+  { type: 'good', text: 'Bacteria in the gut helping digest food', emoji: '🥗' },
+  { type: 'bad', text: 'Fungi (mold) spoiling a loaf of bread', emoji: '🍞' },
+  { type: 'good', text: 'Yeast making dough rise for baking', emoji: '🍕' },
+  { type: 'bad', text: 'A virus causing the flu or a cold', emoji: '🤧' },
+  { type: 'good', text: 'Bacteria used to clean up oil spills', emoji: '♻️' },
+  { type: 'bad', text: 'Bacteria causing a painful tooth cavity', emoji: '🦷' },
+];
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+  const targetType = 'good';
+  
+  // Select 2 good and 2 bad items, then shuffle
+  const goodItems = quizItems.filter(item => item.type === targetType).sort(() => 0.5 - Math.random()).slice(0, 2);
+  const badItems = quizItems.filter(item => item.type !== targetType).sort(() => 0.5 - Math.random()).slice(0, 2);
+  const shuffledItems = [...goodItems, ...badItems].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = `item-${index}`;
+    tile.dataset.type = item.type;
+    tile.onclick = () => selectQuizItem(item.type, tile, targetType);
+    
+    const emoji = document.createElement('div');
+    emoji.style.fontSize = '40px';
+    emoji.textContent = item.emoji;
+    
+    const text = document.createElement('div');
+    text.style.fontWeight = '700';
+    text.textContent = item.text;
+
+    tile.appendChild(emoji);
+    tile.appendChild(text);
+    quizGrid.appendChild(tile);
+  });
+  
+  quizQuestion.textContent = `Click on the examples that show a **Beneficial (Good)** use for microorganisms!`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll('#quiz-grid .tile').forEach(t => t.classList.remove('selected', 'disabled'));
+}
+
+window.selectQuizItem = (selectedType, tile, targetType) => {
+  if (tile.classList.contains('selected') || tile.classList.contains('disabled')) return; 
+
+  if (selectedType === targetType) {
+    quizFeedback.textContent = `✅ Correct! That microbe is helping us or the environment!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    updateScore(2);
+
+    // Check if all correct examples are selected (there are 2 good examples)
+    const correctTiles = Array.from(document.querySelectorAll('#quiz-grid .tile[data-type="good"]'));
+    const correctCount = correctTiles.filter(t => t.classList.contains('selected')).length;
+    if (correctCount === correctTiles.length) { 
+      quizFeedback.textContent = "✅ Excellent! All beneficial microbes found. Next set...";
+      setTimeout(() => newQuiz(), 1500);
+    }
+  } else {
+    quizFeedback.textContent = `❌ Wrong. That microbe causes a problem or illness! Try again!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+    tile.classList.add('disabled');
+    tile.onclick = null; // Disable the incorrect tile
+  }
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const tiles = document.querySelectorAll('#quiz-grid .tile');
+  tiles.forEach(tile => tile.classList.remove('selected', 'disabled'));
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  newQuiz();
+};
+</script>
+</body>
+</html>

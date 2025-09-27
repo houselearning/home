@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>8th Grade: Acids & Bases 🧪</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --acid-color: #3498db;
+  --base-color: #2ecc71;
+  --neutral-color: #f1c40f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.ph-scale {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  background: linear-gradient(to right, 
+    var(--acid-color), 
+    var(--acid-color), 
+    var(--acid-color), 
+    var(--neutral-color) 46%, 
+    var(--neutral-color) 54%, 
+    var(--base-color), 
+    var(--base-color), 
+    var(--base-color)
+  );
+  border-radius: 10px;
+  margin-top: 15px;
+  position: relative;
+}
+.ph-marker {
+  font-weight: 700;
+  position: absolute;
+  top: 45px;
+  color: #04263b;
+  transform: translateX(-50%);
+}
+.ph-marker.acid { left: 15%; }
+.ph-marker.neutral { left: 50%; }
+.ph-marker.base { left: 85%; }
+</style>
+</head>
+<body>
+<header>
+<h1>8th Grade: Acids & Bases 🧪</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{pH}$ Scale • Properties Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">Chemistry in the Kitchen and Lab! 🍋</h2>
+<p>
+  **Acids** and **Bases** are two fundamental types of chemical compounds that are found everywhere, from your kitchen pantry to your body. Their properties are defined by the way they behave in water, specifically how they relate to the concentration of $\text{H}^+$ (hydrogen) ions and $\text{OH}^-$ (hydroxide) ions.
+</p>
+<p>
+  The most important concept is the $\text{pH}$ **Scale**, which measures how acidic or basic a substance is.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: ${streak}</div>
+</div>
+</section>
+
+<section aria-labelledby="phTitle">
+<h2 id="phTitle">The $\text{pH}$ Scale: From 0 to 14 📏</h2>
+<p>The $\text{pH}$ scale runs from 0 (most acidic) to 14 (most basic). It is a **logarithmic scale**, meaning a change of 1 $\text{pH}$ unit means a tenfold ($10\text{x}$) change in strength!</p>
+
+<div class="ph-scale">
+  <div class="ph-marker acid">0 - Strong Acid</div>
+  <div class="ph-marker neutral" style="top:5px;font-size:24px;">7 - Neutral</div>
+  <div class="ph-marker base">14 - Strong Base</div>
+</div>
+<div style="margin-top:60px;">
+<div class="concept-box">
+  <h3>Acids ($\text{pH} < 7$)</h3>
+  <p>Release $\text{H}^+$ ions in water. **Taste sour** (like lemons) and turn litmus paper **red**. Examples: Stomach acid, vinegar.</p>
+</div>
+<div class="concept-box">
+  <h3>Bases ($\text{pH} > 7$)</h3>
+  <p>Release $\text{OH}^-$ ions in water. **Taste bitter**, feel **slippery** (like soap), and turn litmus paper **blue**. Examples: Baking soda, drain cleaner.</p>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Neutralization 🤝</h2>
+<p>Watch what happens when an acid meets a base. They cancel each other out!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Neutralization Demo</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Property Identification)</h2>
+<p>Read the property and click whether it describes an Acid or a Base.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) Turns blue litmus paper red.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'acid', this)">Acid</button>
+      <button onclick="checkAnswer('q1', 'base', this)">Base</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) Has a $\text{pH}$ value of 11.5.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'acid', this)">Acid</button>
+      <button onclick="checkAnswer('q2', 'base', this)">Base</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Reacts with a metal (e.g., zinc) to produce $\text{H}_2$ gas.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'acid', this)">Acid</button>
+      <button onclick="checkAnswer('q3', 'base', this)">Base</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Feels slippery and is often used in cleaning products.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'acid', this)">Acid</button>
+      <button onclick="checkAnswer('q4', 'base', this)">Base</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ $\text{pH}$ Scale Challenge!</h2>
+<p>Drag the item to the $\text{pH}$ region you think is correct.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Where does this item belong on the $\text{pH}$ scale?</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">New Item</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The balance of acids and bases is key to life!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Acids & Bases Specific Answers
+  const correctAnswers = {
+    'q1': 'acid', // Turns blue litmus red
+    'q2': 'base', // pH > 7
+    'q3': 'acid', // Reacts with metals
+    'q4': 'base' // Slippery feel
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct answer is **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Neutralization Demo (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  // Draw beakers
+  const beakerX = w/2;
+  const beakerY = h/2 + 50;
+  const beakerW = 200;
+  const beakerH = 150;
+
+  // Draw beaker outline
+  canvasCtx.strokeStyle = '#334155';
+  canvasCtx.lineWidth = 2;
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(beakerX - beakerW/2, beakerY - beakerH);
+  canvasCtx.lineTo(beakerX + beakerW/2, beakerY - beakerH);
+  canvasCtx.lineTo(beakerX + beakerW/2 - 10, beakerY);
+  canvasCtx.lineTo(beakerX - beakerW/2 + 10, beakerY);
+  canvasCtx.closePath();
+  canvasCtx.stroke();
+  
+  let liquidColor;
+  let text;
+
+  if (stage === 'acid') {
+    liquidColor = 'var(--acid-color)';
+    text = "Start: Strong Acid (low $\text{pH}$)";
+  } else if (stage === 'base') {
+    liquidColor = 'var(--base-color)';
+    text = "Adding Base... ($\text{OH}^-$ ions)";
+  } else if (stage === 'neutral') {
+    liquidColor = 'var(--neutral-color)';
+    text = "End: Neutral ($\text{pH}=7$) - Water and Salt!";
+  } else {
+    liquidColor = '#f0f0f0';
+    text = "Press Play to see Acid + Base = Neutral!";
+  }
+
+  // Draw liquid
+  canvasCtx.fillStyle = liquidColor;
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(beakerX - beakerW/2 + 15, beakerY - 20);
+  canvasCtx.lineTo(beakerX + beakerW/2 - 15, beakerY - 20);
+  canvasCtx.lineTo(beakerX + beakerW/2 - 15, beakerY);
+  canvasCtx.lineTo(beakerX - beakerW/2 + 15, beakerY);
+  canvasCtx.closePath();
+  canvasCtx.fill();
+
+  drawText(canvasCtx, "Neutralization Demo", w/2, 40, 'var(--accent)', '24px');
+  drawText(canvasCtx, text, w/2, beakerY + 30);
+}
+
+const tutorialSteps = [
+  { audio: "Neutralization is when an acid and a base react together.", viz: 'acid' },
+  { audio: "The $\text{H}^+$ ions from the acid combine with the $\text{OH}^-$ ions from the base.", viz: 'base' },
+  { audio: "This reaction forms water ($\text{H}_2\text{O}$) and a salt, resulting in a neutral $\text{pH}$ of 7.", viz: 'neutral' },
+  { audio: "For example, taking an antacid (a base) for an upset stomach (too much acid) is neutralization.", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (pH Scale Challenge) ===== */
+const quizItems = [
+  { type: 'acid', text: 'Lemon Juice 🍋 ($\text{pH} \approx 2$)', emoji: 'Acid' },
+  { type: 'base', text: 'Bleach 🧼 ($\text{pH} \approx 13$)', emoji: 'Base' },
+  { type: 'neutral', text: 'Pure Water 💧 ($\text{pH}=7$)', emoji: 'Neutral' },
+  { type: 'acid', text: 'Black Coffee ☕ ($\text{pH} \approx 5$)', emoji: 'Acid' },
+  { type: 'base', text: 'Baking Soda 🥣 ($\text{pH} \approx 9$)', emoji: 'Base' },
+  { type: 'acid', text: 'Stomach Acid 💥 ($\text{pH} \approx 1.5$)', emoji: 'Acid' },
+  { type: 'neutral', text: 'Blood 🩸 ($\text{pH} \approx 7.4$)', emoji: 'Neutral' },
+  { type: 'base', text: 'Soap Suds ($\text{pH} \approx 10$)', emoji: 'Base' },
+];
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestion = document.getElementById('quizQ');
+
+// Defines the three selection targets for the quiz
+const quizTargets = [
+  { type: 'acid', name: 'ACIDIC ($\text{pH} < 7$)', color: 'var(--acid-color)' },
+  { type: 'neutral', name: 'NEUTRAL ($\text{pH} \approx 7$)', color: 'var(--neutral-color)' },
+  { type: 'base', name: 'BASIC ($\text{pH} > 7$)', color: 'var(--base-color)' }
+];
+
+function newQuiz() {
+  // Select 4 random unique items
+  const shuffledItems = quizItems.sort(() => 0.5 - Math.random()).slice(0, 4);
+  
+  quizGrid.innerHTML = '';
+  // Use the targets as the draggable tiles in this challenge
+  quizTargets.forEach((target, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = `target-${target.type}`;
+    tile.dataset.type = target.type;
+    tile.style.backgroundColor = target.color + '33'; // light background
+    tile.style.borderColor = target.color;
+    tile.style.color = target.color;
+
+    tile.innerHTML = `<div style="font-size:24px;font-weight:900;">${target.name}</div>`;
+    quizGrid.appendChild(tile);
+  });
+
+  // The item to be tested is one of the 4 random items
+  const currentItem = shuffledItems[Math.floor(Math.random() * shuffledItems.length)];
+  quizGrid.dataset.correctType = currentItem.type;
+  
+  quizQuestion.textContent = `Which area on the scale best describes: **${currentItem.text}**?`;
+  quizFeedback.textContent = 'Click the box that matches the item.';
+  
+  // Attach event listeners to the target tiles
+  document.querySelectorAll('#quiz-grid .tile').forEach(tile => {
+    tile.onclick = () => selectQuizItem(tile.dataset.type, tile, quizGrid.dataset.correctType);
+    tile.classList.remove('selected', 'disabled');
+  });
+}
+
+window.selectQuizItem = (selectedType, tile, correctType) => {
+  if (tile.classList.contains('disabled')) return; 
+
+  if (selectedType === correctType) {
+    quizFeedback.textContent = `✅ Correct! ${tile.textContent.trim()} is the right classification!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    updateScore(3); 
+    // Disable all options and load next question
+    document.querySelectorAll('#quiz-grid .tile').forEach(t => t.disabled = true);
+    setTimeout(() => newQuiz(), 1500);
+  } else {
+    quizFeedback.textContent = `❌ Wrong. ${tile.textContent.trim()} is incorrect. Try another one!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+    tile.classList.add('disabled');
+    tile.onclick = null; // Disable the incorrect tile
+  }
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>

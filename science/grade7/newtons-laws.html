@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Newton's Laws of Motion 🚀</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f7f0fb;
+}
+/* Custom style for the Law display */
+.law-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.law-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Newton's Laws of Motion 🚀</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Practice • Law Sorting Game</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Rules of Movement! 🍎</h2>
+<p>
+  **Sir Isaac Newton** was a brilliant scientist who figured out the three fundamental rules that govern how everything moves (or stays still) in the universe. These are the three **Laws of Motion**.
+</p>
+<p>
+  These laws explain everything from why a soccer ball stops rolling to how rockets launch into space. They all involve **force**, which is a push or a pull.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="lawsTitle">
+<h2 id="lawsTitle">The Three Laws Summarized 📝</h2>
+<div class="law-box">
+  <h3>1st Law: Inertia</h3>
+  <p>An object in motion stays in motion, and an object at rest stays at rest, unless acted upon by an **unbalanced force**.</p>
+</div>
+<div class="law-box">
+  <h3>2nd Law: F = ma</h3>
+  <p>The **acceleration** of an object depends on its **mass** and the **force** applied to it. More force = more acceleration. More mass = less acceleration for the same force. *$(\text{Force} = \text{Mass} \times \text{Acceleration})$*</p>
+</div>
+<div class="law-box">
+  <h3>3rd Law: Action-Reaction</h3>
+  <p>For every action, there is an equal and opposite reaction.</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: The Law of Inertia (1st Law) 🎬</h2>
+<p>Watch how objects resist changes to their motion.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Which Law is It?)</h2>
+<p>Read the scenario and click which of Newton's Laws it demonstrates.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) A tennis ball is easier to throw than a bowling ball.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', '2nd', this)">2nd Law (F=ma)</button>
+      <button onclick="checkAnswer('q1', '3rd', this)">3rd Law</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) You are pushed forward when a car suddenly stops.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', '1st', this)">1st Law (Inertia)</button>
+      <button onclick="checkAnswer('q2', '3rd', this)">3rd Law</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) A rocket launches upward by pushing hot gas downward.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', '2nd', this)">2nd Law</button>
+      <button onclick="checkAnswer('q3', '3rd', this)">3rd Law (Action-Reaction)</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) A soccer ball stops rolling due to friction.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', '1st', this)">1st Law (Inertia)</button>
+      <button onclick="checkAnswer('q4', '3rd', this)">3rd Law</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Law Sorting Challenge!</h2>
+<p>Click on the example that matches the law displayed.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Match the scenario to the Law!</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Start Challenge</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>These laws explain almost all motion you see every day!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Newton's Laws Specific Answers
+  const correctAnswers = {
+    'q1': '2nd', 'q2': '1st', 'q3': '3rd', 'q4': '1st'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. It's the ${correctAnswers[questionId]} Law.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Adapted for Newton's 1st Law ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  const boxSize = 80;
+  const boxY = h/2 - boxSize/2;
+  const boxX = w/2 - boxSize/2;
+
+  if (stage === 'rest') {
+    // Draw box at rest
+    canvasCtx.fillStyle = '#2ecc71';
+    canvasCtx.fillRect(boxX, boxY, boxSize, boxSize);
+    drawText(canvasCtx, "Object at REST", w/2, h/2 + boxSize);
+    drawText(canvasCtx, "It will stay still...", w/2, h/2 - boxSize);
+  } else if (stage === 'motion') {
+    // Draw box in motion
+    canvasCtx.fillStyle = '#3498db';
+    canvasCtx.fillRect(w/4, boxY, boxSize, boxSize);
+    // Draw arrow for motion
+    canvasCtx.strokeStyle = 'var(--accent2)';
+    canvasCtx.lineWidth = 5;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(w/4 + boxSize, h/2);
+    canvasCtx.lineTo(w * 3/4, h/2);
+    canvasCtx.stroke();
+    drawText(canvasCtx, "Object in MOTION", w/2, h/2 + boxSize);
+    drawText(canvasCtx, "...unless a force stops it (like friction or a wall).", w/2, h/2 - boxSize);
+  } else {
+    drawText(canvasCtx, "Press Play to see Newton's First Law (Inertia)!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Newton's First Law is also called the Law of Inertia.", viz: 'initial' },
+  { audio: "Inertia means an object at rest will stay at rest.", viz: 'rest' },
+  { audio: "And an object in motion will stay in motion at the same speed and direction.", viz: 'motion' },
+  { audio: "This only changes if an unbalanced force, like a kick or friction, acts on it.", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Law Sorting) ===== */
+const quizLaws = ['1st Law: Inertia', '2nd Law: F=ma', '3rd Law: Action-Reaction'];
+const quizItems = [
+  { law: '1st Law: Inertia', text: 'A puck sliding on ice until it hits the wall.', emoji: '🏒' },
+  { law: '1st Law: Inertia', text: 'Dust flying off a rug when you shake it.', emoji: '🧹' },
+  { law: '2nd Law: F=ma', text: 'It takes more effort to push an empty shopping cart than a full one.', emoji: '🛒' },
+  { law: '2nd Law: F=ma', text: 'Kicking a soccer ball harder makes it go faster (accelerate more).', emoji: '⚽' },
+  { law: '3rd Law: Action-Reaction', text: 'A bird pushing air down to fly up.', emoji: '🐦' },
+  { law: '3rd Law: Action-Reaction', text: 'When you jump, your feet push the floor down, and the floor pushes you up.', emoji: '🦘' },
+];
+
+let currentQuizLaw = '';
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+  const allItems = [...quizItems];
+  
+  // Pick a random law to quiz the user on
+  currentQuizLaw = quizLaws[Math.floor(Math.random() * quizLaws.length)];
+  
+  // Select one correct item for that law and three incorrect items (one from the other two laws)
+  const correctItem = allItems.filter(item => item.law === currentQuizLaw)[Math.floor(Math.random() * 2)];
+  
+  let incorrectItems = allItems.filter(item => item.law !== currentQuizLaw).sort(() => 0.5 - Math.random()).slice(0, 3);
+
+  const shuffledItems = [correctItem, ...incorrectItems].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = `item-${index}`;
+    // Store the correct answer type in the tile's data attribute
+    tile.dataset.law = item.law;
+    tile.onclick = () => selectQuizItem(item.law, tile);
+    
+    const emoji = document.createElement('div');
+    emoji.style.fontSize = '40px';
+    emoji.textContent = item.emoji;
+    
+    const text = document.createElement('div');
+    text.style.fontWeight = '700';
+    text.textContent = item.text;
+
+    tile.appendChild(emoji);
+    tile.appendChild(text);
+    quizGrid.appendChild(tile);
+  });
+  
+  quizQuestion.textContent = `Which scenario is an example of the **${currentQuizLaw}**?`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll('#quiz-grid .tile').forEach(t => t.classList.remove('selected', 'disabled'));
+}
+
+window.selectQuizItem = (selectedLaw, tile) => {
+  if (tile.classList.contains('selected')) return;
+
+  if (selectedLaw === currentQuizLaw) {
+    quizFeedback.textContent = `✅ Correct! That's a perfect example of the ${currentQuizLaw}!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    updateScore(3); // Give bonus points for the quiz
+
+    // Disable all buttons and prepare for next quiz
+    document.querySelectorAll('#quiz-grid .tile').forEach(t => t.disabled = true);
+    setTimeout(() => newQuiz(), 1500);
+  } else {
+    quizFeedback.textContent = `❌ Wrong. That example actually shows the **${selectedLaw}**. Try again!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+    tile.classList.add('disabled'); // Visually mark as incorrect
+    tile.onclick = null; // Disable the incorrect tile
+  }
+};
+
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const tiles = document.querySelectorAll('#quiz-grid .tile');
+  tiles.forEach(tile => tile.classList.remove('selected', 'disabled'));
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  newQuiz();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Periodic Table ⚛️</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}
+.ok{color:var(--ok)}
+.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f7f0fb;
+}
+/* Custom style for the element tile visual aid */
+.element-tile-example {
+  background: #f0f0ff;
+  border: 2px solid var(--accent);
+  padding: 15px;
+  border-radius: 10px;
+  max-width: 160px;
+  margin: 20px auto;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.element-tile-example .atomic-number { font-size: 1.1rem; text-align: left; color: var(--accent2);}
+.element-tile-example .symbol { font-size: 3.5rem; font-weight: 900; margin: -10px 0; color: var(--bad); }
+.element-tile-example .name { font-size: 0.8rem; text-transform: capitalize; color: var(--muted);}
+.element-tile-example .mass { font-size: 0.9rem; text-align: right; color: var(--ok);}
+</style>
+</head>
+<body>
+<header>
+<h1>The Periodic Table ⚛️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Element Facts • Property Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Element Master Chart! 🗺️</h2>
+<p>
+  The **Periodic Table** is a chart that organizes all the known **elements**, the basic building blocks of matter. It's organized so that elements with similar properties are placed together. Think of it like a library for atoms!
+</p>
+<p>
+  Each element is made of only one type of atom. They are arranged by their **Atomic Number** (the number of protons) and by how their electrons are set up.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="elementTileTitle">
+<h2 id="elementTileTitle">Reading an Element Tile 🤓</h2>
+<p>Every box on the table is called an element tile and tells you four important things. Here is a simple example for **Hydrogen** (H):</p>
+<div class="element-tile-example">
+  <div class="atomic-number">1</div>
+  <div class="symbol">H</div>
+  <div class="name">Hydrogen</div>
+  <div class="mass">1.008</div>
+</div>
+<ul>
+  <li>**1. Atomic Number (1):** The number of **protons**. This is the element's ID!</li>
+  <li>**2. Element Symbol (H):** A one or two-letter short form.</li>
+  <li>**3. Element Name (Hydrogen):** The full name of the element.</li>
+  <li>**4. Atomic Mass (1.008):** The average mass of the atom (protons + neutrons).</li>
+</ul>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Periods and Groups 🎬</h2>
+<p>Learn how the rows and columns on the table work!</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (What Does It Mean?)</h2>
+<p>Choose the correct term for each part of the table.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) What are the horizontal rows called?</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'period', this)">Period</button>
+      <button onclick="checkAnswer('q1', 'group', this)">Group</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) What are the vertical columns called?</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'period', this)">Period</button>
+      <button onclick="checkAnswer('q2', 'group', this)">Group (Family)</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Elements in a **Group** share similar...</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'properties', this)">Chemical Properties</button>
+      <button onclick="checkAnswer('q3', 'mass', this)">Atomic Mass</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) What is unique to every element?</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'number', this)">Atomic Number</button>
+      <button onclick="checkAnswer('q4', 'symbol', this)">Symbol</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Element Property Sort!</h2>
+<p>Click on the properties that describe a **Metal**! (The left side of the table).</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Click on the metal property!</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Set of Properties</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>The Periodic Table is chemistry's most powerful cheat sheet!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Periodic Table Specific Answers
+  const correctAnswers = {
+    'q1': 'period', 'q2': 'group', 'q3': 'properties', 'q4': 'number'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. Hint: ${correctAnswers[questionId]}`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Adapted for Periodic Table (Placeholder) ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  if (stage === 'period') {
+    drawText(canvasCtx, "Periods are Rows (Left to Right)", w/2, h/2 - 100);
+    canvasCtx.strokeStyle = 'var(--accent2)';
+    canvasCtx.lineWidth = 10;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(w/4, h/2);
+    canvasCtx.lineTo(w * 3/4, h/2);
+    canvasCtx.stroke();
+    drawText(canvasCtx, "They tell us the number of electron shells.", w/2, h/2 + 50);
+  } else if (stage === 'group') {
+    drawText(canvasCtx, "Groups are Columns (Top to Bottom)", w/2, h/2 - 100);
+    canvasCtx.strokeStyle = 'var(--bad)';
+    canvasCtx.lineWidth = 10;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(w/2, h/4);
+    canvasCtx.lineTo(w/2, h * 3/4);
+    canvasCtx.stroke();
+    drawText(canvasCtx, "They share similar properties.", w/2, h/2 + 100);
+  } else {
+    drawText(canvasCtx, "Press Play to see how the Periodic Table is organized!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "The Periodic Table has rows called Periods and columns called Groups.", viz: 'initial' },
+  { audio: "Periods run horizontally, left to right. Elements in a period have the same number of electron shells.", viz: 'period' },
+  { audio: "Groups, or Families, run vertically, top to bottom. Elements in a group share similar chemical properties.", viz: 'group' },
+  { audio: "The table is arranged primarily by increasing Atomic Number, the number of protons.", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Metals vs. Nonmetals) ===== */
+const quizItems = [
+  { type: 'metal', text: 'Shiny (Lustrous)', emoji: '✨' },
+  { type: 'nonmetal', text: 'Dull (Not Shiny)', emoji: '🌫️' },
+  { type: 'metal', text: 'Good Conductor (Heat/Electricity)', emoji: '⚡' },
+  { type: 'nonmetal', text: 'Insulator (Poor Conductor)', emoji: '🛑' },
+  { type: 'metal', text: 'Malleable (Bendable/Hammered)', emoji: '🔨' },
+  { type: 'nonmetal', text: 'Brittle (Breaks Easily)', emoji: '💔' },
+  { type: 'metal', text: 'Ductile (Can be pulled into wires)', emoji: '🧶' },
+  { type: 'nonmetal', text: 'Often a gas or solid (not liquid)', emoji: '💨' },
+];
+
+let quizScore = 0;
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select 2 metal and 2 nonmetal properties, then shuffle
+  const metalItems = quizItems.filter(item => item.type === 'metal').sort(() => 0.5 - Math.random()).slice(0, 2);
+  const nonmetalItems = quizItems.filter(item => item.type === 'nonmetal').sort(() => 0.5 - Math.random()).slice(0, 2);
+  const shuffledItems = [...metalItems, ...nonmetalItems].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = `item-${index}`;
+    tile.onclick = () => selectQuizItem(item.type, tile);
+    
+    const emoji = document.createElement('div');
+    emoji.style.fontSize = '40px';
+    emoji.textContent = item.emoji;
+    
+    const text = document.createElement('div');
+    text.style.fontWeight = '700';
+    text.textContent = item.text;
+
+    tile.appendChild(emoji);
+    tile.appendChild(text);
+    quizGrid.appendChild(tile);
+  });
+  
+  quizQuestion.textContent = `Click on the properties that describe a **Metal**!`;
+  quizFeedback.textContent = '';
+  // Allow user to keep trying on the same set of buttons
+  document.querySelectorAll('#quiz-grid .tile').forEach(t => t.classList.remove('selected', 'disabled'));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (tile.classList.contains('selected')) return; // Already answered correctly
+
+  if (selectedType === 'metal') {
+    quizFeedback.textContent = `✅ Correct! ${tile.querySelector('div:last-child').textContent} is a property of metals!`;
+    quizFeedback.className = 'answer ok';
+    quizScore++;
+    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    updateScore(1);
+
+    // Check if all metals in the current set are selected
+    const allTiles = document.querySelectorAll('#quiz-grid .tile');
+    const correctCount = Array.from(allTiles).filter(t => t.classList.contains('selected')).length;
+    if (correctCount >= 2) { // There are 2 metal properties per quiz
+      quizFeedback.textContent = "✅ All Correct! Moving to the next set...";
+      setTimeout(() => newQuiz(), 1500);
+    }
+  } else {
+    quizFeedback.textContent = `❌ Wrong. ${tile.querySelector('div:last-child').textContent} describes a Nonmetal.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+    tile.classList.add('disabled'); // Visually mark as incorrect but don't prevent next round
+  }
+};
+
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const tiles = document.querySelectorAll('#quiz-grid .tile');
+  tiles.forEach(tile => tile.classList.remove('selected', 'disabled'));
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  newQuiz();
+};
+</script>
+</body>
+</html>

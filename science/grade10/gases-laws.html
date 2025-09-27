@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>10th Grade: Gases & Their Laws 🎈</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --kmt-color: #f39c12;
+  --variable-color: #3498db;
+  --law-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.law-tile {
+  flex: 1 1 180px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--law-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>10th Grade: Gases & Their Laws 🎈🌡️</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Kinetic}$ $\text{Theory}$ • $\text{Boyle's}$ $\text{Law}$ • $\text{Charles'}$ $\text{Law}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The $\text{Kinetic}$ $\text{Molecular}$ $\text{Theory}$ ($\text{KMT}$) 💨</h2>
+<p>
+  $\text{Gases}$ are the most energetic state of matter. The **$\text{Kinetic}$ $\text{Molecular}$ $\text{Theory}$** describes the behavior of an $\text{ideal}$ $\text{gas}$ based on three main assumptions:
+</p>
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--kmt-color);">
+    <h3>1. $\text{Particle}$ $\text{Motion}$</h3>
+    <p>Gas particles are in constant, random, and rapid motion.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--kmt-color);">
+    <h3>2. $\text{Volume}$ $\text{of}$ $\text{Particles}$</h3>
+    <p>The volume of the particles themselves is negligible (almost zero) compared to the volume of the container.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--kmt-color);">
+    <h3>3. $\text{Collisions}$ $\text{and}$ $\text{Forces}$</h3>
+    <p>Collisions are perfectly $\text{elastic}$ (no energy loss), and there are no attractive or repulsive forces between particles.</p>
+  </div>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="variablesTitle">
+<h2 id="variablesTitle">The $\text{Four}$ $\text{Gas}$ $\text{Variables}$ $\text{P}$, $\text{V}$, $\text{T}$, $\text{n}$ 📊</h2>
+<p>The behavior of gases is defined by four measurable variables.</p>
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--variable-color);">
+    <h3>$\text{Pressure}$ ($\text{P}$)</h3>
+    <p>Force exerted by gas particles colliding with the container walls. $\text{Units}$: $\text{atm}$, $\text{kPa}$, $\text{mmHg}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--variable-color);">
+    <h3>$\text{Volume}$ ($\text{V}$)</h3>
+    <p>The space occupied by the gas (the container's volume). $\text{Units}$: $\text{L}$, $\text{mL}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--variable-color);">
+    <h3>$\text{Temperature}$ ($\text{T}$)</h3>
+    <p>The measure of the $\text{average}$ $\text{kinetic}$ $\text{energy}$ of the particles. $\text{Must}$ $\text{be}$ $\text{in}$ $\text{Kelvin}$ ($\text{K}$) for $\text{Gas}$ $\text{Laws}$.</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--variable-color);">
+    <h3>$\text{Amount}$ ($\text{n}$)</h3>
+    <p>The number of gas particles. $\text{Units}$: $\text{moles}$ ($\text{mol}$).</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="lawsTitle">
+<h2 id="lawsTitle">The $\text{Major}$ $\text{Gas}$ $\text{Laws}$ 🧪</h2>
+<p>These laws describe the relationship between two variables when the other variables are held $\text{constant}$.</p>
+
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--law-color);">
+    <h3>$\text{Boyle's}$ $\text{Law}$ ($\text{P}$ vs. $\text{V}$)</h3>
+    <p><strong>$\text{Relationship}$:</strong> $\text{Inverse}$. As $\text{Pressure}$ $\text{increases}$, $\text{Volume}$ $\text{decreases}$.</p>
+    <p><strong>$\text{Equation}$:</strong> $$P_1V_1 = P_2V_2$$ ($\text{T}$ and $\text{n}$ are constant)</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--law-color);">
+    <h3>$\text{Charles'}$ $\text{Law}$ ($\text{V}$ vs. $\text{T}$)</h3>
+    <p><strong>$\text{Relationship}$:</strong> $\text{Direct}$. As $\text{Temperature}$ $\text{increases}$, $\text{Volume}$ $\text{increases}$.</p>
+    <p><strong>$\text{Equation}$:</strong> $$\frac{V_1}{T_1} = \frac{V_2}{T_2}$$ ($\text{P}$ and $\text{n}$ are constant)</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--law-color);">
+    <h3>$\text{Gay}$-$\text{Lussac's}$ $\text{Law}$ ($\text{P}$ vs. $\text{T}$)</h3>
+    <p><strong>$\text{Relationship}$:</strong> $\text{Direct}$. As $\text{Temperature}$ $\text{increases}$, $\text{Pressure}$ $\text{increases}$.</p>
+    <p><strong>$\text{Equation}$:</strong> $$\frac{P_1}{T_1} = \frac{P_2}{T_2}$$ ($\text{V}$ and $\text{n}$ are constant)</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Gas}$ $\text{Law}$ $\text{Concept}$ $\text{Check}$!</h2>
+<p>Identify the correct relationship or law for the scenario described.</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">If you $\text{decrease}$ the $\text{volume}$ of a $\text{container}$, what happens to the $\text{pressure}$ (T and n are constant)?</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Scenario</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Gas particles are just tiny speedsters trying to fill their space!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Quiz (Gas Laws Match Up) ===== */
+const gasLawQuestions = [
+  { 
+    question: 'If you $\\text{decrease}$ the $\\text{volume}$ of a $\\text{container}$, what happens to the $\\text{pressure}$ ($\text{T}$ and $\text{n}$ are constant)?', 
+    correct: 'Pressure $\\text{Increases}$', 
+    law: 'Boyle\'s Law'
+  },
+  { 
+    question: 'If you $\\text{heat}$ a $\\text{balloon}$, what happens to its $\\text{volume}$ ($\text{P}$ and $\text{n}$ are constant)?', 
+    correct: 'Volume $\\text{Increases}$', 
+    law: 'Charles\' Law'
+  },
+  { 
+    question: 'If you $\\text{cool}$ a $\\text{rigid}$ $\\text{container}$, what happens to the $\\text{pressure}$ ($\text{V}$ and $\text{n}$ are constant)?', 
+    correct: 'Pressure $\\text{Decreases}$', 
+    law: 'Gay-Lussac\'s Law'
+  },
+  { 
+    question: 'Which $\\text{law}$ describes the $\\text{inverse}$ relationship between $\\text{Pressure}$ and $\\text{Volume}$?', 
+    correct: 'Boyle\'s Law', 
+    law: 'Boyle\'s Law'
+  },
+  { 
+    question: 'Which $\\text{law}$ describes the $\\text{direct}$ relationship between $\\text{Volume}$ and $\\text{Temperature}$?', 
+    correct: 'Charles\' Law', 
+    law: 'Charles\' Law'
+  },
+];
+
+const quizChoices = [
+  'Pressure $\\text{Increases}$', 
+  'Volume $\\text{Increases}$', 
+  'Pressure $\\text{Decreases}$', 
+  'Volume $\\text{Decreases}$',
+  'Boyle\'s Law',
+  'Charles\' Law',
+  'Gay-Lussac\'s Law'
+];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = gasLawQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct outcome or law.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Get the answer options for this specific question
+  let availableChoices;
+  if (currentQuestion.question.includes('Which $\\text{law}$')) {
+    availableChoices = quizChoices.filter(c => c.includes('Law'));
+  } else {
+    availableChoices = quizChoices.filter(c => c.includes('Increases') || c.includes('Decreases'));
+    // Ensure the correct answer is always an available choice
+    if (!availableChoices.includes(currentQuestion.correct)) {
+      availableChoices.push(currentQuestion.correct);
+    }
+  }
+  
+  // Shuffle and display the choices
+  const shuffledChoices = [...availableChoices].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledChoices.forEach((choice) => {
+    const tile = document.createElement('div');
+    tile.className = 'law-tile';
+    tile.dataset.choice = choice;
+    tile.onclick = () => selectQuizItem(choice, tile);
+    tile.style.borderColor = 'var(--law-color)';
+    tile.innerHTML = `<div style="font-weight:800; color:var(--law-color);">${choice}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedChoice, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .law-tile').forEach(t => t.onclick = null);
+
+  if (selectedChoice === currentQuestion.correct) {
+    quizFeedback.innerHTML = `✅ Correct! This is an example of **${currentQuestion.law}**.`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.innerHTML = `❌ Incorrect. The correct answer is **${currentQuestion.correct}** (which follows **${currentQuestion.law}**).`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .law-tile`).forEach(t => {
+      if (t.dataset.choice === currentQuestion.correct) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>

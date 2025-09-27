@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Human Digestive System 🍎</title>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+.quiz-canvas {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f7f0fb;
+}
+/* Custom style for the process display */
+.process-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.process-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>The Human Digestive System 🍎</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • Process Flow • Organ Quiz</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The Food Processing Factory! 🏭</h2>
+<p>
+  The **digestive system** is a long tube and a set of helper organs that work together to break down the food you eat. Its main job is to turn large food molecules (like fats, proteins, and carbohydrates) into tiny molecules the body can **absorb** and use for energy and growth.
+</p>
+<p>
+  The entire journey, from mouth to end, is called the **Alimentary Canal**, which can be over 9 meters (30 feet) long!
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="processTitle">
+<h2 id="processTitle">Two Ways to Break Down Food 💥</h2>
+<p>Digestion happens in two ways as food moves through the body:</p>
+<div class="process-box">
+  <h3>1. Mechanical Digestion</h3>
+  <p>This is the **physical** breaking down of food into smaller pieces. This happens with **chewing** in the mouth and the churning and mixing action of the **stomach**.</p>
+</div>
+<div class="process-box">
+  <h3>2. Chemical Digestion</h3>
+  <p>This uses powerful chemicals called **enzymes** to break down large nutrient molecules into small ones. This starts in the mouth (with saliva) and does most of its work in the **stomach** and **small intestine**.</p>
+</div>
+</section>
+
+<section aria-labelledby="videoTitle">
+<h2 id="videoTitle">Video: Food's Journey Through the Gut 🎬</h2>
+<p>Follow a piece of food as it travels through your body.</p>
+<div class="canvas-wrapper">
+  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
+</div>
+<div class="controls">
+  <button id="playTutorial" class="secondary">▶️ Play Video</button>
+</div>
+<div class="settings">
+  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems (Which Organ?)</h2>
+<p>Read the function and click the organ that performs the job.</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) Where does most nutrient absorption happen?</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q1', 'small intestine', this)">Small Intestine</button>
+      <button onclick="checkAnswer('q1', 'stomach', this)">Stomach</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) Organ that mainly absorbs water back into the body.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q2', 'small intestine', this)">Small Intestine</button>
+      <button onclick="checkAnswer('q2', 'large intestine', this)">Large Intestine</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) Site of churning, mixing food with strong acid (HCl).</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q3', 'stomach', this)">Stomach</button>
+      <button onclick="checkAnswer('q3', 'esophagus', this)">Esophagus</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) Tube that uses peristalsis to move food from the throat.</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkAnswer('q4', 'trachea', this)">Trachea</button>
+      <button onclick="checkAnswer('q4', 'esophagus', this)">Esophagus</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ Mechanical or Chemical?</h2>
+<p>Click on the examples that show **Chemical Digestion** is happening!</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Match the action to the type of digestion!</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Set of Actions</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="grid cols-4" style="margin-top:10px" id="quiz-grid">
+</div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>You are what you absorb!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+window.checkAnswer = (questionId, selectedAnswer, button) => {
+  // Digestive System Specific Answers
+  const correctAnswers = {
+    'q1': 'small intestine', 'q2': 'large intestine', 'q3': 'stomach', 'q4': 'esophagus'
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    res.textContent = `❌ Wrong. The correct organ is the **${correctAnswers[questionId]}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Canvas Tutorial - Adapted for Digestive System Flow ===== */
+const tutorialCanvas = document.getElementById('tutorialCanvas');
+const ctx = tutorialCanvas.getContext('2d');
+const tutorialSpeedInput = document.getElementById('videoSpeed');
+const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+
+function drawText(canvasCtx, text, x, y, color = '#04263b', size = '20px') {
+  canvasCtx.textAlign = 'center';
+  canvasCtx.font = `${size} Inter, sans-serif`;
+  canvasCtx.fillStyle = color;
+  canvasCtx.fillText(text, x, y);
+}
+function drawArrow(ctx, x1, y1, x2, y2, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    // Arrowhead
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.lineTo(x2 - 10 * Math.cos(angle - Math.PI / 6), y2 - 10 * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - 10 * Math.cos(angle + Math.PI / 6), y2 - 10 * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+}
+
+function drawScene(canvasCtx, stage) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  const w = canvasCtx.canvas.width;
+  const h = canvasCtx.canvas.height;
+  
+  const mouthX = w/4;
+  const stomachX = w/2;
+  const smallIntestineX = w * 3/4;
+
+  // Draw Mouth (Start)
+  canvasCtx.fillStyle = '#f39c12';
+  canvasCtx.fillRect(mouthX - 40, h/2 - 20, 80, 40);
+  drawText(canvasCtx, "Mouth", mouthX, h/2 + 30);
+
+  // Draw Stomach (Middle)
+  canvasCtx.fillStyle = '#e74c3c';
+  canvasCtx.beginPath();
+  canvasCtx.arc(stomachX, h/2, 40, 0, Math.PI * 2);
+  canvasCtx.fill();
+  drawText(canvasCtx, "Stomach", stomachX, h/2 + 60);
+
+  // Draw Small Intestine (Absorption)
+  canvasCtx.fillStyle = '#2ecc71';
+  canvasCtx.fillRect(smallIntestineX - 30, h/2 - 30, 60, 60);
+  drawText(canvasCtx, "Small Intestine", smallIntestineX, h/2 + 50);
+
+  if (stage === 'start') {
+    drawText(canvasCtx, "The Journey Begins!", w/2, h/2 - 150, 'var(--accent)', '30px');
+  } else if (stage === 'stomach') {
+    drawArrow(ctx, mouthX + 40, h/2, stomachX - 40, h/2, 'var(--accent2)');
+    drawText(canvasCtx, "Acid and Churning!", stomachX, h/2 - 100);
+    drawText(canvasCtx, "Food moves to the stomach.", w/2, h/2 - 150);
+  } else if (stage === 'small intestine') {
+    drawArrow(ctx, mouthX + 40, h/2, stomachX - 40, h/2, 'var(--accent2)');
+    drawArrow(ctx, stomachX + 40, h/2, smallIntestineX - 30, h/2, 'var(--accent2)');
+    drawText(canvasCtx, "Nutrients are ABSORBED here!", smallIntestineX, h/2 + 100);
+    drawText(canvasCtx, "Next stop: Small Intestine.", w/2, h/2 - 150);
+  } else {
+    drawText(canvasCtx, "Press Play to follow the path of your dinner!", w/2, h/2);
+  }
+}
+
+const tutorialSteps = [
+  { audio: "Digestion starts in the mouth where you chew and saliva begins chemical breakdown.", viz: 'start' },
+  { audio: "Food travels down the esophagus to the stomach, where strong acid and churning break it down further.", viz: 'stomach' },
+  { audio: "The food mixture moves into the long small intestine, where most chemical digestion is finished and nutrients are absorbed.", viz: 'small intestine' },
+  { audio: "Finally, what's left goes to the large intestine, where water is absorbed before elimination.", viz: 'initial' },
+];
+let tutorialIndex = 0;
+async function playTutorialVideo() {
+  if (speechSynthesis.speaking) return;
+  tutorialIndex = 0;
+  const speed = parseFloat(tutorialSpeedInput.value) || 1;
+  function nextStep() {
+    if (tutorialIndex >= tutorialSteps.length) {
+      drawScene(ctx, 'initial');
+      return;
+    }
+    const step = tutorialSteps[tutorialIndex];
+    const utterance = new SpeechSynthesisUtterance(step.audio);
+    utterance.rate = speed;
+    utterance.pitch = 1.2;
+    utterance.volume = 1;
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      tutorialIndex++;
+      nextStep();
+    };
+    drawScene(ctx, step.viz);
+    speechSynthesis.speak(utterance);
+  }
+  nextStep();
+}
+document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+drawScene(ctx, 'initial');
+
+/* ===== Quiz (Mechanical vs. Chemical) ===== */
+const quizItems = [
+  { type: 'chemical', text: 'Saliva turning starch into sugar', emoji: '🧪' },
+  { type: 'mechanical', text: 'Teeth grinding a carrot', emoji: '🦷' },
+  { type: 'chemical', text: 'Stomach acid dissolving proteins', emoji: '🔥' },
+  { type: 'mechanical', text: 'Muscles churning food in the stomach', emoji: '💪' },
+  { type: 'chemical', text: 'Bile breaking up fat molecules', emoji: '💧' },
+  { type: 'mechanical', text: 'Swallowing food into the esophagus', emoji: '⬇️' },
+];
+
+let currentQuizType = 'chemical';
+const quizGrid = document.getElementById('quiz-grid');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizQuestion = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select 2 chemical and 2 mechanical properties, then shuffle
+  const chemicalItems = quizItems.filter(item => item.type === 'chemical').sort(() => 0.5 - Math.random()).slice(0, 2);
+  const mechanicalItems = quizItems.filter(item => item.type === 'mechanical').sort(() => 0.5 - Math.random()).slice(0, 2);
+  const shuffledItems = [...chemicalItems, ...mechanicalItems].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledItems.forEach((item, index) => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = `item-${index}`;
+    tile.dataset.type = item.type;
+    tile.onclick = () => selectQuizItem(item.type, tile);
+    
+    const emoji = document.createElement('div');
+    emoji.style.fontSize = '40px';
+    emoji.textContent = item.emoji;
+    
+    const text = document.createElement('div');
+    text.style.fontWeight = '700';
+    text.textContent = item.text;
+
+    tile.appendChild(emoji);
+    tile.appendChild(text);
+    quizGrid.appendChild(tile);
+  });
+  
+  quizQuestion.textContent = `Click on the examples that show **Chemical Digestion** (using enzymes/acids)!`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll('#quiz-grid .tile').forEach(t => t.classList.remove('selected', 'disabled'));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (tile.classList.contains('selected') || tile.classList.contains('disabled')) return; 
+
+  if (selectedType === 'chemical') {
+    quizFeedback.textContent = `✅ Correct! That is Chemical Digestion (breaking bonds)!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.classList.add('selected');
+    updateScore(2);
+
+    // Check if all chemical examples are selected
+    const chemicalTiles = Array.from(document.querySelectorAll('#quiz-grid .tile[data-type="chemical"]'));
+    const correctCount = chemicalTiles.filter(t => t.classList.contains('selected')).length;
+    if (correctCount === chemicalTiles.length) { 
+      quizFeedback.textContent = "✅ Excellent! All Chemical processes found. Next set...";
+      setTimeout(() => newQuiz(), 1500);
+    }
+  } else {
+    quizFeedback.textContent = `❌ Wrong. That is **Mechanical** Digestion (physical breaking). Try again!`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+    tile.classList.add('disabled');
+  }
+};
+
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizScore = 0;
+  document.getElementById('quizScore').textContent = `Correct: 0`;
+  quizFeedback.textContent = '';
+  const tiles = document.querySelectorAll('#quiz-grid .tile');
+  tiles.forEach(tile => tile.classList.remove('selected', 'disabled'));
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  newQuiz();
+};
+</script>
+</body>
+</html>

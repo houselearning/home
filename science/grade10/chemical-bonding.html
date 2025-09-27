@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>10th Grade: Chemical Bonding ⚛️</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --ionic-color: #e74c3c;
+  --covalent-color: #3498db;
+  --vsepr-color: #f1c40f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tile{background:var(--panel);padding:12px;border-radius:8px;text-align:center;border:1px solid var(--accent);cursor:pointer;font-weight:700}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{background:#fff;border:1px solid var(--accent);border-radius:8px;display:block;margin-top:10px;width:100%;}
+.tile.selected {
+  border: 2px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
+}
+/* Custom style for the concepts display */
+.concept-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.concept-box h3 {
+  color: var(--accent);
+  margin: 0 0 5px 0;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.bond-tile {
+  flex: 1 1 180px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--covalent-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>10th Grade: Chemical Bonding ⚛️🔗</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Ionic}$ $\text{vs.}$ $\text{Covalent}$ • $\text{VSEPR}$ $\text{Shapes}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">The $\text{Octet}$ $\text{Rule}$ 🤝</h2>
+<p>
+  $\text{Chemical}$ $\text{Bonds}$ form because atoms seek to achieve a stable electron configuration, typically by having **eight** $\text{valence}$ $\text{electrons}$ (the **$\text{Octet}$ $\text{Rule}$**). They do this by either $\text{transferring}$ ($\text{Ionic}$) or $\text{sharing}$ ($\text{Covalent}$) electrons.
+</p>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="typesTitle">
+<h2 id="typesTitle">Two $\text{Main}$ $\text{Types}$ of $\text{Bonds}$ ⚖️</h2>
+
+<div class="grid cols-4">
+  <div class="concept-box" style="border-color: var(--ionic-color);">
+    <h3>$\text{Ionic}$ $\text{Bond}$</h3>
+    <p><strong>Action:</strong> $\text{Transfer}$ of $\text{electrons}$ from one atom to another.</p>
+    <p><strong>Elements:</strong> $\text{Metal}$ ($\text{loses } \text{e}^-$ to become $\text{cation}$) and $\text{Nonmetal}$ ($\text{gains } \text{e}^-$ to become $\text{anion}$).</p>
+    <p><strong>Result:</strong> $\text{Electrostatic}$ $\text{attraction}$ between opposite charges.</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--covalent-color);">
+    <h3>$\text{Covalent}$ $\text{Bond}$</h3>
+    <p><strong>Action:</strong> $\text{Sharing}$ of $\text{valence}$ $\text{electrons}$ between atoms.</p>
+    <p><strong>Elements:</strong> Typically two $\text{Nonmetals}$.</p>
+    <p><strong>Result:</strong> Forms a discrete $\text{molecule}$.</p>
+  </div>
+
+  <div class="concept-box" style="border-color: var(--ionic-color);">
+    <h3>$\text{Electronegativity}$ $\text{Difference}$</h3>
+    <p>Bonds are $\text{Ionic}$ if $\Delta\text{EN} > 1.7$.</p>
+    <p>Bonds are $\text{Polar}$ $\text{Covalent}$ if $0.4 < \Delta\text{EN} \le 1.7$.</p>
+    <p>Bonds are $\text{Nonpolar}$ $\text{Covalent}$ if $\Delta\text{EN} \le 0.4$.</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="vseprTitle">
+<h2 id="vseprTitle">VSEPR $\text{Theory}$ ($\text{Molecular}$ $\text{Shapes}$) 📐</h2>
+<p>
+  **$\text{VSEPR}$** ($\text{Valence}$-$\text{Shell}$ $\text{Electron}$-$\text{Pair}$ $\text{Repulsion}$) $\text{Theory}$ states that electron pairs around a central atom repel each other, arranging themselves as far apart as possible to minimize repulsion. This dictates the shape of the molecule.
+</p>
+
+<div class="grid cols-4" style="font-size: 0.95rem;">
+  <div class="concept-box" style="border-color: var(--vsepr-color);">
+    <h3>$\text{Linear}$</h3>
+    <p>2 bonding pairs, 0 lone pairs. $\text{Example}$: $\text{CO}_2$</p>
+    <p>Angle: $180^\circ$</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--vsepr-color);">
+    <h3>$\text{Trigonal}$ $\text{Planar}$</h3>
+    <p>3 bonding pairs, 0 lone pairs. $\text{Example}$: $\text{BF}_3$</p>
+    <p>Angle: $120^\circ$</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--vsepr-color);">
+    <h3>$\text{Tetrahedral}$</h3>
+    <p>4 bonding pairs, 0 lone pairs. $\text{Example}$: $\text{CH}_4$</p>
+    <p>Angle: $109.5^\circ$</p>
+  </div>
+  <div class="concept-box" style="border-color: var(--vsepr-color);">
+    <h3>$\text{Bent}$ (or $\text{V}$-$\text{shaped}$)</h3>
+    <p>2 bonding pairs, 2 lone pairs. $\text{Example}$: $\text{H}_2\text{O}$</p>
+    <p>Angle: $< 109.5^\circ$ (due to lone pair repulsion)</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="practiceTitle">
+<h2 id="practiceTitle">Practice Problems ($\text{Bond}$ $\text{Type}$ $\text{Check}$)</h2>
+<p>Based on the elements involved, classify the bond as **$\text{Ionic}$** ($\text{Metal}$ + $\text{Nonmetal}$) or **$\text{Covalent}$** ($\text{Nonmetal}$ + $\text{Nonmetal}$).</p>
+<div class="grid cols-4" style="margin-top:10px">
+  <div class="tile" id="q1-tile">
+    <div style="font-weight:700">1) $\text{NaCl}$ ($\text{Sodium}$ $\text{Chloride}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkBond('q1', 'ionic', this)">Ionic</button>
+      <button onclick="checkBond('q1', 'covalent', this)">Covalent</button>
+    </div>
+    <div id="r1" class="answer"></div>
+  </div>
+  <div class="tile" id="q2-tile">
+    <div style="font-weight:700">2) $\text{CO}_2$ ($\text{Carbon}$ $\text{Dioxide}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkBond('q2', 'ionic', this)">Ionic</button>
+      <button onclick="checkBond('q2', 'covalent', this)">Covalent</button>
+    </div>
+    <div id="r2" class="answer"></div>
+  </div>
+  <div class="tile" id="q3-tile">
+    <div style="font-weight:700">3) $\text{MgF}_2$ ($\text{Magnesium}$ $\text{Fluoride}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkBond('q3', 'ionic', this)">Ionic</button>
+      <button onclick="checkBond('q3', 'covalent', this)">Covalent</button>
+    </div>
+    <div id="r3" class="answer"></div>
+  </div>
+  <div class="tile" id="q4-tile">
+    <div style="font-weight:700">4) $\text{NH}_3$ ($\text{Ammonia}$)</div>
+    <div class="controls" style="margin-top:6px">
+      <button onclick="checkBond('q4', 'ionic', this)">Ionic</button>
+      <button onclick="checkBond('q4', 'covalent', this)">Covalent</button>
+    </div>
+    <div id="r4" class="answer"></div>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="speedTitle">
+<h2 id="speedTitle">⚡ $\text{VSEPR}$ $\text{Shape}$ $\text{Challenge}$!</h2>
+<p>Match the description to the correct $\text{VSEPR}$ $\text{molecular}$ $\text{shape}$ (click the correct tile).</p>
+<div class="controls">
+  <div class="muted" id="quizTimer">Time: 0</div>
+  <div id="quizScore" class="pill">Correct: 0</div>
+</div>
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Molecule with 4 bonding groups and 0 lone pairs.</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Shape Question</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Chemistry is all about the bonds!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+window.checkBond = (questionId, selectedAnswer, button) => {
+  // Bond Type Answers
+  const correctAnswers = {
+    'q1': 'ionic', // Na (Metal) + Cl (Nonmetal)
+    'q2': 'covalent', // C (Nonmetal) + O (Nonmetal)
+    'q3': 'ionic', // Mg (Metal) + F (Nonmetal)
+    'q4': 'covalent' // N (Nonmetal) + H (Nonmetal)
+  };
+  const resultId = 'r' + questionId.slice(1);
+  const res = document.getElementById(resultId);
+  
+  const buttons = document.querySelectorAll(`#${questionId}-tile button`);
+  buttons.forEach(btn => btn.disabled = true);
+
+  if (selectedAnswer === correctAnswers[questionId]) {
+    res.textContent = '✅ Correct!';
+    res.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(1);
+  } else {
+    const bondType = correctAnswers[questionId] === 'ionic' ? 'Ionic (Metal + Nonmetal)' : 'Covalent (Nonmetal + Nonmetal)';
+    res.textContent = `❌ Wrong. The correct answer is **${bondType}**.`;
+    res.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+/* ===== Quiz (VSEPR Shape Match Up) ===== */
+const vseprEvents = [
+  { question: 'Molecule with 4 bonding groups and 0 lone pairs.', answer: 'Tetrahedral' },
+  { question: 'Molecule with 2 bonding groups and 0 lone pairs.', answer: 'Linear' },
+  { question: 'Molecule with 3 bonding groups and 0 lone pairs.', answer: 'Trigonal Planar' },
+  { question: 'Molecule with 2 bonding groups and 2 lone pairs (like $\\text{H}_2\\text{O}$).', answer: 'Bent' },
+  { question: 'The electron pair geometry around the central atom is $\\text{Trigonal}$ $\\text{Planar}$ (3 total groups), but one is a lone pair (like $\\text{SO}_2$).', answer: 'Bent' }, // Simplified for 10th grade
+  { question: 'All bond angles are $180^\circ$.', answer: 'Linear' },
+  { question: 'All bond angles are $109.5^\circ$.', answer: 'Tetrahedral' },
+];
+
+const quizShapes = [
+  { name: 'Linear', color: 'var(--covalent-color)' },
+  { name: 'Trigonal Planar', color: 'var(--covalent-color)' },
+  { name: 'Tetrahedral', color: 'var(--covalent-color)' },
+  { name: 'Bent', color: 'var(--covalent-color)' },
+];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = vseprEvents.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.textContent = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct molecular shape.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the shape tiles
+  const shuffledShapes = [...quizShapes].sort(() => 0.5 - Math.random());
+  shuffledShapes.forEach((shape) => {
+    const tile = document.createElement('div');
+    tile.className = 'bond-tile';
+    tile.dataset.shape = shape.name;
+    tile.onclick = () => selectQuizItem(shape.name, tile);
+    tile.style.borderColor = shape.color;
+    tile.innerHTML = `<div style="font-weight:800; color:${shape.color};">${shape.name}</div>`;
+    quizGrid.appendChild(tile);
+  });
+}
+
+window.selectQuizItem = (selectedShape, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .bond-tile').forEach(t => t.onclick = null);
+
+  if (selectedShape === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct! This molecular geometry is **${selectedShape}**.`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct shape is **${currentQuestion.answer}**.`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .bond-tile`).forEach(t => {
+      if (t.dataset.shape === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 2500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  document.querySelectorAll(`.answer`).forEach(ans => ans.textContent = '');
+  
+  // Re-enable practice buttons
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  // Reset practice problem tiles
+  document.querySelectorAll(`.tile[id^='q']`).forEach(tile => {
+    tile.querySelector('.controls button').disabled = false;
+    tile.querySelector('.answer').textContent = '';
+  });
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
