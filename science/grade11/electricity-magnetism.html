@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade 11: Electricity & Magnetism ⚡️🧲</title>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script>
+    // Configuration to recognize inline math surrounded by $...$
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<style>
+:root{
+  --bg:#f7fbff; --panel:#fff; --accent:#8e44ad; --accent2:#9b59b6; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
+  --charge-color: #f39c12;
+  --circuit-color: #e74c3c;
+  --mag-color: #3498db;
+  --formula-color: #2ecc71;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+main{max-width:1100px;margin:20px auto;padding:14px}
+section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+h2{color:var(--accent2);margin:0 0 10px 0}
+p{margin:8px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+button.secondary{background:#60a5fa;color:#fff}
+button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+button.warn{background:#f97316}
+input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+.grid{display:grid;gap:10px}.grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+.muted{color:var(--muted)}
+footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+.answer{font-weight:800;margin-top:8px}.ok{color:var(--ok)}.bad{color:#ef4444}
+/* Custom style for the concepts display */
+.law-box {
+  background: #f0f0ff;
+  border: 2px solid var(--accent2);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+.law-box h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+}
+.quiz-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
+}
+.type-tile {
+  flex: 1 1 140px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--formula-color);
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.calc-input {
+  width: 100px;
+  text-align: center;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Grade 11: Electricity & Magnetism ⚡️🧲</h1>
+<p style="margin:6px 0 0 0;opacity:.95">Interactive Lesson • $\text{Charge}$ • $\text{Ohm's}$ $\text{Law}$ • $\text{Power}$ • $\text{Electromagnetism}$</p>
+</header>
+<main>
+<section aria-labelledby="introTitle">
+<h2 id="introTitle">$\text{Electric}$ $\text{Charge}$ $\text{and}$ $\text{Current}$ 🔋</h2>
+<p>
+  $\text{Electricity}$ is the study of $\text{electric}$ $\text{charge}$ ($q$) and its $\text{movement}$.
+</p>
+<div class="grid cols-3">
+  <div class="law-box" style="border-color: var(--charge-color);">
+    <h3>$\text{Charge}$ ($q$)</h3>
+    <p>A $\text{fundamental}$ $\text{property}$ of matter. $\text{Units}$: $\text{Coulomb}$ ($\text{C}$).</p>
+    <p style="font-weight: bold;">Like $\text{charges}$ $\text{repel}$, opposite $\text{charges}$ $\text{attract}$.</p>
+  </div>
+  <div class="law-box" style="border-color: var(--charge-color);">
+    <h3>$\text{Voltage}$ ($\text{V}$)</h3>
+    <p>$\text{Electric}$ $\text{Potential}$ $\text{Difference}$. The $\text{energy}$ per $\text{unit}$ $\text{charge}$. $\text{Units}$: $\text{Volt}$ ($\text{V}$ or $\text{J}/\text{C}$).</p>
+  </div>
+  <div class="law-box" style="border-color: var(--charge-color);">
+    <h3>$\text{Current}$ ($\text{I}$)</h3>
+    <p>The $\text{rate}$ of $\text{flow}$ of $\text{charge}$. $\text{Units}$: $\text{Ampere}$ ($\text{A}$).</p>
+    $$\text{I} = \frac{q}{t}$$
+  </div>
+</div>
+<div class="status" style="margin-top:8px">
+  <div class="pill" id="score">Score: 0</div>
+  <div class="muted" id="streak">Streak: 0</div>
+</div>
+</section>
+
+<section aria-labelledby="circuitsTitle">
+<h2 id="circuitsTitle">Circuits: $\text{Ohm's}$ $\text{Law}$ $\text{and}$ $\text{Power}$ 🔌</h2>
+<p>
+  **$\text{Ohm's}$ $\text{Law}$** describes the relationship between $\text{Voltage}$ ($\text{V}$), $\text{Current}$ ($\text{I}$), and $\text{Resistance}$ ($\text{R}$).
+</p>
+<div class="grid cols-3">
+  <div class="law-box" style="border-color: var(--circuit-color);">
+    <h3>$\text{Resistance}$ ($\text{R}$)</h3>
+    <p>The $\text{opposition}$ to the $\text{flow}$ of $\text{charge}$. $\text{Units}$: $\text{Ohm}$ ($\Omega$).</p>
+  </div>
+  <div class="law-box" style="border-color: var(--formula-color);">
+    <h3>$\text{Ohm's}$ $\text{Law}$</h3>
+    <p>The $\text{voltage}$ across a $\text{resistor}$ is $\text{directly}$ $\text{proportional}$ to the $\text{current}$ flowing through it.</p>
+    $$\text{V} = \text{IR}$$
+  </div>
+  <div class="law-box" style="border-color: var(--formula-color);">
+    <h3>$\text{Electric}$ $\text{Power}$ ($\text{P}$)</h3>
+    <p>The $\text{rate}$ at which $\text{energy}$ is $\text{consumed}$. $\text{Units}$: $\text{Watt}$ ($\text{W}$ or $\text{J}/\text{s}$).</p>
+    $$\text{P} = \text{IV}$$
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="magTitle">
+<h2 id="magTitle">Magnetism $\text{and}$ $\text{Electromagnetism}$ 🧲</h2>
+<p>
+  $\text{Magnetism}$ is produced by $\text{moving}$ $\text{electric}$ $\text{charges}$. This link is called **$\text{Electromagnetism}$**.
+</p>
+<div class="grid cols-3">
+  <div class="law-box" style="border-color: var(--mag-color);">
+    <h3>$\text{Magnetic}$ $\text{Fields}$</h3>
+    <p>An area around a $\text{magnet}$ or a $\text{current}$-$\text{carrying}$ $\text{wire}$ where $\text{magnetic}$ $\text{force}$ can be detected.</p>
+  </div>
+  <div class="law-box" style="border-color: var(--mag-color);">
+    <h3>$\text{Electromagnets}$</h3>
+    <p>A $\text{temporary}$ $\text{magnet}$ created when $\text{current}$ flows through a $\text{coil}$ of $\text{wire}$.</p>
+  </div>
+  <div class="law-box" style="border-color: var(--mag-color);">
+    <h3>$\text{Electromagnetic}$ $\text{Induction}$</h3>
+    <p>The production of $\text{voltage}$ across a $\text{conductor}$ when it is exposed to a $\text{changing}$ $\text{magnetic}$ $\text{field}$ (the principle behind $\text{generators}$).</p>
+  </div>
+</div>
+</section>
+
+<section aria-labelledby="ohmCalcTitle">
+<h2 id="ohmCalcTitle">Interactive $\text{Ohm's}$ $\text{Law}$ $\text{Calculation}$ 🧮</h2>
+<p>Use $\text{Ohm's}$ $\text{Law}$ ($\text{V} = \text{IR}$) to calculate the $\text{current}$ in a simple circuit.</p>
+
+<div class="law-box" style="border-color: var(--formula-color);">
+    <h3>Problem:</h3>
+    <p>A simple $\text{circuit}$ has a $\text{voltage}$ of $\mathbf{12 \text{ V}}$ and a total $\text{resistance}$ of $\mathbf{4.0 \text{ } \Omega}$. What is the $\text{current}$ ($\text{I}$) flowing through the circuit?</p>
+
+    <p>$$\text{Calculation}: \text{I} = \frac{\text{V}}{\text{R}} = \frac{12 \text{ V}}{4.0 \text{ } \Omega} = ? \text{ A}$$</p>
+
+    <div style="display: flex; gap: 15px; align-items: center; margin-top: 15px;">
+        <label for="currentInput" style="font-weight: bold;">Calculated $\text{Current}$:</label>
+        <input type="number" step="0.1" id="currentInput" class="calc-input"> $\text{A}$
+        <button onclick="checkCalculation()">Check Answer</button>
+    </div>
+    <div id="calcResult" class="answer" style="margin-top: 10px;"></div>
+</div>
+</section>
+
+
+<section aria-labelledby="quizTitle">
+<h2 id="quizTitle">⚡ $\text{Concept}$ $\text{Classification}$ $\text{Check}$!</h2>
+<p>Identify whether the quantity is $\text{Voltage}$ ($\text{V}$), $\text{Current}$ ($\text{I}$), or $\text{Resistance}$ ($\text{R}$) in the context of a circuit.</p>
+
+<div style="margin-top:12px">
+  <div style="font-size:1.6rem;font-weight:800" id="quizQ">The $\text{opposition}$ to the $\text{flow}$ of $\text{charge}$ in a $\text{wire}$.</div>
+  <div style="margin-top:8px" class="controls">
+    <button id="findSign" class="secondary" onclick="newQuiz()">Next Question</button>
+  </div>
+  <div id="quizFeedback" class="answer"></div>
+</div>
+<div class="quiz-grid" style="margin-top:10px" id="quiz-grid">
+  </div>
+</section>
+
+<section aria-labelledby="resetTitle">
+<h2 id="resetTitle">Reset Your Score</h2>
+<p>If you want to play again, you can reset your score here.</p>
+<button id="resetScoreBtn" class="warn" onclick="reset()">Reset Score</button>
+</section>
+
+<footer>Electricity and Magnetism are two sides of the same coin!</footer>
+</main>
+<script>
+/* ===== Utilities ===== */
+const tone = (f = 880, d = 0.06) => {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    const o = A.createOscillator();
+    const g = A.createGain();
+    o.type = 'sine';
+    o.frequency.value = f;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(A.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+    setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+  } catch (e) {}
+};
+let totalScore = 0, streak = 0;
+function updateScore(points) {
+  if (points > 0) {
+    totalScore += points;
+    streak++;
+  } else {
+    streak = 0;
+  }
+  document.getElementById('score').textContent = `Score: ${totalScore}`;
+  document.getElementById('streak').textContent = `Streak: ${streak}`;
+}
+
+/* ===== Calculation Logic (Ohm's Law) ===== */
+window.checkCalculation = () => {
+  const inputElement = document.getElementById('currentInput');
+  const resultElement = document.getElementById('calcResult');
+  const inputVal = parseFloat(inputElement.value);
+
+  // Calculation: I = V/R = 12 V / 4.0 Ohm = 3.0 A
+  const correctVal = 3.0; 
+
+  if (isNaN(inputVal)) {
+    resultElement.textContent = 'Please enter a number.';
+    resultElement.className = 'answer bad';
+    updateScore(0);
+    return;
+  }
+
+  const tolerance = 0.01; 
+  if (Math.abs(inputVal - correctVal) < tolerance) {
+    resultElement.innerHTML = '✅ Excellent! $\\text{I} = \\frac{12 \\text{ V}}{4.0 \\text{ } \\Omega} = 3.0 \\text{ A}$';
+    resultElement.className = 'answer ok';
+    tone(880, 0.06);
+    updateScore(10);
+  } else {
+    resultElement.innerHTML = `❌ Incorrect. The correct answer is **$3.0$ $\\text{A}$**. Remember $\\text{I} = \\text{V}/\\text{R}$.`;
+    resultElement.className = 'answer bad';
+    tone(220, 0.06);
+    updateScore(0);
+  }
+};
+
+
+/* ===== Quiz (Concept Identification) ===== */
+const emQuestions = [
+  { 
+    question: 'The $\\text{opposition}$ to the $\\text{flow}$ of $\\text{charge}$ in a $\\text{wire}$.', 
+    answer: 'Resistance', 
+    hint: 'Measured in $\\text{Ohms}$ ($\\Omega$).'
+  },
+  { 
+    question: 'The $\\text{rate}$ of $\\text{flow}$ of $\\text{electric}$ $\\text{charge}$.', 
+    answer: 'Current', 
+    hint: 'Measured in $\\text{Amperes}$ ($\text{A}$).'
+  },
+  { 
+    question: 'The $\\text{energy}$ per $\\text{unit}$ $\\text{charge}$ supplied by a battery.', 
+    answer: 'Voltage', 
+    hint: 'Also called $\\text{Potential}$ $\\text{Difference}$, measured in $\\text{Volts}$ ($\text{V}$).'
+  },
+  { 
+    question: 'What property of a $\\text{wire}$ $\\text{creates}$ a $\\text{magnetic}$ $\\text{field}$ around it?', 
+    answer: 'Current', 
+    hint: 'Moving $\\text{charge}$ (current) $\\text{creates}$ $\\text{magnetism}$.'
+  },
+];
+
+const quizChoices = ['Voltage', 'Current', 'Resistance', 'Charge'];
+
+let currentQuestion = null;
+
+let quizGrid = document.getElementById('quiz-grid');
+let quizFeedback = document.getElementById('quizFeedback');
+let quizQuestionDisplay = document.getElementById('quizQ');
+
+function newQuiz() {
+  // Select a random unique question
+  const pool = emQuestions.filter(q => q !== currentQuestion);
+  currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+
+  quizQuestionDisplay.innerHTML = currentQuestion.question;
+  quizFeedback.textContent = 'Click the correct electrical concept.';
+  document.getElementById('findSign').disabled = true;
+
+  quizGrid.innerHTML = '';
+  // Shuffle and display the choices
+  const shuffledTypes = [...quizChoices].sort(() => 0.5 - Math.random());
+  
+  quizGrid.innerHTML = '';
+  shuffledTypes.forEach((type) => {
+    const tile = document.createElement('div');
+    tile.className = 'type-tile';
+    tile.dataset.type = type;
+    tile.onclick = () => selectQuizItem(type, tile);
+    // Assign colors based on the type
+    let color;
+    if (type === 'Charge') color = 'var(--charge-color)';
+    else if (type === 'Voltage') color = 'var(--circuit-color)';
+    else color = 'var(--formula-color)';
+    
+    tile.style.borderColor = color;
+    tile.innerHTML = `<div style="font-weight:800; color:${color};">${type}</div>`;
+    quizGrid.appendChild(tile);
+  });
+  
+  // Rerender MathJax after setting innerHTML
+  MathJax.typesetPromise([quizQuestionDisplay, quizGrid]).catch((err) => console.log('MathJax Error:', err));
+}
+
+window.selectQuizItem = (selectedType, tile) => {
+  if (currentQuestion === null) return;
+
+  // Disable all tiles after a choice is made
+  document.querySelectorAll('#quiz-grid .type-tile').forEach(t => t.onclick = null);
+
+  if (selectedType === currentQuestion.answer) {
+    quizFeedback.textContent = `✅ Correct!`;
+    quizFeedback.className = 'answer ok';
+    tone(880, 0.06);
+    tile.style.backgroundColor = 'var(--ok)';
+    tile.style.color = '#fff';
+    updateScore(5); 
+  } else {
+    quizFeedback.textContent = `❌ Incorrect. The correct answer is **${currentQuestion.answer}**. Hint: ${currentQuestion.hint}`;
+    quizFeedback.className = 'answer bad';
+    tone(220, 0.06);
+    tile.style.backgroundColor = 'var(--bad)';
+    tile.style.color = '#fff';
+    updateScore(0);
+    // Highlight the correct answer
+    document.querySelectorAll(`#quiz-grid .type-tile`).forEach(t => {
+      if (t.dataset.type === currentQuestion.answer) {
+        t.style.borderWidth = '4px';
+        t.style.borderColor = 'var(--ok)';
+      }
+    });
+  }
+
+  document.getElementById('findSign').disabled = false;
+  setTimeout(() => newQuiz(), 3500);
+};
+
+// Initial setup
+newQuiz();
+
+// Reset Score Button
+window.reset = () => {
+  totalScore = 0;
+  streak = 0;
+  document.getElementById('score').textContent = `Score: 0`;
+  document.getElementById('streak').textContent = `Streak: 0`;
+  quizFeedback.textContent = '';
+  document.getElementById('calcResult').textContent = '';
+  document.getElementById('currentInput').value = '';
+  
+  // Re-enable buttons and tiles
+  document.querySelectorAll(`section button`).forEach(btn => btn.disabled = false);
+  
+  newQuiz();
+};
+</script>
+</body>
+</html>
