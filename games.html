@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CoolMathTime - Random Games</title>
-  <!--<script src="/auth/auth.js"></script>-->
   <style>
     * { box-sizing: border-box; }
     body {
@@ -48,14 +47,39 @@
       background-color: #61dafb;
       color: #20232a;
     }
+    
+    /* ADDED STYLES FOR SEARCH BAR AND CONTAINER PADDING */
+    .main-content {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px; /* Add horizontal padding for smaller screens */
+      width: 100%;
+    }
+    
+    .search-bar {
+      width: 100%;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      border: 2px solid #61dafb;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .search-bar:focus {
+      border-color: #20232a;
+      box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.5);
+    }
+    /* END ADDED STYLES */
+    
     .container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 20px auto;
+      padding: 0; /* Removed padding from .container since .main-content now handles it */
+      width: 100%; /* Ensure container takes full width of main-content */
     }
     .game-card {
       background: white;
@@ -66,6 +90,8 @@
       text-align: center;
       text-decoration: none;
       transition: transform 0.3s ease;
+      /* Ensure game card is always a flex item for consistency */
+      display: block; 
     }
     .game-card:hover { transform: translateY(-5px); }
     .game-card img {
@@ -91,18 +117,18 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .game-card a:hover { background: #61dafb; color: #20232a; }
-    
+
     /* New/Modified Styles */
     .disabled-game {
       pointer-events: none; /* Disable clicks on member games */
       cursor: default;
     }
-    
+
     .overlay-container {
       position: relative;
       display: inline-block;
     }
-    
+
     .member-games-overlay {
       position: absolute;
       top: 0;
@@ -119,43 +145,38 @@
       color: #333;
       padding: 20px;
     }
-
     .member-games-overlay h4 {
       margin: 5px 0;
       font-size: 20px;
       color: #20232a;
     }
-
     .member-games-overlay p {
       margin-top: 5px;
       font-size: 14px;
       text-align: center;
     }
-
     .member-games-overlay a {
       color: #61dafb;
       text-decoration: none;
       font-weight: bold;
       margin-top: 10px;
     }
-
     .member-games-overlay a:hover {
         text-decoration: underline;
     }
-    
+
     .member-games-svg {
         width: 60px;
         height: 60px;
         fill: #20232a;
         margin-bottom: 10px;
     }
-
     #memberGames {
         /* Start hidden/disabled */
-        opacity: 0.5; 
-        pointer-events: none; 
+        opacity: 0.5;
+        pointer-events: none;
     }
-    
+
     #memberGames.active {
         /* Fully visible and clickable when signed in */
         opacity: 1;
@@ -174,9 +195,7 @@
     .alert-banner strong {
       color: #856404;
     }
-
   </style>
-
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
@@ -193,184 +212,215 @@
   <strong>🛠️ Renovation:</strong> We’re currently making updates.
   <a href="https://github.com/houselearning/developer-notes/discussions/5" target="_blank" style="color: #856404; font-weight: bold; text-decoration: underline;">Learn more here</a>.
 </div>
-<div class="container">
-  <div class="container">
-    <a class="game-card" href="https://houselearning.github.io/home/games/alge-blast.html">
-      <img src="images/alge-blast.png" alt="Alge-Blast">
-      <p>Alge-Blast</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/suburb-sleuth.html">
-      <img src="images/suburb-sleuth.png" alt="Suburb Sleuth">
-      <p>Suburb Sleuth</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/pi-fighter.html">
-      <img src="images/pi-fighter.png" alt="Pi Fighter">
-      <p>Pi Fighter</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/geometry-galaxy.html">
-      <img src="images/geometry-galaxy.png" alt="Geometry Galaxy">
-      <p>Geometry Galaxy</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/angle-assult.html">
-      <img src="images/angle-assault.png" alt="Angle Assault">
-      <p>Angle Assault</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/function-frenzy.html">
-      <img src="images/function-frenzy.png" alt="Function Frenzy">
-      <p>Function Frenzy</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/statistics.html">
-      <img src="images/probability-portal.png" alt="Probability Portal">
-      <p>Probability Portal</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/math/games/equationescape.html">
-      <img src="images/equation-escape.png" alt="Equation Escape">
-      <p>Equation Escape</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/factor-forest.html">
-      <img src="images/factor-forest.png" alt="Factor Forest">
-      <p>Factor Forest</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/slice-master.html">
-      <img src="images/number-ninja.png" alt="Number Ninja">
-      <p>Number Ninja</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/variable-vault.html">
-      <img src="images/variable-vault.png" alt="Variable Vault">
-      <p>Variable Vault</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/sum-city.html">
-      <img src="images/sum-city.png" alt="Sum City">
-      <p>Sum City</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/prime-time.html">
-      <img src="images/prime-time.png" alt="Prime Time">
-      <p>Prime Time</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/division-dominon.html">
-      <img src="images/division-dominion.png" alt="Division Dominion">
-      <p>Division Dominion</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/multiplication-mayhem.html">
-      <img src="images/multiplication-mayhem.png" alt="Multiplication Mayhem">
-      <p>Multiplication Mayhem</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/subtract-squad.html">
-      <img src="images/subtract-squad.png" alt="Subtract Squad">
-      <p>Subtract Squad</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/assets/addventure-island/index.html">
-      <img src="images/addventure-island.png" alt="Addventure Island">
-      <p>Addventure Island</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/mathmage.html">
-      <img src="images/math-mage.png" alt="Math Mage">
-      <p>Math Mage</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/assets/infinity-island/">
-      <img src="images/infinity-island.png" alt="Infinity Island">
-      <p>Infinity Island</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/pattern-planet">
-      <img src="images/pattern-planet.png" alt="Pattern Planet">
-      <p>Pattern Planet</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/integral-invasion.html">
-      <img src="images/integral-invasion.png" alt="Integral Invasion">
-      <p>Integral Invasion</p>
-    </a>
-    <a class="game-card" href="https://houselearning.github.io/home/games/graph-gauntlet.html">
-      <img src="images/graph-gauntlet.png" alt="Graph Gauntlet">
-      <p>The Graph Gauntlet</p>
-    </a>
-    <a class="game-card" href="">
-      <img src="images/exponent-empire.png" alt="Exponent Empire">
-      <p>The Exponent Empire</p>
-    </a>
-    <a class="game-card" href="">
-      <img src="images/circle-of-chaos.png" alt="Circle of Chaos">
-      <p>Circle of Chaos</p>
-    </a>
-    <a class="game-card" href="">
-      <img src="images/matrix-maze.png" alt="Matrix Maze">
-      <p>Matrix Maze</p>
-    </a>
-    <a class="game-card" href="">
-      <img src="images/logic-lab.png" alt="Logic Lab">
-      <p>Logic Lab</p>
-    </a>
-    <a class="game-card" href="">
-      <img src="images/function-forge.png" alt="Function Forge">
-      <p>Function Forge</p>
-    </a>
-  </div>
-</div>
 
-<div id="memberGamesContainer" class="overlay-container">
-    <div id="memberGames" class="container">
-      <a class="game-card disabled-game" href="">
-        <img src="images/slope-speedway.png" alt="Slope Speedway">
-        <p>Slope Speedway</p>
-      </a>
-      <a class="game-card disabled-game" href="">
-        <img src="images/linear-launch.png" alt="Linear Launch">
-        <p>Linear Launch</p>
-      </a>
-      <a class="game-card disabled-game" href="">
-        <img src="images/parabola-project.png" alt="Parabola Project">
-        <p>The Parabola Project</p>
-      </a>
-      <a class="game-card disabled-game" href="">
-        <img src="images/radian-runners.png" alt="Radian Runners">
-        <p>Radian Runners</p>
-      </a>
-      <a class="game-card disabled-game" href="">
-        <img src="images/modulo-madness.png" alt="Modulo Madness">
-        <p>Modulo Madness</p>
-      </a>
-      <a class="game-card disabled-game" href="">
-        <img src="images/time-travelers.png" alt="Time Travelers: Math Edition">
-        <p>Time Travelers: Math Edition</p>
-      </a>
-      <a class="game-card disabled-game" href="">
-        <img src="images/ampler-launcher.png" alt="Ampler Launcher">
-        <p>Ampler Launcher</p>
-      </a>
-      <a class="game-card disabled-game" href="https://houselearning.github.io/home/assets/house-explorer/index.html">
-        <img src="images/calculus-crusade.png" alt="Calculus Crusade">
-        <p>House Explorer</p>
-      </a>
-      <a class="game-card disabled-game" href="https://houselearning.github.io/home/assets/hike-adventure">
-        <img src="https://houselearning.github.io/home/assets/hike-adventure/images/thumbnail.png" alt="Absolute Adventure">
-        <p>Hike Adventure</p>
-      </a>
-      <a class="game-card disabled-game" href="https://houselearning.github.io/home/games/polygon-panic.html">
-        <img src="images/polygon-panic.png" alt="Polygon Panic">
-        <p>Polygon Panic</p>
-      </a>
-      <a class="game-card disabled-game" href="https://houselearning.github.io/home/games/chromedino.html">
-        <img src="images/decimal-dash.png" alt="Decimal Dash">
-        <p>Chrome Dino</p>
-      </a>
-      <a class="game-card disabled-game" href="https://houselearning.github.io/home/assets/eaglercraft/">
-        <img src="images/mathcraft.png" alt="Mathcraft">
-        <p>Minecraft</p>
-      </a>
-    </div>
-
-    <div id="loginOverlay" class="member-games-overlay">
-        <svg class="member-games-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 11H5C3.89543 11 3 11.8954 3 13V21C3 22.1046 3.89543 23 5 23H19C20.1046 23 21 22.1046 21 21V13C21 11.8954 20.1046 11 19 11ZM17 17C17 18.1046 16.1046 19 15 19C13.8954 19 13 18.1046 13 17C13 15.8954 13.8954 15 15 15C16.1046 15 17 15.8954 17 17ZM15 3C12.2386 3 10 5.23858 10 8V11H12V8C12 6.34315 13.3431 5 15 5C16.6569 5 18 6.34315 18 8V11H20V8C20 5.23858 17.7614 3 15 3Z"/>
-        </svg>
-        <h4>Member Games Only</h4>
-        <p>Please sign in to access HouseLearning's member games.</p>
-        <a href="https://houselearning.github.io/auth">Sign In Now</a>
-    </div>
-</div>
-
-<script src="games/auth.js">
+<div class="main-content">
+    <input type="text" id="gameSearch" class="search-bar" onkeyup="filterGames()" placeholder="Search for a game by title...">
     
+    <div class="container" id="allGamesContainer">
+        <a class="game-card" href="https://houselearning.github.io/home/games/alge-blast.html">
+          <img src="images/alge-blast.png" alt="Alge-Blast">
+          <p>Alge-Blast</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/suburb-sleuth.html">
+          <img src="images/suburb-sleuth.png" alt="Suburb Sleuth">
+          <p>Suburb Sleuth</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/pi-fighter.html">
+          <img src="images/pi-fighter.png" alt="Pi Fighter">
+          <p>Pi Fighter</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/geometry-galaxy.html">
+          <img src="images/geometry-galaxy.png" alt="Geometry Galaxy">
+          <p>Geometry Galaxy</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/angle-assult.html">
+          <img src="images/angle-assault.png" alt="Angle Assault">
+          <p>Angle Assault</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/function-frenzy.html">
+          <img src="images/function-frenzy.png" alt="Function Frenzy">
+          <p>Function Frenzy</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/statistics.html">
+          <img src="images/probability-portal.png" alt="Probability Portal">
+          <p>Probability Portal</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/math/games/equationescape.html">
+          <img src="images/equation-escape.png" alt="Equation Escape">
+          <p>Equation Escape</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/factor-forest.html">
+          <img src="images/factor-forest.png" alt="Factor Forest">
+          <p>Factor Forest</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/slice-master.html">
+          <img src="images/number-ninja.png" alt="Number Ninja">
+          <p>Number Ninja</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/variable-vault.html">
+          <img src="images/variable-vault.png" alt="Variable Vault">
+          <p>Variable Vault</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/sum-city.html">
+          <img src="images/sum-city.png" alt="Sum City">
+          <p>Sum City</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/prime-time.html">
+          <img src="images/prime-time.png" alt="Prime Time">
+          <p>Prime Time</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/division-dominon.html">
+          <img src="images/division-dominion.png" alt="Division Dominion">
+          <p>Division Dominion</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/multiplication-mayhem.html">
+          <img src="images/multiplication-mayhem.png" alt="Multiplication Mayhem">
+          <p>Multiplication Mayhem</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/subtract-squad.html">
+          <img src="images/subtract-squad.png" alt="Subtract Squad">
+          <p>Subtract Squad</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/assets/addventure-island/index.html">
+          <img src="images/addventure-island.png" alt="Addventure Island">
+          <p>Addventure Island</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/mathmage.html">
+          <img src="images/math-mage.png" alt="Math Mage">
+          <p>Math Mage</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/assets/infinity-island/">
+          <img src="images/infinity-island.png" alt="Infinity Island">
+          <p>Infinity Island</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/pattern-planet">
+          <img src="images/pattern-planet.png" alt="Pattern Planet">
+          <p>Pattern Planet</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/integral-invasion.html">
+          <img src="images/integral-invasion.png" alt="Integral Invasion">
+          <p>Integral Invasion</p>
+        </a>
+        <a class="game-card" href="https://houselearning.github.io/home/games/graph-gauntlet.html">
+          <img src="images/graph-gauntlet.png" alt="Graph Gauntlet">
+          <p>The Graph Gauntlet</p>
+        </a>
+        <a class="game-card" href="">
+          <img src="images/exponent-empire.png" alt="Exponent Empire">
+          <p>The Exponent Empire</p>
+        </a>
+        <a class="game-card" href="">
+          <img src="images/circle-of-chaos.png" alt="Circle of Chaos">
+          <p>Circle of Chaos</p>
+        </a>
+        <a class="game-card" href="">
+          <img src="images/matrix-maze.png" alt="Matrix Maze">
+          <p>Matrix Maze</p>
+        </a>
+        <a class="game-card" href="">
+          <img src="images/logic-lab.png" alt="Logic Lab">
+          <p>Logic Lab</p>
+        </a>
+        <a class="game-card" href="">
+          <img src="images/function-forge.png" alt="Function Forge">
+          <p>Function Forge</p>
+        </a>
+    </div>
+<div id="memberGamesContainer" class="overlay-container">
+        <div id="memberGames" class="container">
+          <a class="game-card disabled-game" href="">
+            <img src="images/slope-speedway.png" alt="Slope Speedway">
+            <p>Slope Speedway</p>
+          </a>
+          <a class="game-card disabled-game" href="">
+            <img src="images/linear-launch.png" alt="Linear Launch">
+            <p>Linear Launch</p>
+          </a>
+          <a class="game-card disabled-game" href="">
+            <img src="images/parabola-project.png" alt="Parabola Project">
+            <p>The Parabola Project</p>
+          </a>
+          <a class="game-card disabled-game" href="">
+            <img src="images/radian-runners.png" alt="Radian Runners">
+            <p>Radian Runners</p>
+          </a>
+          <a class="game-card disabled-game" href="">
+            <img src="images/modulo-madness.png" alt="Modulo Madness">
+            <p>Modulo Madness</p>
+          </a>
+          <a class="game-card disabled-game" href="">
+            <img src="images/time-travelers.png" alt="Time Travelers: Math Edition">
+            <p>Time Travelers: Math Edition</p>
+          </a>
+          <a class="game-card disabled-game" href="">
+            <img src="images/ampler-launcher.png" alt="Ampler Launcher">
+            <p>Ampler Launcher</p>
+          </a>
+          <a class="game-card disabled-game" href="https://houselearning.github.io/home/assets/house-explorer/index.html">
+            <img src="images/calculus-crusade.png" alt="Calculus Crusade">
+            <p>House Explorer</p>
+          </a>
+          <a class="game-card disabled-game" href="https://houselearning.github.io/home/assets/hike-adventure">
+            <img src="https://houselearning.github.io/home/assets/hike-adventure/images/thumbnail.png" alt="Absolute Adventure">
+            <p>Hike Adventure</p>
+          </a>
+          <a class="game-card disabled-game" href="https://houselearning.github.io/home/games/polygon-panic.html">
+            <img src="images/polygon-panic.png" alt="Polygon Panic">
+            <p>Polygon Panic</p>
+          </a>
+          <a class="game-card disabled-game" href="https://houselearning.github.io/home/games/chromedino.html">
+            <img src="images/decimal-dash.png" alt="Decimal Dash">
+            <p>Chrome Dino</p>
+          </a>
+          <a class="game-card disabled-game" href="https://houselearning.github.io/home/assets/eaglercraft/">
+            <img src="images/mathcraft.png" alt="Mathcraft">
+            <p>Minecraft</p>
+          </a>
+        </div>
 
+        <div id="loginOverlay" class="member-games-overlay">
+            <svg class="member-games-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 11H5C3.89543 11 3 11.8954 3 13V21C3 22.1046 3.89543 23 5 23H19C20.1046 23 21 22.1046 21 21V13C21 11.8954 20.1046 11 19 11ZM17 17C17 18.1046 16.1046 19 15 19C13.8954 19 13 18.1046 13 17C13 15.8954 13.8954 15 15 15C16.1046 15 17 15.8954 17 17ZM15 3C12.2386 3 10 5.23858 10 8V11H12V8C12 6.34315 13.3431 5 15 5C16.6569 5 18 6.34315 18 8V11H20V8C20 5.23858 17.7614 3 15 3Z"/>
+            </svg>
+            <h4>Member Games Only</h4>
+            <p>Please sign in to access HouseLearning's member games.</p>
+            <a href="https://houselearning.github.io/auth">Sign In Now</a>
+        </div>
+    </div>
+</div>
+<script>
+    // ADDED JAVASCRIPT FOR SEARCH FUNCTIONALITY
+    function filterGames() {
+        // Get the search input value and convert to lowercase for case-insensitive search
+        var input = document.getElementById('gameSearch');
+        var filter = input.value.toUpperCase();
+
+        // Get all game card elements from both containers
+        var containers = document.querySelectorAll('.container');
+        
+        containers.forEach(function(container) {
+            var gameCards = container.querySelectorAll('.game-card');
+
+            // Loop through all game cards
+            gameCards.forEach(function(card) {
+                // Get the game title text (inside the <p> tag)
+                var p = card.querySelector('p');
+                var txtValue = p ? p.textContent || p.innerText : '';
+
+                // Check if the game title contains the search filter text
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    // Show the card if it matches
+                    card.style.display = ""; 
+                } else {
+                    // Hide the card if it does not match
+                    card.style.display = "none";
+                }
+            });
+        });
+    }
+
+    // Existing script (auth.js content should be here or linked)
 </script>
+<script src="games/auth.js"></script>
 </body>
 </html>
