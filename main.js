@@ -1,6 +1,6 @@
 // main.js
 
-// 🚨 IMPORTANT: Use the same config as in auth.js and app.js
+// 🚨 FIREBASE CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
     authDomain: "contract-center-llc-10.firebaseapp.com",
@@ -11,30 +11,138 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase App
-let app;
 let auth;
-
 try {
-    app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
 } catch (error) {
     console.error("Firebase initialization failed on main page:", error);
 }
 
-// Get DOM elements
-const profileContainer = document.getElementById('profile-container');
-const profilePic = document.getElementById('profile-pic');
-const accountDropdown = document.getElementById('account-dropdown');
-const logoutDropdownBtn = document.getElementById('logout-dropdown-btn');
-const joinClassBtn = document.getElementById('join-class-btn');
+// --- Dynamic Element References ---
+let profileContainer = null;
+let profilePic = null;
+let accountDropdown = null;
+
+
+// ====================================================================
+// 1. DYNAMIC CSS INJECTION
+// ====================================================================
+
+/**
+ * Creates a <style> block and inserts the necessary CSS rules 
+ * for the profile container and dropdown menu.
+ */
+function injectProfileStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* --- Profile Picture & Dropdown Styles (Injected via main.js) --- */
+        .profile-container {
+            position: fixed; 
+            top: 15px;      
+            right: 20px;    
+            z-index: 2000;  
+            display: none;  /* Hidden by default, shown by JS when logged in */
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            object-fit: cover;
+            border: 2px solid #61dafb;
+            transition: transform 0.1s ease;
+        }
+        .profile-pic:hover {
+            transform: scale(1.05);
+        }
+
+        .dropdown-menu {
+            position: absolute; 
+            top: 50px;          
+            right: 0;           
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            min-width: 200px;
+            overflow: hidden;
+            display: none; /* Hidden by default, toggled by JS */
+        }
+
+        .dropdown-menu a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-weight: 400;
+            font-size: 14px;
+            border-radius: 0;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f0f0f0;
+            color: #20232a;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Immediately run the style injection
+injectProfileStyles();
+
+
+// ====================================================================
+// 2. DYNAMIC HTML CREATION & LOGIC
+// ====================================================================
+
+/**
+ * 1. Creates the entire PFP/Dropdown HTML structure.
+ * 2. Injects it into the document body.
+ * 3. Returns references to the key elements.
+ */
+function createProfileUI(userPhotoURL) {
+    const container = document.createElement('div');
+    container.className = 'profile-container'; 
+    container.id = 'profile-container';
+    
+    const pic = document.createElement('img');
+    pic.src = userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
+    pic.alt = 'Profile Picture';
+    pic.className = 'profile-pic'; 
+    pic.id = 'profile-pic';
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown-menu'; 
+    dropdown.id = 'account-dropdown';
+    
+    dropdown.innerHTML = `
+        <a href="#" id="join-class-btn">Join Class</a>
+        <a href="https://houselearning.github.io/auth/dashboard.html" id="account-settings-btn">Account Settings Menu</a>
+        <a href="#" id="logout-dropdown-btn">Log Out</a>
+    `;
+
+    container.appendChild(pic);
+    container.appendChild(dropdown);
+    document.body.appendChild(container);
+    
+    return {
+        container: container,
+        pic: pic,
+        dropdown: dropdown,
+        logoutBtn: dropdown.querySelector('#logout-dropdown-btn'),
+        joinBtn: dropdown.querySelector('#join-class-btn')
+    };
+}
 
 /**
  * Toggles the visibility of the account dropdown menu.
+ * @param {HTMLElement} dropdownElement 
  */
-function toggleDropdown() {
-    // If the dropdown is currently visible, hide it. Otherwise, show it.
-    const isVisible = accountDropdown.style.display === 'block';
-    accountDropdown.style.display = isVisible ? 'none' : 'block';
+function toggleDropdown(dropdownElement) {
+    const isVisible = dropdownElement.style.display === 'block';
+    dropdownElement.style.display = isVisible ? 'none' : 'block';
 }
 
 /**
@@ -43,61 +151,47 @@ function toggleDropdown() {
 async function handleLogout() {
     try {
         await auth.signOut();
-        // The onAuthStateChanged listener will handle UI update/page refresh
     } catch (error) {
         console.error("Logout Error:", error);
         alert("Logout failed. Please try again.");
     }
 }
 
-/**
- * Handles the Join Class action.
- * NOTE: Since the full app.js `joinClass` function isn't available here, 
- * we'll link to the dashboard and let the user click Join Class there.
- */
-function handleJoinClass() {
-    window.location.href = 'https://houselearning.github.io/auth/dashboard.html';
-}
-
 // --- Main Auth State Listener ---
 if (auth) {
     auth.onAuthStateChanged(user => {
         if (user) {
-            // User is signed in: Show profile picture and container
-            profileContainer.style.display = 'block';
+            // 1. Create elements only if they don't exist
+            if (!profileContainer) {
+                const elements = createProfileUI(user.photoURL);
+                profileContainer = elements.container;
+                profilePic = elements.pic;
+                accountDropdown = elements.dropdown;
 
-            // Use the user's photoURL if available, otherwise use default.png
-            if (user.photoURL) {
-                profilePic.src = user.photoURL;
+                // 2. Attach static listeners
+                profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
+                elements.logoutBtn.addEventListener('click', handleLogout);
+                elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard.html?action=join');
+                
+                // 3. Global click handler to close the dropdown
+                 window.addEventListener('click', (event) => {
+                    if (accountDropdown.style.display === 'block' && 
+                        !profileContainer.contains(event.target)) {
+                        accountDropdown.style.display = 'none';
+                    }
+                });
             } else {
-                profilePic.src = 'https://houselearning.github.io/auth/dashboard/default.png'; // Ensure default.png is in the correct directory
+                // If elements exist, just ensure they're visible and updated
+                profileContainer.style.display = 'block';
+                profilePic.src = user.photoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
             }
-
-            // Attach event listeners for the profile UI
-            profilePic.addEventListener('click', toggleDropdown);
-            logoutDropdownBtn.addEventListener('click', handleLogout);
-            joinClassBtn.addEventListener('click', handleJoinClass);
-
-            // Hide dropdown when clicking anywhere else on the window
-            window.addEventListener('click', (event) => {
-                if (accountDropdown.style.display === 'block' && 
-                    !profileContainer.contains(event.target)) {
-                    accountDropdown.style.display = 'none';
-                }
-            });
-
+            
         } else {
-            // User is signed out: Hide profile picture
-            profileContainer.style.display = 'none';
-            accountDropdown.style.display = 'none'; // Ensure dropdown is hidden too
-            
-            // Revert profile pic to default for next sign-in (in case a photoURL was used)
-            profilePic.src = 'https://houselearning.github.io/auth/dashboard/default.png'; 
-            
-            // Remove listeners to prevent memory leaks (good practice)
-            profilePic.removeEventListener('click', toggleDropdown);
-            logoutDropdownBtn.removeEventListener('click', handleLogout);
-            joinClassBtn.removeEventListener('click', handleJoinClass);
+            // User is signed out: Hide the UI
+            if (profileContainer) {
+                profileContainer.style.display = 'none';
+                accountDropdown.style.display = 'none';
+            }
         }
     });
 }
