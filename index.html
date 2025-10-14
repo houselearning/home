@@ -29,21 +29,18 @@
       background-color: #20232a;
       padding: 12px 20px;
       display: flex;
-      justify-content: space-between; /* Space out content to the edges */
+      justify-content: flex-start; /* Start links from the left */
       align-items: center;
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-      /* Prevent the entire navbar from showing a scrollbar */
       overflow: hidden;
     }
 
     .navbar-content {
       display: flex;
       gap: 14px;
-      /* Ensure links stay in one line and don't wrap */
       white-space: nowrap; 
-      /* Hide scrollbar for the content if it overflows (only if necessary) */
       overflow-x: auto; 
-      /* Style to remove the scrollbar but keep overflow function */
+      /* Hide scrollbar for the content if it overflows */
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
     }
@@ -67,7 +64,7 @@
       color: #20232a;
     }
 
-    /* GitHub Button Styling (Adjusted) */
+    /* GitHub Button Styling (Integrated into navbar flow) */
     .github-button {
       background-color: #24292e;
       color: white;
@@ -80,7 +77,7 @@
       align-items: center;
       gap: 8px;
       transition: background-color 0.3s ease;
-      margin-left: 15px; /* Add some space after the last link */
+      margin-left: 15px;
     }
 
     .github-button:hover {
@@ -93,12 +90,16 @@
       filter: invert(1);
     }
     
-    /* --- Profile Picture & Dropdown Styles (NEW) --- */
+    /* --- Profile Picture & Dropdown Styles (FIXED to body) --- */
     .profile-container {
-        position: relative;
-        margin-left: auto; /* Push to the far right */
-        display: none; /* Hidden by default, shown by JS when logged in */
+        /* Position fixed to the viewport/body */
+        position: fixed; 
+        top: 15px;      
+        right: 20px;    
+        z-index: 2000;  
+        display: none;  /* Hidden by default, shown by JS when logged in */
     }
+
     .profile-pic {
         width: 40px;
         height: 40px;
@@ -113,9 +114,9 @@
     }
 
     .dropdown-menu {
-        position: absolute;
-        top: 50px; /* Position below the profile picture */
-        right: 0;
+        position: absolute; /* Relative to the .profile-container */
+        top: 50px;          /* Position below the profile picture */
+        right: 0;           /* Aligned to the right edge of the profile container */
         background-color: white;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         border-radius: 8px;
@@ -269,23 +270,27 @@
         }
         .github-button {
              margin-left: 0;
-             margin-top: 10px; /* Push the button down on smaller screens */
+             margin-top: 10px; 
         }
         .navbar {
             flex-direction: column;
             align-items: flex-start;
             gap: 10px;
         }
-        .profile-container {
-            position: static;
-            margin-left: 0;
-            width: 100%;
-            text-align: right;
-        }
     }
   </style>
 </head>
 <body>
+
+  <div class="profile-container" id="profile-container">
+      <img src="https://houselearning.github.io/auth/dashboard/default.png" alt="Profile Picture" class="profile-pic" id="profile-pic">
+      <div class="dropdown-menu" id="account-dropdown">
+          <a href="#" id="join-class-btn">Join Class</a>
+          <a href="dashboard.html" id="account-settings-btn">Account Settings Menu</a>
+          <a href="#" id="logout-dropdown-btn">Log Out</a>
+      </div>
+  </div>
+
 
   <nav class="navbar">
     <div class="navbar-content">
@@ -303,15 +308,6 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub icon">
         View On GitHub
       </a>
-    </div>
-
-    <div class="profile-container" id="profile-container">
-        <img src="default.png" alt="Profile Picture" class="profile-pic" id="profile-pic">
-        <div class="dropdown-menu" id="account-dropdown">
-            <a href="#" id="join-class-btn">Join Class</a>
-            <a href="dashboard.html" id="account-settings-btn">Account Settings Menu</a>
-            <a href="#" id="logout-dropdown-btn">Log Out</a>
-        </div>
     </div>
   </nav>
 
