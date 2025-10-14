@@ -297,7 +297,7 @@ function createProfileUI(userPhotoURL) {
     container.id = 'profile-container';
     
     const pic = document.createElement('img');
-    pic.src = userPhotoURL || 'default.png';
+    pic.src = userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
     pic.alt = 'Profile Picture';
     pic.className = 'profile-pic'; 
     pic.id = 'profile-pic';
@@ -308,7 +308,7 @@ function createProfileUI(userPhotoURL) {
     
     dropdown.innerHTML = `
         <a href="#" id="join-class-btn">Join Class</a>
-        <a href="dashboard.html" id="account-settings-btn">Account Settings Menu</a>
+        <a href="https://houselearning.github.io/auth/dashboard/dashboard.html" id="account-settings-btn">Account Settings Menu</a>
         <a href="#" id="logout-dropdown-btn">Log Out</a>
     `;
 
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Attach static listeners
                     profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
                     elements.logoutBtn.addEventListener('click', handleLogout);
-                    elements.joinBtn.addEventListener('click', () => window.location.href = 'dashboard.html?action=join');
+                    elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard/dashboard.html?action=join');
                     
                     // Global click handler to close the dropdown
                      window.addEventListener('click', (event) => {
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Set visibility
                 profileContainer.style.display = 'block';
-                profilePic.src = user.photoURL || 'default.png';
+                profilePic.src = user.photoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
                 signUpButton.style.display = 'none';
                 
                 // Hide popup when logged in
