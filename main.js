@@ -56,7 +56,7 @@ async function handleLogout() {
  * we'll link to the dashboard and let the user click Join Class there.
  */
 function handleJoinClass() {
-    window.location.href = 'dashboard.html';
+    window.location.href = 'https://houselearning.github.io/auth/dashboard.html';
 }
 
 // --- Main Auth State Listener ---
