@@ -31,7 +31,7 @@ let accountDropdown = null;
 
 /**
  * Creates a <style> block and inserts the necessary CSS rules 
- * for the profile container and dropdown menu.
+ * for the profile container and dropdown menu into the <head>.
  */
 function injectProfileStyles() {
     const style = document.createElement('style');
@@ -89,18 +89,13 @@ function injectProfileStyles() {
     document.head.appendChild(style);
 }
 
-// Immediately run the style injection
-injectProfileStyles();
-
 
 // ====================================================================
 // 2. DYNAMIC HTML CREATION & LOGIC
 // ====================================================================
 
 /**
- * 1. Creates the entire PFP/Dropdown HTML structure.
- * 2. Injects it into the document body.
- * 3. Returns references to the key elements.
+ * Creates the entire PFP/Dropdown HTML structure and injects it into the document body.
  */
 function createProfileUI(userPhotoURL) {
     const container = document.createElement('div');
@@ -119,7 +114,7 @@ function createProfileUI(userPhotoURL) {
     
     dropdown.innerHTML = `
         <a href="#" id="join-class-btn">Join Class</a>
-        <a href="https://houselearning.github.io/auth/dashboard.html" id="account-settings-btn">Account Settings Menu</a>
+        <a href="https://houselearning.github.io/auth/dashboard" id="account-settings-btn">Account Settings Menu</a>
         <a href="#" id="logout-dropdown-btn">Log Out</a>
     `;
 
@@ -136,18 +131,11 @@ function createProfileUI(userPhotoURL) {
     };
 }
 
-/**
- * Toggles the visibility of the account dropdown menu.
- * @param {HTMLElement} dropdownElement 
- */
 function toggleDropdown(dropdownElement) {
     const isVisible = dropdownElement.style.display === 'block';
     dropdownElement.style.display = isVisible ? 'none' : 'block';
 }
 
-/**
- * Handles the logout process.
- */
 async function handleLogout() {
     try {
         await auth.signOut();
@@ -157,41 +145,51 @@ async function handleLogout() {
     }
 }
 
-// --- Main Auth State Listener ---
-if (auth) {
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // 1. Create elements only if they don't exist
-            if (!profileContainer) {
-                const elements = createProfileUI(user.photoURL);
-                profileContainer = elements.container;
-                profilePic = elements.pic;
-                accountDropdown = elements.dropdown;
 
-                // 2. Attach static listeners
-                profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
-                elements.logoutBtn.addEventListener('click', handleLogout);
-                elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard.html?action=join');
+// ====================================================================
+// 3. MAIN EXECUTION BLOCK (Wrapped in DOMContentLoaded)
+// ====================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Inject CSS styles immediately when the DOM is ready
+    injectProfileStyles();
+
+    if (auth) {
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in.
+                if (!profileContainer) {
+                    // Create elements only once upon the first login detection
+                    const elements = createProfileUI(user.photoURL);
+                    profileContainer = elements.container;
+                    profilePic = elements.pic;
+                    accountDropdown = elements.dropdown;
+
+                    // Attach static listeners
+                    profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
+                    elements.logoutBtn.addEventListener('click', handleLogout);
+                    elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard.html?action=join');
+                    
+                    // Global click handler to close the dropdown
+                     window.addEventListener('click', (event) => {
+                        if (accountDropdown.style.display === 'block' && 
+                            !profileContainer.contains(event.target)) {
+                            accountDropdown.style.display = 'none';
+                        }
+                    });
+                } 
                 
-                // 3. Global click handler to close the dropdown
-                 window.addEventListener('click', (event) => {
-                    if (accountDropdown.style.display === 'block' && 
-                        !profileContainer.contains(event.target)) {
-                        accountDropdown.style.display = 'none';
-                    }
-                });
-            } else {
-                // If elements exist, just ensure they're visible and updated
+                // Ensure visibility and correct photo URL
                 profileContainer.style.display = 'block';
                 profilePic.src = user.photoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
+                
+            } else {
+                // User is signed out: Hide the UI
+                if (profileContainer) {
+                    profileContainer.style.display = 'none';
+                    accountDropdown.style.display = 'none';
+                }
             }
-            
-        } else {
-            // User is signed out: Hide the UI
-            if (profileContainer) {
-                profileContainer.style.display = 'none';
-                accountDropdown.style.display = 'none';
-            }
-        }
-    });
-}
+        });
+    }
+});
