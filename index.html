@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4118288704086018"
-     crossorigin="anonymous"></script>
-<script src="https://houselearning.github.io/cookiebanner.js"></script>  
+       crossorigin="anonymous"></script>
+<script src="https://houselearning.github.io/cookiebanner.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="A Safe, Open-source website developed by HouseLearning">
   <meta name="keywords" content="Open Source,Learning,GitHub,HouseLearning,HTML,CSS,JS,Coding,Math,Games,Programs,Safe">
   <meta name="author" content="HouseLearning">
-     <link rel="canonical" href="https://houselearning.github.io/home">
+       <link rel="canonical" href="https://houselearning.github.io/home">
   <title>CoolMathTime - Fun Math, Science & Coding</title>
   <style>
     * { box-sizing: border-box; }
@@ -21,25 +21,38 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      /* Remove scrollbar */
+      overflow-x: hidden;
     }
 
     .navbar {
       background-color: #20232a;
       padding: 12px 20px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between; /* Space out content to the edges */
+      align-items: center;
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-      overflow-x: auto;
-      white-space: nowrap;
-      position: relative;
+      /* Prevent the entire navbar from showing a scrollbar */
+      overflow: hidden;
     }
 
     .navbar-content {
       display: flex;
       gap: 14px;
-      flex-wrap: wrap;
-      justify-content: center;
+      /* Ensure links stay in one line and don't wrap */
+      white-space: nowrap; 
+      /* Hide scrollbar for the content if it overflows (only if necessary) */
+      overflow-x: auto; 
+      /* Style to remove the scrollbar but keep overflow function */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
     }
+
+    /* Webkit/Blink browsers (Chrome, Safari) scrollbar removal */
+    .navbar-content::-webkit-scrollbar {
+        display: none;
+    }
+
     .navbar a {
       color: #61dafb;
       text-decoration: none;
@@ -54,10 +67,8 @@
       color: #20232a;
     }
 
+    /* GitHub Button Styling (Adjusted) */
     .github-button {
-      position: absolute;
-      top: 10px;
-      right: 20px;
       background-color: #24292e;
       color: white;
       padding: 8px 12px;
@@ -69,6 +80,7 @@
       align-items: center;
       gap: 8px;
       transition: background-color 0.3s ease;
+      margin-left: 15px; /* Add some space after the last link */
     }
 
     .github-button:hover {
@@ -80,6 +92,55 @@
       height: 20px;
       filter: invert(1);
     }
+    
+    /* --- Profile Picture & Dropdown Styles (NEW) --- */
+    .profile-container {
+        position: relative;
+        margin-left: auto; /* Push to the far right */
+        display: none; /* Hidden by default, shown by JS when logged in */
+    }
+    .profile-pic {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        object-fit: cover;
+        border: 2px solid #61dafb;
+        transition: transform 0.1s ease;
+    }
+    .profile-pic:hover {
+        transform: scale(1.05);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 50px; /* Position below the profile picture */
+        right: 0;
+        background-color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        z-index: 1000;
+        min-width: 200px;
+        overflow: hidden;
+        display: none; /* Hidden by default, toggled by JS */
+    }
+
+    .dropdown-menu a {
+        color: #333;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        font-weight: 400;
+        font-size: 14px;
+        border-radius: 0;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: #f0f0f0;
+        color: #20232a;
+    }
+    /* --- END Profile Picture & Dropdown Styles --- */
+
 
     .container {
       display: flex;
@@ -198,6 +259,30 @@
       color: #61dafb;
       font-weight: 600;
     }
+
+    /* Responsive adjustments for mobile/smaller screens */
+    @media (max-width: 900px) {
+        .navbar-content {
+            /* Allow horizontal scrolling on smaller screens if links don't fit */
+            overflow-x: auto;
+            justify-content: flex-start;
+        }
+        .github-button {
+             margin-left: 0;
+             margin-top: 10px; /* Push the button down on smaller screens */
+        }
+        .navbar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .profile-container {
+            position: static;
+            margin-left: 0;
+            width: 100%;
+            text-align: right;
+        }
+    }
   </style>
 </head>
 <body>
@@ -210,14 +295,24 @@
       <a href="https://houselearning.github.io/home/computer-science-page.html">Coding Challenges</a>
       <a href="https://houselearning.github.io/home/games.html">Random Games</a>
       <a href="https://houselearning.github.io/safe-library">Safe Library</a>
-      <a href="https://houselearning.github.io/home/blog.html">Blog</a> <!-- ✅ Added Blog tab -->
+      <a href="https://houselearning.github.io/home/blog.html">Blog</a>
       <a href="https://houselearning.github.io/home/about">About</a>
       <a href="https://houselearning.github.io/apply">Apply</a>
+      
+      <a href="https://github.com/houselearning" target="_blank" class="github-button">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub icon">
+        View On GitHub
+      </a>
     </div>
-    <a href="https://github.com/houselearning" target="_blank" class="github-button">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub icon">
-      View On GitHub
-    </a>
+
+    <div class="profile-container" id="profile-container">
+        <img src="default.png" alt="Profile Picture" class="profile-pic" id="profile-pic">
+        <div class="dropdown-menu" id="account-dropdown">
+            <a href="#" id="join-class-btn">Join Class</a>
+            <a href="dashboard.html" id="account-settings-btn">Account Settings Menu</a>
+            <a href="#" id="logout-dropdown-btn">Log Out</a>
+        </div>
+    </div>
   </nav>
 
   <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -248,7 +343,6 @@
     </div>
   </main>
 
-  <!-- ✅ Blog of the Week Section -->
   <aside class="sidebar">
     <h2>📰 Blog of the Week</h2>
     <p><a href="blog/science/why-you-repeat-habits.html">The Science of Habits: Why You Keep Repeating Things</a></p>
@@ -277,6 +371,10 @@
       <a href="https://houselearning.github.io/home/games/sciencerace.htm">Play Now</a>
     </div>
   </section>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://houselearning.github.io/home/main.js"></script>
 
   <script src="https://www.freevisitorcounters.com/en/home/counter/1320434/t/0"></script>
 </body>
