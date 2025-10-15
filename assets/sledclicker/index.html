@@ -3,47 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sled Clicker v2.0: The Arctic Journey</title>
+    <title>Sled Clicker v3.0: Arctic Expedition</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; position: relative; background-color: #1e3c72; color: #f0f0f0; }
-        h1 { color: #f4d03f; }
+        /* Custom Styles & Overrides */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            min-height: 100vh;
+            transition: background-image 0.5s ease-in-out;
+        }
         #sled { 
             cursor: pointer; 
-            width: 180px; /* Slightly larger */
+            width: 180px; 
             animation: spin 5s linear infinite;
-            position: relative;
-            transition: transform 0.1s; /* For click effect */
+            transition: transform 0.1s;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
         }
         #sled:active {
-            transform: scale(0.95); /* Visual feedback on click */
+            transform: scale(0.95);
         }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        #stats, #shop, #prestige, #milestones { 
-            margin: 20px auto; 
-            padding: 15px; 
-            border: 2px solid #f4d03f; 
-            border-radius: 10px; 
-            background-color: #0e2a47; 
-            max-width: 600px;
-        }
-        button { 
-            margin: 8px; 
-            padding: 10px 15px; 
-            background-color: #f4d03f; 
-            color: #1e3c72; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        button:hover:not(:disabled) { background-color: #ffe066; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; color: #666; }
 
-        /* Particle Styles (kept from original) */
+        /* Rainbow Text Animation for Banner */
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            14% { color: #ff7f00; }
+            28% { color: #ffff00; }
+            42% { color: #00ff00; }
+            57% { color: #0000ff; }
+            71% { color: #4b0082; }
+            85% { color: #9400d3; }
+            100% { color: #ff0000; }
+        }
+        .rainbow-text {
+            animation: rainbow 5s ease-in-out infinite;
+        }
+
+        /* Particle Styles */
         .particle {
             position: absolute;
             width: 10px;
@@ -53,7 +53,6 @@
             opacity: 1;
             animation: particleMovement 0.5s ease-out forwards;
         }
-
         @keyframes particleMovement {
             to {
                 transform: translate(var(--x), var(--y));
@@ -61,7 +60,7 @@
             }
         }
 
-        /* Snowflake Styles (kept from original) */
+        /* Snowflake Styles */
         .snowflake {
             position: absolute;
             background-color: white;
@@ -70,47 +69,563 @@
             border-radius: 50%;
             opacity: 0.8;
             animation: snowFall 5s linear infinite;
+            pointer-events: none; /* Ignore clicks on snowflakes */
         }
-
         @keyframes snowFall {
-            0% {
-                transform: translateY(-100px);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh);
-                opacity: 0;
-            }
+            0% { transform: translateY(-100px); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
         }
     </style>
 </head>
-<body>
-    <h1>Sled Clicker v2.0</h1>
+<body class="bg-gray-900 text-white p-4">
 
-    <div id="stats">
-        <p>Clicks: <span id="clicks">0</span></p>
-        <p>Clicks Per Second (CPS): <span id="cps-display">0</span></p>
+    <!-- Sign-In Reminder Banner (Initially Hidden) -->
+    <div id="sign-in-banner" class="fixed bottom-4 left-4 p-4 bg-gray-800/90 border-4 border-yellow-500 rounded-lg shadow-2xl z-50 transition-opacity duration-500 hidden">
+        <p class="text-sm">HouseLearning is even better when you sign in.</p>
+        <p class="text-lg font-extrabold rainbow-text">Plus, you can save your game progress.</p>
     </div>
 
-    <img id="sled" src="https://3dmodelsworld.com/wp-content/uploads/2022/09/sleigh-3d-model-tc-1024x768.webp" alt="Sled">
+    <!-- Main Game UI -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-extrabold text-yellow-400">Sled Clicker v3.0: Arctic Expedition</h1>
+        <p class="text-xs text-gray-400 mt-1">Signed In: <span id="auth-status" class="text-red-500">No (Progress is temporary)</span></p>
+    </header>
     
-    <div id="shop">
-        <h2>Auto-Clicker Upgrades</h2>
-        </div>
-
-    <div id="milestones">
-        <h2>Milestone Upgrades (Permanent Click Multipliers)</h2>
-        </div>
-
-    <div id="prestige">
-        <h2>Prestige System</h2>
-        <p>Snowballs: <span id="snowballs">0</span></p>
-        <p>Prestige Multiplier: <span id="prestige-multiplier">1.0</span>x</p>
-        <p id="prestige-info">Reach 10,000 Total Clicks to Prestige for 1 Snowball.</p>
-        <button id="prestige-button" onclick="prestige()" disabled>PRESTIGE! (Reset Clicks)</button>
+    <!-- Stats Panel -->
+    <div id="stats" class="mb-8 p-4 bg-gray-800 rounded-xl shadow-lg inline-block w-full max-w-lg">
+        <p class="text-xl font-medium">Clicks: <span id="clicks" class="text-3xl font-bold text-green-400">0</span></p>
+        <p class="text-md mt-2">Clicks Per Second (CPS): <span id="cps-display" class="font-semibold text-teal-400">0</span></p>
+        <p class="text-md">Manual Click Value: <span id="click-value" class="font-semibold text-sky-400">1</span></p>
     </div>
 
-    <audio id="music" src="https://spinningrat.online/assets/tunes/tunes.ogg" loop></audio> 
+    <!-- Sled Click Target -->
+    <img id="sled" src="https://3dmodelsworld.com/wp-content/uploads/2022/09/sleigh-3d-model-tc-1024x768.webp" alt="Sled" class="mx-auto my-6">
+    
+    <!-- Shop Tabs -->
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-center mb-4 space-x-2">
+            <button id="tab-auto" onclick="showShop('auto-shop')" class="p-3 bg-yellow-600 rounded-t-lg font-bold shadow-md hover:bg-yellow-500 transition-colors">Auto-Clickers</button>
+            <button id="tab-milestone" onclick="showShop('milestone-shop')" class="p-3 bg-gray-600 rounded-t-lg font-bold shadow-md hover:bg-gray-500 transition-colors">Milestones</button>
+            <button id="tab-multiplier" onclick="showShop('multiplier-shop')" class="p-3 bg-gray-600 rounded-t-lg font-bold shadow-md hover:bg-gray-500 transition-colors">Multipliers</button>
+        </div>
 
-    <script src="sled_clicker.js"></script> </body>
+        <div id="shop-container" class="bg-gray-800 p-6 rounded-b-xl rounded-t-none shadow-xl border-t-4 border-yellow-600">
+            <div id="auto-shop" class="shop-tab grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div id="milestone-shop" class="shop-tab grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
+            <div id="multiplier-shop" class="shop-tab grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
+        </div>
+    </div>
+
+
+    <!-- Prestige System -->
+    <div id="prestige" class="mt-8 mb-4 p-4 bg-gray-800 rounded-xl shadow-lg inline-block w-full max-w-lg">
+        <h2 class="text-2xl font-semibold text-purple-400 mb-2">Prestige System</h2>
+        <p>Snowballs: <span id="snowballs" class="text-xl font-bold text-purple-400">0</span></p>
+        <p>Prestige Multiplier: <span id="prestige-multiplier" class="font-semibold text-purple-400">1.00</span>x (Base Multiplier)</p>
+        <p id="prestige-info" class="text-sm text-gray-400 mt-2">Total Clicks: 0. Next Snowball at 10,000.</p>
+        <button id="prestige-button" onclick="prestige()" disabled class="mt-3 w-full p-3 bg-purple-600 rounded-lg font-bold shadow-md hover:bg-purple-500 disabled:bg-gray-600 disabled:cursor-not-allowed">PRESTIGE! (Reset Clicks)</button>
+    </div>
+
+    <!-- Audio (Kept for continuity) -->
+    <audio id="music" src="https://spinningrat.online/assets/tunes/tunes.ogg" loop></audio>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Updated imports to use signInWithCustomToken and removed signInAnonymously
+        import { getAuth, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // 🚨 FIREBASE CONFIGURATION (Provided by user)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+            authDomain: "contract-center-llc-10.firebaseapp.com",
+            projectId: "contract-center-llc-10",
+            storageBucket: "contract-center-llc-10.firebasestorage.app",
+            messagingSenderId: "323221512767",
+            appId: "1:323221512767:web:6421260f875997dbf64e8a",
+        };
+
+        // Initialize Firebase and Auth
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // --- Environment-specific Authentication Handling ---
+        // Retrieve the custom token provided by the environment
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        if (initialAuthToken) {
+            // Use the custom token to sign the user in
+            signInWithCustomToken(auth, initialAuthToken)
+                .then(() => console.log("Signed in with custom token."))
+                .catch(error => console.error("Custom token sign-in failed:", error));
+        } else {
+            // If no token, we rely on the onAuthStateChanged listener to handle the unauthenticated state.
+            console.log("No custom auth token provided. App will rely on onAuthStateChanged listener.");
+        }
+        // --- End Authentication Handling ---
+
+
+        // Expose auth state to the global scope
+        window.isUserSignedIn = false;
+        const authStatusElement = document.getElementById('auth-status');
+        const signInBanner = document.getElementById('sign-in-banner');
+        
+        // Listen for Auth State Changes
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in 
+                window.isUserSignedIn = true;
+                authStatusElement.textContent = 'Yes (Progress is saved)';
+                authStatusElement.classList.remove('text-red-500');
+                authStatusElement.classList.add('text-green-500');
+                signInBanner.classList.add('hidden'); // Hide banner if signed in
+                window.loadGame(); // Load the game state if signed in
+            } else {
+                // User is signed out or unauthenticated
+                window.isUserSignedIn = false;
+                authStatusElement.textContent = 'No (Progress is temporary)';
+                authStatusElement.classList.remove('text-green-500');
+                authStatusElement.classList.add('text-red-500');
+                signInBanner.classList.remove('hidden'); // Show banner if not signed in
+                window.loadGame(); // Load temp game state (or start new game)
+                // Removed the error-causing signInAnonymously call here
+            }
+        });
+        
+        // Add beforeunload handler to the window (outside the module scope)
+        window.onbeforeunload = function() {
+            if (!window.isUserSignedIn && window.clicks > 0) {
+                return "You have unsaved progress! Are you sure you want to leave?";
+            }
+        };
+
+        // Export game functions for the script block to use (best practice)
+        window.auth = auth;
+    </script>
+    
+    <script>
+        // --- Game State Variables ---
+        let clicks = 0;
+        let baseClickValue = 1; 
+        let autoClicksPerSecond = 0;
+        let snowballs = 0;
+        let prestigeMultiplier = 1.0;
+        let totalClicksGained = 0; 
+        let spinSpeed = 5; 
+        
+        // --- Upgrade Definitions ---
+        const autoUpgrades = [
+            { id: 1, name: 'Stringy Banner', cost: 10, autoClickIncrease: 0.1, effect: 'stringbanner()' },
+            { id: 2, name: 'Steering Wheel', cost: 50, autoClickIncrease: 3, effect: 'steeringwheel()' },
+            { id: 3, name: 'Rainbow Clicker', cost: 100, autoClickIncrease: 8, effect: 'activateRainbowCursor()' },
+            { id: 4, name: 'Reinforced Steel', cost: 200, autoClickIncrease: 20, effect: 'reinforcedsteel()' },
+            { id: 5, name: 'Professional Sledder', cost: 500, autoClickIncrease: 40, effect: 'ProfessionalSledder()' },
+            { id: 6, name: 'Tunes', cost: 1000, autoClickIncrease: 80, effect: 'playMusic()' },
+            { id: 7, name: 'Hacker', cost: 2000, autoClickIncrease: 100, effect: 'hacker()' },
+            { id: 8, name: 'jUsT gImMe MoNeY!', cost: 5000, autoClickIncrease: 120, effect: 'money()' },
+            { id: 9, name: 'Santa', cost: 10000, autoClickIncrease: 200, effect: 'santa()' }
+        ];
+
+        const milestones = [
+            { id: 101, name: 'A Better Grip', cost: 500, clickBonus: 1, bought: false },
+            { id: 102, name: 'Aerodynamic Wax', cost: 2500, clickBonus: 2, bought: false },
+            { id: 103, name: 'Rocket Thrusters', cost: 10000, clickBonus: 5, bought: false }
+        ];
+        
+        // New Multiplier Upgrades
+        const multiplierUpgrades = [
+            { id: 201, name: 'Snow Vents', cost: 50000, multiplier: 2.0, bought: false },
+            { id: 202, name: 'Gravity Flipper', cost: 250000, multiplier: 3.0, bought: false },
+            { id: 203, name: 'Wormhole Engine', cost: 1000000, multiplier: 5.0, bought: false }
+        ];
+
+        // Stores the number of times each auto-clicker upgrade has been purchased
+        let upgradeLevels = Array(autoUpgrades.length).fill(0);
+        
+        // Global Multiplier (for Multiplier upgrades)
+        let globalMultiplier = 1.0; 
+
+        // --- DOM Element References ---
+        const clicksDisplay = document.getElementById('clicks');
+        const cpsDisplay = document.getElementById('cps-display');
+        const clickValueDisplay = document.getElementById('click-value');
+        const autoShopDiv = document.getElementById('auto-shop');
+        const milestoneShopDiv = document.getElementById('milestone-shop');
+        const multiplierShopDiv = document.getElementById('multiplier-shop');
+        const sledImg = document.getElementById('sled');
+        const snowballsDisplay = document.getElementById('snowballs');
+        const prestigeMultiplierDisplay = document.getElementById('prestige-multiplier');
+        const prestigeButton = document.getElementById('prestige-button');
+
+        // --- Initialization and Load ---
+        window.onload = function() {
+            // Note: Firebase `onAuthStateChanged` will call window.loadGame() when ready.
+            renderUpgrades();
+            renderMilestones();
+            renderMultiplierUpgrades();
+            sledImg.addEventListener('click', manualClick);
+            setInterval(autoClick, 1000); // Main auto-click loop
+            setInterval(saveGame, 5000); // Save every 5 seconds
+            setInterval(updateSnowflakes, 10000); // Snowflakes
+            updateSpinSpeed(); // Start the spin animation
+        };
+
+        // --- Tab Management ---
+        function showShop(tabId) {
+            document.querySelectorAll('.shop-tab').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('button[id^="tab-"]').forEach(btn => btn.classList.remove('bg-yellow-600', 'text-white'));
+            document.querySelectorAll('button[id^="tab-"]').forEach(btn => btn.classList.add('bg-gray-600', 'text-white'));
+
+            document.getElementById('tab-' + tabId.replace('-shop', '')).classList.remove('bg-gray-600');
+            document.getElementById('tab-' + tabId.replace('-shop', '')).classList.add('bg-yellow-600');
+        }
+
+        // --- Save/Load System (Local Storage - Conditional) ---
+        window.loadGame = function() {
+            const saved = localStorage.getItem('sledClickerGame');
+            if (saved) {
+                const gameState = JSON.parse(saved);
+                clicks = gameState.clicks || 0;
+                baseClickValue = gameState.baseClickValue || 1;
+                autoClicksPerSecond = gameState.autoClicksPerSecond || 0;
+                snowballs = gameState.snowballs || 0;
+                totalClicksGained = gameState.totalClicksGained || 0;
+                upgradeLevels = gameState.upgradeLevels || Array(autoUpgrades.length).fill(0);
+                
+                // Load Milestones state
+                if (gameState.milestones) {
+                    milestones.forEach((m, i) => {
+                        const savedM = gameState.milestones.find(sm => sm.id === m.id);
+                        if (savedM) milestones[i].bought = savedM.bought;
+                    });
+                }
+
+                // Load Multiplier state
+                if (gameState.multiplierUpgrades) {
+                    multiplierUpgrades.forEach((m, i) => {
+                        const savedM = gameState.multiplierUpgrades.find(sm => sm.id === m.id);
+                        if (savedM) multiplierUpgrades[i].bought = savedM.bought;
+                    });
+                }
+                
+                // Recalculate multipliers
+                globalMultiplier = multiplierUpgrades.reduce((mult, u) => u.bought ? mult * u.multiplier : mult, 1.0);
+                prestigeMultiplier = 1 + snowballs * 0.1;
+
+                // Re-apply upgrade effects (like music, rainbow cursor)
+                autoUpgrades.forEach((u, i) => {
+                    if (upgradeLevels[i] > 0 && u.effect) {
+                        if (u.effect === 'playMusic()' || u.effect === 'activateRainbowCursor()') {
+                            eval(u.effect);
+                        }
+                    }
+                });
+
+                console.log(window.isUserSignedIn ? "Game loaded from localStorage." : "Game loaded temporary state (Not signed in).");
+            } else {
+                console.log("No saved game found. Starting new.");
+            }
+            updateDisplays();
+            renderUpgrades();
+            renderMilestones();
+            renderMultiplierUpgrades();
+        }
+
+        function saveGame() {
+            // Only save if the user is signed in
+            if (!window.isUserSignedIn) {
+                console.log("Not signed in. Skipping save to local storage.");
+                return;
+            }
+
+            const gameState = {
+                clicks: clicks,
+                baseClickValue: baseClickValue,
+                autoClicksPerSecond: autoClicksPerSecond,
+                snowballs: snowballs,
+                totalClicksGained: totalClicksGained,
+                upgradeLevels: upgradeLevels,
+                milestones: milestones,
+                multiplierUpgrades: multiplierUpgrades
+            };
+            localStorage.setItem('sledClickerGame', JSON.stringify(gameState));
+            console.log("Game saved successfully.");
+        }
+
+        // --- Core Game Functions ---
+        function getEffectiveClickAmount() {
+            return baseClickValue * prestigeMultiplier * globalMultiplier;
+        }
+        
+        function manualClick(event) {
+            const clickAmount = getEffectiveClickAmount();
+            clicks += clickAmount;
+            totalClicksGained += clickAmount;
+            updateDisplays();
+            generateParticles(event.clientX, event.clientY);
+            
+            spinSpeed = Math.max(0.5, spinSpeed - 0.01);
+            updateSpinSpeed();
+        }
+
+        function autoClick() {
+            const autoAmount = autoClicksPerSecond * prestigeMultiplier * globalMultiplier;
+            clicks += autoAmount;
+            totalClicksGained += autoAmount;
+            updateDisplays();
+        }
+
+        function buyUpgrade(index) {
+            const upgrade = autoUpgrades[index];
+            const cost = upgrade.cost * Math.pow(1.5, upgradeLevels[index]); 
+
+            if (clicks >= cost) {
+                clicks -= cost;
+                upgradeLevels[index]++;
+                autoClicksPerSecond += upgrade.autoClickIncrease;
+                
+                if (upgradeLevels[index] === 1 && upgrade.effect) {
+                    eval(upgrade.effect); 
+                }
+
+                spinSpeed = Math.max(1, spinSpeed - 0.05);
+                updateSpinSpeed();
+
+                updateDisplays();
+                renderUpgrades(); 
+            } else {
+                console.log('Not enough Clicks!');
+            }
+        }
+
+        function buyMilestone(index) {
+            const milestone = milestones[index];
+            if (clicks >= milestone.cost && !milestone.bought) {
+                clicks -= milestone.cost;
+                milestone.bought = true;
+                baseClickValue += milestone.clickBonus; 
+                updateDisplays();
+                renderMilestones(); 
+            } else {
+                console.log('Milestone already purchased or not enough Clicks!');
+            }
+        }
+        
+        function buyMultiplierUpgrade(index) {
+            const upgrade = multiplierUpgrades[index];
+            if (clicks >= upgrade.cost && !upgrade.bought) {
+                clicks -= upgrade.cost;
+                upgrade.bought = true;
+                globalMultiplier *= upgrade.multiplier; 
+                updateDisplays();
+                renderMultiplierUpgrades(); 
+            } else {
+                console.log('Multiplier upgrade already purchased or not enough Clicks!');
+            }
+        }
+
+        function prestige() {
+            const snowballsToGain = Math.floor(Math.sqrt(totalClicksGained / 10000));
+            
+            if (snowballsToGain >= 1) {
+                if (!confirm(`Are you sure you want to Prestige? You will reset all Clicks and Auto-Upgrades, but gain ${snowballsToGain} Snowball(s)!`)) {
+                    return;
+                }
+
+                snowballs += snowballsToGain;
+                prestigeMultiplier = 1 + snowballs * 0.1;
+                
+                clicks = 0;
+                autoClicksPerSecond = 0;
+                upgradeLevels = Array(autoUpgrades.length).fill(0);
+                
+                // Reset visual effects
+                document.body.style.backgroundImage = 'none';
+                document.body.style.cursor = 'auto';
+                document.getElementById("music").pause(); 
+
+                updateDisplays();
+                renderUpgrades();
+            }
+        }
+
+        // --- Display/Rendering Functions ---
+        function updateDisplays() {
+            clicksDisplay.innerText = Math.floor(clicks).toLocaleString();
+            clickValueDisplay.innerText = getEffectiveClickAmount().toFixed(1);
+            cpsDisplay.innerText = (autoClicksPerSecond * prestigeMultiplier * globalMultiplier).toFixed(1);
+            snowballsDisplay.innerText = snowballs;
+            prestigeMultiplierDisplay.innerText = prestigeMultiplier.toFixed(2);
+            
+            // Update Prestige Button State
+            const snowballsAvailable = Math.floor(Math.sqrt(totalClicksGained / 10000));
+            const nextPrestigeClicks = (snowballs + 1) * (snowballs + 1) * 10000;
+            
+            prestigeButton.disabled = snowballsAvailable < 1;
+            if (snowballsAvailable >= 1) {
+                prestigeButton.innerText = `PRESTIGE! (+${snowballsAvailable} Snowball(s))`;
+            } else {
+                prestigeButton.innerText = `Reach ${nextPrestigeClicks.toLocaleString()} Total Clicks for next Snowball`;
+            }
+            document.getElementById('prestige-info').innerText = `Total Clicks: ${Math.floor(totalClicksGained).toLocaleString()}. Next Snowball at ${nextPrestigeClicks.toLocaleString()}.`;
+        }
+
+        function createUpgradeButton(upgrade, cost, text, onclick, disabled) {
+            return `
+                <div class="p-3 bg-gray-700 rounded-lg shadow-md border border-gray-600">
+                    <p class="font-bold text-lg">${upgrade.name}</p>
+                    <p class="text-sm text-yellow-400">Cost: ${Math.floor(cost).toLocaleString()} Clicks</p>
+                    <button 
+                        class="mt-2 w-full p-2 rounded-md font-semibold transition-colors
+                        ${disabled ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-400'}"
+                        onclick="${onclick}" ${disabled ? 'disabled' : ''}>
+                        ${text}
+                    </button>
+                </div>
+            `;
+        }
+        
+        function renderUpgrades() {
+            autoShopDiv.innerHTML = autoUpgrades.map((upgrade, index) => {
+                const cost = upgrade.cost * Math.pow(1.5, upgradeLevels[index]);
+                const level = upgradeLevels[index];
+                const disabled = clicks < cost;
+                const text = `Buy Level ${level + 1} (+${upgrade.autoClickIncrease} CPS)`;
+                
+                return createUpgradeButton(upgrade, cost, text, `buyUpgrade(${index})`, disabled);
+            }).join('');
+            
+            updateDisplays();
+        }
+
+        function renderMilestones() {
+            milestoneShopDiv.innerHTML = milestones.map((milestone, index) => {
+                const disabled = milestone.bought || clicks < milestone.cost;
+                const text = milestone.bought ? 'BOUGHT' : `Buy (+${milestone.clickBonus} Click Value)`;
+                const bgColor = milestone.bought ? 'bg-indigo-500' : 'bg-red-500';
+
+                return `
+                    <div class="p-3 bg-gray-700 rounded-lg shadow-md border ${milestone.bought ? 'border-indigo-500' : 'border-red-500'}">
+                        <p class="font-bold text-lg">${milestone.name}</p>
+                        <p class="text-sm text-yellow-400">Cost: ${milestone.cost.toLocaleString()} Clicks</p>
+                        <button 
+                            class="mt-2 w-full p-2 rounded-md font-semibold transition-colors
+                            ${disabled ? 'bg-gray-500 cursor-not-allowed' : `${bgColor} hover:opacity-80`}"
+                            onclick="buyMilestone(${index})" ${disabled ? 'disabled' : ''}>
+                            ${text}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            updateDisplays();
+        }
+
+        function renderMultiplierUpgrades() {
+            multiplierShopDiv.innerHTML = multiplierUpgrades.map((upgrade, index) => {
+                const disabled = upgrade.bought || clicks < upgrade.cost;
+                const text = upgrade.bought ? 'BOUGHT' : `Buy (+${upgrade.multiplier.toFixed(1)}x Global Multiplier)`;
+                const bgColor = upgrade.bought ? 'bg-blue-500' : 'bg-pink-500';
+
+                return `
+                    <div class="p-3 bg-gray-700 rounded-lg shadow-md border ${upgrade.bought ? 'border-blue-500' : 'border-pink-500'}">
+                        <p class="font-bold text-lg">${upgrade.name}</p>
+                        <p class="text-sm text-yellow-400">Cost: ${upgrade.cost.toLocaleString()} Clicks</p>
+                        <button 
+                            class="mt-2 w-full p-2 rounded-md font-semibold transition-colors
+                            ${disabled ? 'bg-gray-500 cursor-not-allowed' : `${bgColor} hover:opacity-80`}"
+                            onclick="buyMultiplierUpgrade(${index})" ${disabled ? 'disabled' : ''}>
+                            ${text}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            updateDisplays();
+        }
+
+
+        // --- Visual/Effect Functions ---
+        function updateSpinSpeed() {
+            sledImg.style.animation = `spin ${spinSpeed}s linear infinite`;
+        }
+
+        function generateParticles(x, y) {
+            const particleCount = 10; 
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                document.body.appendChild(particle);
+
+                particle.style.left = `${x - 5}px`;
+                particle.style.top = `${y - 5}px`;
+
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 100 + 50; 
+
+                const deltaX = Math.cos(angle) * distance;
+                const deltaY = Math.sin(angle) * distance;
+
+                particle.style.setProperty('--x', `${deltaX}px`);
+                particle.style.setProperty('--y', `${deltaY}px`);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 500); 
+            }
+        }
+
+        function updateSnowflakes() {
+            const snowflakeCount = 30; 
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                document.body.appendChild(snowflake);
+
+                const xPos = Math.random() * window.innerWidth;
+                const size = Math.random() * 5 + 5; 
+                snowflake.style.left = `${xPos}px`;
+                snowflake.style.width = `${size}px`;
+                snowflake.style.height = `${size}px`;
+
+                snowflake.style.animationDuration = `${Math.random() * 5 + 5}s`; 
+
+                setTimeout(() => {
+                    snowflake.remove();
+                }, 10000);
+            }
+        }
+
+        // --- Legacy Upgrade Effects ---
+        function playMusic() {
+            let audio = document.getElementById("music");
+            audio.play().catch(e => console.log('Music autoplay prevented. Click anywhere to enable.', e));
+        }
+
+        let colors = ["#ff0000", "#ff7f00", "#ffff00", "#00ff00", "#0000ff", "#4b0082", "#9400d3"];
+        let colorIndex = 0;
+
+        function activateRainbowCursor() {
+            setInterval(() => {
+                document.body.style.cursor = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="8" fill="${colors[colorIndex]}"/></svg>') 16 16, auto`;
+                colorIndex = (colorIndex + 1) % colors.length;
+            }, 100); 
+        }
+
+        // Background functions (updated to use modern backgrounds)
+        function stringbanner() { document.body.style.backgroundImage = "url('https://images.thdstatic.com/productImages/ce381c6d-b778-480d-8dcd-6baf82b4f645/svn/novelty-place-house-flags-np-pennantbanner-75pcs-2pc-1d_600.jpg')"; document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; }
+        function steeringwheel() { document.body.style.backgroundImage = "url('https://media.tenor.com/7Cv0ZYqWR9gAAAAM/gta-v-flip.gif')"; document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; }
+        function reinforcedsteel() { document.body.style.backgroundImage = "url('https://i.pinimg.com/originals/4b/cb/35/4bcb35a715c7b0913748a7b71251722a.gif')"; document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; }
+        function ProfessionalSledder() { document.body.style.backgroundImage = "url('https://media.tenor.com/rEcB3Dw7LTcAAAAM/sled-fail.gif')"; document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; }
+        function money() { document.body.style.backgroundImage = "url('https://i.giphy.com/14vTnFcC3Oom4M.webp')"; document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; }
+        function santa() { document.body.style.backgroundImage = "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdxxjg8Uth5MvH7mtdjod0BgnWtAWGuAkjgIVlm5nv723L4NE0YeZzFZYeM1wc_ZwUskY&usqp=CAU')"; document.body.style.backgroundSize = "cover"; document.body.style.backgroundPosition = "center"; }
+        function hacker() { console.log('HACKING COMPLETE: Global multiplier increased!'); } // Effect is now handled by the Multiplier upgrades
+        
+        // Initial shop display
+        showShop('auto-shop');
+
+    </script>
+</body>
 </html>
