@@ -1,3 +1,5 @@
+
+/*
 // 1. **REPLACE WITH YOUR FIREBASE CONFIGURATION**
 // Get this from your Firebase project settings
 const firebaseConfig = {
@@ -26,7 +28,7 @@ if (!firebase.apps.length) {
                 "App name:", firebase.apps[0].name); 
 }
 
-const auth = firebase.auth();
+const auth = firebase.auth();*/
 
 // Elements
 const memberGamesContainer = document.getElementById('memberGames');
