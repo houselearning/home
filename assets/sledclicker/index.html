@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sled Clicker v2.0: The Arctic Journey</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; position: relative; background-color: #1e3c72; color: #f0f0f0; }
+        h1 { color: #f4d03f; }
+        #sled { 
+            cursor: pointer; 
+            width: 180px; /* Slightly larger */
+            animation: spin 5s linear infinite;
+            position: relative;
+            transition: transform 0.1s; /* For click effect */
+        }
+        #sled:active {
+            transform: scale(0.95); /* Visual feedback on click */
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #stats, #shop, #prestige, #milestones { 
+            margin: 20px auto; 
+            padding: 15px; 
+            border: 2px solid #f4d03f; 
+            border-radius: 10px; 
+            background-color: #0e2a47; 
+            max-width: 600px;
+        }
+        button { 
+            margin: 8px; 
+            padding: 10px 15px; 
+            background-color: #f4d03f; 
+            color: #1e3c72; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover:not(:disabled) { background-color: #ffe066; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; color: #666; }
+
+        /* Particle Styles (kept from original) */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 1;
+            animation: particleMovement 0.5s ease-out forwards;
+        }
+
+        @keyframes particleMovement {
+            to {
+                transform: translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+
+        /* Snowflake Styles (kept from original) */
+        .snowflake {
+            position: absolute;
+            background-color: white;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: snowFall 5s linear infinite;
+        }
+
+        @keyframes snowFall {
+            0% {
+                transform: translateY(-100px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Sled Clicker v2.0</h1>
+
+    <div id="stats">
+        <p>Clicks: <span id="clicks">0</span></p>
+        <p>Clicks Per Second (CPS): <span id="cps-display">0</span></p>
+    </div>
+
+    <img id="sled" src="https://3dmodelsworld.com/wp-content/uploads/2022/09/sleigh-3d-model-tc-1024x768.webp" alt="Sled">
+    
+    <div id="shop">
+        <h2>Auto-Clicker Upgrades</h2>
+        </div>
+
+    <div id="milestones">
+        <h2>Milestone Upgrades (Permanent Click Multipliers)</h2>
+        </div>
+
+    <div id="prestige">
+        <h2>Prestige System</h2>
+        <p>Snowballs: <span id="snowballs">0</span></p>
+        <p>Prestige Multiplier: <span id="prestige-multiplier">1.0</span>x</p>
+        <p id="prestige-info">Reach 10,000 Total Clicks to Prestige for 1 Snowball.</p>
+        <button id="prestige-button" onclick="prestige()" disabled>PRESTIGE! (Reset Clicks)</button>
+    </div>
+
+    <audio id="music" src="https://spinningrat.online/assets/tunes/tunes.ogg" loop></audio> 
+
+    <script src="sled_clicker.js"></script> </body>
+</html>
