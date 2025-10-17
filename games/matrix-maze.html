@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Maze</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Matrix-inspired Dark Theme */
+        body {
+            background-color: #0d1117; /* Very Dark Blue-Black */
+            font-family: 'Inter', monospace; /* Monospace for terminal feel */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #00FF41; /* Matrix Green Text */
+            padding: 1rem;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            max-width: 100%;
+        }
+
+        canvas {
+            background-color: #0D1117; 
+            border: 4px solid #00FF41; /* Bright Green Border */
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.7); /* Green Glow */
+            border-radius: 8px;
+            touch-action: none; 
+            cursor: pointer;
+        }
+
+        .game-ui {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: #00FFFF; /* Cyan/Blue UI text */
+        }
+
+        .btn {
+            background-color: #00B8D4; /* Cyan button */
+            color: #0D1117;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.1s, box-shadow 0.1s;
+            box-shadow: 0 4px 15px rgba(0, 184, 212, 0.5);
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            border: none;
+        }
+
+        .btn:hover {
+            background-color: #00FFFF;
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.9);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 184, 212, 0.3);
+        }
+        
+        /* Specific styling for the info panel to match the aesthetic */
+        .info-panel {
+            background-color: #1a202c;
+            color: #00FF41;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px dashed #00FF41;
+            box-shadow: inset 0 0 5px rgba(0, 255, 65, 0.5);
+            font-size: 1rem;
+        }
+
+        /* Responsive control layout */
+        #mobile-controls {
+            display: grid;
+            grid-template-areas: ". up ." "left down right";
+            gap: 1rem;
+            margin-top: 1rem;
+            width: 200px;
+        }
+
+        .ctrl-btn {
+            padding: 1rem;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            background-color: #3b82f6; /* Blue for controls */
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.6);
+        }
+
+        #up-btn { grid-area: up; }
+        #down-btn { grid-area: down; }
+        #left-btn { grid-area: left; }
+        #right-btn { grid-area: right; }
+
+        @media (min-width: 768px) {
+            /* Hide controls on desktop */
+            #mobile-controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1 class="text-3xl font-extrabold text-white mb-4 shadow-text">MATRIX MAZE</h1>
+    <div class="game-ui">
+        <div id="level-display" class="info-panel">Level: 1</div>
+        <button id="start-button" class="btn">Start Game</button>
+        <div id="timer-display" class="info-panel">Time: 0.0s</div>
+    </div>
+    <canvas id="mazeCanvas"></canvas>
+    <p class="text-gray-400 mt-2 text-sm hidden md:block">Use **Arrow Keys** (or **W, A, S, D**) to navigate the maze.</p>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <button id="up-btn" class="ctrl-btn">&#9650;</button>
+        <button id="left-btn" class="ctrl-btn">&#9664;</button>
+        <button id="down-btn" class="ctrl-btn">&#9660;</button>
+        <button id="right-btn" class="ctrl-btn">&#9654;</button>
+    </div>
+
+</div>
+
+<script>
+    // --- CANVAS SETUP ---
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+    const startButton = document.getElementById('start-button');
+    const timerDisplay = document.getElementById('timer-display');
+    const levelDisplay = document.getElementById('level-display');
+    
+    // --- GAME CONSTANTS ---
+    const COLS = 15;
+    const ROWS = 15;
+    const CELL_SIZE = 40;
+    const WALL_THICKNESS = 4;
+    const PLAYER_PADDING = 8; // Padding inside the cell for the player dot
+    
+    const CANVAS_WIDTH = COLS * CELL_SIZE;
+    const CANVAS_HEIGHT = ROWS * CELL_SIZE;
+    
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+
+    // --- COLORS ---
+    const WALL_COLOR = '#00FF41'; // Bright Matrix Green
+    const PLAYER_COLOR = '#00FFFF'; // Cyan/Blue for Player
+    const START_COLOR = '#22C55E'; // Emerald Green Start
+    const GOAL_COLOR = '#3B82F6'; // Blue Exit
+    const PATH_COLOR = '#1A202C'; // Subtle path background color (Renamed from VISITED_COLOR to fix ReferenceError)
+    
+    // --- GAME STATE ---
+    let grid = [];
+    let playerPos = { row: 0, col: 0 };
+    let goalPos = { row: ROWS - 1, col: COLS - 1 };
+    let gameRunning = false;
+    let startTime = 0;
+    let elapsedTime = 0;
+    let level = 1;
+    let timerInterval;
+
+    // --- CELL CLASS ---
+    class Cell {
+        constructor(row, col) {
+            this.row = row;
+            this.col = col;
+            this.walls = {
+                top: true,
+                right: true,
+                bottom: true,
+                left: true
+            };
+            this.visited = false;
+        }
+
+        draw() {
+            const x = this.col * CELL_SIZE;
+            const y = this.row * CELL_SIZE;
+
+            ctx.strokeStyle = WALL_COLOR;
+            ctx.lineWidth = WALL_THICKNESS;
+            ctx.lineCap = 'round';
+
+            // Draw walls
+            if (this.walls.top) ctx.beginPath(), ctx.moveTo(x, y), ctx.lineTo(x + CELL_SIZE, y), ctx.stroke();
+            if (this.walls.right) ctx.beginPath(), ctx.moveTo(x + CELL_SIZE, y), ctx.lineTo(x + CELL_SIZE, y + CELL_SIZE), ctx.stroke();
+            if (this.walls.bottom) ctx.beginPath(), ctx.moveTo(x, y + CELL_SIZE), ctx.lineTo(x + CELL_SIZE, y + CELL_SIZE), ctx.stroke();
+            if (this.walls.left) ctx.beginPath(), ctx.moveTo(x, y), ctx.lineTo(x, y + CELL_SIZE), ctx.stroke();
+        }
+
+        // Highlights cell for Start, Goal, or Path
+        highlight(color, isGoal = false) {
+            const x = this.col * CELL_SIZE;
+            const y = this.row * CELL_SIZE;
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(x + WALL_THICKNESS, y + WALL_THICKNESS, CELL_SIZE - WALL_THICKNESS * 2, CELL_SIZE - WALL_THICKNESS * 2);
+
+            // Add a pulsing glow for the goal
+            if (isGoal) {
+                const pulse = Math.abs(Math.sin(Date.now() / 300)) * 10;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = pulse + 5;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fillRect(x + CELL_SIZE/4, y + CELL_SIZE/4, CELL_SIZE/2, CELL_SIZE/2);
+                ctx.shadowBlur = 0;
+            }
+        }
+    }
+
+    // --- MAZE GENERATION (Recursive Backtracker) ---
+
+    function setupGrid() {
+        grid = [];
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                grid.push(new Cell(r, c));
+            }
+        }
+    }
+
+    function getIndex(r, c) {
+        if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return -1;
+        return r * COLS + c;
+    }
+
+    function generateMaze() {
+        setupGrid();
+        let stack = [];
+        let current = grid[getIndex(playerPos.row, playerPos.col)];
+        current.visited = true;
+        stack.push(current);
+
+        while (stack.length > 0) {
+            current = stack.pop();
+
+            const neighbors = [];
+            
+            // Check neighbors (Top, Right, Bottom, Left)
+            const potentialNeighbors = [
+                { r: current.row - 1, c: current.col, wall: 'top', oppositeWall: 'bottom' },
+                { r: current.row, c: current.col + 1, wall: 'right', oppositeWall: 'left' },
+                { r: current.row + 1, c: current.col, wall: 'bottom', oppositeWall: 'top' },
+                { r: current.row, c: current.col - 1, wall: 'left', oppositeWall: 'right' },
+            ];
+
+            for (const { r, c, wall, oppositeWall } of potentialNeighbors) {
+                const index = getIndex(r, c);
+                if (index !== -1 && !grid[index].visited) {
+                    neighbors.push({ cell: grid[index], wall: wall, oppositeWall: oppositeWall });
+                }
+            }
+
+            if (neighbors.length > 0) {
+                stack.push(current);
+                
+                // Choose a random neighbor
+                const nextData = neighbors[Math.floor(Math.random() * neighbors.length)];
+                const next = nextData.cell;
+
+                // Knock down the wall between current and next
+                current.walls[nextData.wall] = false;
+                next.walls[nextData.oppositeWall] = false;
+
+                next.visited = true;
+                stack.push(next);
+            }
+        }
+        
+        // Ensure entrance/exit walls are open for visual clarity
+        grid[getIndex(0, 0)].walls.left = false; 
+        grid[getIndex(ROWS - 1, COLS - 1)].walls.right = false;
+    }
+
+    // --- DRAWING FUNCTIONS ---
+
+    function draw() {
+        ctx.fillStyle = PATH_COLOR;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        // Clear shadow/glow for non-goal items
+        ctx.shadowBlur = 0;
+
+        for (const cell of grid) {
+            // Highlight Start and Goal cells
+            if (cell.row === playerPos.row && cell.col === playerPos.col) {
+                // Do not highlight player's cell, draw player over it
+            } else if (cell.row === goalPos.row && cell.col === goalPos.col) {
+                cell.highlight(GOAL_COLOR, true);
+            } else if (cell.row === 0 && cell.col === 0) {
+                cell.highlight(START_COLOR);
+            } else {
+                // Draw a subtle trail for visited cells
+                // if (cell.visited) { // Optional: to draw path after generation
+                //     cell.highlight(PATH_COLOR); // Use PATH_COLOR here if desired
+                // }
+            }
+        }
+        
+        // Draw the walls over the highlights
+        for (const cell of grid) {
+            cell.draw();
+        }
+        
+        drawPlayer();
+    }
+
+    function drawPlayer() {
+        const x = playerPos.col * CELL_SIZE + CELL_SIZE / 2;
+        const y = playerPos.row * CELL_SIZE + CELL_SIZE / 2;
+        const radius = CELL_SIZE / 2 - PLAYER_PADDING;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        
+        // Add Player Glow
+        ctx.shadowColor = PLAYER_COLOR;
+        ctx.shadowBlur = 15;
+        
+        ctx.fillStyle = PLAYER_COLOR;
+        ctx.fill();
+        
+        // Remove glow for other elements
+        ctx.shadowBlur = 0;
+    }
+
+    function drawGameOverScreen(message) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FF4141'; // Error Red
+        ctx.font = 'bold 36px Inter, monospace';
+        ctx.fillText('ACCESS DENIED', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 40);
+
+        ctx.fillStyle = '#00FFFF'; // Cyan
+        ctx.font = '24px Inter, monospace';
+        ctx.fillText(message, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10);
+
+        ctx.fillStyle = '#00FF41'; // Green
+        ctx.font = '16px Inter, monospace';
+        ctx.fillText('Press START to reconnect.', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
+    }
+    
+    // --- GAME LOGIC ---
+
+    function updateTimer() {
+        if (!gameRunning) return;
+        elapsedTime = (Date.now() - startTime) / 1000;
+        timerDisplay.textContent = `Time: ${elapsedTime.toFixed(1)}s`;
+    }
+
+    function movePlayer(dr, dc) {
+        if (!gameRunning) return;
+
+        const currentCell = grid[getIndex(playerPos.row, playerPos.col)];
+        let newRow = playerPos.row + dr;
+        let newCol = playerPos.col + dc;
+        let canMove = false;
+        let wallToBreak = '';
+
+        if (dr === -1) wallToBreak = 'top'; // Up
+        else if (dr === 1) wallToBreak = 'bottom'; // Down
+        else if (dc === 1) wallToBreak = 'right'; // Right
+        else if (dc === -1) wallToBreak = 'left'; // Left
+
+        // Check if the wall is broken (i.e., we can move)
+        if (!currentCell.walls[wallToBreak]) {
+            // Check if the new position is within bounds (should always be true if walls are set correctly, but safe check)
+            if (getIndex(newRow, newCol) !== -1) {
+                canMove = true;
+            }
+        }
+
+        if (canMove) {
+            playerPos.row = newRow;
+            playerPos.col = newCol;
+            // grid[getIndex(playerPos.row, playerPos.col)].visited = true; // Mark as visited for optional path tracing
+
+            if (playerPos.row === goalPos.row && playerPos.col === goalPos.col) {
+                levelComplete();
+            }
+        }
+    }
+
+    function levelComplete() {
+        clearInterval(timerInterval);
+        level++;
+        levelDisplay.textContent = `Level: ${level}`;
+        
+        // Briefly stop the game to acknowledge the win
+        gameRunning = false;
+        
+        // Wait a moment then generate next level
+        setTimeout(() => {
+            resetGame(false); // Generate new maze, but keep running the timer
+        }, 500); 
+    }
+
+    function resetGame(initialStart = true) {
+        if (initialStart) {
+            level = 1;
+            startTime = 0;
+            elapsedTime = 0;
+            levelDisplay.textContent = `Level: 1`;
+            timerDisplay.textContent = `Time: 0.0s`;
+            startButton.textContent = 'Start Game';
+            startButton.disabled = false;
+        } else {
+            // Reset for next level
+            startButton.disabled = true;
+        }
+        
+        playerPos = { row: 0, col: 0 };
+        goalPos = { row: ROWS - 1, col: COLS - 1 };
+        
+        generateMaze();
+        draw();
+        
+        if (!initialStart) {
+            // Restart the timer only on level completion, not game over
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 100);
+            gameRunning = true;
+        }
+    }
+    
+    function startGame() {
+        resetGame(true); // Initial setup
+        
+        // Start time and game loop
+        startTime = Date.now();
+        gameRunning = true;
+        startButton.textContent = 'Restart';
+        startButton.disabled = true;
+        
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 100);
+        
+        requestAnimationFrame(gameLoop);
+    }
+    
+    // --- MAIN LOOP ---
+    
+    function gameLoop() {
+        if (!gameRunning) {
+            draw();
+            return;
+        }
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- INPUT HANDLING ---
+    
+    function handleKeyDown(e) {
+        if (!gameRunning) return;
+        
+        let dr = 0;
+        let dc = 0;
+
+        if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') dr = -1;
+        else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') dr = 1;
+        else if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') dc = -1;
+        else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') dc = 1;
+
+        if (dr !== 0 || dc !== 0) {
+            e.preventDefault(); // Stop scrolling when using arrows
+            movePlayer(dr, dc);
+        }
+    }
+
+    // Event Listeners
+    startButton.addEventListener('click', startGame);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // Mobile controls setup
+    document.getElementById('up-btn').addEventListener('click', () => movePlayer(-1, 0));
+    document.getElementById('down-btn').addEventListener('click', () => movePlayer(1, 0));
+    document.getElementById('left-btn').addEventListener('click', () => movePlayer(0, -1));
+    document.getElementById('right-btn').addEventListener('click', () => movePlayer(0, 1));
+
+
+    // Initial setup on load
+    window.onload = function() {
+        resetGame(true);
+    };
+
+</script>
+</body>
+</html>
