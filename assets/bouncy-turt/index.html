@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Bouncy Turt — HouseLearning</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://houselearning.github.io/cookiebanner.js"></script>
+	<style>
+		:root{
+			--bg:#f7fbfb;
+			--card:#ffffff;
+			--muted:#6b7280;
+			--accent:#0ea5a0; /* teal */
+			--accent-strong:#0b8f84;
+			--nav:#0f1724;
+			--glass: rgba(255,255,255,0.6);
+			--radius:12px;
+			--shadow: 0 8px 30px rgba(12,18,30,0.12);
+		}
+		html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--nav);background:
+			radial-gradient(1200px 400px at 10% 10%, rgba(14,165,160,0.06), transparent 10%),
+			var(--bg);
+		}
+		/* top brand bar */
+		.brand-bar{
+			position:fixed;left:0;right:0;top:0;height:62px;background:linear-gradient(90deg, rgba(11,31,51,0.98), rgba(6,78,90,0.95));display:flex;align-items:center;padding:0 18px;box-shadow:0 6px 18px rgba(5,10,20,0.08);z-index:60;
+		}
+		.brand {
+			display:flex;gap:12px;align-items:center;color:white;font-weight:600;
+			font-size:16px;
+		}
+		.brand .logo {
+			width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-strong));display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:700;
+			box-shadow:0 6px 18px rgba(11,31,51,0.25);
+		}
+		.loader-wrap { min-height:100%; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; padding-top:88px; }
+		.panel {
+			width:820px;
+			max-width:94%;
+			text-align:center;
+			background:var(--card);
+			border-radius:var(--radius);
+			padding:20px;
+			box-shadow:var(--shadow);
+			border:1px solid rgba(12,18,30,0.04);
+			overflow:visible;
+		}
+		.header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+		h1 { margin:0; font-size:20px; color:var(--nav); font-weight:700; letter-spacing:-0.2px; }
+		.subtitle { font-size:13px; color:var(--muted); margin-top:4px; }
+		.frame-box {
+			background: linear-gradient(180deg, rgba(6,78,90,0.02), transparent);
+			border-radius:10px;
+			overflow:hidden;
+			padding:12px;
+			border:1px solid rgba(6,78,90,0.04);
+		}
+		iframe {
+			width:100%;
+			height:460px;
+			border:0;
+			border-radius:8px;
+			background:#000;
+			display:block;
+			box-shadow: 0 12px 30px rgba(6,78,90,0.06) inset;
+		}
+		.controls { margin-top:14px; display:flex; justify-content:center; gap:12px; }
+		button {
+			padding:10px 16px;
+			font-size:15px;
+			border-radius:10px;
+			border:0;
+			cursor:pointer;
+			background:var(--accent);
+			color:#fff;
+			box-shadow: 0 6px 18px rgba(14,165,160,0.14);
+			transition:transform .12s ease, box-shadow .12s ease;
+		}
+		button:hover{ transform:translateY(-2px); box-shadow: 0 10px 26px rgba(14,165,160,0.16); }
+		.button-ghost {
+			background:transparent;color:var(--nav);border:1px solid rgba(10,20,30,0.06);box-shadow:none;
+		}
+		/* Modal */
+		.modal-backdrop {
+			position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+			background:rgba(2,6,23,0.55); z-index:50;
+			backdrop-filter: blur(3px);
+		}
+		.modal {
+			background:var(--card); padding:20px; width:520px; max-width:94%; border-radius:12px; box-shadow:0 20px 60px rgba(2,6,23,0.35);
+			text-align:left;
+			border:1px solid rgba(6,78,90,0.04);
+		}
+		.modal h2 { margin:0 0 8px; font-size:18px; color:var(--nav); }
+		.modal p { margin:8px 0; line-height:1.45; color:var(--muted); }
+		.modal .caption { margin-top:14px; text-align:right; font-size:13px; color:var(--muted); }
+		.close-btn { background:transparent; color:var(--nav); border-radius:8px; padding:8px 12px; border:1px solid rgba(12,18,30,0.06); }
+		/* small footer */
+		.panel-footer { margin-top:12px; font-size:13px; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
+		.panel .badge { background:linear-gradient(90deg,var(--accent),var(--accent-strong)); color:white; padding:6px 10px; border-radius:8px; font-weight:600; font-size:13px; }
+		@media (max-width:640px){
+			iframe{height:380px;}
+			.panel{padding:14px;}
+		}
+	</style>
+</head>
+<body>
+	<!-- brand bar -->
+	<div class="brand-bar" aria-hidden="true">
+		<div class="brand">
+			<div class="logo">HL</div>
+			<div>
+				<div style="font-size:13px;opacity:.95">HouseLearning</div>
+				<div style="font-size:11px;opacity:.85;margin-top:-3px">Educational Games</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="loader-wrap">
+		<div class="panel">
+			<div class="header-row">
+				<div style="text-align:left;">
+					<h1>Bouncy Turt</h1>
+					<div class="subtitle">A quick jump-and-collect game — fun for learners</div>
+				</div>
+				<div class="badge">Play</div>
+			</div>
+
+			<div class="frame-box">
+				<!-- Center iframe loading game.html -->
+				<iframe id="gameFrame" src="game.html" title="Bouncy Turt game"></iframe>
+			</div>
+
+			<div class="controls" style="margin-top:14px;">
+				<button id="directionsBtn">Directions</button>
+				<!-- optional: reload game iframe -->
+				<button id="reloadBtn" class="button-ghost" title="Reload game">Reload</button>
+			</div>
+
+			<div class="panel-footer">
+				<div>Tip: Left-click or Up arrow to jump</div>
+				<div style="opacity:.9">Created by Matson Billingham</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Directions modal -->
+	<div id="modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+		<div class="modal" role="document">
+			<h2>Directions</h2>
+			<p>To jump: left-click mouse or click up arrow.</p>
+			<p>Try to avoid the trash! Eat the fish to gain points. If you hit the trash, you loose points. Good Luck.</p>
+			<div class="caption">Created by Matson Billingham</div>
+			<div style="text-align:right; margin-top:12px;">
+				<button id="closeModal" class="close-btn">Close</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Modal and controls
+		(function(){
+			const modal = document.getElementById('modal');
+			const directionsBtn = document.getElementById('directionsBtn');
+			const closeModal = document.getElementById('closeModal');
+			const reloadBtn = document.getElementById('reloadBtn');
+			directionsBtn.addEventListener('click', () => {
+				modal.style.display = 'flex';
+				modal.setAttribute('aria-hidden','false');
+			});
+			closeModal.addEventListener('click', () => {
+				modal.style.display = 'none';
+				modal.setAttribute('aria-hidden','true');
+			});
+			modal.addEventListener('click', (e) => {
+				if (e.target === modal) { // click on backdrop closes
+					modal.style.display = 'none';
+					modal.setAttribute('aria-hidden','true');
+				}
+			});
+			reloadBtn.addEventListener('click', () => {
+				const iframe = document.getElementById('gameFrame');
+				iframe.src = iframe.src;
+			});
+		})();
+	</script>
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://houselearning.github.io/home/main.js"></script>
+</body>
+</html>
