@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logic Lab</title>
+    <!-- Load Tailwind CSS for utility classes and the 'Inter' font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for Logic Lab aesthetic */
+        :root {
+            --neon-green: #39FF14;
+            --dark-bg: #111827;
+            --circuit-grey: #2C3E50;
+            --component-shadow: 0 0 10px var(--neon-green);
+            --neon-blue: #00BFFF; /* For challenges/levels */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .lab-container {
+            background-color: var(--circuit-grey);
+            border: 3px solid var(--neon-green);
+            box-shadow: var(--component-shadow);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 90%;
+            width: 650px; /* Increased width for 4 inputs */
+            animation: pulse-border 5s infinite alternate;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: #39FF14; box-shadow: 0 0 10px #39FF14; }
+            100% { border-color: #00FF00; box-shadow: 0 0 20px #00FF00; }
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            text-align: center;
+            color: var(--neon-green);
+            text-shadow: 0 0 5px #00FF00;
+            margin-bottom: 5px; /* Reduced margin */
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: white;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .input-button {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-off {
+            background-color: #444;
+            color: #ccc;
+            border-color: #555;
+        }
+
+        .input-on {
+            background-color: var(--neon-green);
+            color: var(--dark-bg);
+            border-color: white;
+            box-shadow: var(--component-shadow);
+        }
+
+        .input-button:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .check-output-button {
+            background-color: #007bff; /* Blue */
+            color: white;
+        }
+        .check-output-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .reset-button {
+            background-color: #e74c3c; /* Red */
+            color: white;
+            margin-top: 10px;
+        }
+        .reset-button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .level-info {
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.5);
+        }
+
+        /* Score & Timer Display */
+        .score-timer-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            background-color: #0a0a0a;
+            border-radius: 6px;
+            border: 1px solid var(--neon-blue);
+        }
+        .score-timer-panel > div {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Output display */
+        #output-display {
+            font-size: 3rem;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 900;
+            background-color: #000;
+            min-height: 80px; /* Ensure height consistency */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid transparent;
+        }
+
+        .output-0 {
+            color: #FF6347; /* Tomato Red for FALSE */
+            border-color: #FF6347;
+            text-shadow: 0 0 8px rgba(255, 99, 71, 0.5);
+        }
+
+        .output-1 {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: var(--component-shadow);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Message box styling */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            border: 2px solid var(--neon-green);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 0 15px var(--neon-green);
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .message-box button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .message-box .btn-close {
+            background-color: #ccc;
+            color: var(--dark-bg);
+            margin-left: 10px;
+        }
+        .message-box .btn-next {
+            background-color: var(--neon-green);
+            color: var(--dark-bg);
+        }
+        .message-box button:hover {
+            opacity: 0.9;
+        }
+
+        /* Responsive Grid for inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columns for A, B, C, D */
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            /* Fallback to 2 columns on small screens */
+            .input-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .lab-container {
+                padding: 20px;
+                width: 100%;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lab-container">
+        <h1>LOGIC LAB <span id="level-display" class="level-info text-xl">(Challenge 1)</span></h1>
+
+        <!-- Score and Timer Panel -->
+        <div class="score-timer-panel">
+            <div>Score: <span id="total-score">0</span></div>
+            <div>Time: <span id="timer-display">0:00</span></div>
+        </div>
+
+        <p class="text-sm text-center text-gray-300 mb-6">
+            Find the combination (A, B, C, D) that makes the final **Output (Z)** read **1 (TRUE)**.
+        </p>
+
+        <!-- The Dynamic Logic Circuit Equation -->
+        <div class="text-center p-4 bg-gray-900 rounded-lg mb-6 border border-gray-700">
+            <p class="text-lg font-mono text-white">
+                Circuit Logic:
+                <span id="circuit-formula" class="text-yellow-400 block text-2xl mt-2 font-extrabold"></span>
+            </p>
+        </div>
+
+        <h2>Inputs (0 = Low, 1 = High)</h2>
+        <div class="input-grid" id="input-grid">
+            <!-- Input A Button -->
+            <button id="input-A" data-input="A" class="input-button input-off" onclick="toggleInput('A')">
+                A: 0
+            </button>
+            <!-- Input B Button -->
+            <button id="input-B" data-input="B" class="input-button input-off" onclick="toggleInput('B')">
+                B: 0
+            </button>
+            <!-- Input C Button -->
+            <button id="input-C" data-input="C" class="input-button input-off" onclick="toggleInput('C')">
+                C: 0
+            </button>
+            <!-- Input D Button (NEW) -->
+            <button id="input-D" data-input="D" class="input-button input-off" onclick="toggleInput('D')">
+                D: 0
+            </button>
+        </div>
+
+        <button class="action-button check-output-button" onclick="checkOutput()">
+            Run Circuit and Check Output (Z)
+        </button>
+
+        <button class="action-button reset-button" onclick="resetGame()">
+            Reset Challenge and Score
+        </button>
+
+        <h2>Output (Z)</h2>
+        <div id="output-display" class="output-0">
+            ?
+        </div>
+
+        <div id="status-message" class="text-center mt-4 text-lg font-bold">
+            <!-- Game status messages go here -->
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="custom-message-box" class="message-box">
+        <p id="message-text" class="text-xl font-semibold mb-3"></p>
+        <div id="message-buttons">
+            <!-- Buttons dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // --- Game State and Logic ---
+
+        const CIRCUIT_GOAL = 1;
+        let currentChallengeIndex = 0;
+        // Expanded inputs object to include D
+        const inputs = { A: 0, B: 0, C: 0, D: 0 }; 
+        
+        // Global variables for scoring and timing
+        let totalScore = 0;
+        let startTime = 0;
+        let timerInterval = null;
+
+        // Define the list of challenges (logic equations)
+        const CHALLENGES = [
+            // Level 1: 3-Input Warmup (D is irrelevant)
+            {
+                name: "Standard OR-NOT (3-Input)",
+                display: "Z = (A OR B) AND (NOT C)",
+                logic: (A, B, C, D) => (A || B) && (!C) ? 1 : 0
+            },
+            // Level 2: Majority Rule (3-Input, D irrelevant)
+            {
+                name: "Majority Rule (3-Input)",
+                display: "Z = (A AND B) OR (B AND C) OR (A AND C)",
+                logic: (A, B, C, D) => (A && B) || (B && C) || (A && C) ? 1 : 0
+            },
+            // Level 3: First 4-Input Challenge
+            {
+                name: "Quadratic Majority (4-Input)",
+                display: "Z = (A AND B) OR (C AND D)",
+                // Z is 1 if A and B are 1, OR if C and D are 1
+                logic: (A, B, C, D) => (A && B) || (C && D) ? 1 : 0
+            },
+            // Level 4: Complex Nested Logic
+            {
+                name: "Complex Nested NOT-XOR",
+                display: "Z = ((A OR B) AND C) XOR (NOT D)",
+                // This requires careful evaluation of the nested expression
+                logic: (A, B, C, D) => (((A || B) && C) !== (!D)) ? 1 : 0
+            },
+            // Level 5: Parity Check (Odd number of 1s)
+            {
+                name: "Odd Parity Check",
+                display: "Z = A XOR B XOR C XOR D",
+                // Z is 1 if an ODD number of inputs are 1
+                logic: (A, B, C, D) => (A !== B) !== (C !== D) ? 1 : 0 
+            }
+        ];
+
+        // --- Timing and Scoring Functions ---
+        
+        /**
+         * Starts the game timer and clears any previous interval.
+         */
+        function startTimer() {
+            startTime = Date.now();
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            // Update every 100ms for smoother time display, though only seconds are shown.
+            timerInterval = setInterval(updateTimer, 100); 
+        }
+
+        /**
+         * Stops the game timer.
+         */
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        /**
+         * Updates the timer display every 100ms.
+         */
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const totalSeconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const remainingSeconds = totalSeconds % 60;
+            
+            const timeString = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer-display').textContent = timeString;
+        }
+
+        /**
+         * Calculates score based on time taken. Max score is 1000.
+         * @param {number} timeElapsedSeconds - Time taken to solve the puzzle in seconds.
+         * @returns {number} The points awarded.
+         */
+        function calculateScore(timeElapsedSeconds) {
+            const MAX_POINTS = 1000;
+            // Increased time limit since the search space is now 16 combinations (up from 8)
+            const TIME_LIMIT_SECONDS = 90; 
+
+            if (timeElapsedSeconds >= TIME_LIMIT_SECONDS) {
+                return 100; // Minimum score
+            }
+
+            // Linearly decrease score from MAX_POINTS as time increases
+            const points = Math.floor(MAX_POINTS - ((MAX_POINTS - 100) * (timeElapsedSeconds / TIME_LIMIT_SECONDS)));
+            return Math.max(100, points); // Ensure minimum 100 points
+        }
+
+        // --- Core Game Functions ---
+
+        /**
+         * Evaluates the current logic circuit.
+         * @returns {number} The output (1 for TRUE, 0 for FALSE).
+         */
+        function evaluateCircuit() {
+            const challenge = CHALLENGES[currentChallengeIndex];
+            if (!challenge) return 0;
+
+            const A = inputs.A;
+            const B = inputs.B;
+            const C = inputs.C;
+            const D = inputs.D; // Pass D to the logic function
+
+            return challenge.logic(A, B, C, D);
+        }
+
+        /**
+         * Updates the display elements for the current challenge.
+         */
+        function updateChallengeDisplay() {
+            const challenge = CHALLENGES[currentChallengeIndex];
+            document.getElementById('level-display').textContent = `(Challenge ${currentChallengeIndex + 1}/${CHALLENGES.length})`;
+            document.getElementById('circuit-formula').textContent = challenge.display;
+        }
+
+        /**
+         * Resets the inputs to 0 and updates the UI.
+         */
+        function resetInputs() {
+            inputs.A = 0;
+            inputs.B = 0;
+            inputs.C = 0;
+            inputs.D = 0; // Reset D
+            
+            // Update all input UIs
+            updateInputUI('A');
+            updateInputUI('B');
+            updateInputUI('C');
+            updateInputUI('D'); 
+
+            document.getElementById('output-display').textContent = '?';
+            document.getElementById('output-display').className = 'output-0';
+            document.getElementById('status-message').textContent = '';
+        }
+        
+        /**
+         * Handles advancing to the next challenge or winning the game.
+         */
+        function nextChallenge() {
+            hideMessage();
+            currentChallengeIndex++;
+
+            if (currentChallengeIndex < CHALLENGES.length) {
+                resetInputs();
+                updateChallengeDisplay();
+                startTimer(); // Start timer for the new challenge
+                // Informational message for the new level start
+                showMessage('NEXT CHALLENGE', `Starting Challenge ${currentChallengeIndex + 1}. The circuit logic has changed, and might now use all four inputs! Get ready!`, false, false);
+            } else {
+                // Game Over/Victory
+                stopTimer();
+                showMessage('LAB MASTER!', `Congratulations! You solved all challenges with a final score of **${totalScore}**!`, true, true);
+                currentChallengeIndex = 0;
+                resetInputs();
+                updateChallengeDisplay();
+            }
+        }
+
+
+        /**
+         * Resets the entire game: score, challenges, and timer.
+         */
+        function resetGame() {
+            stopTimer();
+            currentChallengeIndex = 0;
+            totalScore = 0;
+            document.getElementById('total-score').textContent = '0';
+            document.getElementById('timer-display').textContent = '0:00';
+            
+            resetInputs();
+            updateChallengeDisplay();
+            startTimer(); // Immediately start the timer for Challenge 1
+            
+            showMessage('GAME RESET', 'All challenges and score have been reset. Good luck!', false, false);
+        }
+
+
+        // --- UI Functions ---
+        
+        /**
+         * Helper to update a single input button's visual state.
+         * @param {string} inputKey - 'A', 'B', 'C', or 'D'.
+         */
+        function updateInputUI(inputKey) {
+            const button = document.getElementById(`input-${inputKey}`);
+            button.textContent = `${inputKey}: ${inputs[inputKey]}`;
+
+            if (inputs[inputKey] === 1) {
+                button.classList.remove('input-off');
+                button.classList.add('input-on');
+            } else {
+                button.classList.remove('input-on');
+                button.classList.add('input-off');
+            }
+        }
+
+        /**
+         * Toggles the state of an input (0 to 1, or 1 to 0) and updates the UI.
+         * @param {string} inputKey - 'A', 'B', 'C', or 'D'.
+         */
+        function toggleInput(inputKey) {
+            // Toggle the internal state
+            inputs[inputKey] = 1 - inputs[inputKey];
+            updateInputUI(inputKey);
+
+            // Clear previous result
+            document.getElementById('output-display').textContent = '?';
+            document.getElementById('output-display').className = 'output-0';
+            document.getElementById('status-message').textContent = '';
+        }
+
+        /**
+         * Checks the circuit output based on current inputs and displays the result.
+         */
+        function checkOutput() {
+            const result = evaluateCircuit();
+            const outputDisplay = document.getElementById('output-display');
+            const statusMessage = document.getElementById('status-message');
+            const currentInputs = `A=${inputs.A}, B=${inputs.B}, C=${inputs.C}, D=${inputs.D}`;
+
+            outputDisplay.textContent = result;
+            outputDisplay.className = ''; // Clear previous classes
+
+            if (result === CIRCUIT_GOAL) {
+                stopTimer();
+                // Get time elapsed in milliseconds
+                const timeElapsed = Date.now() - startTime;
+                // Convert to seconds for scoring calculation
+                const timeElapsedSeconds = Math.floor(timeElapsed / 1000); 
+                const points = calculateScore(timeElapsedSeconds);
+
+                totalScore += points;
+                document.getElementById('total-score').textContent = totalScore;
+
+                // Display results in message box
+                const timeString = document.getElementById('timer-display').textContent;
+                const successText = `Inputs: ${currentInputs}. Solved in **${timeString}** for **+${points}** points!`;
+
+
+                outputDisplay.classList.add('output-1');
+                showMessage(`CHALLENGE COMPLETE!`, successText, true, false);
+                statusMessage.textContent = 'STATUS: SUCCESS! Circuit Active.';
+                statusMessage.classList.add('text-green-400');
+                statusMessage.classList.remove('text-red-400');
+            } else {
+                outputDisplay.classList.add('output-0');
+                statusMessage.textContent = 'STATUS: FAILED. Z=0. Try again.';
+                statusMessage.classList.add('text-red-400');
+                statusMessage.classList.remove('text-green-400');
+            }
+        }
+
+        /**
+         * Displays a custom modal message box instead of using alert().
+         * @param {string} title - The title of the message.
+         * @param {string} text - The main message content.
+         * @param {boolean} isSuccess - If true, displays the Next Challenge button.
+         * @param {boolean} isFinal - If true, is the final completion message.
+         */
+        function showMessage(title, text, isSuccess, isFinal) {
+            const box = document.getElementById('custom-message-box');
+            const messageText = document.getElementById('message-text');
+            const messageButtons = document.getElementById('message-buttons');
+
+            // Using innerHTML to allow bolding in the score summary
+            messageText.innerHTML = `<span class="block text-2xl font-extrabold mb-2">${title}</span>${text}`;
+            messageButtons.innerHTML = ''; // Clear previous buttons
+
+            if (isSuccess) {
+                box.style.borderColor = 'var(--neon-green)';
+                box.style.boxShadow = '0 0 15px var(--neon-green)';
+                
+                const nextButtonText = isFinal ? 'START NEW GAME' : 'NEXT CHALLENGE >>';
+                const nextButton = document.createElement('button');
+                nextButton.textContent = nextButtonText;
+                nextButton.className = 'btn-next';
+                nextButton.onclick = nextChallenge;
+                messageButtons.appendChild(nextButton);
+            } else {
+                box.style.borderColor = 'var(--neon-blue)'; // Use blue for informational messages
+                box.style.boxShadow = '0 0 15px var(--neon-blue)';
+                
+                const okButton = document.createElement('button');
+                okButton.textContent = 'OK';
+                okButton.className = 'btn-close';
+                okButton.onclick = hideMessage;
+                messageButtons.appendChild(okButton);
+            }
+            
+            box.style.display = 'block';
+        }
+
+        /**
+         * Hides the custom modal message box.
+         */
+        function hideMessage() {
+            document.getElementById('custom-message-box').style.display = 'none';
+        }
+
+        // Initialize game on load
+        window.onload = function() {
+            resetInputs();
+            updateChallengeDisplay();
+            startTimer(); // Start the timer immediately when the game loads
+        };
+
+    </script>
+
+</body>
+</html>
