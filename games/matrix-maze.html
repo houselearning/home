@@ -45,12 +45,13 @@
             font-weight: bold;
             font-size: 1.25rem;
             color: #00FFFF; /* Cyan/Blue UI text */
+            gap: 0.5rem; /* Added gap for new button */
         }
 
         .btn {
             background-color: #00B8D4; /* Cyan button */
             color: #0D1117;
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1rem; /* Adjusted padding for more buttons */
             border-radius: 4px;
             font-weight: 700;
             cursor: pointer;
@@ -60,6 +61,8 @@
             -ms-user-select: none;
             user-select: none;
             border: none;
+            flex-grow: 1; /* Allow buttons to grow */
+            text-align: center;
         }
 
         .btn:hover {
@@ -81,6 +84,7 @@
             border: 1px dashed #00FF41;
             box-shadow: inset 0 0 5px rgba(0, 255, 65, 0.5);
             font-size: 1rem;
+            flex-shrink: 0;
         }
 
         /* Responsive control layout */
@@ -121,6 +125,7 @@
     <div class="game-ui">
         <div id="level-display" class="info-panel">Level: 1</div>
         <button id="start-button" class="btn">Start Game</button>
+        <button id="solution-button" class="btn">Find Solution</button> <!-- NEW BUTTON -->
         <div id="timer-display" class="info-panel">Time: 0.0s</div>
     </div>
     <canvas id="mazeCanvas"></canvas>
@@ -141,6 +146,7 @@
     const canvas = document.getElementById('mazeCanvas');
     const ctx = canvas.getContext('2d');
     const startButton = document.getElementById('start-button');
+    const solutionButton = document.getElementById('solution-button'); // Get new button
     const timerDisplay = document.getElementById('timer-display');
     const levelDisplay = document.getElementById('level-display');
     
@@ -162,7 +168,8 @@
     const PLAYER_COLOR = '#00FFFF'; // Cyan/Blue for Player
     const START_COLOR = '#22C55E'; // Emerald Green Start
     const GOAL_COLOR = '#3B82F6'; // Blue Exit
-    const PATH_COLOR = '#1A202C'; // Subtle path background color (Renamed from VISITED_COLOR to fix ReferenceError)
+    const PATH_COLOR = '#1A202C'; // Subtle path background color 
+    const SOLUTION_COLOR = '#FF9800'; // Orange/Amber color for the solution path
     
     // --- GAME STATE ---
     let grid = [];
@@ -173,6 +180,8 @@
     let elapsedTime = 0;
     let level = 1;
     let timerInterval;
+    let solutionPath = []; // Array to hold the calculated solution path
+    let showSolution = false; // Toggle for displaying the solution
 
     // --- CELL CLASS ---
     class Cell {
@@ -287,6 +296,71 @@
         grid[getIndex(ROWS - 1, COLS - 1)].walls.right = false;
     }
 
+    // --- ALGORITHM LOGIC (DFS PATHFINDER) ---
+    
+    // Helper function to reconstruct the path after DFS finds the goal
+    function reconstructPath(parentMap, start, end) {
+        let path = [];
+        let current = end;
+        
+        while (current) {
+            path.push(current);
+            const currentKey = `${current.row},${current.col}`;
+            current = parentMap.get(currentKey);
+
+            if (current && current.row === start.row && current.col === start.col) {
+                path.push(start);
+                break;
+            }
+        }
+        
+        return path.reverse(); 
+    }
+
+    // Depth-First Search implementation to find the solution path
+    function depthFirstSearch(start, end) {
+        const stack = [];
+        const visited = new Set();
+        const parentMap = new Map();
+
+        stack.push(start);
+        visited.add(`${start.row},${start.col}`);
+
+        while (stack.length > 0) {
+            const current = stack.pop();
+            const currentIndex = getIndex(current.row, current.col);
+
+            if (current.row === end.row && current.col === end.col) {
+                return reconstructPath(parentMap, start, end);
+            }
+
+            const cell = grid[currentIndex];
+            const neighbors = [
+                { dr: -1, dc: 0, wall: 'top' }, // Up
+                { dr: 1, dc: 0, wall: 'bottom' }, // Down
+                { dr: 0, dc: 1, wall: 'right' }, // Right
+                { dr: 0, dc: -1, wall: 'left' } // Left
+            ];
+
+            for (const { dr, dc, wall } of neighbors) {
+                const nextRow = current.row + dr;
+                const nextCol = current.col + dc;
+                const nextCoordKey = `${nextRow},${nextCol}`;
+
+                // Check if wall is broken, cell is in bounds, and unvisited
+                if (!cell.walls[wall] && getIndex(nextRow, nextCol) !== -1 && !visited.has(nextCoordKey)) {
+                    const nextCell = { row: nextRow, col: nextCol };
+                    visited.add(nextCoordKey);
+                    parentMap.set(nextCoordKey, current);
+                    stack.push(nextCell);
+                }
+            }
+        }
+
+        return []; // No path found
+    }
+
+
     // --- DRAWING FUNCTIONS ---
 
     function draw() {
@@ -295,6 +369,29 @@
         
         // Clear shadow/glow for non-goal items
         ctx.shadowBlur = 0;
+        
+        // Draw the solution path line first
+        if (showSolution && solutionPath.length > 0) {
+            ctx.beginPath();
+            ctx.strokeStyle = SOLUTION_COLOR;
+            ctx.lineWidth = CELL_SIZE / 4; 
+            ctx.lineCap = 'round';
+            ctx.shadowColor = SOLUTION_COLOR;
+            ctx.shadowBlur = 8;
+            
+            solutionPath.forEach((pos, index) => {
+                const x = pos.col * CELL_SIZE + CELL_SIZE / 2;
+                const y = pos.row * CELL_SIZE + CELL_SIZE / 2;
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset shadow
+        }
+
 
         for (const cell of grid) {
             // Highlight Start and Goal cells
@@ -305,10 +402,7 @@
             } else if (cell.row === 0 && cell.col === 0) {
                 cell.highlight(START_COLOR);
             } else {
-                // Draw a subtle trail for visited cells
-                // if (cell.visited) { // Optional: to draw path after generation
-                //     cell.highlight(PATH_COLOR); // Use PATH_COLOR here if desired
-                // }
+                // Keep the background clear or add optional path tracing here
             }
         }
         
@@ -381,7 +475,7 @@
 
         // Check if the wall is broken (i.e., we can move)
         if (!currentCell.walls[wallToBreak]) {
-            // Check if the new position is within bounds (should always be true if walls are set correctly, but safe check)
+            // Check if the new position is within bounds 
             if (getIndex(newRow, newCol) !== -1) {
                 canMove = true;
             }
@@ -390,7 +484,11 @@
         if (canMove) {
             playerPos.row = newRow;
             playerPos.col = newCol;
-            // grid[getIndex(playerPos.row, playerPos.col)].visited = true; // Mark as visited for optional path tracing
+            
+            // Recalculate solution path if currently showing
+            if (showSolution) {
+                solutionPath = depthFirstSearch(playerPos, goalPos);
+            }
 
             if (playerPos.row === goalPos.row && playerPos.col === goalPos.col) {
                 levelComplete();
@@ -412,6 +510,21 @@
         }, 500); 
     }
 
+    function toggleSolution() {
+        showSolution = !showSolution;
+        
+        if (showSolution) {
+            // Calculate path when toggling ON
+            solutionPath = depthFirstSearch(playerPos, goalPos);
+            solutionButton.textContent = 'Hide Solution';
+        } else {
+            // Clear path when toggling OFF
+            solutionPath = [];
+            solutionButton.textContent = 'Find Solution';
+        }
+        draw(); // Force a redraw
+    }
+
     function resetGame(initialStart = true) {
         if (initialStart) {
             level = 1;
@@ -428,6 +541,11 @@
         
         playerPos = { row: 0, col: 0 };
         goalPos = { row: ROWS - 1, col: COLS - 1 };
+        
+        // Reset solution state
+        solutionPath = [];
+        showSolution = false;
+        solutionButton.textContent = 'Find Solution';
         
         generateMaze();
         draw();
@@ -487,6 +605,7 @@
 
     // Event Listeners
     startButton.addEventListener('click', startGame);
+    solutionButton.addEventListener('click', toggleSolution); // New listener for solution button
     document.addEventListener('keydown', handleKeyDown);
     
     // Mobile controls setup
