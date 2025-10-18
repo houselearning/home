@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radian Runners: 10 Levels & Flying</title>
+    <!-- Custom CSS for the GD-style neon aesthetic and Orbitron font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #0A0A1A; /* Dark space background */
+            color: #00FFC0; /* Neon cyan text */
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #1A1A3A;
+            box-shadow: 0 0 50px rgba(0, 255, 192, 0.7), 0 0 20px rgba(255, 110, 160, 0.5) inset;
+            border: 3px solid #00FFC0;
+            border-radius: 12px;
+            width: 95%;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #FF6EA0; /* Neon pink title */
+            text-shadow: 0 0 15px #FF6EA0;
+            text-align: center;
+        }
+
+        #gameCanvas {
+            border: 1px solid #00FFC0;
+            border-radius: 8px;
+            background-color: #0A0A1A;
+            width: 100%; 
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 0 25px rgba(0, 255, 192, 0.5) inset;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 0;
+            font-size: 1.2rem;
+        }
+        
+        .mode-display {
+            font-weight: 700;
+            text-shadow: 0 0 5px #FFFFFF;
+        }
+
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: #FF6EA0;
+            color: #0A0A1A;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 0 #CC5880;
+            outline: none;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #FF8BA0;
+            box-shadow: 0 3px 0 #CC5880;
+            transform: translateY(2px);
+        }
+        
+        .btn:active {
+            box-shadow: none;
+            transform: translateY(5px);
+        }
+
+        /* Message Box Styling (Used for Level Select and Game Over) */
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1A1A3A;
+            border: 2px solid #FF6EA0;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(255, 110, 160, 0.7);
+            text-align: center;
+            z-index: 100;
+            width: 80%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .message-box h2 {
+            color: #00FFC0;
+            text-shadow: 0 0 5px #00FFC0;
+            margin-top: 0;
+        }
+
+        .message-box p {
+            margin: 15px 0;
+            font-size: 1.1rem;
+        }
+        
+        #levelButtons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        /* Mobile specific adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            .info-panel {
+                font-size: 1rem;
+            }
+            .game-container {
+                padding: 10px;
+            }
+            #levelButtons {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Radian Runners: GD Levels</h1>
+        
+        <div class="info-panel">
+            <div id="scoreDisplay">Distance: 0m</div>
+            <div id="levelDisplay"><span id="levelName">Level: N/A</span> - <span id="modeDisplay" class="mode-display">Cube</span></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="controls">
+            <!-- This button will be managed by JS based on state -->
+            <button id="mainButton" class="btn">Select Level</button>
+        </div>
+
+        <!-- Message Box is always present, content and display state are managed by JS -->
+        <div id="messageBox" class="message-box" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Game Constants
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 450;
+        const GROUND_Y_RATIO = 0.85; 
+        const GROUND_Y = GAME_HEIGHT * GROUND_Y_RATIO;
+        const CEILING_Y = 0;
+        
+        // Runner Constants
+        const RUNNER_SIZE = 30;
+        const RUNNER_START_X = 50;
+        const CUBE_JUMP_VELOCITY = -18;
+        const SHIP_THRUST_VELOCITY = -10; // Upward velocity on tap
+        const GRAVITY = 0.9;
+        const SHIP_GRAVITY_MULTIPLIER = 0.5; // Lighter gravity for flight feel
+        
+        // Input tracking for continuous flight
+        let isThrusting = false; 
+        
+        // Game State Variables
+        let canvas, ctx;
+        let gameStatus = 'level_select'; // 'level_select', 'playing', 'over'
+        let runner;
+        let obstacles = [];
+        let gameSpeed = 0; 
+        let currentLevelData = null;
+        let levelProgress = 0; 
+        let nextObjectToSpawn = 0; 
+        let frameId;
+        let lastTime = 0; 
+        
+
+        // Obstacle Radian Values (used for Spike labels)
+        const RADIAN_LABELS = [
+            { text: '$\\pi/6$', value: Math.PI / 6 },
+            { text: '$\\pi/4$', value: Math.PI / 4 },
+            { text: '$\\pi/3$', value: Math.PI / 3 },
+            { text: '$\\pi/2$', value: Math.PI / 2 },
+            { text: '$2\\pi/3$', value: 2 * Math.PI / 3 },
+            { text: '$\\pi$', value: Math.PI },
+            { text: '$3\\pi/2$', value: 3 * Math.PI / 2 },
+            { text: '$2\\pi$', value: 2 * Math.PI }
+        ];
+
+        // --- Level Definitions (10 Levels) ---
+        const LEVELS = [
+            {
+                id: 1, name: "Unit Circle Basics", speed: 6.0, length: 3000, 
+                sequence: [
+                    { type: 'spike', pos: 800, label: RADIAN_LABELS[0] },
+                    { type: 'block', pos: 1200, height: 60 },
+                    { type: 'spike', pos: 1500, label: RADIAN_LABELS[1] },
+                    { type: 'block', pos: 1900, height: 100, width: 200 },
+                    { type: 'spike', pos: 2400, label: RADIAN_LABELS[2] },
+                    { type: 'spike', pos: 2600, label: RADIAN_LABELS[3] },
+                ]
+            },
+            {
+                id: 2, name: "Airborne Entry", speed: 6.5, length: 5000,
+                sequence: [
+                    { type: 'block', pos: 800, height: 80, width: 100 },
+                    { type: 'block', pos: 1000, height: 120, width: 100 },
+                    { type: 'portal', pos: 1400, newMode: 'ship' },
+                    { type: 'spike', pos: 1800, y: GROUND_Y - 50, isAir: true },
+                    { type: 'spike', pos: 2200, y: 150, isAir: true },
+                    { type: 'spike', pos: 2600, y: 50, isAir: true },
+                    { type: 'spike', pos: 3000, y: GROUND_Y - 30, isAir: true },
+                    { type: 'spike', pos: 3400, y: 100, isAir: true },
+                    { type: 'portal', pos: 3800, newMode: 'cube' },
+                    { type: 'spike', pos: 4200, label: RADIAN_LABELS[4] },
+                    { type: 'block', pos: 4500, height: 60 },
+                ]
+            },
+            {
+                id: 3, name: "Ship Canyon", speed: 7.0, length: 6000,
+                sequence: [
+                    { type: 'block', pos: 800, height: 150, width: 200 },
+                    { type: 'portal', pos: 1200, newMode: 'ship' },
+                    // Ship section with top and bottom spikes
+                    { type: 'spike', pos: 1700, y: GROUND_Y, isAir: true, height: 30, width: 60 }, 
+                    { type: 'spike', pos: 1700, y: CEILING_Y + 100, isAir: true, height: 30, width: 60, isFlipped: true }, 
+                    { type: 'spike', pos: 2200, y: GROUND_Y, isAir: true, height: 30, width: 100 }, 
+                    { type: 'spike', pos: 2800, y: CEILING_Y + 50, isAir: true, height: 30, width: 60, isFlipped: true }, 
+                    { type: 'spike', pos: 3200, y: GROUND_Y, isAir: true, height: 30, width: 60 }, 
+                    { type: 'spike', pos: 3500, y: CEILING_Y + 100, isAir: true, height: 30, width: 100, isFlipped: true }, 
+                    { type: 'portal', pos: 4000, newMode: 'cube' },
+                    { type: 'block', pos: 4500, height: 100 },
+                    { type: 'spike', pos: 4800, label: RADIAN_LABELS[5] },
+                    { type: 'block', pos: 5100, height: 150 },
+                ]
+            },
+            {
+                id: 4, name: "Pi/2 Precision", speed: 7.5, length: 5500,
+                sequence: [
+                    { type: 'spike', pos: 900, label: RADIAN_LABELS[3] },
+                    { type: 'block', pos: 1200, height: 60, width: 60 },
+                    { type: 'spike', pos: 1400, label: RADIAN_LABELS[3] },
+                    { type: 'block', pos: 1650, height: 120, width: 60 },
+                    { type: 'block', pos: 1900, height: 60, width: 60 },
+                    { type: 'spike', pos: 2200, label: RADIAN_LABELS[3] },
+                    { type: 'portal', pos: 2600, newMode: 'ship' },
+                    { type: 'spike', pos: 3000, y: GROUND_Y - 50, isAir: true },
+                    { type: 'spike', pos: 3300, y: 50, isAir: true },
+                    { type: 'spike', pos: 3600, y: GROUND_Y - 50, isAir: true },
+                    { type: 'spike', pos: 3900, y: 50, isAir: true },
+                    { type: 'portal', pos: 4300, newMode: 'cube' },
+                    { type: 'block', pos: 4700, height: 80 },
+                    { type: 'spike', pos: 5000, label: RADIAN_LABELS[6] },
+                ]
+            },
+            {
+                id: 5, name: "The Double Jump", speed: 8.0, length: 7000,
+                sequence: [
+                    { type: 'spike', pos: 800, label: RADIAN_LABELS[0] },
+                    { type: 'spike', pos: 1100, label: RADIAN_LABELS[0] },
+                    { type: 'block', pos: 1600, height: 100, width: 50 },
+                    { type: 'spike', pos: 1800, label: RADIAN_LABELS[2] },
+                    { type: 'block', pos: 2300, height: 150, width: 50 },
+                    { type: 'spike', pos: 2600, label: RADIAN_LABELS[4] },
+                    { type: 'portal', pos: 3000, newMode: 'ship' },
+                    { type: 'spike', pos: 3400, y: GROUND_Y, isAir: true, height: 40, width: 80 }, 
+                    { type: 'spike', pos: 3600, y: CEILING_Y + 50, isAir: true, height: 40, width: 80, isFlipped: true }, 
+                    { type: 'spike', pos: 3800, y: GROUND_Y, isAir: true, height: 40, width: 80 }, 
+                    { type: 'portal', pos: 4200, newMode: 'cube' },
+                    { type: 'spike', pos: 4500, label: RADIAN_LABELS[7] },
+                    { type: 'block', pos: 4800, height: 60, width: 100 },
+                    { type: 'block', pos: 5000, height: 60, width: 100 },
+                    { type: 'spike', pos: 5300, label: RADIAN_LABELS[0] },
+                    { type: 'spike', pos: 5500, label: RADIAN_LABELS[1] },
+                ]
+            },
+            {
+                id: 6, name: "The Gravity Switch", speed: 8.5, length: 7500,
+                sequence: [
+                    { type: 'block', pos: 1000, height: 120, width: 150 },
+                    { type: 'spike', pos: 1400, label: RADIAN_LABELS[3] },
+                    { type: 'portal', pos: 2000, newMode: 'ship' },
+                    { type: 'spike', pos: 2400, y: GROUND_Y - 50, isAir: true },
+                    { type: 'spike', pos: 2800, y: 50, isAir: true },
+                    { type: 'portal', pos: 3500, newMode: 'cube' },
+                    { type: 'block', pos: 4000, height: 80 },
+                    { type: 'block', pos: 4500, height: 150, width: 50 },
+                    { type: 'spike', pos: 4700, label: RADIAN_LABELS[5] },
+                    { type: 'block', pos: 5000, height: 80 },
+                    { type: 'portal', pos: 5500, newMode: 'ship' },
+                    { type: 'spike', pos: 5900, y: GROUND_Y - 100, isAir: true },
+                    { type: 'spike', pos: 6300, y: 100, isAir: true },
+                    { type: 'portal', pos: 6700, newMode: 'cube' },
+                    { type: 'spike', pos: 7100, label: RADIAN_LABELS[7] },
+                ]
+            },
+            {
+                id: 7, name: "Radian Gauntlet", speed: 9.0, length: 8000,
+                sequence: [
+                    { type: 'block', pos: 800, height: 60, width: 80 },
+                    { type: 'spike', pos: 1000, label: RADIAN_LABELS[0] },
+                    { type: 'block', pos: 1300, height: 120, width: 80 },
+                    { type: 'spike', pos: 1500, label: RADIAN_LABELS[1] },
+                    { type: 'block', pos: 1800, height: 150, width: 80 },
+                    { type: 'spike', pos: 2000, label: RADIAN_LABELS[2] },
+                    { type: 'portal', pos: 2500, newMode: 'ship' },
+                    { type: 'spike', pos: 3000, y: GROUND_Y - 100, isAir: true, width: 40 },
+                    { type: 'spike', pos: 3200, y: 100, isAir: true, width: 40 },
+                    { type: 'spike', pos: 3400, y: GROUND_Y - 100, isAir: true, width: 40 },
+                    { type: 'portal', pos: 4000, newMode: 'cube' },
+                    { type: 'spike', pos: 4300, label: RADIAN_LABELS[3] },
+                    { type: 'block', pos: 4600, height: 60 },
+                    { type: 'portal', pos: 5000, newMode: 'ship' },
+                    { type: 'spike', pos: 5500, y: 50, isAir: true, width: 60 },
+                    { type: 'spike', pos: 6000, y: GROUND_Y - 50, isAir: true, width: 60 },
+                    { type: 'portal', pos: 6500, newMode: 'cube' },
+                    { type: 'spike', pos: 7000, label: RADIAN_LABELS[7] },
+                ]
+            },
+            {
+                id: 8, name: "Quantum Quad-Jump", speed: 9.5, length: 6500,
+                sequence: [
+                    { type: 'block', pos: 800, height: 60, width: 30 },
+                    { type: 'spike', pos: 950, label: RADIAN_LABELS[0] },
+                    { type: 'block', pos: 1200, height: 90, width: 30 },
+                    { type: 'spike', pos: 1350, label: RADIAN_LABELS[1] },
+                    { type: 'block', pos: 1600, height: 120, width: 30 },
+                    { type: 'spike', pos: 1750, label: RADIAN_LABELS[2] },
+                    { type: 'portal', pos: 2200, newMode: 'ship' },
+                    { type: 'spike', pos: 2700, y: 50, isAir: true, width: 80 },
+                    { type: 'spike', pos: 3000, y: 50, isAir: true, width: 80 },
+                    { type: 'spike', pos: 3300, y: 50, isAir: true, width: 80 },
+                    { type: 'spike', pos: 3600, y: 50, isAir: true, width: 80 },
+                    { type: 'portal', pos: 4100, newMode: 'cube' },
+                    { type: 'block', pos: 4500, height: 150 },
+                    { type: 'spike', pos: 4800, label: RADIAN_LABELS[3] },
+                    { type: 'block', pos: 5100, height: 100 },
+                    { type: 'spike', pos: 5400, label: RADIAN_LABELS[4] },
+                ]
+            },
+            {
+                id: 9, name: "The Inverse Function", speed: 10.0, length: 7000,
+                sequence: [
+                    { type: 'portal', pos: 800, newMode: 'ship' },
+                    { type: 'spike', pos: 1200, y: GROUND_Y - 50, isAir: true },
+                    { type: 'spike', pos: 1400, y: 50, isAir: true },
+                    { type: 'spike', pos: 1600, y: GROUND_Y - 50, isAir: true },
+                    { type: 'spike', pos: 1800, y: 50, isAir: true },
+                    { type: 'portal', pos: 2200, newMode: 'cube' },
+                    { type: 'block', pos: 2600, height: 150, width: 50 },
+                    { type: 'spike', pos: 2900, label: RADIAN_LABELS[5] },
+                    { type: 'portal', pos: 3300, newMode: 'ship' },
+                    { type: 'spike', pos: 3700, y: 50, isAir: true, width: 100 },
+                    { type: 'spike', pos: 4000, y: GROUND_Y - 50, isAir: true, width: 100 },
+                    { type: 'portal', pos: 4500, newMode: 'cube' },
+                    { type: 'block', pos: 4900, height: 60, width: 100 },
+                    { type: 'block', pos: 5200, height: 120, width: 100 },
+                    { type: 'spike', pos: 5600, label: RADIAN_LABELS[7] },
+                ]
+            },
+            {
+                id: 10, name: "The Final Theorem", speed: 11.0, length: 8500,
+                sequence: [
+                    { type: 'block', pos: 800, height: 60 },
+                    { type: 'spike', pos: 1100, label: RADIAN_LABELS[0] },
+                    { type: 'portal', pos: 1500, newMode: 'ship' },
+                    // Long, difficult ship sequence
+                    { type: 'spike', pos: 2000, y: 50, isAir: true, width: 50 }, 
+                    { type: 'spike', pos: 2250, y: GROUND_Y - 50, isAir: true, width: 50 }, 
+                    { type: 'spike', pos: 2500, y: 50, isAir: true, width: 50 }, 
+                    { type: 'spike', pos: 2750, y: GROUND_Y - 50, isAir: true, width: 50 }, 
+                    { type: 'spike', pos: 3200, y: 100, isAir: true, width: 100 }, 
+                    { type: 'spike', pos: 3600, y: GROUND_Y - 100, isAir: true, width: 100 }, 
+                    { type: 'spike', pos: 4000, y: 50, isAir: true, width: 100 }, 
+                    { type: 'spike', pos: 4400, y: GROUND_Y - 50, isAir: true, width: 50 },
+                    { type: 'spike', pos: 4600, y: 50, isAir: true, width: 50 },
+                    // Cube finale
+                    { type: 'portal', pos: 5000, newMode: 'cube' },
+                    { type: 'block', pos: 5500, height: 150, width: 50 },
+                    { type: 'spike', pos: 5750, label: RADIAN_LABELS[1] },
+                    { type: 'block', pos: 6000, height: 100, width: 50 },
+                    { type: 'spike', pos: 6250, label: RADIAN_LABELS[2] },
+                    { type: 'spike', pos: 6500, label: RADIAN_LABELS[3] },
+                ]
+            }
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Converts LaTeX-style radian strings into displayable text (simplified).
+         */
+        function formatRadianText(text) {
+            return text.replace(/\\pi/g, 'π').replace(/\$/g, '');
+        }
+
+        /**
+         * Handles responsive resizing of the canvas.
+         */
+        function resizeCanvas() {
+            const container = document.getElementById('gameCanvas').parentElement;
+            const containerWidth = container.clientWidth;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = (containerWidth * (GAME_HEIGHT / GAME_WIDTH)) + 'px';
+            canvas.width = GAME_WIDTH;
+            canvas.height = GAME_HEIGHT;
+        }
+
+        // --- Game Classes ---
+
+        class Runner {
+            constructor() {
+                this.x = RUNNER_START_X;
+                this.y = GROUND_Y - RUNNER_SIZE;
+                this.vy = 0; 
+                this.isJumping = false;
+                this.onPlatform = false;
+                this.mode = 'cube'; // 'cube' or 'ship'
+                this.color = '#00FFC0'; 
+            }
+
+            jump() {
+                if (this.mode === 'cube') {
+                    // Cube jump: only allowed if on ground or platform
+                    if (!this.isJumping) {
+                        this.isJumping = true;
+                        this.onPlatform = false;
+                        this.vy = CUBE_JUMP_VELOCITY;
+                    }
+                } else if (this.mode === 'ship') {
+                    // Ship thrust: always sets upward velocity
+                    // This is triggered by keydown/mousedown/touchstart events, 
+                    // while continuous thrust is handled by the main loop reading `isThrusting`.
+                    this.vy = SHIP_THRUST_VELOCITY; 
+                }
+            }
+            
+            thrust() {
+                if (this.mode === 'ship') {
+                    // Continuous upward boost while button is held
+                    this.vy = Math.max(this.vy, SHIP_THRUST_VELOCITY / 2); // Maintain upward momentum
+                }
+            }
+
+            update(platformCollided) {
+                if (this.mode === 'cube') {
+                    // Cube mode physics
+                    if (!platformCollided && this.y < GROUND_Y - RUNNER_SIZE) {
+                         this.vy += GRAVITY; 
+                    }
+                    this.y += this.vy; 
+
+                    // Check for ground landing
+                    if (this.y >= GROUND_Y - RUNNER_SIZE) {
+                        this.y = GROUND_Y - RUNNER_SIZE; 
+                        this.isJumping = false;
+                        this.onPlatform = false;
+                        this.vy = 0;
+                    }
+                } else if (this.mode === 'ship') {
+                    // Ship mode physics
+                    this.vy += GRAVITY * SHIP_GRAVITY_MULTIPLIER; 
+                    
+                    if (isThrusting) {
+                        this.thrust();
+                    }
+                    
+                    this.y += this.vy;
+                    
+                    // Ceiling Boundary (Deadly in GD, but we'll use hard boundary for simplicity)
+                    if (this.y < CEILING_Y) {
+                        this.y = CEILING_Y;
+                        this.vy = 0;
+                    }
+                    // Floor Boundary (Also Deadly, but we'll let collision handle it)
+                    if (this.y > GROUND_Y - RUNNER_SIZE) {
+                        this.y = GROUND_Y - RUNNER_SIZE;
+                        this.vy = 0;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+
+                if (this.mode === 'cube') {
+                    // Draw the square
+                    ctx.fillRect(this.x, this.y, RUNNER_SIZE, RUNNER_SIZE);
+                } else if (this.mode === 'ship') {
+                    const size = RUNNER_SIZE * 0.8;
+                    const shipX = this.x + (RUNNER_SIZE - size) / 2;
+                    const shipY = this.y + (RUNNER_SIZE - size) / 2;
+                    
+                    // Draw ship (triangle)
+                    ctx.beginPath();
+                    ctx.moveTo(shipX, shipY);
+                    ctx.lineTo(shipX + size, shipY + size / 2);
+                    ctx.lineTo(shipX, shipY + size);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw flame effect if actively thrusting
+                    if (isThrusting) { 
+                        ctx.fillStyle = '#FFA500'; // Orange
+                        ctx.beginPath();
+                        ctx.moveTo(shipX - 1, shipY + size * 0.3);
+                        ctx.lineTo(shipX - 10 - Math.random() * 5, shipY + size * 0.5); // Flame tip
+                        ctx.lineTo(shipX - 1, shipY + size * 0.7);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+
+                // Reset shadow for other elements
+                ctx.shadowBlur = 0; 
+                ctx.shadowColor = 'transparent';
+            }
+        }
+
+        class Spike {
+            constructor(data) {
+                this.width = data.width || 40; 
+                this.height = data.height || 30 + Math.random() * 20;
+                this.x = data.pos;
+                this.label = data.label;
+                this.isAir = data.isAir || false;
+                this.isFlipped = data.isFlipped || false; // For ceiling spikes
+                
+                // Set Y position based on whether it's an air spike, flipped, or floor spike
+                if (this.isAir) {
+                    this.y = data.y; // Specific Y position for floating spikes
+                } else if (this.isFlipped) {
+                    this.y = CEILING_Y; // Default to ceiling
+                } else {
+                    this.y = GROUND_Y - this.height; // Floor spike
+                }
+                
+                this.color = '#FF6EA0'; // Neon pink (Deadly)
+                this.isDeadly = true;
+                this.isSpike = true;
+            }
+
+            update(speed) {
+                this.x -= speed;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                
+                // Draw a sharp spike (Triangle)
+                ctx.beginPath();
+                if (this.isFlipped) {
+                    // Flipped (Ceiling) spike
+                    ctx.moveTo(this.x, this.y); 
+                    ctx.lineTo(this.x + this.width / 2, this.y + this.height); 
+                    ctx.lineTo(this.x + this.width, this.y); 
+                } else {
+                    // Normal (Floor or Air) spike
+                    ctx.moveTo(this.x, this.y + this.height); 
+                    ctx.lineTo(this.x + this.width / 2, this.y); 
+                    ctx.lineTo(this.x + this.width, this.y + this.height); 
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.shadowBlur = 0; 
+
+                // Add text label only for ground spikes that have labels
+                if (this.label && !this.isAir) {
+                    ctx.fillStyle = '#0A0A1A'; 
+                    ctx.font = '18px Orbitron'; 
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    ctx.fillText(
+                        formatRadianText(this.label.text),
+                        this.x + this.width / 2,
+                        this.y + this.height * 0.5 
+                    );
+                }
+            }
+        }
+        
+        class Block {
+            constructor(data) {
+                this.x = data.pos;
+                this.width = data.width || 150; 
+                this.height = data.height;
+                this.y = GROUND_Y - this.height;
+                this.color = '#00FFC0'; // Neon cyan (Safe platform)
+                this.isDeadly = false;
+                this.isBlock = true;
+            }
+            
+            update(speed) {
+                this.x -= speed;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 8;
+                
+                // Draw the platform block
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        class Portal {
+            constructor(data) {
+                this.x = data.pos;
+                this.width = 40; 
+                this.height = 120;
+                this.y = GROUND_Y - this.height; 
+                this.newMode = data.newMode;
+                this.isDeadly = false;
+                this.isPortal = true;
+                this.color = this.newMode === 'ship' ? '#33CCFF' : '#FFFF33'; // Blue for ship, Yellow for cube
+            }
+
+            update(speed) {
+                this.x -= speed;
+            }
+
+            draw() {
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 5;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                
+                // Draw vertical posts
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.height);
+                ctx.moveTo(this.x + this.width, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height);
+                ctx.stroke();
+
+                // Draw mode indicator shape
+                ctx.fillStyle = this.color;
+                if (this.newMode === 'ship') {
+                    // Draw a ship preview
+                    const size = 20;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + 10, this.y + this.height/2 - size/2);
+                    ctx.lineTo(this.x + this.width - 10, this.y + this.height/2);
+                    ctx.lineTo(this.x + 10, this.y + this.height/2 + size/2);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    // Draw a cube preview
+                    ctx.fillRect(this.x + this.width/2 - 10, this.y + this.height/2 - 10, 20, 20);
+                }
+                
+                ctx.shadowBlur = 0;
+            }
+        }
+
+
+        // --- Game Logic ---
+
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Add input listeners
+            document.getElementById('mainButton').onclick = showLevelSelect;
+            canvas.addEventListener('mousedown', handleMousedown);
+            canvas.addEventListener('mouseup', handleMouseup);
+            canvas.addEventListener('touchstart', handleMousedown);
+            canvas.addEventListener('touchend', handleMouseup);
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            
+            runner = new Runner(); 
+            gameLoop();
+        }
+
+        function showLevelSelect() {
+            gameStatus = 'level_select';
+            cancelAnimationFrame(frameId);
+            document.getElementById('mainButton').textContent = 'Select Level';
+            // FIXED: Use levelName ID instead of levelDisplay to avoid destroying the modeDisplay span
+            document.getElementById('levelName').textContent = 'Level: Select';
+            document.getElementById('modeDisplay').textContent = 'Cube';
+
+            const messageBox = document.getElementById('messageBox');
+            messageBox.style.display = 'block';
+            messageBox.innerHTML = `
+                <h2>Select a Radian Track</h2>
+                <p>Choose one of the 10 levels to start running:</p>
+                <div id="levelButtons">
+                    ${LEVELS.map(level => 
+                        `<button class="btn" onclick="loadLevel(${level.id})">${level.id}. ${level.name} (Speed ${level.speed})</button>`
+                    ).join('')}
+                </div>
+            `;
+            drawStaticScreen();
+        }
+
+        window.loadLevel = (levelId) => {
+            currentLevelData = LEVELS.find(l => l.id === levelId);
+            startGame();
+        }
+
+        function startGame() {
+            if (!currentLevelData) {
+                showLevelSelect();
+                return;
+            }
+            
+            gameStatus = 'playing';
+            document.getElementById('mainButton').textContent = 'Back to Levels';
+            document.getElementById('mainButton').onclick = showLevelSelect;
+            document.getElementById('messageBox').style.display = 'none';
+
+            runner = new Runner();
+            runner.mode = 'cube'; // Always start as cube
+            obstacles = [];
+            gameSpeed = currentLevelData.speed;
+            levelProgress = 0;
+            nextObjectToSpawn = 0;
+            lastTime = 0; // Reset lastTime when starting a new game
+
+            // FIXED: Use levelName ID instead of levelDisplay
+            document.getElementById('levelName').textContent = `Level: ${currentLevelData.id} - ${currentLevelData.name}`;
+
+            if (frameId) {
+                cancelAnimationFrame(frameId);
+            }
+            gameLoop();
+        }
+
+        function gameOver(collidedObject) {
+            gameStatus = 'over';
+            cancelAnimationFrame(frameId);
+            isThrusting = false;
+
+            const objectText = collidedObject.isSpike 
+                ? (collidedObject.label ? `${formatRadianText(collidedObject.label.text)} spike` : 'spike') 
+                : 'boundary';
+
+            const messageBox = document.getElementById('messageBox');
+            messageBox.innerHTML = `
+                <h2>Game Over!</h2>
+                <p>You crashed into a ${objectText}!</p>
+                <p>Distance: ${Math.floor(levelProgress)}m</p>
+                <button id="restartButton" class="btn">Try Level Again</button>
+                <button id="selectButton" class="btn">Change Level</button>
+            `;
+            document.getElementById('restartButton').onclick = startGame;
+            document.getElementById('selectButton').onclick = showLevelSelect;
+            messageBox.style.display = 'block';
+        }
+        
+        function levelComplete() {
+            gameStatus = 'over';
+            cancelAnimationFrame(frameId);
+
+            const messageBox = document.getElementById('messageBox');
+            messageBox.innerHTML = `
+                <h2>Level Complete!</h2>
+                <p>You mastered **${currentLevelData.name}**!</p>
+                <p>Final Distance: ${Math.floor(currentLevelData.length)}m</p>
+                <button id="selectButton" class="btn">Next Level</button>
+            `;
+            
+            const nextLevelIndex = LEVELS.findIndex(l => l.id === currentLevelData.id) + 1;
+            if (LEVELS[nextLevelIndex]) {
+                currentLevelData = LEVELS[nextLevelIndex];
+                document.getElementById('selectButton').textContent = "Play Next Level"; // Update text for clarity
+                document.getElementById('selectButton').onclick = startGame;
+            } else {
+                 document.getElementById('selectButton').textContent = "Back to Select (All Clear!)";
+                 document.getElementById('selectButton').onclick = showLevelSelect;
+            }
+            messageBox.style.display = 'block';
+        }
+
+        function spawnObjects() {
+            if (nextObjectToSpawn < currentLevelData.sequence.length) {
+                const nextObject = currentLevelData.sequence[nextObjectToSpawn];
+                
+                // Only spawn if the object's relative position is coming into view
+                if (nextObject.pos - GAME_WIDTH < levelProgress) {
+                    let newObject;
+                    const screenX = GAME_WIDTH;
+                    
+                    if (nextObject.type === 'spike') {
+                        newObject = new Spike({ ...nextObject, pos: screenX });
+                    } else if (nextObject.type === 'block') {
+                        newObject = new Block({ ...nextObject, pos: screenX });
+                    } else if (nextObject.type === 'portal') {
+                        newObject = new Portal({ ...nextObject, pos: screenX });
+                    }
+                    
+                    if (newObject) {
+                       obstacles.push(newObject);
+                    }
+                    nextObjectToSpawn++;
+                }
+            }
+        }
+
+        function updateGame(deltaTime) {
+            if (gameStatus !== 'playing') return;
+
+            // 1. Advance Level Progress
+            levelProgress += gameSpeed;
+            
+            // Check for level completion
+            if (levelProgress >= currentLevelData.length) {
+                levelComplete();
+                return;
+            }
+
+            // 2. Spawn next objects
+            spawnObjects();
+            
+            let platformCollision = false;
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obj = obstacles[i];
+                obj.update(gameSpeed);
+                
+                // Check for PORTAL collision
+                if (obj.isPortal && checkCollision(runner, obj)) {
+                    const oldMode = runner.mode;
+                    runner.mode = obj.newMode;
+                    runner.vy = 0; // Reset vertical velocity on mode change
+                    
+                    // START OF ROBUST PORTAL FIX: 
+                    // If transitioning to ship mode from the ground, lift the runner aggressively 
+                    // and provide a momentary upward boost to prevent immediate ground crash detection.
+                    if (runner.mode === 'ship' && oldMode === 'cube' && runner.y + RUNNER_SIZE >= GROUND_Y) {
+                         runner.y -= 10; // Lift off the ground more aggressively
+                         runner.vy = -3; // Give a slight upward velocity for grace period
+                    } 
+                    // END OF ROBUST PORTAL FIX
+                    
+                    obstacles.splice(i, 1);
+                    continue; 
+                }
+                
+                // Check for deadly collision (Spikes)
+                if (obj.isDeadly && checkCollision(runner, obj)) {
+                    gameOver(obj);
+                    return;
+                }
+                
+                // Check for platform landing (only in cube mode)
+                if (runner.mode === 'cube' && obj.isBlock && checkPlatformLanding(runner, obj)) {
+                    platformCollision = true;
+                }
+                
+                // Remove off-screen objects
+                if (obj.x + (obj.width || 40) < 0) {
+                    obstacles.splice(i, 1);
+                }
+            }
+            
+            // 3. Update Runner
+            runner.update(platformCollision);
+            
+            // 4. Check for ship mode edge crashes (hitting ground/ceiling while flying)
+            if (runner.mode === 'ship') {
+                 // Ship crash: hitting floor or ceiling hard
+                 // The ship can't sit exactly on the floor line like the cube can.
+                 if (runner.y + RUNNER_SIZE >= GROUND_Y || runner.y <= CEILING_Y) {
+                     // Label the crash as a boundary collision
+                     gameOver({isSpike: false, isBlock: true, label: {text: "boundary"}});
+                     return;
+                 }
+            }
+
+
+            // 5. Update UI
+            document.getElementById('scoreDisplay').textContent = `Distance: ${Math.floor(levelProgress)}m`;
+            document.getElementById('modeDisplay').textContent = runner.mode === 'cube' ? 'Cube' : 'Ship';
+        }
+        
+        // --- Drawing Functions ---
+
+        function drawStaticScreen() {
+            if (!ctx) return;
+            // Clear canvas
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            
+            // Draw background grid lines (Faint)
+            ctx.strokeStyle = 'rgba(0, 255, 192, 0.1)';
+            ctx.lineWidth = 1;
+            for(let i = 0; i < GAME_WIDTH; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, GAME_HEIGHT);
+                ctx.stroke();
+            }
+            
+            // GD-Style Ground Line
+            ctx.strokeStyle = '#00FFC0';
+            ctx.shadowColor = '#00FFC0';
+            ctx.shadowBlur = 15;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(GAME_WIDTH, GROUND_Y);
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset shadow
+        }
+
+
+        function drawGame() {
+            drawStaticScreen();
+
+            if (gameStatus === 'playing') {
+                obstacles.forEach(obstacle => obstacle.draw());
+                runner.draw();
+                
+                // Draw progress bar
+                const totalLength = currentLevelData.length;
+                const progressWidth = (levelProgress / totalLength) * GAME_WIDTH;
+                ctx.fillStyle = '#FF6EA0'; 
+                ctx.fillRect(0, GROUND_Y + 5, progressWidth, 5); 
+
+                // Draw speed indicator
+                ctx.fillStyle = 'rgba(255, 110, 160, 0.7)';
+                ctx.font = '14px Orbitron';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'top';
+                ctx.fillText(`Speed: ${gameSpeed.toFixed(1)}`, GAME_WIDTH - 10, 10);
+            } else if (gameStatus === 'level_select' || gameStatus === 'over') {
+                // Draw runner preview (centered)
+                runner.draw();
+            }
+        }
+
+        function gameLoop(currentTime = 0) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            if (gameStatus === 'playing') {
+                updateGame(deltaTime);
+            }
+            
+            drawGame();
+
+            frameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Collision and Input ---
+
+        // Generic AABB collision check
+        function checkCollision(r, o) {
+            const r_left = r.x;
+            const r_right = r.x + RUNNER_SIZE;
+            const r_top = r.y;
+            const r_bottom = r.y + RUNNER_SIZE;
+            
+            const o_width = o.width || RUNNER_SIZE;
+            const o_height = o.height || RUNNER_SIZE;
+            const o_left = o.x;
+            const o_right = o.x + o_width;
+            const o_top = o.y;
+            const o_bottom = o.y + o_height;
+
+            const x_overlap = r_right > o_left && r_left < o_right;
+            const y_overlap = r_bottom > o_top && r_top < o_bottom;
+
+            return x_overlap && y_overlap;
+        }
+        
+        // Specific check for CUBE LANDING on a platform
+        function checkPlatformLanding(r, o) {
+            // 1. Horizontal overlap check
+            const x_overlap = r.x + RUNNER_SIZE * 0.95 > o.x && r.x + RUNNER_SIZE * 0.05 < o.x + o.width;
+
+            // 2. Vertical check: Runner is falling AND is about to touch the top surface of the block
+            const isFalling = r.vy >= 0;
+            const isAbove = r.y + RUNNER_SIZE <= o.y + gameSpeed * 1.5; // runner's feet are slightly above the platform
+            const isLandingMoment = r.y + RUNNER_SIZE >= o.y - r.vy; 
+
+            if (x_overlap && isFalling && isLandingMoment && isAbove) {
+                // Land the runner on the block
+                r.y = o.y - RUNNER_SIZE;
+                r.vy = 0;
+                r.isJumping = false;
+                r.onPlatform = true;
+                return true;
+            }
+            
+            // Hitting the block from underneath (stops upward motion)
+            if (x_overlap && r.vy < 0 && r.y < o.y + o.height && r.y > o.y + o.height - gameSpeed) {
+                r.vy = 0; 
+            }
+
+            return false;
+        }
+
+
+        function handleKeyDown(e) {
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault(); 
+                if (gameStatus === 'playing') {
+                    isThrusting = true; // For continuous flight
+                    runner.jump(); // Triggers the initial jump/thrust
+                } else if (gameStatus === 'over') {
+                    // FIX: Find the primary action button and click it, regardless of whether it's 'restart' or 'next level'
+                    const restartButton = document.getElementById('restartButton');
+                    const selectButton = document.getElementById('selectButton');
+                    
+                    if (restartButton) {
+                        restartButton.click();
+                    } else if (selectButton) {
+                        // The select button acts as the primary action on the Level Complete screen.
+                        selectButton.click();
+                    }
+                }
+            }
+        }
+        
+        function handleKeyUp(e) {
+            if (e.code === 'Space' || e.key === ' ') {
+                isThrusting = false;
+            }
+        }
+        
+        function handleMousedown(e) {
+            e.preventDefault();
+            if (gameStatus === 'playing') {
+                isThrusting = true;
+                runner.jump();
+            }
+        }
+        
+        function handleMouseup(e) {
+            isThrusting = false;
+        }
+        
+        // --- Initialization ---
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Parabola Project</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the game board */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        canvas {
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background-color: #ffffff;
+            /* Ensure canvas is flexible and centered */
+            display: block;
+            margin: auto;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e0e7ff;
+            border-radius: 4px;
+            cursor: pointer;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+        .control-card {
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div id="app" class="w-full max-w-4xl space-y-6">
+
+        <h1 class="text-4xl font-bold text-center text-indigo-700 mb-6">The Parabola Project</h1>
+
+        <!-- Score and Equation Display -->
+        <div class="flex flex-col md:flex-row justify-between items-center control-card">
+            <p class="text-xl font-semibold text-gray-700">
+                Level: <span id="levelDisplay" class="text-indigo-600">1</span>
+            </p>
+            <p class="text-2xl font-bold text-gray-800 my-2 md:my-0">
+                $y = <span id="aValue">0</span>x^2 + <span id="bValue">0</span>x + <span id="cValue">0</span>$
+            </p>
+            <button id="checkButton" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-full transition duration-150 shadow-lg shadow-emerald-200" onclick="checkWin()">
+                Check Solution
+            </button>
+        </div>
+
+        <!-- Canvas and Controls Container -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Controls Panel -->
+            <div id="controls" class="md:col-span-1 space-y-6">
+                <div class="control-card">
+                    <h2 class="text-lg font-semibold text-indigo-700 mb-4">Target Point</h2>
+                    <p class="text-xl text-gray-800 font-mono">
+                        (<span id="targetXDisplay">X</span>, <span id="targetYDisplay">Y</span>)
+                    </p>
+                    <p class="text-sm text-gray-500 mt-2">Adjust a, b, and c to make your curve pass through this point.</p>
+                </div>
+
+                <!-- Coefficient A Control -->
+                <div class="control-card">
+                    <label for="aRange" class="block text-sm font-medium text-gray-700">Coefficient 'a' (Vertical Stretch & Direction)</label>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1 mb-2 leading-none">a = <span id="aRangeValue">0.0</span></p>
+                    <input type="range" id="aRange" min="-0.5" max="0.5" step="0.01" value="0" oninput="updateParabola()">
+                </div>
+
+                <!-- Coefficient B Control -->
+                <div class="control-card">
+                    <label for="bRange" class="block text-sm font-medium text-gray-700">Coefficient 'b' (Horizontal Shift)</label>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1 mb-2 leading-none">b = <span id="bRangeValue">0.0</span></p>
+                    <input type="range" id="bRange" min="-5" max="5" step="0.1" value="0" oninput="updateParabola()">
+                </div>
+
+                <!-- Coefficient C Control -->
+                <div class="control-card">
+                    <label for="cRange" class="block text-sm font-medium text-gray-700">Coefficient 'c' (Vertical Shift)</label>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1 mb-2 leading-none">c = <span id="cRangeValue">0.0</span></p>
+                    <input type="range" id="cRange" min="-5" max="5" step="0.1" value="0" oninput="updateParabola()">
+                </div>
+            </div>
+
+            <!-- Canvas for Graphing -->
+            <div class="md:col-span-2 control-card p-4 flex items-center justify-center">
+                <canvas id="parabolaCanvas" width="500" height="500" class="w-full aspect-square"></canvas>
+            </div>
+        </div>
+
+        <!-- Feedback Modal -->
+        <div id="feedbackModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 hidden items-center justify-center">
+            <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md text-center">
+                <h3 id="modalTitle" class="text-3xl font-bold mb-4 text-indigo-700"></h3>
+                <p id="modalMessage" class="text-lg text-gray-700 mb-6"></p>
+                <button id="modalButton" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-full transition duration-150 shadow-lg shadow-indigo-200" onclick="hideModal()"></button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Firebase/Canvas Global Variables Setup (Mandatory but unused for this local game) ---
+        // This is a single-player, client-side game, so Firestore is not needed.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // -----------------------------------------------------------------------------------------
+
+        const canvas = document.getElementById('parabolaCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // State variables
+        let targetX = 0;
+        let targetY = 0;
+        let level = 1;
+        const SCALE = 50; // Pixels per unit in the graph (e.g., 50px = 1 unit)
+        const RANGE_X = 5; // Graph shows from -RANGE_X to +RANGE_X
+
+        // DOM elements
+        const aRange = document.getElementById('aRange');
+        const bRange = document.getElementById('bRange');
+        const cRange = document.getElementById('cRange');
+
+        const aValueDisplay = document.getElementById('aValue');
+        const bValueDisplay = document.getElementById('bValue');
+        const cValueDisplay = document.getElementById('cValue');
+        const aRangeValueDisplay = document.getElementById('aRangeValue');
+        const bRangeValueDisplay = document.getElementById('bRangeValue');
+        const cRangeValueDisplay = document.getElementById('cRangeValue');
+
+        const targetXDisplay = document.getElementById('targetXDisplay');
+        const targetYDisplay = document.getElementById('targetYDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const feedbackModal = document.getElementById('feedbackModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalButton = document.getElementById('modalButton');
+
+        // Helper function for coordinate conversion (from graph unit to pixel)
+        function toScreenX(x) {
+            const centerX = canvas.width / 2;
+            return centerX + x * SCALE;
+        }
+
+        function toScreenY(y) {
+            const centerY = canvas.height / 2;
+            // Note: y-axis is inverted in canvas, so we subtract
+            return centerY - y * SCALE;
+        }
+
+        // Helper function to format numbers to 2 decimal places
+        function formatNumber(num) {
+            return num.toFixed(2);
+        }
+
+        // Function to draw the axes and grid
+        function drawAxes() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid lines
+            ctx.strokeStyle = '#e5e7eb'; // Light gray
+            ctx.lineWidth = 0.5;
+            for (let i = -RANGE_X; i <= RANGE_X; i++) {
+                // Vertical lines
+                if (i !== 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(toScreenX(i), 0);
+                    ctx.lineTo(toScreenX(i), canvas.height);
+                    ctx.stroke();
+                }
+                // Horizontal lines
+                if (i * SCALE < centerY && i * SCALE > -centerY && i !== 0) {
+                     ctx.beginPath();
+                    ctx.moveTo(0, toScreenY(i));
+                    ctx.lineTo(canvas.width, toScreenY(i));
+                    ctx.stroke();
+                }
+            }
+
+            // Draw Axes (X and Y)
+            ctx.strokeStyle = '#4b5563'; // Darker gray
+            ctx.lineWidth = 2;
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+
+            // Draw axis labels
+            ctx.fillStyle = '#1f2937';
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            for (let i = -RANGE_X; i <= RANGE_X; i++) {
+                if (i !== 0) {
+                    // X-axis numbers
+                    ctx.fillText(i, toScreenX(i), centerY + 5);
+                    // Y-axis numbers
+                    if (toScreenY(i) > 10 && toScreenY(i) < canvas.height - 10) {
+                        ctx.textAlign = (i === 0) ? 'center' : 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(i, centerX + 5, toScreenY(i));
+                        ctx.textAlign = 'center'; // Reset for next loop
+                    }
+                }
+            }
+            // Origin label
+            ctx.fillText('0', centerX + 10, centerY + 5);
+        }
+
+        // Function to draw a parabola
+        function drawGraph(a, b, c, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+
+            // Start plotting from the far left of the canvas
+            for (let pixelX = 0; pixelX <= canvas.width; pixelX++) {
+                // Convert screen pixel x to graph unit x
+                const x = (pixelX - canvas.width / 2) / SCALE;
+
+                // Calculate y using the quadratic formula: y = ax^2 + bx + c
+                const y = a * x * x + b * x + c;
+
+                // Convert graph unit y to screen pixel y
+                const screenY = toScreenY(y);
+
+                if (pixelX === 0) {
+                    ctx.moveTo(pixelX, screenY);
+                } else {
+                    ctx.lineTo(pixelX, screenY);
+                }
+            }
+            ctx.stroke();
+        }
+
+        // Function to draw the target point
+        function drawTarget() {
+            ctx.fillStyle = '#ef4444'; // Red color
+            ctx.beginPath();
+            // Draw a solid circle at the target coordinates
+            ctx.arc(toScreenX(targetX), toScreenY(targetY), 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Main function to update and redraw the graph
+        function updateParabola() {
+            const a = parseFloat(aRange.value);
+            const b = parseFloat(bRange.value);
+            const c = parseFloat(cRange.value);
+
+            // Update display values
+            aRangeValueDisplay.textContent = formatNumber(a);
+            bRangeValueDisplay.textContent = formatNumber(b);
+            cRangeValueDisplay.textContent = formatNumber(c);
+
+            aValueDisplay.textContent = formatNumber(a);
+            bValueDisplay.textContent = formatNumber(b);
+            cValueDisplay.textContent = formatNumber(c);
+
+            // Redraw everything
+            drawAxes();
+            drawTarget();
+
+            // Draw the user's parabola in blue
+            drawGraph(a, b, c, '#4f46e5');
+        }
+
+        // Function to generate a new random target point
+        function generateNewTarget() {
+            // Generate integer coordinates within the visible graph range
+            // X range: [-5, 5]
+            // Y range: [-5, 5]
+            targetX = (Math.round(Math.random() * 10) - 5);
+            targetY = (Math.round(Math.random() * 10) - 5);
+
+            // Ensure the target is not too close to the origin for initial challenge
+            if (targetX === 0 && targetY === 0) {
+                targetX = 1; // Default to 1 if it lands on (0,0)
+            }
+
+            targetXDisplay.textContent = targetX;
+            targetYDisplay.textContent = targetY;
+        }
+
+        // Game Win Condition Check
+        function checkWin() {
+            const a = parseFloat(aRange.value);
+            const b = parseFloat(bRange.value);
+            const c = parseFloat(cRange.value);
+
+            // Calculate the y-value of the user's parabola at the target x-coordinate
+            const calculatedY = a * targetX * targetX + b * targetX + c;
+
+            // Check if the calculated y is within a small tolerance of the target y
+            const tolerance = 0.15; // The user needs to be within 0.15 units
+
+            if (Math.abs(calculatedY - targetY) < tolerance) {
+                showModal('Success!', `You hit the target point (${targetX}, ${targetY})! The equation $y = ${formatNumber(a)}x^2 + ${formatNumber(b)}x + ${formatNumber(c)}$ is correct.`, 'Next Level', nextLevel);
+            } else {
+                const diff = Math.abs(calculatedY - targetY);
+                showModal('Miss!', `You missed the target. Your parabola passed at Y=${formatNumber(calculatedY)}. You need to get closer to Y=${targetY}. Difference: ${formatNumber(diff)}.`, 'Try Again', hideModal);
+            }
+        }
+
+        // Function to handle modal display
+        function showModal(title, message, buttonText, action) {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message.replace(/\$/g, ''); // Simple way to remove $ signs for display
+            modalButton.textContent = buttonText;
+            modalButton.onclick = action;
+            feedbackModal.classList.remove('hidden');
+            feedbackModal.classList.add('flex');
+        }
+
+        // Function to hide modal
+        function hideModal() {
+            feedbackModal.classList.remove('flex');
+            feedbackModal.classList.add('hidden');
+        }
+
+        // Function to advance to the next level
+        function nextLevel() {
+            hideModal();
+            level++;
+            levelDisplay.textContent = level;
+
+            // Increase the range limits slightly every few levels to increase difficulty
+            if (level % 5 === 0) {
+                aRange.min = Math.max(-1, parseFloat(aRange.min) - 0.1);
+                aRange.max = Math.min(1, parseFloat(aRange.max) + 0.1);
+                // Can also expand b and c ranges
+            }
+
+            // Reset controls to middle for the new level
+            aRange.value = 0;
+            bRange.value = 0;
+            cRange.value = 0;
+
+            generateNewTarget();
+            updateParabola();
+        }
+
+        // Initialization function
+        function initGame() {
+            // Set initial canvas size dynamically based on container (for responsiveness)
+            function resizeCanvas() {
+                const container = document.querySelector('.md\\:col-span-2');
+                const size = Math.min(container.clientWidth, 500); // Max size 500px or container width
+                canvas.width = size;
+                canvas.height = size;
+                updateParabola(); // Redraw after resize
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas(); // Initial call
+
+            // Start the game loop
+            generateNewTarget();
+            updateParabola();
+        }
+
+        // Start the game when the window loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
