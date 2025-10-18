@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle of Chaos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font from Tailwind defaults -->
+    <style>
+        body {
+            background-color: #0d1117; /* Dark background */
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 1rem;
+        }
+
+        #game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            max-width: 100%;
+        }
+
+        canvas {
+            border: 4px solid #4a5568;
+            background-color: #1a202c;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.4);
+            border-radius: 20px;
+            touch-action: none; /* Prevent default touch behavior */
+        }
+
+        .game-ui {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and up */
+            user-select: none; /* Standard syntax */
+        }
+
+        .btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.7);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Responsive control layout */
+        #mobile-controls {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            /* Hide controls on desktop */
+            #mobile-controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1 class="text-3xl font-extrabold text-blue-400 mb-4">CIRCLE OF CHAOS</h1>
+    <div class="game-ui">
+        <span id="score-display">Score: 0</span>
+        <button id="start-button" class="btn">Start Game</button>
+    </div>
+    <canvas id="chaosCanvas" width="600" height="600"></canvas>
+    <p class="text-gray-400 mt-2">Use **LEFT and RIGHT arrow keys** or **A and D** to rotate your circle and dodge the chaos!</p>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <button id="left-button" class="btn px-8 py-4 text-2xl shadow-lg hover:shadow-xl">&#9664;</button>
+        <button id="right-button" class="btn px-8 py-4 text-2xl shadow-lg hover:shadow-xl">&#9654;</button>
+    </div>
+
+</div>
+
+<script>
+    // Constants and Initialization
+    const canvas = document.getElementById('chaosCanvas');
+    const ctx = canvas.getContext('2d');
+    const startButton = document.getElementById('start-button');
+    const scoreDisplay = document.getElementById('score-display');
+    const leftButton = document.getElementById('left-button');
+    const rightButton = document.getElementById('right-button');
+
+    // Game Parameters
+    const CANVAS_SIZE = 600;
+    const CENTER_X = CANVAS_SIZE / 2;
+    const CENTER_Y = CANVAS_SIZE / 2;
+    const INNER_RING_RADIUS = 150; // Radius where the player orbits
+    const OUTER_RING_RADIUS = 280; // Radius of the main circle boundary
+    const PLAYER_RADIUS = 25; // CRITICAL: Large size for visibility
+    const PLAYER_SPEED = 0.08; // Radians per frame
+    
+    // OBSTACLE CONSTANTS
+    const OBSTACLE_RADIUS = 8;
+    const BASE_OBSTACLE_SPEED = 2.5; // Increased speed (was 2)
+
+    // CHASER CONSTANTS
+    const CHASER_RADIUS = 15;
+    const CHASER_COLOR = '#FFD700'; // Gold/Yellow
+    const CHASER_MOVEMENT_SPEED = 3; // Pixels per frame
+    const CHASER_DURATION_MS = 30000; // 30 seconds
+
+    // STATE
+    let gameRunning = false;
+    let score = 0;
+    let lastTime = 0; 
+    let playerAngle = Math.PI / 2; 
+    let obstacles = [];
+    let obstacleSpeedMultiplier = 1;
+    let spawnInterval = 60; // Spawn every 60 frames initially (1 obstacle per second at 60fps)
+    let frameCount = 0;
+    
+    // CHASER STATE
+    let nextChaserTriggerScore = 100; // Raw score (10 displayed points)
+    let chaserActive = false;
+    let chaserEndTime = 0;
+    let chaserX = 0;
+    let chaserY = 0;
+
+
+    // Utility function to convert degrees to radians
+    const degToRad = (degrees) => degrees * (Math.PI / 180);
+
+    // Obstacle Class
+    class Obstacle {
+        constructor() {
+            // Spawn location is randomly on the outer edge
+            this.angle = Math.random() * 2 * Math.PI;
+            this.x = CENTER_X + OUTER_RING_RADIUS * Math.cos(this.angle);
+            this.y = CENTER_Y + OUTER_RING_RADIUS * Math.sin(this.angle);
+
+            // Calculate the velocity vector towards the center
+            const dirX = CENTER_X - this.x;
+            const dirY = CENTER_Y - this.y;
+            const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
+            
+            // Normalized direction vector
+            this.vx = (dirX / magnitude);
+            this.vy = (dirY / magnitude);
+
+            // Actual speed increases with multiplier
+            this.speed = BASE_OBSTACLE_SPEED * obstacleSpeedMultiplier;
+        }
+
+        update() {
+            this.x += this.vx * this.speed;
+            this.y += this.vy * this.speed;
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, OBSTACLE_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444'; // Red for chaos
+            ctx.fill();
+        }
+
+        // Checks if the obstacle has passed the player's ring
+        isDead() {
+            const distSq = (this.x - CENTER_X) ** 2 + (this.y - CENTER_Y) ** 2;
+            return distSq < (INNER_RING_RADIUS - 10) ** 2;
+        }
+    }
+
+    // Player Object (State represented by angle)
+    const player = {
+        get position() {
+            // Calculate player position based on current angle. Note: canvas Y-axis is inverted
+            // We use sin for Y and cos for X, and subtract from the top (PI/2) to make 0 rotation feel natural
+            return {
+                x: CENTER_X + INNER_RING_RADIUS * Math.cos(playerAngle),
+                y: CENTER_Y - INNER_RING_RADIUS * Math.sin(playerAngle)
+            };
+        }
+    };
+
+    // --- GAME FUNCTIONS ---
+
+    function resetGame() {
+        gameRunning = true;
+        score = 0;
+        // Set starting angle to top (12 o'clock)
+        playerAngle = Math.PI / 2; 
+        obstacles = [];
+        obstacleSpeedMultiplier = 1;
+        spawnInterval = 60;
+        frameCount = 0;
+        rotationDirection = 0; 
+        
+        // Reset Chaser State
+        nextChaserTriggerScore = 100;
+        chaserActive = false;
+        chaserEndTime = 0;
+        chaserX = 0;
+        chaserY = 0;
+
+
+        startButton.textContent = 'Restart';
+        startButton.disabled = true;
+        scoreDisplay.textContent = `Score: 0`;
+        
+        // Reset lastTime to zero so gameLoop knows this is the first frame
+        lastTime = 0; 
+        
+        // Start the game loop
+        requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+        gameRunning = false;
+        startButton.textContent = 'Play Again';
+        startButton.disabled = false;
+        // Display final score message on canvas
+        drawGameOverScreen();
+    }
+
+    function updateGame() {
+        if (!gameRunning) return;
+
+        // 1. Update Score and Difficulty
+        let currentScore = Math.floor(score / 10);
+        
+        // Only increase score if the player is rotating (rotationDirection != 0)
+        if (rotationDirection !== 0) {
+            score++;
+            scoreDisplay.textContent = `Score: ${Math.floor(score / 10)}`;
+        }
+        
+        let newScore = Math.floor(score / 10);
+
+        // Increase difficulty every 5 points (50 frames of movement)
+        if (newScore > currentScore && newScore % 5 === 0 && newScore > 0) {
+            // Increase obstacle speed
+            obstacleSpeedMultiplier += 0.05;
+            // Decrease time between spawns (min interval is 20 frames)
+            spawnInterval = Math.max(20, spawnInterval - 2); 
+        }
+        
+        // 1.5 Chaser Activation
+        if (score >= nextChaserTriggerScore && !chaserActive) {
+            chaserActive = true;
+            chaserEndTime = Date.now() + CHASER_DURATION_MS;
+            
+            // Randomly spawn the chaser outside the outer ring (50px outside)
+            const spawnAngle = Math.random() * 2 * Math.PI;
+            chaserX = CENTER_X + (OUTER_RING_RADIUS + 50) * Math.cos(spawnAngle);
+            chaserY = CENTER_Y + (OUTER_RING_RADIUS + 50) * Math.sin(spawnAngle);
+            
+            // Set next trigger to 100 raw points after the current trigger (10 displayed points)
+            nextChaserTriggerScore += 100; 
+        }
+
+        // 2. Chaser Update Logic
+        if (chaserActive) {
+            // Check timer expiration
+            if (Date.now() > chaserEndTime) {
+                chaserActive = false;
+            } else {
+                const playerPos = player.position;
+                
+                // Vector from chaser to player
+                const dx = playerPos.x - chaserX;
+                const dy = playerPos.y - chaserY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Normalized movement vector
+                const speed = CHASER_MOVEMENT_SPEED;
+                const vx = dx / distance * speed;
+                const vy = dy / distance * speed;
+
+                // Update chaser position
+                chaserX += vx;
+                chaserY += vy;
+
+                // Chaser collision detection with player
+                const chaserDistSq = (chaserX - playerPos.x) ** 2 + (chaserY - playerPos.y) ** 2;
+                const requiredChaserDistSq = (PLAYER_RADIUS + CHASER_RADIUS) ** 2;
+
+                if (chaserDistSq < requiredChaserDistSq) {
+                    gameOver();
+                    return; // Stop update loop
+                }
+            }
+        }
+        
+        // 3. Obstacle Spawning
+        frameCount++;
+        if (frameCount >= spawnInterval) {
+            obstacles.push(new Obstacle());
+            frameCount = 0;
+        }
+
+        // 4. Update Obstacles and Check Collisions
+        const playerPos = player.position;
+        const playerX = playerPos.x;
+        const playerY = playerPos.y;
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            const obs = obstacles[i];
+            obs.update();
+
+            // Collision detection (distance check)
+            const distSq = (obs.x - playerX) ** 2 + (obs.y - playerY) ** 2;
+            const requiredDistSq = (PLAYER_RADIUS + OBSTACLE_RADIUS) ** 2;
+
+            if (distSq < requiredDistSq) {
+                gameOver();
+                return;
+            }
+
+            // Remove obstacles that have passed the inner ring (they are 'dead')
+            if (obs.isDead()) {
+                obstacles.splice(i, 1);
+            }
+        }
+    }
+
+    // --- DRAWING FUNCTIONS ---
+
+    function drawCenterCircle() {
+        ctx.beginPath();
+        ctx.arc(CENTER_X, CENTER_Y, OUTER_RING_RADIUS, 0, Math.PI * 2);
+        ctx.strokeStyle = '#4f46e5'; // Indigo/Blue boundary
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        // Draw the inner orbit path (dashed or dotted)
+        ctx.beginPath();
+        ctx.arc(CENTER_X, CENTER_Y, INNER_RING_RADIUS, 0, Math.PI * 2);
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 10]);
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset line dash
+    }
+    
+    function drawChaser() {
+        if (!chaserActive) return;
+        
+        ctx.beginPath();
+        ctx.arc(chaserX, chaserY, CHASER_RADIUS, 0, Math.PI * 2);
+        
+        // Add a subtle glow/shadow for visual effect
+        ctx.shadowColor = CHASER_COLOR;
+        ctx.shadowBlur = 10;
+        
+        // Fill: Gold/Yellow
+        ctx.fillStyle = CHASER_COLOR;
+        ctx.fill();
+
+        // Outline: Dark Red to look dangerous
+        ctx.strokeStyle = '#880000';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Reset shadow for subsequent elements
+        ctx.shadowBlur = 0;
+        
+        // Draw timer countdown text in the center of the chaser
+        const remainingTime = Math.ceil((chaserEndTime - Date.now()) / 1000);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#1a202c'; // Dark text color for contrast on yellow
+        ctx.font = 'bold 10px Inter';
+        ctx.fillText(remainingTime, chaserX, chaserY + 4); 
+    }
+
+    function drawPlayer() {
+        const pos = player.position;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, PLAYER_RADIUS, 0, Math.PI * 2);
+        
+        // Pure White Fill
+        ctx.fillStyle = '#FFFFFF'; 
+        ctx.fill();
+        
+        // Bright Red Outline
+        ctx.strokeStyle = '#ff0000'; 
+        ctx.lineWidth = 4; // Thicker outline
+        ctx.stroke();
+    }
+
+    function drawObstacles() {
+        obstacles.forEach(obs => obs.draw());
+    }
+
+    function drawGameOverScreen() {
+        // Darken the screen
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        // Display text
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Inter';
+        ctx.fillText('CHAOS REIGNED', CENTER_X, CENTER_Y - 40);
+
+        ctx.font = '24px Inter';
+        ctx.fillText(`Final Score: ${Math.floor(score / 10)}`, CENTER_X, CENTER_Y + 20);
+
+        ctx.font = '18px Inter';
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText('Press "Play Again" to try once more.', CENTER_X, CENTER_Y + 70);
+    }
+
+    function draw() {
+        // Clear canvas
+        ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        ctx.fillStyle = '#1a202c'; // Canvas background color
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        drawCenterCircle();
+        drawObstacles();
+        drawChaser(); // Draw chaser behind the player
+        drawPlayer();
+        
+
+        if (!gameRunning) {
+            drawGameOverScreen();
+        }
+    }
+
+    // --- GAME LOOP ---
+
+    function gameLoop(currentTime) {
+        // If game is not running, stop the loop and ensure the Game Over screen is drawn.
+        if (!gameRunning) {
+            draw(); 
+            return;
+        }
+
+        // Handle first frame initialization
+        if (lastTime === 0) {
+            lastTime = currentTime;
+        }
+
+        const deltaTime = (currentTime - lastTime) / (1000 / 60); // Calculate time since last frame (normalized to 60fps)
+        lastTime = currentTime;
+
+        // Handle player input (rotation)
+        handleInput(deltaTime);
+
+        updateGame();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- INPUT HANDLING ---
+
+    let rotationDirection = 0; // -1 for left, 1 for right, 0 for none
+
+    function handleInput(deltaTime) {
+        if (!gameRunning) return;
+        playerAngle += rotationDirection * PLAYER_SPEED * deltaTime;
+
+        // Keep angle within [0, 2*PI]
+        if (playerAngle > 2 * Math.PI) playerAngle -= 2 * Math.PI;
+        if (playerAngle < 0) playerAngle += 2 * Math.PI;
+    }
+
+    // Keyboard Events
+    document.addEventListener('keydown', (e) => {
+        if (!gameRunning) return;
+        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
+            rotationDirection = 0.5; // CCW (Left)
+        } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+            rotationDirection = -0.5; // CW (Right)
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (!gameRunning) return;
+        // Since we only track one direction (rotationDirection is simple magnitude), we stop rotation if any control key is released.
+        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a' || e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+            rotationDirection = 0;
+        }
+    });
+
+    // Mobile/Button Events (Touch & Mouse)
+    const setRotation = (dir) => rotationDirection = dir;
+    const stopRotation = () => rotationDirection = 0;
+
+    // Use common events for touch/mouse down/up
+    const setupButtonListeners = (button, dir) => {
+        // Mouse events
+        button.addEventListener('mousedown', () => setRotation(dir));
+        button.addEventListener('mouseup', stopRotation);
+        button.addEventListener('mouseleave', stopRotation);
+
+        // Touch events
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling/zooming
+            setRotation(dir);
+        }, { passive: false });
+        button.addEventListener('touchend', stopRotation);
+        button.addEventListener('touchcancel', stopRotation);
+    };
+
+    // Left button increases angle (CCW/Left rotation, using 0.5 factor)
+    setupButtonListeners(leftButton, 0.5); 
+    // Right button decreases angle (CW/Right rotation, using -0.5 factor)
+    setupButtonListeners(rightButton, -0.5);
+
+
+    // Start Button Event
+    startButton.addEventListener('click', resetGame);
+
+
+    // Initialize the canvas and display the start screen
+    window.onload = function() {
+        canvas.width = CANVAS_SIZE;
+        canvas.height = CANVAS_SIZE;
+        draw();
+    };
+
+</script>
+
+</body>
+</html>
