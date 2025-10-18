@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Forge: Coding Quests</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for Function Forge - Neon Theme */
+        :root {
+            --neon-blue: #00BFFF;
+            --dark-bg: #1A1A2E;
+            --code-bg: #2C2C40;
+            --component-shadow: 0 0 10px rgba(0, 191, 255, 0.6);
+            --success-green: #39FF14;
+            --fail-red: #FF6347;
+            /* New kid-friendly color adjustments */
+            --title-color: #FFD700; /* Gold/Yellow for fun title */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align top on large screens */
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .forge-container {
+            background-color: var(--code-bg);
+            border: 3px solid var(--neon-blue);
+            box-shadow: var(--component-shadow);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            color: var(--title-color); /* Updated Title Color */
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+
+        #code-editor {
+            width: 100%;
+            height: 200px;
+            background-color: #12121e;
+            color: var(--success-green);
+            font-family: 'Fira Mono', monospace;
+            font-size: 14px;
+            border: 1px solid #4a4a6b;
+            padding: 15px;
+            border-radius: 8px;
+            resize: none;
+            outline: none;
+            box-shadow: inset 0 0 5px rgba(0, 191, 255, 0.2);
+        }
+
+        .action-button {
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .run-button {
+            background-color: var(--neon-blue);
+            color: var(--dark-bg);
+        }
+        .run-button:hover {
+            background-color: #0099cc;
+            transform: translateY(-2px);
+        }
+
+        /* Test Result Styling */
+        .test-result {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Fira Mono', monospace;
+        }
+        .test-success {
+            background-color: rgba(57, 255, 20, 0.1);
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
+        }
+        .test-failure {
+            background-color: rgba(255, 99, 71, 0.1);
+            border: 1px solid var(--fail-red);
+            color: var(--fail-red);
+        }
+        .test-case {
+            margin-bottom: 5px;
+            padding-left: 10px;
+            border-left: 3px solid;
+        }
+        .test-case.pass { border-color: var(--success-green); }
+        .test-case.fail { border-color: var(--fail-red); }
+
+        /* Timer/Score Styling */
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--code-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+        .info-panel > div {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        #current-challenge {
+            color: var(--neon-blue);
+        }
+
+        /* Message Box */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--code-bg);
+            border: 2px solid var(--neon-blue);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.7);
+            text-align: center;
+            display: none;
+            max-width: 90%;
+            width: 400px;
+        }
+        .message-box button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .message-box .btn-next {
+            background-color: var(--success-green);
+            color: var(--dark-bg);
+        }
+        .message-box .btn-close {
+            background-color: #ccc;
+            color: var(--dark-bg);
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="forge-container">
+        <h1>FUNCTION FORGE 🚀 QUEST MODE!</h1>
+
+        <div class="info-panel">
+            <div id="challenge-display">Quest: <span id="current-challenge">1/5</span></div>
+            <div>Score: <span id="total-score">0</span></div>
+            <div>Time: <span id="timer-display">0:00</span></div>
+        </div>
+
+        <div id="instructions" class="p-4 bg-gray-800 rounded-lg border border-gray-700">
+            <h2 class="text-xl font-bold mb-2 text-yellow-300">Mission: <span id="function-name"></span></h2>
+            <p id="challenge-description" class="text-gray-300"></p>
+        </div>
+
+        <div>
+            <label for="code-editor" class="block mb-2 font-semibold text-sm">Your Magic Code:</label>
+            <textarea id="code-editor" spellcheck="false"></textarea>
+            <p class="text-xs text-gray-500 mt-1">Remember: Use the function name in the mission!</p>
+        </div>
+
+        <button class="action-button run-button" onclick="runTests()">
+            Test Your Magic!
+        </button>
+        
+        <button class="action-button bg-red-600 text-white hover:bg-red-700" onclick="resetGame()">
+            Reset All Quests (Start Over)
+        </button>
+
+        <!-- Test Results Area -->
+        <div>
+            <h2 class="text-lg font-semibold border-b border-gray-700 pb-1 mb-2">Test Results:</h2>
+            <div id="results-container" class="test-result text-sm">
+                Awaiting your first spell...
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="custom-message-box" class="message-box">
+        <p id="message-text" class="text-xl font-semibold mb-3"></p>
+        <div id="message-buttons">
+            <!-- Buttons dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // --- Game State and Logic ---
+
+        let currentChallengeIndex = 0;
+        let totalScore = 0;
+        let startTime = 0;
+        let timerInterval = null;
+
+        // --- Challenge Definitions (Kid-Friendly Themes) ---
+        const CHALLENGES = [
+            {
+                name: "sumSnacks",
+                description: "Help Robot Rusty count all the snacks (numbers) in his array basket! Write a function `sumSnacks` that takes an array (`arr`) and returns the total number of snacks.",
+                starterCode: "function sumSnacks(arr) {\n    // Your code here! Rusty needs a total!\n    return arr.reduce((a, b) => a + b, 0);\n}",
+                tests: [
+                    { input: [1, 2, 3, 4], expected: 10 },
+                    { input: [10, 5, 2], expected: 17 },
+                    { input: [0], expected: 0 }
+                ]
+            },
+            {
+                name: "isMagicWord",
+                description: "The wise Owl needs to know if a word is a **Magic Word** (a palindrome, reading the same forwards and backwards, like 'level'). Write a function `isMagicWord` that takes a string (`str`) and returns `true` or `false`.",
+                starterCode: "function isMagicWord(str) {\n    // Your code here! Use your string powers!\n    const reversed = str.split('').reverse().join('');\n    return str === reversed;\n}",
+                tests: [
+                    { input: "racecar", expected: true },
+                    { input: "hello", expected: false },
+                    { input: "madam", expected: true }
+                ]
+            },
+            {
+                name: "dragonRoar",
+                description: "The Friendly Dragon only talks in specific ways! Write a function `dragonRoar` that takes a number (`n`). Returns **'ROAR!'** if divisible by 3 and 5, **'Hiss'** if by 3, **'Sizzle'** if by 5, or the number itself.",
+                starterCode: "function dragonRoar(n) {\n    // Your code here! Teach the dragon new sounds!\n    if (n % 15 === 0) return 'ROAR!';\n    if (n % 3 === 0) return 'Hiss';\n    if (n % 5 === 0) return 'Sizzle';\n    return n;\n}",
+                tests: [
+                    { input: 15, expected: "ROAR!" },
+                    { input: 9, expected: "Hiss" },
+                    { input: 10, expected: "Sizzle" },
+                    { input: 7, expected: 7 }
+                ]
+            },
+            {
+                name: "alienVowels",
+                description: "A friendly Alien is sending secret messages! Write a function `alienVowels` that takes a string (`str`) and returns the total **count** of alien communication vowels (a, e, i, o, u, case-insensitive) in the message.",
+                starterCode: "function alienVowels(str) {\n    // Your code here! Every vowel counts!\n    const matches = str.match(/[aeiou]/gi);\n    return matches ? matches.length : 0;\n}",
+                tests: [
+                    { input: "Hello World", expected: 3 },
+                    { input: "AEIOU", expected: 5 },
+                    { input: "rhythm", expected: 0 }
+                ]
+            },
+            {
+                name: "tallestTower",
+                description: "The building crew needs to find the largest blueprint! Write a function `tallestTower` that takes three tower heights (a, b, c) and returns the height of the largest one.",
+                starterCode: "function tallestTower(a, b, c) {\n    // Your code here! Find the biggest number!\n    return Math.max(a, b, c);\n}",
+                tests: [
+                    { input: [1, 5, 2], expected: 5 },
+                    { input: [10, 10, 10], expected: 10 },
+                    { input: [100, 200, 150], expected: 200 }
+                ]
+            }
+        ];
+
+        // --- Timing and Scoring Functions ---
+        
+        function startTimer() {
+            startTime = Date.now();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000); // Update every second
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const totalSeconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const remainingSeconds = totalSeconds % 60;
+            
+            const timeString = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer-display').textContent = timeString;
+        }
+
+        function calculateScore(timeElapsedSeconds) {
+            const MAX_POINTS = 1000;
+            const TIME_LIMIT_SECONDS = 120; // 2 minutes to solve a coding challenge
+
+            if (timeElapsedSeconds >= TIME_LIMIT_SECONDS) {
+                return 100; // Minimum score
+            }
+
+            // Linearly decrease score from MAX_POINTS as time increases
+            const points = Math.floor(MAX_POINTS - ((MAX_POINTS - 100) * (timeElapsedSeconds / TIME_LIMIT_SECONDS)));
+            return Math.max(100, points); 
+        }
+
+        // --- Core Game Functions ---
+
+        /**
+         * Executes the user's function code against all test cases.
+         * @param {string} userCode - The user's function definition string.
+         * @param {object} challenge - The current challenge object.
+         * @returns {object} { success: boolean, results: Array<{input, expected, actual, passed}> }
+         */
+        function executeTests(userCode, challenge) {
+            let allTestsPassed = true;
+            const results = [];
+            
+            try {
+                // 1. Create a dynamic function wrapper
+                // The `new Function` constructor is used to safely evaluate the user-provided function string.
+                const codeWrapper = new Function(userCode + `; return ${challenge.name};`);
+                const userFunction = codeWrapper();
+                
+                if (typeof userFunction !== 'function') {
+                    throw new Error(`Code must define a function named: ${challenge.name}`);
+                }
+
+                // 2. Run tests
+                for (const test of challenge.tests) {
+                    const input = Array.isArray(test.input) ? test.input : [test.input]; // Normalize input to array for apply/call
+                    let actual;
+                    let passed = false;
+
+                    try {
+                        actual = userFunction.apply(null, input);
+
+                        // Strict comparison check
+                        if (actual === test.expected) {
+                            passed = true;
+                        } else if (JSON.stringify(actual) === JSON.stringify(test.expected)) {
+                             // Handle array/object comparisons (simple deep equals)
+                            passed = true;
+                        }
+                        
+                        if (!passed) allTestsPassed = false;
+                        
+                        results.push({
+                            input: JSON.stringify(test.input), 
+                            expected: JSON.stringify(test.expected), 
+                            actual: JSON.stringify(actual), 
+                            passed 
+                        });
+
+                    } catch (e) {
+                        // Function execution error
+                        allTestsPassed = false;
+                        results.push({
+                            input: JSON.stringify(test.input), 
+                            expected: JSON.stringify(test.expected), 
+                            actual: `ERROR: ${e.message}`, 
+                            passed: false 
+                        });
+                        break;
+                    }
+                }
+
+            } catch (e) {
+                // Compilation or initial definition error
+                return { success: false, error: e.message, results: [] };
+            }
+
+            return { success: allTestsPassed, results: results };
+        }
+
+        /**
+         * The main game loop function, executed when the user clicks 'Run Tests'.
+         */
+        function runTests() {
+            const userCode = document.getElementById('code-editor').value;
+            const challenge = CHALLENGES[currentChallengeIndex];
+
+            if (!challenge) {
+                showMessage("Game Over", "You've completed all challenges! Reset to play again.", false);
+                return;
+            }
+
+            const { success, results, error } = executeTests(userCode, challenge);
+            const resultsContainer = document.getElementById('results-container');
+            
+            // Handle compilation/initial error
+            if (error) {
+                resultsContainer.className = 'test-result test-failure';
+                resultsContainer.innerHTML = `<strong>UH OH! 😞</strong> Your code has a glitch.<br>Error details: ${error}`;
+                return;
+            }
+
+            // Display test results
+            let html = `<strong>${success ? 'ALL TESTS PASSED! 🎉' : 'TRY AGAIN! 🛠️'}</strong><ul class="mt-2 list-none p-0">`;
+            
+            results.forEach(res => {
+                const statusClass = res.passed ? 'pass' : 'fail';
+                const statusText = res.passed ? 'PASS' : 'FAIL';
+                html += `<li class="test-case ${statusClass}">${statusText}: Input: ${res.input}, Expected: ${res.expected}, Got: ${res.actual}</li>`;
+            });
+            html += '</ul>';
+
+            resultsContainer.innerHTML = html;
+            resultsContainer.className = `test-result ${success ? 'test-success' : 'test-failure'}`;
+
+            if (success) {
+                stopTimer();
+                const timeElapsedSeconds = Math.floor((Date.now() - startTime) / 1000); 
+                const points = calculateScore(timeElapsedSeconds);
+
+                totalScore += points;
+                document.getElementById('total-score').textContent = totalScore;
+                
+                const timeString = document.getElementById('timer-display').textContent;
+                const successText = `You did it! You solved the quest in **${timeString}** and earned **+${points}** points!`;
+
+                showMessage(`QUEST ${currentChallengeIndex + 1} COMPLETE!`, successText, true, false);
+            }
+        }
+
+        /**
+         * Advances to the next challenge or ends the game.
+         */
+        function nextChallenge() {
+            hideMessage();
+            currentChallengeIndex++;
+
+            if (currentChallengeIndex < CHALLENGES.length) {
+                loadChallenge(currentChallengeIndex);
+                startTimer();
+                showMessage('NEW MISSION!', `Quest ${currentChallengeIndex + 1}: Check out the new challenge instructions and function name!`, false, false);
+            } else {
+                stopTimer();
+                showMessage('LEGENDARY FORGE MASTER! 🏆', `Wow! You mastered all the functions! Your final score is a massive **${totalScore}**!`, true, true);
+                currentChallengeIndex = 0; // Prepare for new game
+                loadChallenge(currentChallengeIndex);
+            }
+        }
+        
+        /**
+         * Resets the entire game.
+         */
+        function resetGame() {
+            stopTimer();
+            currentChallengeIndex = 0;
+            totalScore = 0;
+            document.getElementById('total-score').textContent = '0';
+            document.getElementById('timer-display').textContent = '0:00';
+            
+            loadChallenge(currentChallengeIndex);
+            startTimer();
+            showMessage('GAME RESET', 'All quests and your score have been reset. Let\'s play again!', false, false);
+        }
+
+        /**
+         * Loads the challenge data into the UI.
+         * @param {number} index - The index of the challenge to load.
+         */
+        function loadChallenge(index) {
+            const challenge = CHALLENGES[index];
+            if (!challenge) return; // Should not happen if game is structured correctly
+
+            document.getElementById('current-challenge').textContent = `${index + 1}/${CHALLENGES.length}`;
+            document.getElementById('function-name').textContent = challenge.name;
+            document.getElementById('challenge-description').textContent = challenge.description;
+            document.getElementById('code-editor').value = challenge.starterCode;
+
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.className = 'test-result';
+            resultsContainer.textContent = 'Awaiting your first spell...';
+        }
+
+        // --- UI Functions (Modal) ---
+        
+        function showMessage(title, text, isSuccess, isFinal) {
+            const box = document.getElementById('custom-message-box');
+            const messageText = document.getElementById('message-text');
+            const messageButtons = document.getElementById('message-buttons');
+
+            messageText.innerHTML = `<span class="block text-2xl font-extrabold mb-2">${title}</span>${text}`;
+            messageButtons.innerHTML = ''; 
+
+            if (isSuccess) {
+                box.style.borderColor = 'var(--success-green)';
+                box.style.boxShadow = '0 0 20px rgba(57, 255, 20, 0.7)';
+                
+                const nextButtonText = isFinal ? 'START NEW ADVENTURE' : 'GO TO NEXT QUEST >>';
+                const nextButton = document.createElement('button');
+                nextButton.textContent = nextButtonText;
+                nextButton.className = 'btn-next';
+                nextButton.onclick = nextChallenge;
+                messageButtons.appendChild(nextButton);
+            } else {
+                box.style.borderColor = 'var(--neon-blue)';
+                box.style.boxShadow = '0 0 20px rgba(0, 191, 255, 0.7)';
+                
+                const okButton = document.createElement('button');
+                okButton.textContent = 'OK';
+                okButton.className = 'btn-close';
+                okButton.onclick = hideMessage;
+                messageButtons.appendChild(okButton);
+            }
+            
+            box.style.display = 'block';
+        }
+
+        function hideMessage() {
+            document.getElementById('custom-message-box').style.display = 'none';
+        }
+
+        // Initialize game on load
+        window.onload = function() {
+            loadChallenge(currentChallengeIndex);
+            startTimer();
+            showMessage('WELCOME FORGE JUNIOR! 👋', 'Your mission is to write special JavaScript functions that pass all the tests for each quest. The faster you solve them, the more points you get!', false, false);
+        };
+
+    </script>
+</body>
+</html>
