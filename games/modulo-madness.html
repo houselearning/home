@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo Madness</title>
+    <style>
+        /* Custom Styles for Modulo Madness */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;700&display=swap');
+
+        :root {
+            --color-bg: #1f2937; /* Dark Gray/Blue */
+            --color-primary: #3b82f6; /* Blue */
+            --color-accent: #f59e0b; /* Amber/Orange */
+            --color-text: #f9fafb; /* Light Gray/White */
+            --color-success: #10b981; /* Green */
+            --color-danger: #ef4444; /* Red */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: linear-gradient(135deg, var(--color-bg) 0%, #111827 100%);
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: #2c3e50; /* Slightly lighter inner background */
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 5px var(--color-primary);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            color: var(--color-accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 10px 0;
+            border-bottom: 2px dashed #475569;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+        }
+
+        .scoreboard span {
+            padding: 5px 10px;
+            background: #374151;
+            border-radius: 8px;
+        }
+
+        #question {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            margin: 40px 0;
+            min-height: 50px;
+            color: var(--color-text);
+        }
+
+        #question-prompt {
+            color: var(--color-primary);
+        }
+
+        /* Input and Button Styles */
+        #answer-input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 3px solid var(--color-primary);
+            border-radius: 12px;
+            background-color: #1e293b;
+            color: var(--color-text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #answer-input:focus {
+            border-color: var(--color-accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--color-bg);
+            background-color: var(--color-success);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 0 #059669; /* Darker green for 3D effect */
+            margin-bottom: 10px;
+        }
+
+        #submit-btn:hover {
+            background-color: #059669;
+        }
+
+        #submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #059669;
+        }
+
+        #start-btn {
+            background-color: var(--color-primary);
+            box-shadow: 0 4px 0 #2563eb;
+        }
+        #start-btn:hover {
+            background-color: #2563eb;
+        }
+        #start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #2563eb;
+        }
+
+        /* Message Area */
+        #message {
+            margin-top: 15px;
+            min-height: 20px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .correct { color: var(--color-success); }
+        .incorrect { color: var(--color-danger); }
+        .info { color: var(--color-accent); }
+
+        /* Game Over Modal Styling */
+        #game-over-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #374151;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content h2 {
+            font-family: 'Orbitron', monospace;
+            color: var(--color-accent);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-content p {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+        }
+
+        /* Media Queries for responsiveness */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            #question {
+                font-size: 2.5rem;
+                margin: 30px 0;
+            }
+            .scoreboard {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Modulo Madness</h1>
+
+        <div class="scoreboard">
+            <span>Score: <span id="score-display">0</span></span>
+            <span>Question: <span id="q-count-display">0/10</span></span>
+        </div>
+
+        <div id="question">
+            <span id="question-prompt">Press START to begin!</span>
+        </div>
+
+        <div id="input-area">
+            <input type="number" id="answer-input" placeholder="Remainder goes here" autofocus disabled>
+            <button id="submit-btn" disabled>Submit</button>
+            <button id="start-btn">START GAME</button>
+        </div>
+
+        <div id="message" class="info"></div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Time's Up!</h2>
+            <p>Your Final Score:</p>
+            <p id="final-score" style="font-size: 3rem; color: var(--color-success);"></p>
+            <button id="modal-restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Variables ---
+        const MAX_QUESTIONS = 10;
+        let currentScore = 0;
+        let questionCount = 0;
+        let currentAnswer = 0;
+        let gameActive = false;
+
+        // --- DOM Elements ---
+        const qPrompt = document.getElementById('question-prompt');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const startBtn = document.getElementById('start-btn');
+        const scoreDisplay = document.getElementById('score-display');
+        const qCountDisplay = document.getElementById('q-count-display');
+        const messageDisplay = document.getElementById('message');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const modalRestartBtn = document.getElementById('modal-restart-btn');
+
+        // --- Utility Functions ---
+
+        /**
+         * Clears and resets the input and message area.
+         */
+        function resetInputAndMessage() {
+            answerInput.value = '';
+            messageDisplay.textContent = '';
+            messageDisplay.className = 'info';
+            answerInput.focus();
+        }
+
+        /**
+         * Generates a random modulo question.
+         * Dividend (N1) is between 1 and 100.
+         * Divisor (N2) is between 2 and 15 (to ensure non-trivial remainders).
+         */
+        function generateQuestion() {
+            const N1 = Math.floor(Math.random() * 100) + 1; // 1 to 100
+            const N2 = Math.floor(Math.random() * 14) + 2;  // 2 to 15
+
+            // Calculate the correct remainder (the modulo operation)
+            currentAnswer = N1 % N2;
+
+            // Update UI
+            qPrompt.textContent = `${N1} % ${N2} = ?`;
+            questionCount++;
+            qCountDisplay.textContent = `${questionCount}/${MAX_QUESTIONS}`;
+
+            resetInputAndMessage();
+        }
+
+        /**
+         * Handles user input and checks the answer.
+         */
+        function checkAnswer() {
+            if (!gameActive || questionCount > MAX_QUESTIONS) return;
+
+            const userAnswer = parseInt(answerInput.value.trim());
+
+            if (isNaN(userAnswer)) {
+                messageDisplay.textContent = 'Please enter a number.';
+                messageDisplay.className = 'incorrect';
+                answerInput.focus();
+                return;
+            }
+
+            if (userAnswer === currentAnswer) {
+                // Correct Answer
+                currentScore += 10;
+                scoreDisplay.textContent = currentScore;
+                messageDisplay.textContent = 'CORRECT! Keep it up.';
+                messageDisplay.className = 'correct';
+                
+                // Move to the next question or end the game
+                if (questionCount < MAX_QUESTIONS) {
+                    setTimeout(generateQuestion, 500); // Slight delay for feedback
+                } else {
+                    setTimeout(endGame, 500);
+                }
+            } else {
+                // Incorrect Answer
+                messageDisplay.textContent = `INCORRECT. The answer was ${currentAnswer}.`;
+                messageDisplay.className = 'incorrect';
+                // Move to the next question
+                 if (questionCount < MAX_QUESTIONS) {
+                    setTimeout(generateQuestion, 1000); // Longer delay for wrong answer feedback
+                } else {
+                    setTimeout(endGame, 1000);
+                }
+            }
+        }
+
+        /**
+         * Ends the game and displays the final score.
+         */
+        function endGame() {
+            gameActive = false;
+            submitBtn.disabled = true;
+            answerInput.disabled = true;
+
+            // Display results in the modal
+            const finalPercent = (currentScore / (MAX_QUESTIONS * 10)) * 100;
+            let titleText = 'Game Over!';
+            // Fix: Replaced CSS var(...) syntax with literal hex codes
+            let scoreColor = '#f59e0b'; // Corresponds to var(--color-accent)
+
+            if (finalPercent === 100) {
+                titleText = 'Perfect Score!';
+                scoreColor = '#10b981'; // Corresponds to var(--color-success)
+            } else if (finalPercent >= 70) {
+                titleText = 'Great Job!';
+                scoreColor = '#3b82f6'; // Corresponds to var(--color-primary)
+            }
+
+            document.getElementById('modal-title').textContent = titleText;
+            finalScoreDisplay.textContent = `${currentScore} / ${MAX_QUESTIONS * 10} (${finalPercent.toFixed(0)}%)`;
+            finalScoreDisplay.style.color = scoreColor;
+
+            // Show modal
+            gameOverModal.style.display = 'flex';
+
+            // Reset start button state
+            startBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+
+        /**
+         * Initializes and starts the game.
+         */
+        function startGame() {
+            // Reset game state
+            currentScore = 0;
+            questionCount = 0;
+            gameActive = true;
+
+            // Reset UI
+            scoreDisplay.textContent = currentScore;
+            qCountDisplay.textContent = `0/${MAX_QUESTIONS}`;
+            messageDisplay.textContent = 'GO!';
+            messageDisplay.className = 'info';
+            gameOverModal.style.display = 'none';
+
+            // Enable game controls
+            startBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+            submitBtn.disabled = false;
+            answerInput.disabled = false;
+
+            // Generate the first question
+            generateQuestion();
+        }
+
+        // --- Event Listeners & Initial Setup ---
+        
+        // Moved all event listener setup inside window.onload to ensure functions are defined
+        // before being attached as callbacks, preventing the ReferenceError.
+        window.onload = function() {
+            // Attach event listeners
+            // Start button handler
+            startBtn.addEventListener('click', startGame);
+
+            // Submit button handler
+            submitBtn.addEventListener('click', checkAnswer);
+
+            // Modal restart button handler
+            modalRestartBtn.addEventListener('click', startGame);
+
+            // Allow 'Enter' key to submit answer
+            answerInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && !answerInput.disabled) {
+                    event.preventDefault(); // Prevent default form submission
+                    checkAnswer();
+                }
+            });
+            
+            // Initial UI setup
+            // Ensure the input field and button start disabled/hidden
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+            submitBtn.style.display = 'none';
+            qCountDisplay.textContent = `0/${MAX_QUESTIONS}`;
+            qPrompt.textContent = 'Press START to begin!';
+        };
+
+    </script>
+</body>
+</html>
