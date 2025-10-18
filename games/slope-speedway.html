@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slope Speedway</title>
+    <!-- Load Tailwind CSS for modern styling and responsiveness -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the game area */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 1rem;
+            max-width: 500px;
+            width: 95%; /* Fluid width for responsiveness */
+            height: 80vh; /* Responsive height */
+            max-height: 700px;
+            background-color: #e5e7eb; /* Light grey backdrop */
+            overflow: hidden;
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f8ff; /* Snow color */
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 1rem;
+            z-index: 10;
+        }
+
+        .button-primary {
+            @apply px-8 py-3 mt-4 text-xl font-bold rounded-xl shadow-lg transition duration-300 ease-in-out;
+            background: linear-gradient(145deg, #10b981, #059669);
+            color: white;
+            border: 2px solid #065f46;
+            cursor: pointer;
+        }
+        .button-primary:hover {
+             background: linear-gradient(145deg, #059669, #10b981);
+             transform: translateY(-2px);
+             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .score-display {
+            @apply absolute top-4 left-4 p-2 text-2xl font-extrabold text-white bg-gray-800 bg-opacity-70 rounded-lg shadow-lg;
+            min-width: 120px;
+            text-align: center;
+            z-index: 5;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Score Display -->
+        <div class="score-display">
+            Score: <span id="score-value">0</span>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Start Screen Overlay -->
+        <div id="start-screen" class="overlay">
+            <h1 class="text-5xl font-extrabold mb-4 text-emerald-400">Slope Speedway</h1>
+            <p class="text-xl mb-8">Dodge the obstacles! Survive the speed!</p>
+            <p class="text-lg mb-8 italic">(Use <span class="font-mono bg-gray-700 px-2 rounded">←</span> and <span class="font-mono bg-gray-700 px-2 rounded">→</span> keys, or tap left/right on mobile)</p>
+            <button class="button-primary" onclick="startGame()">Start Race</button>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="game-over-screen" class="overlay hidden">
+            <h1 class="text-6xl font-extrabold text-red-500 mb-4">Game Over!</h1>
+            <p class="text-2xl mb-2">Your Final Score:</p>
+            <p id="final-score" class="text-4xl font-extrabold mb-8 text-yellow-400">0</p>
+            <button class="button-primary" onclick="resetGame()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreValueElement = document.getElementById('score-value');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreElement = document.getElementById('final-score');
+
+        // Game State
+        let gameRunning = false;
+        let score = 0;
+        let speed = 3; // Base speed, increases over time
+        const initialSpeed = 3;
+
+        // Player State
+        const player = {
+            width: 20,
+            height: 30,
+            x: 0, // Center X will be set in resize
+            y: 0, // Player position is fixed near the bottom
+            dx: 0, // movement direction (-1 left, 1 right, 0 none)
+            moveSpeed: 6 // Horizontal movement speed
+        };
+
+        // Obstacles State
+        let obstacles = [];
+        let obstacleSpawnRate = 120; // Frames between spawns (lower is faster/harder)
+        let frameCount = 0;
+
+        // Input State
+        let leftPressed = false;
+        let rightPressed = false;
+        let touchX = null;
+
+        // --- Utility Functions ---
+
+        /**
+         * Converts base64 PCM audio data to a WAV file Blob.
+         * The API returns signed 16-bit PCM (L16) data.
+         * NOTE: This is included as a template for potential future TTS integration,
+         * but is not used in this game.
+         */
+        function pcmToWav(pcm16, sampleRate = 24000) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const buffer = new ArrayBuffer(44 + pcm16.length * bytesPerSample);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            function writeString(s) {
+                for (let i = 0; i < s.length; i++) {
+                    view.setUint8(offset + i, s.charCodeAt(i));
+                }
+                offset += s.length;
+            }
+
+            function writeUint32(i) {
+                view.setUint32(offset, i, true);
+                offset += 4;
+            }
+
+            function writeUint16(i) {
+                view.setUint16(offset, i, true);
+                offset += 2;
+            }
+
+            // RIFF chunk descriptor
+            writeString('RIFF');
+            writeUint32(36 + pcm16.length * bytesPerSample);
+            writeString('WAVE');
+
+            // FMT sub-chunk
+            writeString('fmt ');
+            writeUint32(16); // Sub-chunk size
+            writeUint16(1); // Audio format (1 = PCM)
+            writeUint16(numChannels);
+            writeUint32(sampleRate);
+            writeUint32(sampleRate * numChannels * bytesPerSample); // Byte rate
+            writeUint16(numChannels * bytesPerSample); // Block align
+            writeUint16(16); // Bits per sample (16 bit)
+
+            // Data sub-chunk
+            writeString('data');
+            writeUint32(pcm16.length * bytesPerSample);
+
+            // Write PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += bytesPerSample;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+
+        /**
+         * Resizes the canvas to fill the container and recalculates player start position.
+         */
+        function resizeCanvas() {
+            // Set canvas dimensions to match the container's computed size
+            const container = document.getElementById('game-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            // Reset player position based on new canvas size
+            player.x = canvas.width / 2;
+            player.y = canvas.height * 0.9; // Near the bottom
+        }
+
+        // Initialize canvas size and player position on load
+        window.onload = function() {
+            resizeCanvas();
+            // Set up event listeners only after load
+            setupEventListeners();
+        };
+        window.addEventListener('resize', resizeCanvas);
+
+
+        // --- Game Logic ---
+
+        /**
+         * Draws the player (a simple skier triangle).
+         */
+        function drawPlayer() {
+            ctx.beginPath();
+            // Body of the skier (triangle pointing down)
+            ctx.moveTo(player.x, player.y - player.height / 2);
+            ctx.lineTo(player.x - player.width / 2, player.y + player.height / 2);
+            ctx.lineTo(player.x + player.width / 2, player.y + player.height / 2);
+            ctx.closePath();
+            ctx.fillStyle = '#ff6347'; // Tomato red for visibility
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Player head (simple circle)
+            ctx.beginPath();
+            ctx.arc(player.x, player.y - player.height * 0.8, player.width / 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.stroke();
+        }
+
+        /**
+         * Draws an obstacle (a simple tree or rock).
+         * @param {object} obstacle - The obstacle object.
+         */
+        function drawObstacle(obstacle) {
+            ctx.beginPath();
+            if (obstacle.type === 'tree') {
+                // Tree Trunk (brown rectangle)
+                ctx.fillStyle = '#8b4513';
+                ctx.fillRect(obstacle.x - obstacle.width / 4, obstacle.y + obstacle.height * 0.7, obstacle.width / 2, obstacle.height * 0.3);
+
+                // Tree Canopy (green triangle)
+                ctx.moveTo(obstacle.x, obstacle.y);
+                ctx.lineTo(obstacle.x - obstacle.width / 2, obstacle.y + obstacle.height * 0.7);
+                ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height * 0.7);
+                ctx.closePath();
+                ctx.fillStyle = '#228b22'; // Forest green
+                ctx.fill();
+            } else if (obstacle.type === 'rock') {
+                // Rock (gray circle)
+                ctx.arc(obstacle.x, obstacle.y + obstacle.height / 2, obstacle.width / 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#555555';
+                ctx.fill();
+            }
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+        }
+
+        /**
+         * Generates a new random obstacle.
+         */
+        function spawnObstacle() {
+            const types = ['tree', 'rock', 'tree']; // Trees are more common
+            const type = types[Math.floor(Math.random() * types.length)];
+
+            const width = 20 + Math.random() * 20; // Obstacles are 20 to 40 wide
+            const height = type === 'tree' ? 40 + Math.random() * 20 : 20 + Math.random() * 10;
+            const x = Math.random() * (canvas.width - width * 2) + width; // Random X within bounds
+            const y = -height; // Start just above the top edge
+
+            obstacles.push({
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                type: type
+            });
+
+            // Gradually increase difficulty by speeding up spawn rate
+            obstacleSpawnRate = Math.max(30, obstacleSpawnRate * 0.99);
+        }
+
+        /**
+         * Checks for collision between the player and an obstacle.
+         * Simple AABB (Axis-Aligned Bounding Box) collision check.
+         * @param {object} p - Player object
+         * @param {object} o - Obstacle object
+         * @returns {boolean} True if collision occurs.
+         */
+        function checkCollision(p, o) {
+            // Player's bounding box (slightly reduced for grace)
+            const pX = p.x - p.width / 2;
+            const pY = p.y - p.height; // Use the top of the skier
+            const pW = p.width;
+            const pH = p.height;
+
+            // Obstacle's bounding box
+            const oX = o.x - o.width / 2;
+            const oY = o.y;
+            const oW = o.width;
+            const oH = o.height;
+
+            return pX < oX + oW &&
+                   pX + pW > oX &&
+                   pY < oY + oH &&
+                   pY + pH > oY;
+        }
+
+        /**
+         * Main game update logic (movement, collision, scoring).
+         */
+        function update() {
+            if (!gameRunning) return;
+
+            // 1. Player Movement
+            // Update player's x position, clamping it within the canvas bounds
+            player.x += player.dx * player.moveSpeed;
+            player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+
+            // 2. Obstacle Movement and Cleanup
+            for (let i = 0; i < obstacles.length; i++) {
+                const obstacle = obstacles[i];
+                // Move obstacle up the screen (simulating downhill)
+                obstacle.y += speed;
+
+                // Collision Check
+                if (checkCollision(player, obstacle)) {
+                    // Collision detected! Game Over.
+                    endGame();
+                    return;
+                }
+            }
+
+            // Remove obstacles that have moved off the screen
+            obstacles = obstacles.filter(o => o.y < canvas.height + 50);
+
+            // 3. Obstacle Spawning
+            frameCount++;
+            if (frameCount >= obstacleSpawnRate) {
+                spawnObstacle();
+                frameCount = 0;
+            }
+
+            // 4. Score and Speed Increase
+            score++;
+            scoreValueElement.textContent = Math.floor(score / 10);
+
+            // Increase speed very slowly over time for increasing difficulty
+            speed = initialSpeed + (score / 2000);
+        }
+
+        /**
+         * Main game drawing logic.
+         */
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Snowfall effect (simple white dots)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            // Draw some lines to simulate slope texture
+            for(let i = 0; i < canvas.width; i += 50) {
+                ctx.fillRect(i, frameCount % 100 * speed, 1, canvas.height);
+            }
+
+            // Draw all obstacles
+            obstacles.forEach(drawObstacle);
+
+            // Draw player
+            drawPlayer();
+        }
+
+        /**
+         * The main game animation loop.
+         */
+        function gameLoop() {
+            if (gameRunning) {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // --- Game Control ---
+
+        function startGame() {
+            if (gameRunning) return;
+
+            // Hide UI
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            document.getElementById('score-value').parentElement.style.opacity = 1;
+
+            // Reset state
+            score = 0;
+            speed = initialSpeed;
+            obstacles = [];
+            frameCount = 0;
+            obstacleSpawnRate = 120;
+            player.x = canvas.width / 2;
+            player.dx = 0;
+            scoreValueElement.textContent = 0;
+
+            // Start loop
+            gameRunning = true;
+            gameLoop();
+        }
+
+        function endGame() {
+            gameRunning = false;
+
+            // Update and show game over screen
+            finalScoreElement.textContent = scoreValueElement.textContent;
+            gameOverScreen.classList.remove('hidden');
+            document.getElementById('score-value').parentElement.style.opacity = 0;
+
+            // Simple celebratory sound using the Web Audio API if supported
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.log("Web Audio API not supported for game over sound.");
+            }
+        }
+
+        function resetGame() {
+            // Simply call startGame to reset all state and restart the loop
+            startGame();
+        }
+
+
+        // --- Event Listeners and Input Handling ---
+
+        function handleKeyDown(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                leftPressed = true;
+                player.dx = -1;
+            } else if (e.key === 'ArrowRight' || e.key === 'd') {
+                rightPressed = true;
+                player.dx = 1;
+            }
+        }
+
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                leftPressed = false;
+            } else if (e.key === 'ArrowRight' || e.key === 'd') {
+                rightPressed = false;
+            }
+
+            // Determine player direction based on which key is still pressed
+            if (!leftPressed && !rightPressed) {
+                player.dx = 0;
+            } else if (leftPressed) {
+                player.dx = -1;
+            } else if (rightPressed) {
+                player.dx = 1;
+            }
+        }
+
+        // Mobile Touch Controls on the canvas
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            touchX = touch.clientX - rect.left;
+
+            if (touchX < canvas.width / 2) {
+                // Left side tap
+                player.dx = -1;
+            } else {
+                // Right side tap
+                player.dx = 1;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            // Stop movement when the finger is lifted
+            player.dx = 0;
+            touchX = null;
+        }
+
+        function setupEventListeners() {
+            // Desktop Controls
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+
+            // Mobile/Touch Controls
+            canvas.addEventListener('touchstart', handleTouchStart, false);
+            canvas.addEventListener('touchend', handleTouchEnd, false);
+        }
+    </script>
+</body>
+</html>
