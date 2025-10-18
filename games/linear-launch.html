@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Design Lab</title>
+    <!-- Load Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js for 3D visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --rocket-red: #ef4444;
+            --fuel-yellow: #facc15;
+            --thrust-blue: #3b82f6;
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        #app-container {
+            width: 95vw;
+            height: 95vh;
+            max-width: 1400px;
+            max-height: 900px;
+            display: flex;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border: 3px solid #334155;
+            background-color: var(--panel-bg);
+            position: relative; /* Important for absolute children */
+        }
+
+        #builder-panel {
+            width: 40%;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background-color: #111827;
+            border-right: 3px solid #334155;
+        }
+
+        #visualizer-panel {
+            width: 60%;
+            position: relative;
+        }
+
+        #threejs-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #launch-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        /* Styling for the component cards */
+        .component-section {
+            @apply w-full bg-gray-800 p-4 rounded-xl shadow-xl mb-6;
+        }
+
+        /* Applied to the new <button> elements */
+        .component-card {
+            @apply w-full bg-gray-900 p-3 rounded-lg border-2 border-transparent transition duration-200 cursor-pointer mb-2 hover:border-fuel-yellow text-left;
+        }
+        
+        .component-card:active {
+            @apply transform scale-[0.99] transition duration-75;
+        }
+
+        .component-card.selected {
+            @apply border-fuel-yellow bg-fuel-yellow/20 shadow-lg;
+        }
+
+        .button-primary {
+            @apply px-8 py-3 text-xl font-bold rounded-xl shadow-lg transition duration-300 ease-in-out whitespace-nowrap;
+            background: linear-gradient(145deg, var(--thrust-blue), #1d4ed8);
+            color: white;
+            border: 2px solid #1e3a8a;
+            cursor: pointer;
+        }
+        .button-primary:hover {
+             background: linear-gradient(145deg, #1d4ed8, var(--thrust-blue));
+             transform: translateY(-2px);
+             box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        /* 2D Simulation Screen (Initially Hidden) */
+        #simulation-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f172a;
+            z-index: 50; /* Above everything else */
+            flex-direction: column;
+        }
+
+        #game-canvas {
+            flex-grow: 1;
+            /* Simple dark background to allow stars to be drawn on top */
+            background-color: #0d1117; 
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            #app-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+            #builder-panel {
+                width: 100%;
+                border-right: none;
+                border-bottom: 3px solid #334155;
+            }
+            #visualizer-panel {
+                width: 100%;
+                height: 50vh; /* Give visualization a decent height on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+
+        <!-- Left Panel: Rocket Builder UI -->
+        <div id="builder-panel">
+            <h1 class="text-4xl font-extrabold mb-2 text-fuel-yellow text-center">ROCKET DESIGN LAB</h1>
+            <p class="text-md mb-6 text-gray-400 text-center">Select components and see your design update instantly.</p>
+
+            <!-- Engine Selection -->
+            <div class="component-section">
+                <h2 class="text-2xl font-bold mb-3 text-thrust-blue">1. Engine (Thrust/Efficiency)</h2>
+                <div id="engines-options"></div>
+            </div>
+
+            <!-- Fuel Tank Selection -->
+            <div class="component-section">
+                <h2 class="text-2xl font-bold mb-3 text-thrust-blue">2. Fuel Tank (Mass/Capacity)</h2>
+                <div id="fuel_tanks-options"></div>
+            </div>
+
+            <!-- Body Selection -->
+            <div class="component-section">
+                <h2 class="text-2xl font-bold mb-3 text-thrust-blue">3. Body (Dry Mass/Drag)</h2>
+                <div id="bodies-options"></div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="component-section bg-gray-900/50 p-4 sticky bottom-0">
+                <h2 class="text-2xl font-bold mb-3 text-green-400">Launch Stats</h2>
+                <div class="grid grid-cols-2 gap-2 text-left text-sm">
+                    <p>Initial TWR (T-0):</p> <p class="font-bold text-lg text-green-300" id="builder-stats-twr">0.00</p>
+                    <p>Total Mass (T-0):</p> <p class="font-bold text-lg text-gray-300" id="builder-stats-mass">0.0 t</p>
+                    <p>Max Thrust (kN):</p> <p class="font-bold text-lg text-gray-300" id="builder-stats-thrust">0 kN</p>
+                    <p>Specific Impulse:</p> <p class="font-bold text-lg text-gray-300" id="builder-stats-efficiency">0 N/kg/s</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Panel: 3D Visualizer & Launch Controls -->
+        <div id="visualizer-panel">
+            <canvas id="threejs-canvas"></canvas>
+            
+            <div id="launch-controls">
+                 <button class="button-primary" onclick="initiateLaunch()">
+                    <span id="launch-button-text">Initiate Launch</span>
+                 </button>
+            </div>
+        </div>
+        
+        <!-- Simulation Screen (Hidden until launch) -->
+        <div id="simulation-screen">
+            <canvas id="game-canvas"></canvas>
+            <div class="bg-gray-900 p-2 flex justify-around items-center text-white">
+                <div class="text-center text-green-400 font-bold">Autopilot Status: <span id="autopilot-status">PRE-FLIGHT</span></div>
+                <div class="text-center">Camera Mode: <span id="camera-mode-gauge" class="text-yellow-400 font-bold">GROUND VIEW</span> (<span class="text-blue-400">C</span>)</div>
+                <div class="text-center">ALTITUDE (km): <span id="altitude-gauge" class="text-green-400 font-bold">0.00</span></div>
+                <div class="text-center">VELOCITY (m/s): <span id="velocity-gauge" class="text-yellow-400 font-bold">0.00</span></div>
+                <div class="text-center">FUEL (%): <span id="fuel-gauge" class="text-blue-400 font-bold">100.0%</span></div>
+                <button class="bg-red-600 hover:bg-red-700 p-2 rounded-lg text-sm" onclick="endGame('Aborted', '#ffffff')">Abort</button>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay (Must be visible on top of simulation-screen when triggered) -->
+        <div id="game-over-screen" class="overlay hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 60; display: none; justify-content: center; align-items: center; text-align: center; flex-direction: column;">
+            <h1 id="outcome-title" class="text-6xl font-extrabold mb-4 text-red-500">Launch Failed!</h1>
+            <p class="text-2xl mb-2 text-gray-300">Max Altitude Reached:</p>
+            <p id="final-altitude" class="text-4xl font-extrabold mb-8 text-fuel-yellow">0 km</p>
+            <button class="button-primary" onclick="window.location.reload()">Start New Build</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- Component Data ---
+            const COMPONENTS = {
+                engines: [
+                    { name: "Tiny Thruster", icon: "🚀", thrust: 150000, burn_rate: 60, description: "Low power, very efficient.", size_factor: 0.5, color: 0xcc0000 },
+                    { name: "Atlas Engine", icon: "🔥", thrust: 300000, burn_rate: 120, description: "Standard, balanced power.", size_factor: 0.8, color: 0x999999 },
+                    { name: "Mighty Raptor", icon: "💥", thrust: 500000, burn_rate: 200, description: "High thrust, heavy fuel use.", size_factor: 1.1, color: 0x00aaff }
+                ],
+                fuel_tanks: [
+                    { name: "Small Tank", mass: 5000, max_fuel: 10000, description: "Lightweight, limited range.", height_factor: 1.5, radius_factor: 0.9, color: 0x2c3e50 },
+                    { name: "Standard Tank", mass: 10000, max_fuel: 20000, description: "Balanced capacity and structure mass.", height_factor: 2.5, radius_factor: 1.0, color: 0x34495e },
+                    { name: "Jumbo Tank", mass: 20000, max_fuel: 40000, description: "Massive fuel capacity, very heavy structure.", height_factor: 4.0, radius_factor: 1.1, color: 0x47607a }
+                ],
+                bodies: [
+                    { name: "Basic Shell", dry_mass: 5000, area: 3, cd: 0.6, description: "High drag, but light structure.", height_factor: 2.0, color: 0xbdc3c7 },
+                    { name: "Aero Body", dry_mass: 7500, area: 2.5, cd: 0.4, description: "Sleek, excellent drag reduction.", height_factor: 2.5, radius_factor: 1.0, color: 0xecf0f1 },
+                    { name: "Heavy Duty", dry_mass: 12000, area: 3.5, cd: 0.5, description: "Very heavy structure, higher drag.", height_factor: 1.8, radius_factor: 1.1, color: 0x95a5a6 }
+                ]
+            };
+            
+            // Ensure all body components have radius_factor for safety
+            COMPONENTS.bodies.forEach(body => {
+                if (typeof body.radius_factor === 'undefined') {
+                    body.radius_factor = 0.95; 
+                }
+            });
+
+            // --- Game State Variables ---
+            let gameRunning = false;
+            let gameAnimationFrameId = null;
+            let threejsAnimationFrameId = null; // Store 3D animation frame ID
+            let lastTime = 0;
+            let selectedComponents = { engine: 1, tank: 1, body: 1 };
+            let calculatedRocket = {};
+            const G = 9.81; // Gravity (m/s^2)
+            
+            // LAUNCH SEQUENCE STATE
+            let isLaunching = false;
+            let launchStartTime = 0;
+            const LAUNCH_ZOOM_TIME = 2.5; // Seconds for camera zoom/hold
+            const LAUNCH_LIFT_OFF_TIME = 2.5; // Seconds for lift off before switching to 2D
+            const LAUNCH_DURATION = LAUNCH_ZOOM_TIME + LAUNCH_LIFT_OFF_TIME;
+            
+            let state = {
+                altitude: 0,
+                vertical_velocity: 0,
+                horizontal_velocity: 0,
+                angle: Math.PI / 2, // 90 degrees (straight up)
+                angular_velocity: 0,
+                mass_fuel: 0,
+                throttle: 0.0,
+                gimbal_input: 0,
+                gimbal_rate: 0.03,
+                max_altitude_reached: 0,
+            };
+
+            // CAMERA & ENVIRONMENT STATE
+            let cameraMode = 'ground_view'; // 'ground_view' or 'fixed_view'
+            let stars = [];
+            const STAR_COUNT = 300;
+            const STAR_ALTITUDE_THRESHOLD = 5000; // Stars appear above 5km
+            let bgImage = new Image();
+            // Placeholder image for the ground/planet view (Cannot load local file, using a placeholder)
+            bgImage.src = 'static/rocketview.png'; 
+
+
+            // UI Elements (for 2D Simulation)
+            const ui = {
+                simulationScreen: document.getElementById('simulation-screen'),
+                gameOverScreen: document.getElementById('game-over-screen'),
+                altitude: document.getElementById('altitude-gauge'),
+                velocity: document.getElementById('velocity-gauge'),
+                fuel: document.getElementById('fuel-gauge'),
+                finalAlt: document.getElementById('final-altitude'),
+                outcomeTitle: document.getElementById('outcome-title'),
+                launchButtonText: document.getElementById('launch-button-text'),
+                autopilotStatus: document.getElementById('autopilot-status'), 
+                cameraModeGauge: document.getElementById('camera-mode-gauge'), // New gauge
+                // 2D Canvas elements
+                gameCanvas: document.getElementById('game-canvas'),
+                gameCtx: null,
+            };
+            if (ui.gameCanvas) {
+                ui.gameCtx = ui.gameCanvas.getContext('2d');
+            }
+
+
+            // --- THREE.JS VISUALIZER SETUP ---
+
+            let scene, camera, renderer, rocketGroup, exhaustMesh; 
+            let originalCameraPosition = new THREE.Vector3(); 
+            const VISUALIZER_SCALE = 0.5; 
+            const ROCKET_BASE_RADIUS = 0.6 * VISUALIZER_SCALE; 
+            const ROCKET_BASE_HEIGHT = -3 * VISUALIZER_SCALE; 
+            let defaultCameraPosition = new THREE.Vector3(5 * VISUALIZER_SCALE, 6 * VISUALIZER_SCALE, 8 * VISUALIZER_SCALE);
+
+            function initThreeJS() {
+                const container = document.getElementById('visualizer-panel');
+                const canvas = document.getElementById('threejs-canvas');
+                
+                // Scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0f172a); 
+
+                // Camera
+                camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.copy(defaultCameraPosition);
+                camera.lookAt(0, 3 * VISUALIZER_SCALE, 0);
+                
+                // Renderer
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 5); 
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+                directionalLight.position.set(5, 10, 7);
+                scene.add(directionalLight);
+
+                // Launchpad (Ground)
+                const groundGeo = new THREE.CylinderGeometry(8 * VISUALIZER_SCALE, 8 * VISUALIZER_SCALE, 0.5 * VISUALIZER_SCALE, 32);
+                const groundMat = new THREE.MeshPhongMaterial({ color: 0x34495e });
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.position.y = ROCKET_BASE_HEIGHT - (0.5 * VISUALIZER_SCALE) / 2;
+                scene.add(ground);
+                
+                // Launch Tower (Simple pillar)
+                const towerGeo = new THREE.BoxGeometry(0.3 * VISUALIZER_SCALE, 8 * VISUALIZER_SCALE, 0.3 * VISUALIZER_SCALE);
+                const towerMat = new THREE.MeshPhongMaterial({ color: 0x7f8c8d });
+                const tower = new THREE.Mesh(towerGeo, towerMat);
+                tower.position.set(4 * VISUALIZER_SCALE, ROCKET_BASE_HEIGHT + 4 * VISUALIZER_SCALE, 0);
+                scene.add(tower);
+
+
+                // Rocket Group
+                rocketGroup = new THREE.Group();
+                scene.add(rocketGroup);
+                
+                // Initialize Exhaust Plume (Basic Cone)
+                const exhaustGeo = new THREE.ConeGeometry(ROCKET_BASE_RADIUS * 0.7, 3 * VISUALIZER_SCALE, 32);
+                const exhaustMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.8 });
+                exhaustMesh = new THREE.Mesh(exhaustGeo, exhaustMat);
+                exhaustMesh.rotation.x = Math.PI;
+                exhaustMesh.visible = false; 
+                rocketGroup.add(exhaustMesh);
+
+                updateRocketModel();
+                animateThreeJS();
+                window.addEventListener('resize', onWindowResize);
+            }
+
+            function onWindowResize() {
+                const container = document.getElementById('visualizer-panel');
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+
+                if (gameRunning) {
+                    ui.gameCanvas.width = ui.gameCanvas.parentElement.clientWidth;
+                    // Ensure the canvas height fits the remaining space (parent height minus control bar)
+                    ui.gameCanvas.height = ui.gameCanvas.parentElement.clientHeight - 40; 
+                }
+            }
+            
+            function launchSequence(elapsedTime) {
+                const totalDuration = LAUNCH_DURATION;
+                const ratio = Math.min(1, elapsedTime / totalDuration);
+                
+                // Phase 1: Camera Zoom and Engine Hold (0 to LAUNCH_ZOOM_TIME)
+                if (elapsedTime <= LAUNCH_ZOOM_TIME) {
+                    const zoomRatio = Math.min(1, elapsedTime / LAUNCH_ZOOM_TIME);
+
+                    // Interpolate Camera Position (Zoom In)
+                    const endPosition = new THREE.Vector3(3 * VISUALIZER_SCALE, 4 * VISUALIZER_SCALE, 4 * VISUALIZER_SCALE);
+                    camera.position.lerpVectors(originalCameraPosition, endPosition, zoomRatio);
+
+                    // Keep camera focused on the rocket base
+                    camera.lookAt(0, ROCKET_BASE_HEIGHT + 2 * VISUALIZER_SCALE, 0);
+
+                    // Engine Effect: Start the exhaust plume and flicker
+                    exhaustMesh.visible = true;
+                    const flicker = Math.sin(elapsedTime * 20) * 0.1 + 0.9;
+                    exhaustMesh.scale.y = Math.min(1.5, flicker * ratio) * 2 * VISUALIZER_SCALE * 0.7;
+                    exhaustMesh.material.opacity = Math.min(0.8, flicker * 0.8 * ratio);
+
+
+                } else if (elapsedTime > LAUNCH_ZOOM_TIME && elapsedTime <= totalDuration) {
+                    // Phase 2: Lift Off (LAUNCH_ZOOM_TIME to LAUNCH_DURATION)
+                    const liftOffTime = elapsedTime - LAUNCH_ZOOM_TIME;
+                    const liftOffRatio = Math.min(1, liftOffTime / LAUNCH_LIFT_OFF_TIME);
+
+                    // Rocket moves up (Use exponential lift for a realistic start)
+                    const liftDistance = 20 * VISUALIZER_SCALE * liftOffRatio * liftOffRatio;
+                    rocketGroup.position.y = liftDistance;
+                    
+                    // Camera tracks the rocket
+                    camera.lookAt(0, liftDistance + 3 * VISUALIZER_SCALE, 0);
+                    
+                    // Maintain relative camera position from the zoomed spot
+                    const camTrackX = 3 * VISUALIZER_SCALE;
+                    const camTrackZ = 4 * VISUALIZER_SCALE;
+                    const camTrackY = 4 * VISUALIZER_SCALE;
+                    camera.position.set(camTrackX, camTrackY + liftDistance, camTrackZ);
+
+                    // Exhaust remains visible and strong
+                    exhaustMesh.visible = true;
+                    const flicker = Math.sin(elapsedTime * 30) * 0.1 + 0.9;
+                    exhaustMesh.scale.y = 1.5 * VISUALIZER_SCALE * flicker * 0.7;
+                    exhaustMesh.material.opacity = 0.8;
+                } 
+                
+                if (ratio >= 1) {
+                    // Sequence complete, switch to 2D simulation
+                    isLaunching = false;
+                    exhaustMesh.visible = false;
+                    
+                    // Reset 3D position and camera for next build
+                    rocketGroup.position.y = 0;
+                    camera.position.copy(defaultCameraPosition);
+                    camera.lookAt(0, 3 * VISUALIZER_SCALE, 0);
+                    
+                    document.getElementById('launch-controls').style.display = 'block'; 
+                    
+                    start2DGame(); 
+                }
+            }
+
+
+            function animateThreeJS(timestamp) {
+                threejsAnimationFrameId = requestAnimationFrame(animateThreeJS); // Store ID
+                if (!isLaunching) {
+                    // IDLE MODE: Rotate the camera around the rocket slowly
+                    camera.position.x = Math.sin(Date.now() * 0.0001) * 8 * VISUALIZER_SCALE;
+                    camera.position.z = Math.cos(Date.now() * 0.0001) * 8 * VISUALIZER_SCALE;
+                    camera.lookAt(0, 3 * VISUALIZER_SCALE, 0);
+                    rocketGroup.position.y = 0; 
+                    exhaustMesh.visible = false; 
+                } else {
+                    // LAUNCH SEQUENCE MODE
+                    const elapsedTime = (timestamp - launchStartTime) / 1000;
+                    launchSequence(elapsedTime);
+                }
+                
+                renderer.render(scene, camera);
+            }
+
+            /**
+             * Dynamically builds the 3D rocket model based on selections.
+             */
+            function updateRocketModel() {
+                // Clear existing rocket parts (excluding the global exhaust mesh)
+                for (let i = rocketGroup.children.length - 1; i >= 0; i--) {
+                    if (rocketGroup.children[i] !== exhaustMesh) {
+                        rocketGroup.remove(rocketGroup.children[i]);
+                    }
+                }
+
+                const engine = COMPONENTS.engines[selectedComponents.engine] || COMPONENTS.engines[0];
+                const tank = COMPONENTS.fuel_tanks[selectedComponents.tank] || COMPONENTS.fuel_tanks[0];
+                const body = COMPONENTS.bodies[selectedComponents.body] || COMPONENTS.bodies[0];
+
+                // Calculate base dimensions
+                const tankRadius = ROCKET_BASE_RADIUS * tank.radius_factor;
+                const tankHeight = 3 * VISUALIZER_SCALE * tank.height_factor;
+                const bodyHeight = 3 * VISUALIZER_SCALE * body.height_factor;
+                
+                let currentY = ROCKET_BASE_HEIGHT; // Start at the bottom
+
+                // 1. Engine
+                const engineRadius = ROCKET_BASE_RADIUS * engine.size_factor;
+                const engineHeight = 1 * VISUALIZER_SCALE;
+                
+                const engineRadiusBottom = Number(Math.max(0.01, engineRadius));
+                const engineRadiusTop = Number(Math.max(0.01, engineRadius * 0.7));
+
+                const engineGeo = new THREE.CylinderGeometry(engineRadiusTop, engineRadiusBottom, engineHeight, 16);
+                const engineMat = new THREE.MeshPhongMaterial({ color: engine.color });
+                const engineMesh = new THREE.Mesh(engineGeo, engineMat);
+                engineMesh.position.y = currentY + engineHeight / 2;
+                rocketGroup.add(engineMesh);
+                
+                // Position Exhaust Plume at the bottom of the engine and update its size/scale
+                exhaustMesh.scale.x = exhaustMesh.scale.y = exhaustMesh.scale.z = engine.size_factor;
+                exhaustMesh.position.y = ROCKET_BASE_HEIGHT; 
+                
+                currentY += engineHeight;
+
+                // 2. Fuel Tank
+                const tankRadiusSafe = Number(Math.max(0.01, tankRadius));
+                const tankGeo = new THREE.CylinderGeometry(tankRadiusSafe, tankRadiusSafe, tankHeight, 16);
+                const tankMat = new THREE.MeshPhongMaterial({ color: tank.color });
+                const tankMesh = new THREE.Mesh(tankGeo, tankMat);
+                tankMesh.position.y = currentY + tankHeight / 2;
+                rocketGroup.add(tankMesh);
+                currentY += tankHeight;
+
+                // 3. Body
+                const bodyRadius = ROCKET_BASE_RADIUS * body.radius_factor;
+                const bodyRadiusSafe = Number(Math.max(0.01, bodyRadius));
+                const bodyGeo = new THREE.CylinderGeometry(bodyRadiusSafe, bodyRadiusSafe, bodyHeight, 16);
+                const bodyMat = new THREE.MeshPhongMaterial({ color: body.color });
+                const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+                bodyMesh.position.y = currentY + bodyHeight / 2;
+                rocketGroup.add(bodyMesh);
+                currentY += bodyHeight;
+                
+                // 4. Nose Cone
+                const coneHeight = 1.5 * VISUALIZER_SCALE;
+                const coneGeo = new THREE.ConeGeometry(bodyRadiusSafe, coneHeight, 16);
+                const coneMat = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+                const coneMesh = new THREE.Mesh(coneGeo, coneMat);
+                coneMesh.position.y = currentY + coneHeight / 2;
+                rocketGroup.add(coneMesh);
+            }
+
+
+            // --- COMPONENT BUILDER LOGIC (Adapted from original) ---
+
+            function calculateRocketStats() {
+                const engine = COMPONENTS.engines[selectedComponents.engine] || COMPONENTS.engines[0];
+                const tank = COMPONENTS.fuel_tanks[selectedComponents.tank] || COMPONENTS.fuel_tanks[0];
+                const body = COMPONENTS.bodies[selectedComponents.body] || COMPONENTS.bodies[0];
+
+                calculatedRocket = {
+                    mass_dry: body.dry_mass + tank.mass,
+                    mass_fuel_max: tank.max_fuel,
+                    fuel_burn_rate: engine.burn_rate,
+                    max_thrust: engine.thrust,
+                    cd: body.cd,
+                    area: body.area,
+                    // Store colors and height factors for 2D drawing
+                    engine_color: engine.color,
+                    tank_color: tank.color,
+                    body_color: body.color,
+                    tank_h_factor: tank.height_factor,
+                    body_h_factor: body.height_factor,
+                };
+                
+                const initialMass = calculatedRocket.mass_dry + calculatedRocket.mass_fuel_max;
+                const initialTWR = calculatedRocket.max_thrust / (initialMass * G);
+
+                // Update Builder Summary UI
+                document.getElementById('builder-stats-twr').textContent = initialTWR.toFixed(2);
+                document.getElementById('builder-stats-mass').textContent = (initialMass / 1000).toFixed(1) + ' t';
+                document.getElementById('builder-stats-thrust').textContent = (calculatedRocket.max_thrust / 1000).toFixed(0) + ' kN';
+                document.getElementById('builder-stats-efficiency').textContent = (calculatedRocket.max_thrust / calculatedRocket.fuel_burn_rate).toFixed(0) + ' N/kg/s';
+
+                // Update Launch button status
+                if (initialTWR < 1.0) {
+                    ui.launchButtonText.textContent = "TWR < 1.0 (Will Fail)";
+                    document.getElementById('launch-controls').querySelector('button').classList.add('bg-red-500', 'hover:bg-red-600');
+                    document.getElementById('launch-controls').querySelector('button').classList.remove('button-primary');
+                } else {
+                    ui.launchButtonText.textContent = "Initiate Launch";
+                    document.getElementById('launch-controls').querySelector('button').classList.remove('bg-red-500', 'hover:bg-red-600');
+                    document.getElementById('launch-controls').querySelector('button').classList.add('button-primary');
+                }
+            }
+
+            function renderComponentOptions(type) {
+                const container = document.getElementById(`${type}-options`);
+                if (!container) return;
+                container.innerHTML = ''; 
+
+                const componentKey = type.endsWith('s') ? type.slice(0, -1) : type;
+                
+                COMPONENTS[type].forEach((component, index) => {
+                    const isSelected = index === selectedComponents[componentKey];
+                    
+                    const card = document.createElement('button'); 
+                    card.type = 'button';
+                    card.className = `component-card ${isSelected ? 'selected' : ''}`;
+                    card.setAttribute('onclick', `selectComponent('${componentKey}', ${index})`);
+
+                    let statsHtml = '';
+                    if (type === 'engines') {
+                        statsHtml = `Thrust: **${(component.thrust / 1000).toFixed(0)} kN** | Efficiency: **${(component.thrust / component.burn_rate).toFixed(0)} N/kg/s**`;
+                    } else if (type === 'fuel_tanks') {
+                        statsHtml = `Max Fuel: **${(component.max_fuel / 1000).toFixed(0)} t** | Structure Mass: **${(component.mass / 1000).toFixed(1)} t**`;
+                    } else if (type === 'bodies') {
+                        statsHtml = `Dry Mass: **${(component.dry_mass / 1000).toFixed(1)} t** | Drag Coeff: **${component.cd}**`;
+                    }
+
+                    card.innerHTML = `
+                        <p class="font-bold text-lg">${component.name} <span class="float-right text-xl">${component.icon || ''}</span></p>
+                        <p class="text-sm text-gray-400">${component.description}</p>
+                        <p class="text-xs mt-1 text-blue-300">${statsHtml.replace(/\*\*(.*?)\*\*/g, '<span>$1</span>')}</p>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            // Global function accessed by HTML onclick
+            window.selectComponent = function(type, index) {
+                selectedComponents[type] = index; 
+                calculateRocketStats();
+                renderAllComponentOptions();
+                updateRocketModel(); 
+            }
+
+            function renderAllComponentOptions() {
+                renderComponentOptions('engines');
+                renderComponentOptions('fuel_tanks');
+                renderComponentOptions('bodies');
+            }
+            
+            // --- INPUT HANDLING ---
+            document.addEventListener('keydown', handleKeyInput);
+
+            function handleKeyInput(event) {
+                if (!gameRunning) return;
+
+                if (event.key.toLowerCase() === 'c') {
+                    cameraMode = cameraMode === 'ground_view' ? 'fixed_view' : 'ground_view';
+                    ui.cameraModeGauge.textContent = cameraMode.toUpperCase().replace('_', ' ');
+                }
+            }
+
+
+            // --- 2D SIMULATION LOGIC (Autonomous) ---
+            
+            function generateStars() {
+                for (let i = 0; i < STAR_COUNT; i++) {
+                    stars.push({
+                        x: Math.random() * ui.gameCanvas.width,
+                        y: Math.random() * ui.gameCanvas.height,
+                        size: Math.random() * 2 + 0.5,
+                        alpha: Math.random() * 0.8 + 0.2,
+                    });
+                }
+            }
+
+            function calculateAtmosphericDensity(h) {
+                const RHO_SEA_LEVEL = 1.225;
+                const SCALE_HEIGHT = 8500;
+                const ATMOSPHERE_HEIGHT = 100000;
+                if (h > ATMOSPHERE_HEIGHT) return 0;
+                return RHO_SEA_LEVEL * Math.exp(-h / SCALE_HEIGHT);
+            }
+            
+            function start2DGame() {
+                // Show 2D screen
+                ui.simulationScreen.style.display = 'flex'; 
+                
+                // Stop the 3D animation loop
+                if (threejsAnimationFrameId) {
+                    cancelAnimationFrame(threejsAnimationFrameId);
+                    threejsAnimationFrameId = null;
+                }
+                
+                // Generate stars once
+                if (stars.length === 0) generateStars();
+
+                // Setup 2D canvas size
+                onWindowResize(); 
+
+                // Reset state and start
+                state.mass_fuel = calculatedRocket.mass_fuel_max;
+                state.altitude = 0;
+                state.vertical_velocity = 0;
+                state.horizontal_velocity = 0;
+                state.angle = Math.PI / 2;
+                state.throttle = 1.0; // *** AUTOPILOT: Set to 100% THROTTLE ***
+                ui.autopilotStatus.textContent = "FIRING";
+                ui.cameraModeGauge.textContent = cameraMode.toUpperCase().replace('_', ' ');
+
+                gameRunning = true;
+                lastTime = performance.now();
+                gameAnimationFrameId = requestAnimationFrame(gameLoop);
+            }
+
+
+            function updatePhysics(dt) {
+                if (!calculatedRocket.mass_dry) return;
+
+                const currentMass = calculatedRocket.mass_dry + state.mass_fuel;
+
+                // 1. Fuel Consumption
+                const burnRate = state.throttle * calculatedRocket.fuel_burn_rate;
+                const burnedFuel = burnRate * dt;
+                state.mass_fuel = Math.max(0, state.mass_fuel - burnedFuel);
+                
+                if (state.mass_fuel === 0 && state.throttle > 0) {
+                     state.throttle = 0.0;
+                     ui.autopilotStatus.textContent = "FUEL DEPLETED";
+                     ui.autopilotStatus.classList.remove('text-green-400');
+                     ui.autopilotStatus.classList.add('text-red-400');
+                }
+
+                // 2. Thrust, Gravity, Drag
+                const F_t = state.throttle * calculatedRocket.max_thrust;
+                const F_tx = F_t * Math.cos(state.angle);
+                const F_ty = F_t * Math.sin(state.angle);
+
+                const F_g = currentMass * G;
+                
+                const totalVelocity = Math.sqrt(state.vertical_velocity ** 2 + state.horizontal_velocity ** 2);
+                const rho = calculateAtmosphericDensity(state.altitude);
+                const F_d_magnitude = 0.5 * rho * totalVelocity ** 2 * calculatedRocket.area * calculatedRocket.cd;
+
+                let F_dx = 0;
+                let F_dy = 0;
+                if (totalVelocity > 0) {
+                    F_dx = -(state.horizontal_velocity / totalVelocity) * F_d_magnitude;
+                    F_dy = -(state.vertical_velocity / totalVelocity) * F_d_magnitude;
+                }
+
+                // 3. Net Force and Acceleration
+                // Autopilot flies straight up: F_tx is 0, F_ty is F_t
+                const F_net_x = F_tx + F_dx; 
+                const F_net_y = F_ty - F_g + F_dy;
+                const mass = calculatedRocket.mass_dry + state.mass_fuel;
+                const A_x = F_net_x / mass;
+                const A_y = F_net_y / mass;
+
+                // 4. Update state
+                state.horizontal_velocity += A_x * dt;
+                state.vertical_velocity += A_y * dt;
+
+                state.altitude += state.vertical_velocity * dt;
+                state.max_altitude_reached = Math.max(state.max_altitude_reached, state.altitude);
+
+                // 5. Check for Terminal Conditions
+                if (state.altitude < 0) {
+                    endGame('CRASH! Mission Failed.', '#ef4444');
+                } else if (state.altitude >= 100000 && state.vertical_velocity >= 0) {
+                    endGame('SUCCESS! Reached Space.', '#34d399');
+                } else if (state.altitude > 0 && state.mass_fuel === 0 && state.vertical_velocity < 0) {
+                    endGame('Out of Fuel and Falling. Max altitude was reached before failure.', '#f59e0b');
+                }
+            }
+            
+            function hexToCss(hex) {
+                return '#' + hex.toString(16).padStart(6, '0');
+            }
+
+
+            // Simplified 2D drawing using relative proportions based on calculated 3D height
+            function drawRocket2D(ctx, x, y, angle) {
+                // Proportional dimensions for 2D rocket (max visual height 80px)
+                const MAX_H = 80; 
+                const R = 15;
+
+                const engine = COMPONENTS.engines[selectedComponents.engine];
+                const tank = COMPONENTS.fuel_tanks[selectedComponents.tank];
+                const body = COMPONENTS.bodies[selectedComponents.body];
+
+                // Total height units (arbitrary scale for parts in 3D: 1 engine, 3*tank_factor, 3*body_factor, 1.5 cone)
+                const totalHeightUnits = 1 + tank.height_factor * 3 + body.height_factor * 3 + 1.5;
+                
+                // Calculate heights relative to MAX_H
+                const engineH = (1 / totalHeightUnits) * MAX_H;
+                const tankH = ((tank.height_factor * 3) / totalHeightUnits) * MAX_H;
+                const bodyH = ((body.height_factor * 3) / totalHeightUnits) * MAX_H;
+                const coneH = (1.5 / totalHeightUnits) * MAX_H;
+
+                // currentY tracks the TOP of the last drawn segment (starting at the top of the whole rocket)
+                let currentY = y - (bodyH + coneH + tankH + engineH) / 2;
+
+                ctx.save();
+                ctx.translate(x, y); 
+                ctx.rotate(angle - Math.PI / 2); // Rotate to point up
+
+                // The parts are drawn relative to the translated center (0, 0)
+                // Adjust currentY to be relative to (0, 0) for drawing simplicity
+
+                let drawY = -(engineH + tankH + bodyH + coneH) / 2; 
+
+                // 5. Nose Cone (Topmost part)
+                ctx.fillStyle = '#cccccc';
+                ctx.beginPath();
+                ctx.moveTo(-R / 2, drawY + coneH);
+                ctx.lineTo(R / 2, drawY + coneH);
+                ctx.lineTo(0, drawY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#444';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                drawY += coneH;
+
+
+                // 4. Body Segment
+                ctx.fillStyle = hexToCss(calculatedRocket.body_color);
+                ctx.fillRect(-R / 2, drawY, R, bodyH);
+                ctx.strokeRect(-R / 2, drawY, R, bodyH);
+                drawY += bodyH;
+
+                // 3. Tank Segment
+                ctx.fillStyle = hexToCss(calculatedRocket.tank_color);
+                ctx.fillRect(-R / 2, drawY, R, tankH);
+                ctx.strokeRect(-R / 2, drawY, R, tankH);
+                
+                // Draw Fuel Level Indicator (on the tank)
+                const fuelPercent = state.mass_fuel / calculatedRocket.mass_fuel_max;
+                const fuelLevelH = tankH * fuelPercent;
+                const fuelY = drawY + tankH; // Bottom of tank segment
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.8)'; // Amber/Fuel
+                ctx.fillRect(-R / 2 + 2, fuelY - fuelLevelH, R - 4, fuelLevelH);
+                drawY += tankH;
+
+
+                // 2. Engine Segment (Base)
+                ctx.fillStyle = hexToCss(calculatedRocket.engine_color);
+                ctx.fillRect(-R / 2, drawY, R, engineH);
+                ctx.strokeRect(-R / 2, drawY, R, engineH);
+                drawY += engineH;
+                
+                // 1. Draw Flame (at the very bottom)
+                const flameRatio = state.mass_fuel > 0 ? state.throttle : 0;
+                const flameHeight = flameRatio * 30;
+                if (flameHeight > 0.5) {
+                    ctx.fillStyle = `rgba(255, ${200 + 55 * flameRatio}, 0, 0.9)`;
+                    ctx.beginPath();
+                    ctx.moveTo(-R / 3, drawY);
+                    ctx.lineTo(R / 3, drawY);
+                    ctx.lineTo(0, drawY + flameHeight);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            function draw2D() {
+                const ctx = ui.gameCtx;
+                const canvasW = ui.gameCanvas.width;
+                const canvasH = ui.gameCanvas.height;
+
+                ctx.clearRect(0, 0, canvasW, canvasH);
+                
+                // --- Background Drawing ---
+                const altitudeKm = state.altitude / 1000; 
+                const isAboveAtmosphere = state.altitude > 100000; // 100km
+
+                // 1. Draw Sky/Atmosphere Gradient
+                // Simple atmospheric gradient (darkens with altitude)
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvasH);
+                const atmosphereRatio = Math.min(1, state.altitude / 100000); // Up to 100km
+                
+                // Sky gets darker blue/black as altitude increases
+                gradient.addColorStop(0, `rgb(${Math.round(30 * (1 - atmosphereRatio))}, ${Math.round(30 * (1 - atmosphereRatio))}, ${Math.round(50 * (1 - atmosphereRatio))})`);
+                gradient.addColorStop(1, `#000000`);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvasW, canvasH);
+                
+                // 2. Draw Stars (appears above STAR_ALTITUDE_THRESHOLD)
+                if (state.altitude > STAR_ALTITUDE_THRESHOLD) {
+                    const starOpacity = Math.min(1, (state.altitude - STAR_ALTITUDE_THRESHOLD) / 50000);
+                    ctx.save();
+                    ctx.globalAlpha = starOpacity;
+                    ctx.fillStyle = 'white';
+                    stars.forEach(star => {
+                        ctx.beginPath();
+                        ctx.arc(star.x, star.y, star.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    ctx.restore();
+                }
+
+
+                // --- Rocket and Ground Drawing based on Camera Mode ---
+
+                const rocketX = canvasW / 2;
+                const rocketY = canvasH * 0.75; // Rocket always sits at 75% height in ground view
+
+                if (cameraMode === 'ground_view') {
+                    
+                    // GROUND VIEW: Ground moves down, rocket is fixed relatively high.
+                    
+                    // Darken ground color as altitude increases up to 10km (10000m)
+                    let groundColorValue = 76; 
+                    if (state.altitude < 10000) {
+                        const darknessFactor = state.altitude / 10000; 
+                        const targetValue = 51; 
+                        groundColorValue = Math.round(76 - (76 - targetValue) * darknessFactor);
+                    } else {
+                        groundColorValue = 51; 
+                    }
+                    const groundColor = `rgb(${groundColorValue}, ${Math.round(groundColorValue * 1.22)}, ${Math.round(groundColorValue * 1.45)})`;
+
+                    if (state.altitude < 20000) {
+                        // Scale the visible ground portion
+                        const groundVisibilityRatio = Math.min(1, state.altitude / 20000); 
+                        const groundHeight = canvasH * (1 - groundVisibilityRatio);
+
+                        ctx.fillStyle = groundColor; 
+                        ctx.fillRect(0, groundHeight, canvasW, canvasH - groundHeight);
+                    }
+                    
+                    // Draw the rocket in a fixed position
+                    drawRocket2D(ctx, rocketX, rocketY, state.angle);
+
+                } else if (cameraMode === 'fixed_view') {
+                    
+                    // FIXED VIEW: Background image scales/moves, rocket is fixed at the bottom.
+                    
+                    const MIN_SCALE = 0.5; // Zoomed in (low altitude)
+                    const MAX_SCALE = 3.0; // Zoomed out (high altitude)
+                    
+                    // Scale factor: 0 at 0m, 1 at 200,000m
+                    const zoomRatio = Math.min(1, state.altitude / 200000); 
+                    const scale = MIN_SCALE + (MAX_SCALE - MIN_SCALE) * zoomRatio;
+                    
+                    const imgW = bgImage.width * scale;
+                    const imgH = bgImage.height * scale;
+
+                    // Draw the background image (centered)
+                    if (bgImage.complete) {
+                        ctx.drawImage(bgImage, canvasW / 2 - imgW / 2, canvasH / 2 - imgH / 2, imgW, imgH);
+                    }
+                    
+                    // Draw the rocket fixed at the bottom of the screen
+                    const fixedRocketY = canvasH - 50; // Position near the bottom
+                    drawRocket2D(ctx, rocketX, fixedRocketY, state.angle);
+                }
+            }
+
+            function updateGauges() {
+                ui.altitude.textContent = (state.altitude / 1000).toFixed(2);
+                ui.velocity.textContent = state.vertical_velocity.toFixed(2);
+                ui.fuel.textContent = ((state.mass_fuel / calculatedRocket.mass_fuel_max) * 100).toFixed(1) + '%';
+            }
+            
+            function gameLoop(timestamp) {
+                if (!gameRunning) return;
+
+                const dt = (timestamp - lastTime) / 1000;
+                lastTime = timestamp;
+
+                updatePhysics(dt);
+                draw2D();
+                updateGauges();
+
+                gameAnimationFrameId = requestAnimationFrame(gameLoop);
+            }
+
+            // Global function for Launch button
+            window.initiateLaunch = function() {
+                 if (calculatedRocket.max_thrust / ((calculatedRocket.mass_dry + calculatedRocket.mass_fuel_max) * G) < 1.0) {
+                    // Simple message box for user feedback (replacing alert)
+                    alert("Launch Blocked: Initial TWR is less than 1.0! The rocket is too heavy for the chosen engine. Please select a stronger engine or lighter components.");
+                    return;
+                }
+
+                // Store original camera position for interpolation
+                originalCameraPosition.copy(camera.position);
+
+                // Start the launch sequence
+                isLaunching = true;
+                launchStartTime = performance.now();
+                
+                // Hide controls during 3D launch sequence
+                document.getElementById('launch-controls').style.display = 'none';
+            }
+            
+            window.endGame = function(title, color) {
+                gameRunning = false;
+                cancelAnimationFrame(gameAnimationFrameId);
+                
+                // Show game over overlay
+                ui.outcomeTitle.textContent = title;
+                ui.outcomeTitle.style.color = color;
+                ui.finalAlt.textContent = (state.max_altitude_reached / 1000).toFixed(2) + ' km';
+                ui.gameOverScreen.style.display = 'flex';
+                
+                // Disable throttle if the game has ended
+                state.throttle = 0.0;
+            }
+
+            // --- Initialization ---
+
+            window.onload = function() {
+                initThreeJS();
+                calculateRocketStats();
+                renderAllComponentOptions();
+                onWindowResize(); // Initial sizing
+            };
+
+        })();
+    </script>
+</body>
+</html>
