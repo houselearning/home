@@ -308,7 +308,7 @@ function createProfileUI(userPhotoURL) {
     
     dropdown.innerHTML = `
         <a href="#" id="join-class-btn">Join Class</a>
-        <a href="https://houselearning.github.io/auth/dashboard/dashboard.html" id="account-settings-btn">Account Settings Menu</a>
+        <a href="https://houselearning.github.io/auth/dashboard" id="account-settings-btn">Account Settings Menu</a>
         <a href="#" id="logout-dropdown-btn">Log Out</a>
     `;
 
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Attach static listeners
                     profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
                     elements.logoutBtn.addEventListener('click', handleLogout);
-                    elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard/dashboard.html?action=join');
+                    elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard?action=join');
                     
                     // Global click handler to close the dropdown
                      window.addEventListener('click', (event) => {
