@@ -3,225 +3,392 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Math Maze</title>
+  <title>Math Maze: UI Enhanced!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-color: #5d4a66; /* Deep Purple */
+      --secondary-color: #8a6c8e; /* Lighter Purple */
+      --accent-color: #e63946; /* Red for emphasis/end */
+      --success-color: #4CAF50; /* Green for success */
+      --warning-color: #FFC107; /* Yellow for checkpoints */
+      --text-light: #f8f8f8;
+      --text-dark: #333;
+      --bg-light: #f0f0f5;
+      --bg-dark: #2c2c34;
+      --player-color: #00b894; /* Teal for player */
+      --wall-color: #333;
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: 'Lato', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+      color: var(--text-dark);
+      overflow: hidden; 
+    }
+
+    h1, h2, h3 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease-in-out;
+      margin: 5px;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      font-size: 1.1em;
+      border: 2px solid var(--secondary-color);
+      border-radius: 8px;
+      margin-right: 10px;
+      width: 120px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 5px rgba(var(--primary-color), 0.5);
+    }
+
+    /* Start Screen */
+    #startScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    #startScreen h1 {
+        font-size: 3em;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+    }
+    #startScreen p {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        color: var(--text-dark);
+    }
+
+
+    /* Game UI Container */
+    #gameUI {
+        display: none; /* Hidden until game starts */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Info Bar */
+    #infoBar {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        max-width: 650px; /* Adjust based on maze size */
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 1.1em;
+    }
+    #infoBar div span {
+        font-weight: 400;
+        color: var(--text-dark);
+        margin-left: 5px;
+    }
+
+
+    /* Maze Container */
+    .maze-container {
+      border: 5px solid var(--primary-color);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      background-color: var(--bg-light);
+      border-radius: 12px;
+      overflow: hidden; 
     }
     .maze {
       display: grid;
-      grid-template-columns: repeat(20, 30px);
-      grid-template-rows: repeat(20, 30px);
-      border: 2px solid black;
+      grid-template-columns: repeat(25, 25px); 
+      grid-template-rows: repeat(25, 25px);
     }
     .cell {
-      border: 1px solid lightgray;
+      border: 1px solid rgba(200, 200, 200, 0.4); 
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 16px;
+      font-size: 0.8em; 
+      font-weight: 700;
+      color: var(--text-light);
+      transition: background-color 0.1s ease;
+      position: relative; 
     }
     .start {
-      background-color: lightgreen;
-      font-weight: bold;
+      background-color: #a8dadc; 
+      color: var(--bg-dark);
     }
     .end {
-      background-color: green;
-      font-weight: bold;
+      background-color: var(--accent-color);
+      color: var(--text-light);
     }
     .path {
-      background-color: lightblue;
+      background-color: var(--bg-light);
     }
     .checkpoint {
-      background-color: yellow;
+      background-color: var(--warning-color); 
       cursor: pointer;
+      color: var(--text-dark);
+      border: 2px solid #ffaa00; 
+      font-size: 1.2em;
+    }
+    .checkpoint.used {
+      background-color: var(--success-color); 
+      border: 2px solid #388e3c;
+      color: var(--text-light);
     }
     .player {
-      background-color: purple;
+      background-color: var(--player-color) !important; 
       border-radius: 50%;
+      box-shadow: 0 0 8px rgba(0, 184, 148, 0.7); 
+      transform: scale(0.8); 
+      transition: transform 0.1s ease-out; 
+      z-index: 2; 
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
     }
+    .wall {
+      background-color: var(--wall-color);
+    }
+
+    /* Question Modal */
     .question {
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      padding: 20px;
-      border: 2px solid black;
-      display: none;
-    }
-    #directions {
+      transform: translate(-50%, -50%) scale(0.9); 
+      opacity: 0; 
+      visibility: hidden; 
+      background-color: #fff;
+      padding: 40px;
+      border: 5px solid var(--primary-color);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border-radius: 15px;
+      z-index: 1000;
       text-align: center;
-      margin-bottom: 10px;
+      transition: all 0.3s ease-in-out; 
     }
-    .wall {
-      background-color: black;
+    .question.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translate(-50%, -50%) scale(1);
     }
+    .question p {
+        font-size: 1.8em;
+        margin-bottom: 25px;
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    .question #result {
+        margin-top: 15px;
+        font-weight: 700;
+        font-size: 1.2em;
+    }
+    .question #result.success {
+        color: var(--success-color);
+    }
+    .question #result.error {
+        color: var(--accent-color);
+    }
+
+    /* Win Message */
+    #winMessage {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        color: var(--text-light);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        font-size: 3.5em;
+        text-shadow: 0 0 15px var(--player-color);
+        z-index: 2000;
+        flex-direction: column;
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+    #winMessage h1 {
+        color: var(--text-light);
+        font-size: 1.5em; 
+        margin-bottom: 20px;
+    }
+    #winMessage p {
+        font-size: 0.4em;
+        margin-top: 20px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Help Overlay */
+    #helpOverlay {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: var(--text-light);
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-size: 0.9em;
+        max-width: 250px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 900;
+        transform: translateX(100%); 
+        transition: transform 0.3s ease-out;
+    }
+    #helpOverlay.active {
+        transform: translateX(0);
+    }
+    #helpOverlay button {
+        background: none;
+        border: 1px solid var(--text-light);
+        color: var(--text-light);
+        padding: 5px 10px;
+        font-size: 0.8em;
+        margin-top: 10px;
+    }
+    #helpOverlay button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
   </style>
 </head>
 <body>
-  <div id="directions">Use W (up), A (left), S (down), D (right) to move.</div>
-  <div class="maze" id="maze"></div>
-  <div class="question" id="question">
+
+  
+<div id="startScreen">
+    <h1>MATH MAZE</h1>
+    <p>Navigate the maze and solve math puzzles at checkpoints. Reach the finish to win!</p>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  
+<div id="gameUI">
+    <div id="infoBar">
+        <div>Time: <span id="timerDisplay">00:00</span></div>
+        <div>Correct Answers: <span id="correctAnswersDisplay">0</span> / <span id="totalCheckpointsDisplay"></span></div>
+    </div>
+    <div class="maze-container">
+      <div class="maze" id="maze"></div>
+    </div>
+  </div>
+
+  
+<div class="question" id="question">
     <p id="mathQuestion"></p>
-    <input type="number" id="answer">
+    <input type="number" id="answer" onkeypress="handleKeyPress(event)">
     <button onclick="checkAnswer()">Submit</button>
     <p id="result"></p>
   </div>
 
+  
+<div id="winMessage">
+      <h1>🎉 MAZE SOLVED! 🎉</h1>
+      <p>Time: <span id="finalTime"></span> | Correct Answers: <span id="finalScore"></span></p>
+      <button onclick="location.reload()">Play Again</button>
+  </div>
+
+  
+<div id="helpOverlay">
+      <h3>Controls:</h3>
+      <p><b>W</b> (Up) | <b>A</b> (Left) | <b>S</b> (Down) | <b>D</b> (Right)</p>
+      <p>Solve <b>❓</b> puzzles to progress!</p>
+      <button onclick="hideHelp()">Got It!</button>
+  </div>
+  
   <script>
     const maze = document.getElementById('maze');
     const questionDiv = document.getElementById('question');
     const mathQuestion = document.getElementById('mathQuestion');
     const answerInput = document.getElementById('answer');
     const resultDisplay = document.getElementById('result');
+    const winMessageDiv = document.getElementById('winMessage');
+    const startScreen = document.getElementById('startScreen');
+    const gameUI = document.getElementById('gameUI');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const correctAnswersDisplay = document.getElementById('correctAnswersDisplay');
+    const totalCheckpointsDisplay = document.getElementById('totalCheckpointsDisplay');
+    const finalTimeDisplay = document.getElementById('finalTime');
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const helpOverlay = document.getElementById('helpOverlay');
 
-    const gridSize = 20;
-    const mazeArray = generateMaze(gridSize, gridSize);
+    const gridSize = 25; 
+    
+    // --- Core Variables Declared FIRST (FIXED ORDER) ---
+    let mazeArray; 
+    let start;
+    let end;
+    let playerPos;
+    let previousCheckpoint;
+    let checkpoints;
 
-    const start = { x: 1, y: 1 };
-    const end = { x: gridSize - 2, y: gridSize - 2 };
-    let playerPos = { ...start };
-    let previousCheckpoint = { ...start };
-
-    const checkpoints = [
-      { x: 5, y: 3, used: false },
-      { x: 12, y: 7, used: false },
-      { x: 3, y: 15, used: false },
-      { x: 17, y: 12, used: false }
-    ];
-
-    let canMove = true; // Flag to control whether the player can move
+    let canMove = true;
     let currentCheckpoint = null;
-
-    for (let y = 0; y < gridSize; y++) {
-      for (let x = 0; x < gridSize; x++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        if (mazeArray[y][x] === 1) {
-          cell.classList.add('path');
-        } else {
-          cell.classList.add('wall');
-        }
-        cell.dataset.x = x;
-        cell.dataset.y = y;
-        maze.appendChild(cell);
-      }
-    }
-
-    function checkCheckpoints() {
-      checkpoints.forEach(checkpoint => {
-        if (playerPos.x === checkpoint.x && playerPos.y === checkpoint.y && !checkpoint.used) {
-          currentCheckpoint = checkpoint;
-          generateQuestion(checkpoint); // Generate question for this specific checkpoint
-          checkpoint.used = true;
-          canMove = false; // Block movement until question is answered correctly
-        }
-      });
-    }
-
-    function checkAnswer() {
-  const userAnswer = parseInt(answerInput.value);
-  if (userAnswer === currentAnswer) {
-    resultDisplay.textContent = 'Nice!!';
-    setTimeout(() => {
-      resultDisplay.textContent = '';
-      questionDiv.style.display = 'none';
-      canMove = true; // Allow movement again after correct answer
-      previousCheckpoint = { ...playerPos }; // Update last checkpoint
-    }, 1000);
-  } else {
-    resultDisplay.textContent = 'Incorrect. Try again!';
-    setTimeout(() => {
-      // Reset player to last checkpoint
-      playerPos = { ...previousCheckpoint };
-      updateMaze();
-      resultDisplay.textContent = ''; // Clear message after some time
-      answerInput.value = ''; // Clear input field
-
-      // Ensure the player can retry answering at the same checkpoint
-      checkpoints.forEach(checkpoint => {
-        if (checkpoint.x === playerPos.x && checkpoint.y === playerPos.y) {
-          checkpoint.used = false; 
-        }
-      });
-
-      // Keep the question screen open
-      questionDiv.style.display = 'block';
-    }, 1000);
-  }
-}
-
-
-    function updateMaze() {
-      const cells = document.querySelectorAll('.cell');
-      cells.forEach(cell => cell.classList.remove('player'));
-      document.querySelector(`.cell[data-x="${start.x}"][data-y="${start.y}"]`).classList.add('start');
-      document.querySelector(`.cell[data-x="${end.x}"][data-y="${end.y}"]`).classList.add('end');
-      document.querySelector(`.cell[data-x="${playerPos.x}"][data-y="${playerPos.y}"]`).classList.add('player');
-      document.querySelector(`.cell[data-x="${start.x}"][data-y="${start.y}"]`).textContent = "Start";
-      document.querySelector(`.cell[data-x="${end.x}"][data-y="${end.y}"]`).textContent = "Finish";
-    }
-
-    updateMaze();
-
-    checkpoints.forEach(checkpoint => {
-      document.querySelector(`.cell[data-x="${checkpoint.x}"][data-y="${checkpoint.y}"]`).classList.add('checkpoint');
-    });
-
-    let currentQuestion = null;
     let currentAnswer = null;
-    let checkpointClicked = false;
+    let correctAnswersCount = 0;
+    
+    let timerInterval;
+    let startTime;
+    let playerElement = null; // To hold the actual player div for animations
 
-    function generateQuestion(checkpoint) {
-      if (!checkpoint) return;
-
-      const num1 = Math.floor(Math.random() * 20) + 1;
-      const num2 = Math.floor(Math.random() * 20) + 1;
-      const operation = Math.random() < 0.5 ? '+' : '-';
-
-      currentQuestion = `${num1} ${operation} ${num2} = ?`;
-      currentAnswer = operation === '+' ? num1 + num2 : num1 - num2;
-
-      mathQuestion.textContent = currentQuestion;
-      answerInput.value = '';
-      resultDisplay.textContent = '';
-      questionDiv.style.display = 'block';
-    }
-
-    document.addEventListener('keydown', (event) => {
-      if (!canMove) return; // Don't allow movement if player can't move
-
-      let newX = playerPos.x;
-      let newY = playerPos.y;
-
-      switch (event.key.toLowerCase()) {
-        case 'w': newY--; break;
-        case 'a': newX--; break;
-        case 's': newY++; break;
-        case 'd': newX++; break;
-      }
-
-      // Check if the new position is valid
-      if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && mazeArray[newY][newX] === 1) {
-        playerPos.x = newX;
-        playerPos.y = newY;
-        checkCheckpoints();
-        updateMaze();
-      }
-    });
-
+    // --- Maze Generation Algorithm (Defined before it's called in initializeGame) ---
     function generateMaze(width, height) {
-      const grid = Array(height).fill(null).map(() => Array(width).fill(0));
+      const adjWidth = width % 2 === 0 ? width - 1 : width;
+      const adjHeight = height % 2 === 0 ? height - 1 : height;
+      
+      const grid = Array(adjHeight).fill(null).map(() => Array(adjWidth).fill(0));
       const stack = [{ x: 1, y: 1 }];
       grid[1][1] = 1;
 
       function getNeighbors(x, y) {
         const neighbors = [];
-        if (y - 2 > 0) neighbors.push({ x, y: y - 2 });
-        if (y + 2 < height - 1) neighbors.push({ x, y: y + 2 });
-        if (x - 2 > 0) neighbors.push({ x: x - 2, y });
-        if (x + 2 < width - 1) neighbors.push({ x: x + 2, y });
+        if (y - 2 >= 1) neighbors.push({ x, y: y - 2 });
+        if (y + 2 < adjHeight - 1) neighbors.push({ x, y: y + 2 });
+        if (x - 2 >= 1) neighbors.push({ x: x - 2, y });
+        if (x + 2 < adjWidth - 1) neighbors.push({ x: x + 2, y });
         return neighbors.filter(n => grid[n.y][n.x] === 0);
       }
 
@@ -238,8 +405,273 @@
           stack.pop();
         }
       }
+      
+      grid[start.y][start.x] = 1; 
+      grid[end.y][end.x] = 1; 
+
+      checkpoints.forEach(cp => grid[cp.y][cp.x] = 1);
+
       return grid;
     }
+
+    // --- Game Initialization ---
+    function initializeGame() {
+        start = { x: 1, y: 1 };
+        end = { x: gridSize - 2, y: gridSize - 2 };
+        playerPos = { ...start };
+        previousCheckpoint = { ...start };
+
+        checkpoints = [
+            { x: 5, y: 3, used: false },
+            { x: 12, y: 7, used: false },
+            { x: 3, y: 15, used: false },
+            { x: 17, y: 12, used: false },
+            { x: 9, y: 21, used: false },
+            { x: 22, y: 4, used: false },
+            { x: 7, y: 9, used: false },
+            { x: 18, y: 18, used: false }
+        ];
+        totalCheckpointsDisplay.textContent = checkpoints.length;
+
+        mazeArray = generateMaze(gridSize, gridSize);
+        correctAnswersCount = 0;
+        updateScoreDisplay();
+        drawMaze();
+    }
+
+    // --- Start Game Function ---
+    function startGame() {
+        startScreen.style.display = 'none';
+        gameUI.style.display = 'flex';
+        initializeGame();
+        startTimer();
+        setTimeout(() => helpOverlay.classList.add('active'), 1000); 
+    }
+
+    function hideHelp() {
+        helpOverlay.classList.remove('active');
+    }
+
+    // --- Timer Functions ---
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function updateTimer() {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+        const seconds = String(elapsedTime % 60).padStart(2, '0');
+        timerDisplay.textContent = `${minutes}:${seconds}`;
+    }
+
+    // --- Score Display ---
+    function updateScoreDisplay() {
+        correctAnswersDisplay.textContent = correctAnswersCount;
+    }
+
+    // --- Maze Drawing Function ---
+    function drawMaze() {
+        maze.innerHTML = ''; 
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                
+                if (mazeArray[y][x] === 1) {
+                    cell.classList.add('path');
+                } else {
+                    cell.classList.add('wall');
+                }
+                
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                maze.appendChild(cell);
+            }
+        }
+        
+        document.querySelector(`.cell[data-x="${start.x}"][data-y="${start.y}"]`).classList.add('start');
+        document.querySelector(`.cell[data-x="${end.x}"][data-y="${end.y}"]`).classList.add('end');
+        document.querySelector(`.cell[data-x="${start.x}"][data-y="${start.y}"]`).textContent = "START";
+        document.querySelector(`.cell[data-x="${end.x}"][data-y="${end.y}"]`).textContent = "FINISH";
+
+        // Draw checkpoints
+        checkpoints.forEach(checkpoint => {
+            const cell = document.querySelector(`.cell[data-x="${checkpoint.x}"][data-y="${checkpoint.y}"]`);
+            cell.classList.add('checkpoint');
+            if (checkpoint.used) {
+                cell.classList.add('used');
+                cell.textContent = "✔️";
+            } else {
+                cell.classList.remove('used');
+                cell.textContent = "❓";
+            }
+        });
+        
+        updatePlayerPosition(); // Draw the player
+    }
+    
+    // --- Checkpoint Logic ---
+    function checkCheckpoints() {
+      checkpoints.forEach(checkpoint => {
+        if (playerPos.x === checkpoint.x && playerPos.y === checkpoint.y && !checkpoint.used) {
+          currentCheckpoint = checkpoint;
+          generateQuestion();
+          canMove = false; 
+          questionDiv.classList.add('active'); 
+          answerInput.focus();
+        } 
+      });
+    }
+
+    function checkWin() {
+        if (playerPos.x === end.x && playerPos.y === end.y) {
+            stopTimer();
+            finalTimeDisplay.textContent = timerDisplay.textContent;
+            finalScoreDisplay.textContent = `${correctAnswersCount} / ${checkpoints.length}`;
+            winMessageDiv.style.display = 'flex';
+            canMove = false; 
+        }
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(answerInput.value);
+      if (isNaN(userAnswer)) {
+          resultDisplay.textContent = 'Please enter a number.';
+          resultDisplay.className = 'error'; 
+          return;
+      }
+      
+      if (userAnswer === currentAnswer) {
+        resultDisplay.textContent = '✅ Correct!';
+        resultDisplay.className = 'success'; 
+        
+        currentCheckpoint.used = true; 
+        correctAnswersCount++;
+        updateScoreDisplay();
+        document.querySelector(`.cell[data-x="${currentCheckpoint.x}"][data-y="${currentCheckpoint.y}"]`).classList.add('used');
+        document.querySelector(`.cell[data-x="${currentCheckpoint.x}"][data-y="${currentCheckpoint.y}"]`).textContent = "✔️";
+
+        setTimeout(() => {
+          resultDisplay.textContent = '';
+          questionDiv.classList.remove('active'); 
+          canMove = true; 
+          previousCheckpoint = { ...playerPos }; 
+          updatePlayerPosition(); 
+        }, 800);
+      } else {
+        resultDisplay.textContent = '❌ Incorrect. Try again!';
+        resultDisplay.className = 'error'; 
+        setTimeout(() => {
+          playerPos = { ...previousCheckpoint };
+          updatePlayerPosition();
+          resultDisplay.textContent = ''; 
+          answerInput.value = ''; 
+        }, 1200);
+      }
+    }
+    
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            checkAnswer();
+        }
+    }
+
+    // --- Player Movement & Rendering (FIXED LOGIC) ---
+    function updatePlayerPosition() {
+        // 1. Remove existing player element if it exists
+        if (playerElement) {
+            playerElement.remove();
+        }
+
+        const targetCell = document.querySelector(`.cell[data-x="${playerPos.x}"][data-y="${playerPos.y}"]`);
+        
+        if (targetCell) {
+            // Clear text on the current cell unless it's the start cell
+            if (!targetCell.classList.contains('start') && !targetCell.classList.contains('end')) {
+                // Check if it's an unused checkpoint and restore its text if player moved off it
+                const currentCP = checkpoints.find(c => c.x === playerPos.x && c.y === playerPos.y);
+                if (currentCP && currentCP.used) {
+                    targetCell.textContent = "✔️";
+                } else if (currentCP && !currentCP.used) {
+                    targetCell.textContent = "❓";
+                } else {
+                    targetCell.textContent = "";
+                }
+            }
+
+            // 2. Create and append the new player element
+            playerElement = document.createElement('div');
+            playerElement.classList.add('player');
+            targetCell.appendChild(playerElement); 
+        }
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (!canMove || questionDiv.classList.contains('active')) return; 
+
+      let newX = playerPos.x;
+      let newY = playerPos.y;
+
+      switch (event.key.toLowerCase()) {
+        case 'w': newY--; break;
+        case 'a': newX--; break;
+        case 's': newY++; break;
+        case 'd': newX++; break;
+      }
+
+      if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && mazeArray[newY][newX] === 1) {
+        // Before updating playerPos, check if the old cell was a checkpoint
+        const oldCP = checkpoints.find(c => c.x === playerPos.x && c.y === playerPos.y);
+        if (oldCP && !oldCP.used) {
+            // Restore checkpoint text if player is moving off an unused one (shouldn't happen 
+            // if question logic blocks movement, but good for robustness)
+            document.querySelector(`.cell[data-x="${oldCP.x}"][data-y="${oldCP.y}"]`).textContent = "❓";
+        }
+
+        playerPos.x = newX;
+        playerPos.y = newY;
+        updatePlayerPosition();
+
+        checkCheckpoints();
+        checkWin(); 
+      }
+    });
+
+    // --- Question Generation ---
+    function generateQuestion() {
+      const opIndex = Math.floor(Math.random() * 3); // 0: +, 1: -, 2: *
+      let num1, num2, operation;
+
+      if (opIndex === 0) { // Addition
+          num1 = Math.floor(Math.random() * 50) + 1;
+          num2 = Math.floor(Math.random() * 50) + 1;
+          operation = '+';
+          currentAnswer = num1 + num2;
+      } else if (opIndex === 1) { // Subtraction
+          const a = Math.floor(Math.random() * 50) + 1;
+          const b = Math.floor(Math.random() * 50) + 1;
+          num1 = Math.max(a, b);
+          num2 = Math.min(a, b);
+          operation = '-';
+          currentAnswer = num1 - num2;
+      } else { // Multiplication
+          num1 = Math.floor(Math.random() * 12) + 1; 
+          num2 = Math.floor(Math.random() * 12) + 1;
+          operation = '×'; 
+          currentAnswer = num1 * num2;
+      }
+
+      mathQuestion.textContent = `${num1} ${operation} ${num2} = ?`;
+      answerInput.value = '';
+      resultDisplay.textContent = '';
+      resultDisplay.className = ''; 
+    }
+
   </script>
 </body>
 </html>
