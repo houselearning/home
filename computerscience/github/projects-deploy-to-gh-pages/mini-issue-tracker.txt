@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mini GitHub Issue Tracker</title>
+<style>
+  body{font-family:Inter,system-ui;background:#0b1220;color:#e6eef8;margin:0;padding:24px}
+  .wrap{max-width:900px;margin:0 auto}
+  .card{background:#0f172a;padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+  input,select,button{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:#07101e;color:#e6eef8;font-size:14px}
+  button{cursor:pointer;background:#38bdf8;color:#001219;border:none}
+  button.secondary{background:#18232b}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .issue{background:#0b162b;padding:12px;border-radius:8px;margin-bottom:8px}
+  .small{color:#94a3b8;font-size:12px}
+  .label{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;margin-right:4px;margin-top:4px}
+  .open{color:#2dd4bf}
+  .closed{color:#f87171}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h2>Mini GitHub Issue Tracker</h2>
+    <div class="small">Shows issues, filters by labels & milestones.</div>
+
+    <div class="controls">
+      <input id="owner" placeholder="owner (e.g. microsoft)" />
+      <input id="repo" placeholder="repo (e.g. vscode)" />
+      <input id="token" placeholder="optional: GitHub token" style="min-width:260px" />
+      <button id="load">Load Issues</button>
+    </div>
+
+    <div class="controls">
+      <select id="stateFilter">
+        <option value="all">All issues</option>
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+      </select>
+      <select id="labelFilter"><option value="">Filter by label</option></select>
+      <select id="milestoneFilter"><option value="">Filter by milestone</option></select>
+      <button class="secondary" id="applyFilters">Apply Filters</button>
+    </div>
+
+    <div id="status" class="small">Idle.</div>
+
+    <div id="issues"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const status = $('status');
+const issuesDiv = $('issues');
+let cachedIssues = [];
+
+function setStatus(t){status.textContent=t;}
+function showIssue(issue){
+  const labels = issue.labels.map(l=>`<span class="label" style="background:#${l.color}30;color:#${l.color}">${l.name}</span>`).join('');
+  return `<div class="issue">
+    <div><strong>#${issue.number} ${issue.title}</strong></div>
+    <div class="small ${issue.state==='open'?'open':'closed'}">${issue.state.toUpperCase()}</div>
+    <div class="small">${labels}</div>
+    <div class="small">${issue.milestone?('Milestone: '+issue.milestone.title):''}</div>
+    <div class="small">Updated: ${new Date(issue.updated_at).toLocaleString()}</div>
+  </div>`;
+}
+
+function applyFilters(){
+  const state = $('stateFilter').value;
+  const label = $('labelFilter').value;
+  const milestone = $('milestoneFilter').value;
+
+  let list = [...cachedIssues];
+  if(state!=='all') list = list.filter(i=>i.state===state);
+  if(label) list = list.filter(i=>i.labels.some(l=>l.name===label));
+  if(milestone) list = list.filter(i=>i.milestone && String(i.milestone.number)===milestone);
+
+  render(list);
+}
+
+function render(list){
+  if(!list.length){issuesDiv.innerHTML='<div class="small">No issues match these filters.</div>';return;}
+  issuesDiv.innerHTML = list.map(showIssue).join('');
+}
+
+$('applyFilters').onclick = applyFilters;
+$('load').onclick = async ()=>{
+  const owner = $('owner').value.trim();
+  const repo = $('repo').value.trim();
+  const token = $('token').value.trim();
+
+  if(!owner||!repo){setStatus('enter owner/repo');return;}
+
+  const headers = {'Accept':'application/vnd.github+json'};
+  if(token) headers['Authorization']='token '+token;
+
+  setStatus('Loading issues…'); issuesDiv.innerHTML='';
+
+  try{
+    const url = `https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=100`;
+    const resp = await fetch(url,{headers});
+    if(!resp.ok){setStatus('error: '+resp.status);return;}
+    const data = await resp.json();
+
+    cachedIssues = data.filter(i=>!i.pull_request);
+
+    const labelSel = $('labelFilter');
+    const labels = new Set();
+    cachedIssues.forEach(i=>i.labels.forEach(l=>labels.add(l.name)));
+    labelSel.innerHTML = '<option value="">Filter by label</option>' +
+      [...labels].map(l=>`<option value="${l}">${l}</option>`).join('');
+
+    const milestoneSel = $('milestoneFilter');
+    const milestones = new Map();
+    cachedIssues.forEach(i=>{if(i.milestone) milestones.set(i.milestone.number,i.milestone.title);});
+    milestoneSel.innerHTML = '<option value="">Filter by milestone</option>' +
+      [...milestones.entries()].map(([n,t])=>`<option value="${n}">${t}</option>`).join('');
+
+    render(cachedIssues);
+    setStatus(`Loaded ${cachedIssues.length} issues.`);
+
+  }catch(err){
+    setStatus('Failed: '+err.message);
+  }
+};
+</script>
+</body>
+</html>
