@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deploying Websites with GitHub Pages</title>
+
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background: #f6f8fa;
+      color: #333;
+    }
+
+    h1, h2 { color: #0366d6; } /* GitHub blue */
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      background: #0d1117;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: Consolas, monospace;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0366d6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover { background-color: #024c9a; }
+
+    .output {
+      background: #161b22;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      color: #0f0;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background: #dceeff;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #0366d6;
+      margin: 1.2rem 0;
+    }
+
+    ul {
+      background: #fafafa;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    /* Snapshot Gallery */
+    .snapshot-gallery {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .snapshot-gallery img {
+      width: 150px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .snapshot-gallery img:hover {
+      transform: scale(1.05);
+      border-color: #0366d6;
+    }
+
+    /* Modal */
+    .snapshot-modal {
+      display: none;
+      position: fixed;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .snapshot-content {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 92%;
+      max-height: 92%;
+      text-align: center;
+      position: relative;
+    }
+
+    .snapshot-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 8px;
+    }
+
+    .download-btn {
+      display: inline-block;
+      background: #0366d6;
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    .download-btn:hover { background: #024c9a; }
+
+    .snapshot-close {
+      position: absolute;
+      right: 9px; top: 9px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌐 Deploying Websites with GitHub Pages</h1>
+
+  <p>
+    GitHub Pages is basically free web hosting from GitHub.  
+    Push your code → *boom* → website goes live.  
+    No servers, no payments, no stress. Just vibes.
+  </p>
+
+  <h2>⭐ What Can You Deploy?</h2>
+  <ul>
+    <li>Static HTML/CSS/JS websites</li>
+    <li>Docs sites</li>
+    <li>Portfolios</li>
+    <li>Projects you want to show off</li>
+  </ul>
+
+  <div class="tip">
+    ✅ Pages uses your repo’s <strong>gh-pages</strong> branch OR <strong>/docs</strong> folder OR a GitHub Actions workflow.
+  </div>
+
+  <h2>📚 The Easiest Setup (straight in Settings)</h2>
+
+  <textarea id="simplePages">
+1. Go to your repository
+2. Click **Settings → Pages**
+3. Choose:
+   - Source: "Deploy from branch"
+   - Branch: "main"
+   - Folder: / (root)
+4. Save
+5. Wait 10–30 seconds
+6. Your new site appears at:
+   https://username.github.io/repo-name/
+  </textarea>
+
+  <button onclick="simulateSimple()">▶️ Simulate Setup</button>
+
+  <div class="output" id="simpleOut">Output will appear here...</div>
+
+  <script>
+    function simulateSimple() {
+      document.getElementById("simpleOut").innerText =
+`✅ GitHub Pages Enabled
+⏳ Building site...
+🚀 Live at https://username.github.io/repo-name/`;
+    }
+  </script>
+
+  <h2>📚 Deploying with a <strong>gh-pages</strong> Branch</h2>
+
+  <textarea id="ghPagesBox">
+1. Create a new branch called gh-pages
+2. Put your website files in it (index.html must exist)
+3. Push the branch
+4. Go to Settings → Pages
+5. Choose:
+   - Source: gh-pages branch
+6. Boom. Website online.
+  </textarea>
+
+  <h2>🤖 Deploying Using GitHub Actions</h2>
+
+  <textarea id="actionsBox">
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build site
+      run: npm run build
+    - name: Upload Artifact
+      uses: actions/upload-pages-artifact@v2
+    - name: Deploy
+      uses: actions/deploy-pages@v2
+  </textarea>
+
+  <button onclick="simulateActions()">▶️ Simulate Actions Deployment</button>
+
+  <div class="output" id="actionsOut">Output will appear here...</div>
+
+  <script>
+    function simulateActions() {
+      document.getElementById("actionsOut").innerText =
+`🔧 Building site...
+📦 Uploading artifacts...
+✅ GitHub Actions deployed your site!
+🌍 Live on GitHub Pages`;
+    }
+  </script>
+
+  <h2>📸 Snapshots</h2>
+
+  <div class="snapshot-gallery" id="snapshotGallery">
+    <img data-src="img/pages-settings.png" src="img/pages-settings.png" alt="GitHub Pages Settings">
+    <img data-src="img/pages-branch.png" src="img/pages-branch.png" alt="Branch Settings">
+    <img data-src="img/pages-success.png" src="img/pages-success.png" alt="Pages Deployment Success">
+  </div>
+
+  <div id="snapshotModal" class="snapshot-modal">
+    <div class="snapshot-content">
+      <button class="snapshot-close" id="snapshotClose">✕</button>
+      <h3>Preview</h3>
+      <img id="snapshotLarge">
+      <a id="downloadBtn" class="download-btn" download>⬇️ Download Image</a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.querySelector('#snapshotModal');
+      const largeImg = document.querySelector('#snapshotLarge');
+      const downloadBtn = document.querySelector('#downloadBtn');
+      const closeBtn = document.querySelector('#snapshotClose');
+
+      document.querySelectorAll('#snapshotGallery img').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.dataset.src;
+          largeImg.src = src;
+          downloadBtn.href = src;
+          downloadBtn.setAttribute('download', src.split('/').pop());
+          modal.style.display = 'flex';
+        });
+      });
+
+      function closeModal() {
+        modal.style.display = 'none';
+        largeImg.src = "";
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === "Escape") closeModal(); });
+    })();
+  </script>
+
+</body>
+</html>

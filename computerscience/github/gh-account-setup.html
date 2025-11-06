@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Setting Up Your GitHub Account</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 { color: #0366d6; }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #024d9c; }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #dbeafe;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #0366d6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    /* Snapshot styling reused */
+    .snapshot-gallery {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .snapshot-gallery img {
+      width: 140px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .snapshot-gallery img:hover {
+      transform: scale(1.05);
+      border-color: #0366d6;
+    }
+
+    .snapshot-modal {
+      display: none;
+      position: fixed;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .snapshot-content {
+      position: relative;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 92%;
+      max-height: 92%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .snapshot-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .download-btn {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      background: #0366d6;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .download-btn:hover { background: #024d9c; }
+
+    .snapshot-close {
+      position: absolute;
+      right: 8px; top: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔧 Setting Up Your GitHub Account</h1>
+  <p>
+    Before you start pushing code like a pro, you need a GitHub account.  
+    This setup is super quick — literally less time than microwave mac-n-cheese.
+  </p>
+
+  <h2>✅ Step 1: Go to GitHub.com</h2>
+  <p>Head over to <code>https://github.com/join</code> and you’ll see the sign-up page.</p>
+
+  <h2>✅ Step 2: Pick Your Username</h2>
+  <p>
+    Your username is your dev identity — people will see it on repos, issues, PRs…  
+    So don’t pick something cursed like <code>CodingLord69</code>.
+  </p>
+
+  <h2>📚 Example: What the Sign-Up CLI Equivalent Looks Like</h2>
+
+  <textarea id="ghSignup">
+# (Fake) GitHub Signup via CLI — just for demo
+
+gh auth login
+? What account do you want to log into? GitHub.com
+? How would you like to authenticate? Browser
+✔ Authentication complete.
+  </textarea>
+
+  <button onclick="simulateSignup()">▶️ Simulate</button>
+
+  <div class="output" id="signupOutput">Output will appear here...</div>
+
+  <script>
+    function simulateSignup() {
+      const out = document.getElementById("signupOutput");
+
+      out.innerText =
+`✔ Logged into GitHub successfully!
+Welcome, new developer 🎉
+Your account is ready to use.`;
+    }
+  </script>
+
+  <div class="tip">
+    🔥 Pro Tip: Use a professional username — future employers WILL look you up.
+  </div>
+
+  <h2>✅ Step 3: Set Up Email Verification</h2>
+  <ul>
+    <li>GitHub sends you a verification email</li>
+    <li>Click the link → boom, you're legit</li>
+    <li>Verified emails also let you publish GitHub Pages</li>
+  </ul>
+
+  <h2>📚 Example: Adding an SSH Key</h2>
+  <textarea id="sshKeyBox">
+# Generate SSH key
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# Add it to GitHub
+gh ssh-key add ~/.ssh/id_ed25519.pub
+  </textarea>
+
+  <button onclick="simulateSSH()">▶️ Simulate SSH Setup</button>
+
+  <div class="output" id="sshOutput"></div>
+
+  <script>
+    function simulateSSH() {
+      document.getElementById("sshOutput").innerText =
+`✔ SSH key added to your account
+You're now able to push securely ✅`;
+    }
+  </script>
+
+  <div class="tip">
+    ✅ SSH saves you from typing your password every 5 minutes. Highly recommended.
+  </div>
+
+  <h2>✅ What You Should Configure Next</h2>
+  <ul>
+    <li><strong>Profile Picture</strong> — stop being an anonymous blob</li>
+    <li><strong>Bio</strong> — 1–2 sentences about what you build</li>
+    <li><strong>Public Email</strong> — optional but helpful</li>
+    <li><strong>Location / Website</strong></li>
+    <li><strong>Security Settings</strong> → enable 2FA</li>
+  </ul>
+
+  <div class="tip">
+    🔐 Enabling <strong>2FA (Two-Factor Authentication)</strong> is REQUIRED for many GitHub features now. Turn it on ASAP.
+  </div>
+
+  <!-- ✅ SNAPSHOT SECTION -->
+  <h2>📸 Snapshots</h2>
+  <div class="snapshot-gallery" id="snapshotGallery">
+    <img data-src="img/github-signup.png" src="img/github-signup.png" alt="GitHub Signup Page">
+    <img data-src="img/github-profile-settings.png" src="img/github-profile-settings.png" alt="Profile Settings">
+    <img data-src="img/github-ssh-keys.png" src="img/github-ssh-keys.png" alt="SSH Keys Page">
+  </div>
+
+  <!-- Modal -->
+  <div id="snapshotModal" class="snapshot-modal" aria-hidden="true">
+    <div class="snapshot-content">
+      <button id="snapshotClose" class="snapshot-close">✕</button>
+      <h3 style="margin:0 0 0.5rem 0;">Preview</h3>
+      <img id="snapshotLarge" src="">
+      <a id="downloadBtn" class="download-btn" download>⬇️ Download Image</a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function qs(s, ctx){ return (ctx||document).querySelector(s); }
+      function qsa(s, ctx){ return Array.from((ctx||document).querySelectorAll(s)); }
+
+      const modal = qs('#snapshotModal');
+      const largeImg = qs('#snapshotLarge');
+      const downloadBtn = qs('#downloadBtn');
+      const closeBtn = qs('#snapshotClose');
+
+      qsa('#snapshotGallery img').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.dataset.src;
+          largeImg.src = src;
+          downloadBtn.href = src;
+          downloadBtn.setAttribute('download', src.split('/').pop());
+
+          modal.style.display = 'flex';
+        });
+      });
+
+      function closeSnapshot() {
+        modal.style.display = 'none';
+        largeImg.src = '';
+      }
+
+      closeBtn.addEventListener('click', closeSnapshot);
+      modal.addEventListener('click', e => { if (e.target === modal) closeSnapshot(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSnapshot(); });
+    })();
+  </script>
+
+</body>
+</html>

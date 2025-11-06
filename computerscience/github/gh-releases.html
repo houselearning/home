@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Managing Releases & Versioning Your Projects</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background: #f6f8fa;
+      color: #333;
+    }
+
+    h1, h2 { color: #0366d6; }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      background: #0d1117;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: Consolas, monospace;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0366d6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover { background-color: #024c9a; }
+
+    .output {
+      background: #161b22;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      color: #0f0;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background: #dceeff;
+      padding: 0.7rem 1rem;
+      border-left: 5px solid #0366d6;
+      margin: 1.2rem 0;
+    }
+
+    ul {
+      background: #fafafa;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    /* Snapshot Gallery */
+    .snapshot-gallery {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .snapshot-gallery img {
+      width: 150px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .snapshot-gallery img:hover {
+      transform: scale(1.05);
+      border-color: #0366d6;
+    }
+
+    /* Modal */
+    .snapshot-modal {
+      display: none;
+      position: fixed;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .snapshot-content {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 92%;
+      max-height: 92%;
+      text-align: center;
+      position: relative;
+    }
+
+    .snapshot-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 8px;
+    }
+
+    .download-btn {
+      display: inline-block;
+      background: #0366d6;
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    .download-btn:hover { background: #024c9a; }
+
+    .snapshot-close {
+      position: absolute;
+      right: 9px; top: 9px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏷️ Managing Releases & Versioning Your Projects</h1>
+
+  <p>
+    Keeping track of your project versions is crucial for collaboration, bug tracking, and releases.  
+    GitHub makes it easy to tag releases and maintain semantic versioning.
+  </p>
+
+  <h2>📌 Key Concepts</h2>
+  <ul>
+    <li><strong>Semantic Versioning:</strong> Format <code>MAJOR.MINOR.PATCH</code> (e.g., 1.2.0)</li>
+    <li><strong>Release Tags:</strong> Mark specific points in your repo’s history</li>
+    <li><strong>Pre-Releases:</strong> Beta or testing versions before the official release</li>
+    <li><strong>Changelogs:</strong> Document new features, fixes, and updates</li>
+  </ul>
+
+  <div class="tip">
+    ⚡ Pro Tip: Always increment versions carefully to communicate changes to your users.
+  </div>
+
+  <h2>📚 Example: Tagging a Release</h2>
+  <textarea id="releaseExample">
+// Check your current branch
+git branch
+
+// Commit your changes
+git add .
+git commit -m "Add new feature"
+
+// Tag a new release
+git tag -a v1.2.0 -m "Release version 1.2.0"
+
+// Push tags to GitHub
+git push origin main --tags
+  </textarea>
+
+  <button onclick="simulateRelease()">▶️ Simulate Release</button>
+
+  <div class="output" id="releaseOutput">Simulation output will appear here...</div>
+
+  <script>
+    function simulateRelease() {
+      document.getElementById("releaseOutput").innerText =
+`✅ Changes committed successfully!
+🔖 New tag created: v1.2.0
+🚀 Tag pushed to GitHub
+✅ Release is ready for users!`;
+    }
+  </script>
+
+  <div class="tip">
+    💡 Tip: Use GitHub’s “Releases” page to attach binaries, release notes, or documentation to each release.
+  </div>
+
+  <h2>📸 Snapshots</h2>
+
+  <div class="snapshot-gallery" id="snapshotGallery">
+    <img data-src="img/release-tag.png" src="img/release-tag.png" alt="Creating a Tag">
+    <img data-src="img/release-push.png" src="img/release-push.png" alt="Pushing Tag to GitHub">
+    <img data-src="img/release-page.png" src="img/release-page.png" alt="GitHub Releases Page">
+  </div>
+
+  <div id="snapshotModal" class="snapshot-modal">
+    <div class="snapshot-content">
+      <button class="snapshot-close" id="snapshotClose">✕</button>
+      <h3>Preview</h3>
+      <img id="snapshotLarge">
+      <a id="downloadBtn" class="download-btn" download>⬇️ Download Image</a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.querySelector('#snapshotModal');
+      const largeImg = document.querySelector('#snapshotLarge');
+      const downloadBtn = document.querySelector('#downloadBtn');
+      const closeBtn = document.querySelector('#snapshotClose');
+
+      document.querySelectorAll('#snapshotGallery img').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.dataset.src;
+          largeImg.src = src;
+          downloadBtn.href = src;
+          downloadBtn.setAttribute('download', src.split('/').pop());
+          modal.style.display = 'flex';
+        });
+      });
+
+      function closeModal() {
+        modal.style.display = 'none';
+        largeImg.src = "";
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === "Escape") closeModal(); });
+    })();
+  </script>
+
+</body>
+</html>

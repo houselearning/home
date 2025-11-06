@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Making Commits the Right Way</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 { color: #22863a; }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      border-radius: 8px;
+      border: none;
+      padding: 1rem;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #22863a;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #176c2e; }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #daf5df;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #22863a;
+      margin: 1rem 0;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    /* Snapshot Gallery */
+    .snapshot-gallery {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .snapshot-gallery img {
+      width: 140px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .snapshot-gallery img:hover {
+      transform: scale(1.05);
+      border-color: #22863a;
+    }
+
+    /* Modal */
+    .snapshot-modal {
+      display: none;
+      position: fixed;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .snapshot-content {
+      position: relative;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 92%;
+      max-height: 92%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .snapshot-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .download-btn {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      background: #22863a;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .download-btn:hover { background: #176c2e; }
+
+    .snapshot-close {
+      position: absolute;
+      right: 8px; top: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✅ Making Commits the Right Way</h1>
+
+  <p>
+    Commits are basically your project’s “save points.”  
+    But not all commits are created equal. A clean commit history makes you look like you actually know what you're doing — and future you will THANK you.
+  </p>
+
+  <h2>📌 A Good Commit Should Be:</h2>
+  <ul>
+    <li>Small and focused</li>
+    <li>One logical change (not 10 unrelated edits)</li>
+    <li>Described clearly in the message</li>
+    <li>Easy to undo if needed</li>
+  </ul>
+
+  <div class="tip">
+    ✅ Golden rule: “One commit = one meaningful change.”
+  </div>
+
+  <h2>📚 Example: Making a Commit (Git)</h2>
+
+  <textarea id="commitBox">
+# Check what changed
+git status
+
+# Stage your changes
+git add .
+
+# Commit with a proper message
+git commit -m "Fix navbar alignment on homepage"
+  </textarea>
+
+  <button onclick="simulateCommit()">▶️ Simulate Commit</button>
+
+  <div class="output" id="commitOutput">Output will appear here...</div>
+
+  <script>
+    function simulateCommit() {
+      document.getElementById("commitOutput").innerText =
+`✔ Changes staged.
+✔ Commit created:
+"Fix navbar alignment on homepage"`;
+    }
+  </script>
+
+  <h2>📝 Good Commit Message Examples</h2>
+  <ul>
+    <li><strong>good:</strong> "Add dark mode toggle"</li>
+    <li><strong>good:</strong> "Fix crash when user submits empty form"</li>
+    <li><strong>bad:</strong> "stuff"</li>
+    <li><strong>bad:</strong> "update things idk"</li>
+  </ul>
+
+  <h2>🧠 Pro Tips</h2>
+  <div class="tip">
+    💡 Use <code>git add -p</code> to stage only parts of a file — super useful when you accidentally coded too much at once.
+  </div>
+
+  <div class="tip">
+    💡 Avoid committing generated files (node_modules, bin/, obj/, etc.)
+  </div>
+
+  <h2>📚 Example: Undoing a Commit</h2>
+
+  <textarea id="undoBox">
+# Undo the last commit but keep changes
+git reset --soft HEAD~1
+
+# Undo and delete changes
+git reset --hard HEAD~1
+  </textarea>
+
+  <button onclick="simulateUndo()">▶️ Simulate Undo</button>
+
+  <div class="output" id="undoOutput">Output will appear here...</div>
+
+  <script>
+    function simulateUndo() {
+      document.getElementById("undoOutput").innerText =
+`✔ Last commit undone.
+✔ Changes restored to working directory.`;
+    }
+  </script>
+
+  <h2>📸 Snapshots</h2>
+
+  <div class="snapshot-gallery" id="snapshotGallery">
+    <img data-src="img/commit-panel.png" src="img/commit-panel.png" alt="Commit Panel GUI">
+    <img data-src="img/git-status.png" src="img/git-status.png" alt="Git Status Terminal">
+    <img data-src="img/commit-message-good.png" src="img/commit-message-good.png" alt="Good Commit Message Example">
+  </div>
+
+  <div id="snapshotModal" class="snapshot-modal">
+    <div class="snapshot-content">
+      <button id="snapshotClose" class="snapshot-close">✕</button>
+      <h3>Preview</h3>
+      <img id="snapshotLarge">
+      <a id="downloadBtn" class="download-btn" download>⬇️ Download Image</a>
+    </div>
+  </div>
+
+  <!-- Snapshot Script -->
+  <script>
+    (function () {
+      const modal = document.querySelector('#snapshotModal');
+      const largeImg = document.querySelector('#snapshotLarge');
+      const downloadBtn = document.querySelector('#downloadBtn');
+      const closeBtn = document.querySelector('#snapshotClose');
+
+      document.querySelectorAll('#snapshotGallery img').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.dataset.src;
+          largeImg.src = src;
+          downloadBtn.href = src;
+          downloadBtn.setAttribute('download', src.split('/').pop());
+          modal.style.display = 'flex';
+        });
+      });
+
+      function closeModal() {
+        modal.style.display = 'none';
+        largeImg.src = '';
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === "Escape") closeModal(); });
+    })();
+  </script>
+
+</body>
+</html>

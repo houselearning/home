@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Contribution Badge Generator</title>
+<style>
+  :root{--bg:#0b1220;--muted:#94a3b8;--accent:#7dd3fc}
+  body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#071023;color:#e6eef8;margin:0;padding:24px}
+  .wrap{max-width:980px;margin:0 auto}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px}
+  h1{margin:0 0 6px;font-size:20px}
+  .muted{color:var(--muted);font-size:13px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  input,select,button,textarea{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:14px}
+  textarea{min-height:70px;width:100%;resize:vertical}
+  button{cursor:pointer;background:var(--accent);color:#001219;border:none}
+  button.secondary{background:#18232b}
+  .grid{display:grid;grid-template-columns:1fr 300px;gap:12px;align-items:start}
+  .list{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;max-height:420px;overflow:auto}
+  table{width:100%;border-collapse:collapse}
+  td,th{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);font-size:13px}
+  .badgePreview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .small{font-size:12px;color:var(--muted)}
+  .error{color:#ff7b7b}
+  .spinner{display:inline-block;border:3px solid rgba(255,255,255,0.06);border-top-color:var(--accent);border-radius:50%;width:14px;height:14px;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .badgeBtn{padding:6px 10px;border-radius:6px;border:none;cursor:pointer;background:#0b3a3a;color:#e6fff8}
+  .svgwrap{background:#02111a;padding:10px;border-radius:8px}
+  a.link{color:var(--accent)}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1>Contribution Badge Generator</h1>
+          <div class="muted">Generate repo-level SVG/PNG badges showing commits authored by a user.</div>
+        </div>
+        <div class="small muted">No server — runs in browser</div>
+      </div>
+
+      <div class="controls" role="region" aria-label="main-controls">
+        <input id="ghUser" placeholder="GitHub username (author) — e.g. octocat" style="min-width:220px"/>
+        <input id="ghToken" placeholder="Optional: GitHub token (PAT) to raise limits" style="min-width:320px"/>
+        <button id="fetchUserRepos">Fetch my public repos</button>
+        <button id="generateManual" class="secondary">Generate from manual list</button>
+      </div>
+
+      <div class="grid" style="margin-top:12px">
+        <div>
+          <label class="small">Manual repo list (one per line, owner/repo). You can edit counts after fetch:</label>
+          <textarea id="repoList" placeholder="e.g. microsoft/TypeScript"></textarea>
+
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <select id="styleSelect" title="Badge style">
+              <option value="classic">Classic (left label, right value)</option>
+              <option value="round">Rounded pill</option>
+              <option value="minimal">Minimal</option>
+            </select>
+            <input id="labelPrefix" placeholder="Label prefix (default: commits)" style="min-width:140px" />
+            <button id="start" style="margin-left:auto">Start fetch & generate</button>
+          </div>
+
+          <div id="status" class="small muted" style="margin-top:8px">Idle.</div>
+          <div id="error" class="error"></div>
+
+          <div id="aggregate" style="margin-top:12px"></div>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="small muted">Results</div>
+            <div class="small muted">Click badge to download SVG; use PNG button to save PNG</div>
+          </div>
+
+          <div id="results" class="list" style="margin-top:8px">
+            <!-- filled dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="muted small">
+        How it counts: for each repo we request <code>/repos/:owner/:repo/commits?author=:username&amp;per_page=1</code> and read the Link header. If Link is present the last page number equals commit count (per_page=1). If Link missing, we read array length. This is fast & avoids listing all commits.
+      </div>
+    </div>
+  </div>
+
+<script>
+(async () => {
+  // --- utils ---
+  const $ = id => document.getElementById(id);
+  const status = $('status');
+  const errorEl = $('error');
+  const results = $('results');
+  const aggregate = $('aggregate');
+
+  function setStatus(t, busy=false) {
+    status.textContent = t;
+  }
+  function showError(t){ errorEl.textContent = t || ''; }
+
+  // concurrency pool (basic)
+  async function asyncPool(limit, arr, iterator) {
+    const ret = [];
+    const executing = [];
+    for (const item of arr) {
+      const p = Promise.resolve().then(() => iterator(item));
+      ret.push(p);
+      if (limit <= arr.length) {
+        const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+        executing.push(e);
+        if (executing.length >= limit) {
+          await Promise.race(executing);
+        }
+      }
+    }
+    return Promise.all(ret);
+  }
+
+  function parseLinkHeader(link) {
+    if (!link) return {};
+    // example: <https://api.github.com/.../commits?page=3&per_page=1>; rel="last", <...>; rel="next"
+    return link.split(',').map(part => part.trim()).reduce((acc, part) => {
+      const m = part.match(/<([^>]+)>; rel="([^"]+)"/);
+      if (m) acc[m[2]] = m[1];
+      return acc;
+    }, {});
+  }
+
+  function getLastPageFromLink(link) {
+    const parsed = parseLinkHeader(link);
+    if (!parsed.last) return null;
+    const u = new URL(parsed.last);
+    return Number(u.searchParams.get('page')) || null;
+  }
+
+  // generate SVG badge string
+  function makeBadgeSVG({label, value, style='classic'}) {
+    const lab = label || 'commits';
+    const val = value == null ? '0' : String(value);
+    if (style === 'round') {
+      const width = 12 + Math.max(90, lab.length*8) + val.length*10;
+      const leftW = Math.max(90, lab.length*8);
+      const rightW = val.length*10 + 30;
+      const total = leftW + rightW;
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${total}" height="28" viewBox="0 0 ${total} 28">
+          <defs>
+            <linearGradient id="g" x2="0" y2="100%">
+              <stop offset="0" stop-color="#4ade80" stop-opacity="0.15"/>
+              <stop offset="1" stop-color="#06b6d4" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <rect rx="14" width="${total}" height="28" fill="#111827"/>
+          <rect rx="14" x="${leftW}" width="${rightW}" height="28" fill="#0f1724"/>
+          <rect rx="14" width="${total}" height="28" fill="url(#g)" />
+          <g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="12">
+            <text x="${12}" y="18">${escapeXml(lab)}</text>
+            <text x="${leftW + 16}" y="18">${escapeXml(val)}</text>
+          </g>
+        </svg>`;
+    } else if (style === 'minimal') {
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${80 + val.length*8}" height="20" viewBox="0 0 ${80 + val.length*8} 20">
+          <rect rx="4" width="100%" height="100%" fill="#0b1220" />
+          <text x="8" y="14" font-family="Verdana,Arial" font-size="11" fill="#9aa9b8">${escapeXml(lab)}:</text>
+          <text x="${8+lab.length*6 + 8}" y="14" font-family="Verdana,Arial" font-size="11" fill="#7dd3fc">${escapeXml(val)}</text>
+        </svg>`;
+    } else {
+      // classic: left label, right value
+      const leftW = Math.max(90, lab.length*8);
+      const rightW = val.length*9 + 36;
+      const total = leftW + rightW;
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${total}" height="20" viewBox="0 0 ${total} 20">
+          <rect rx="3" width="${leftW}" height="20" fill="#0b1220" />
+          <rect rx="3" x="${leftW}" width="${rightW}" height="20" fill="#0f1724" />
+          <g fill="#fff" font-family="Verdana,Arial" font-size="11">
+            <text x="10" y="14">${escapeXml(lab)}</text>
+            <text x="${leftW + 12}" y="14" fill="#7dd3fc">${escapeXml(val)}</text>
+          </g>
+        </svg>`;
+    }
+  }
+
+  // escape for xml
+  function escapeXml(s){ return String(s || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+  // convert svg string to data URL
+  function svgToDataUrl(svg) {
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  // download helper
+  function downloadFile(filename, content, mime) {
+    const blob = new Blob([content], {type:mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+  }
+
+  // svg -> png via canvas
+  async function svgToPngBlob(svg, width, height) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width || img.width;
+        canvas.height = height || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#02111a';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(img,0,0);
+        canvas.toBlob(blob => resolve(blob), 'image/png');
+      };
+      img.onerror = (e) => reject(e);
+      img.src = svgToDataUrl(svg);
+    });
+  }
+
+  // call GitHub to get count of commits authored by username in repo
+  async function getCommitCount({owner, repo, author, token}) {
+    const headers = {'Accept':'application/vnd.github+json'};
+    if (token) headers['Authorization'] = 'token ' + token;
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?author=${encodeURIComponent(author)}&per_page=1`;
+    const resp = await fetch(url, {headers});
+    if (resp.status === 404) return {error:'repo not found (404)', count:0};
+    if (resp.status === 403) {
+      const txt = await resp.text();
+      throw new Error('Rate limited or forbidden: ' + (txt || '403'));
+    }
+    if (!resp.ok) {
+      const txt = await resp.text();
+      return {error:`HTTP ${resp.status}: ${txt}`, count:0};
+    }
+    const link = resp.headers.get('Link');
+    if (link) {
+      const last = getLastPageFromLink(link);
+      if (last != null) return {count:last, error:null};
+    }
+    // if no Link header, parse body length (0 or 1)
+    const arr = await resp.json();
+    return {count: Array.isArray(arr) ? arr.length : 0, error:null};
+  }
+
+  // UI actions
+  $('fetchUserRepos').addEventListener('click', async () => {
+    const user = $('ghUser').value.trim();
+    const token = $('ghToken').value.trim();
+    showError('');
+    if (!user) { showError('Enter GitHub username to fetch repos for.'); return; }
+    setStatus('Fetching public repos…');
+    try {
+      const headers = {'Accept':'application/vnd.github+json'};
+      if (token) headers['Authorization'] = 'token ' + token;
+      const resp = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}/repos?per_page=100`, {headers});
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error('Failed to fetch repos: ' + resp.status + ' ' + txt);
+      }
+      const list = await resp.json();
+      const lines = list.map(r => `${r.owner.login}/${r.name}`).join('\\n');
+      $('repoList').value = lines;
+      setStatus(`Loaded ${list.length} public repos. Edit list and press Start.`);
+    } catch (err) {
+      console.error(err);
+      showError(err.message || String(err));
+      setStatus('Failed.');
+    }
+  });
+
+  $('generateManual').addEventListener('click', () => {
+    // convenience: open manual textarea content for immediate generation
+    setStatus('Paste your manual list, then press Start.');
+  });
+
+  $('start').addEventListener('click', async () => {
+    showError('');
+    const author = $('ghUser').value.trim();
+    const token = $('ghToken').value.trim();
+    const style = $('styleSelect').value;
+    const labelPrefix = ($('labelPrefix').value || 'commits').trim();
+    let repos = $('repoList').value.split('\\n').map(s => s.trim()).filter(Boolean);
+    if (repos.length === 0) { showError('Add at least one owner/repo line.'); return; }
+    // parse owner/repo
+    const parsed = repos.map(line => {
+      const p = line.split('/').map(x => x.trim());
+      if (p.length !== 2) return {raw:line, owner:null, repo:null};
+      return {raw:line, owner:p[0], repo:p[1]};
+    });
+    // option: if author is blank, bail with manual-only mode
+    if (!author) {
+      // manual mode: ask user to edit counts manually by clicking edit
+      setStatus('Author not provided — generating editable placeholder badges for manual counts.');
+      renderResults(parsed.map(p => ({...p, count:null, error:'manual'})), {style,labelPrefix,author});
+      return;
+    }
+
+    setStatus(`Fetching commit counts for ${parsed.length} repos… (concurrency friendly)`);
+    results.innerHTML = '<div class="small muted"><span class="spinner"></span> Fetching…</div>';
+    try {
+      // concurrency 4
+      const responses = await asyncPool(4, parsed, async (p) => {
+        if (!p.owner) return {...p, count:0, error:'invalid repo format'};
+        try {
+          const {count, error} = await getCommitCount({owner:p.owner, repo:p.repo, author, token});
+          return {...p, count:count ?? 0, error};
+        } catch (err) {
+          return {...p, count:0, error:err.message};
+        }
+      });
+
+      renderResults(responses, {style,labelPrefix,author,token});
+      const total = responses.reduce((s,r) => s + (Number(r.count) || 0), 0);
+      aggregate.innerHTML = `<div class="small muted">Total contributions across listed repos: <strong>${total}</strong></div>
+        <div style="margin-top:8px">
+          <button id="downloadAllSvgs" class="badgeBtn">Download all SVGs (zip)</button>
+          <button id="downloadOverallPng" class="badgeBtn" style="margin-left:8px">Download overall PNG</button>
+        </div>`;
+      // hook downloadAllSvgs (simple zip-less: download a single blob with concatenated svgs in folder-like name)
+      $('downloadAllSvgs').addEventListener('click', () => {
+        // make a single text file containing multiple svgs, or create a zip using JSZip (not included).
+        const combined = responses.map(r => {
+          const svg = makeBadgeSVG({label: `${r.owner}/${r.repo}`, value: r.count ?? 0, style});
+          return `<!-- ${r.owner}/${r.repo} -->\\n` + svg;
+        }).join('\\n\\n');
+        downloadFile(`contrib-badges-${author}.svg.txt`, combined, 'image/svg+xml');
+      });
+      $('downloadOverallPng').addEventListener('click', async () => {
+        const total = responses.reduce((s,r) => s + (Number(r.count) || 0), 0);
+        const svg = makeBadgeSVG({label: labelPrefix || 'commits', value: total, style});
+        try {
+          const blob = await svgToPngBlob(svg);
+          downloadFile(`contrib-total-${author}.png`, blob, 'image/png');
+        } catch (err) {
+          showError('Failed to convert overall SVG to PNG: ' + err.message);
+        }
+      });
+
+      setStatus('Done — badges below.');
+    } catch (err) {
+      console.error(err);
+      showError(err.message || String(err));
+      setStatus('Failed.');
+    }
+  });
+
+  // render results list with controls (download/edit)
+  function renderResults(items, opts) {
+    const style = opts.style;
+    const labelPrefix = opts.labelPrefix || 'commits';
+    const author = opts.author;
+    results.innerHTML = items.map((it, idx) => {
+      const name = it.owner && it.repo ? `${it.owner}/${it.repo}` : it.raw;
+      const count = (it.count == null) ? '' : String(it.count);
+      const err = it.error ? `<div class="small error">${escapeXml(it.error)}</div>` : '';
+      const svg = makeBadgeSVG({label: labelPrefix + ' · ' + name, value: count || 0, style});
+      return `
+      <div id="row-${idx}" style="margin-bottom:12px">
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div style="flex:1">
+            <div style="font-weight:700">${escapeXml(name)}</div>
+            ${err}
+            <div class="small muted">Author: ${escapeXml(author || 'manual')}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="badgeBtn" data-idx="${idx}" data-action="download-svg">SVG</button>
+            <button class="badgeBtn" data-idx="${idx}" data-action="download-png">PNG</button>
+            <button class="badgeBtn" data-idx="${idx}" data-action="copy-markdown">MD</button>
+          </div>
+        </div>
+        <div style="margin-top:8px" class="svgwrap">
+          ${svg}
+        </div>
+        <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+          <label class="small muted">Count (editable): </label>
+          <input class="countInput" data-idx="${idx}" value="${escapeHtml(count)}" placeholder="0" style="width:90px"/>
+          <button class="badgeBtn" data-idx="${idx}" data-action="regen">Regenerate</button>
+        </div>
+      </div>`;
+    }).join('');
+    // attach handlers
+    // download handlers
+    results.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const action = btn.getAttribute('data-action');
+        const idx = Number(btn.getAttribute('data-idx'));
+        const it = items[idx];
+        const name = it.owner && it.repo ? `${it.owner}/${it.repo}` : it.raw;
+        const input = results.querySelector(`input.countInput[data-idx="${idx}"]`);
+        const value = input ? (input.value.trim() || '0') : (it.count || 0);
+        const svg = makeBadgeSVG({label: `${labelPrefix} · ${name}`, value, style});
+        if (action === 'download-svg') {
+          downloadFile(`${name.replace('/','-')}-badge.svg`, svg, 'image/svg+xml');
+        } else if (action === 'download-png') {
+          try {
+            btn.disabled = true;
+            btn.textContent = 'Rendering…';
+            const blob = await svgToPngBlob(svg);
+            downloadFile(`${name.replace('/','-')}-badge.png`, blob, 'image/png');
+            btn.disabled = false; btn.textContent = 'PNG';
+          } catch (err) {
+            btn.disabled = false; btn.textContent = 'PNG';
+            showError('PNG conversion failed: ' + err.message);
+          }
+        } else if (action === 'copy-markdown') {
+          // copy markdown image link
+          const dataUrl = svgToDataUrl(svg);
+          const md = `![${name} contributions](${dataUrl})`;
+          navigator.clipboard?.writeText(md).then(()=> {
+            btn.textContent = 'Copied!';
+            setTimeout(()=> btn.textContent = 'MD', 1200);
+          }, ()=> {
+            showError('Clipboard failed — you can download SVG instead.');
+          });
+        } else if (action === 'regen') {
+          // replace SVG preview with updated count
+          const holder = document.querySelector(`#row-${idx} .svgwrap`);
+          holder.innerHTML = svg;
+        }
+      });
+    });
+  }
+
+  // tiny helpers
+  function escapeHtml(s){ return String(s || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+})();
+</script>
+</body>
+</html>
