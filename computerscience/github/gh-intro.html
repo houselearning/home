@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>What Even *Is* GitHub?</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #0366d6; /* GitHub blue */
+    }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #024d9c;
+    }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #dbeafe;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #0366d6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐙 What Even *Is* GitHub?</h1>
+  <p>
+    GitHub is basically the home base for your code.  
+    Think of it as a mix of **Google Drive**, **social media**, and **team-collab tools**, but for developers.
+  </p>
+
+  <p>
+    It stores your code in something called a <strong>repository (repo)</strong> and tracks every change you make using <strong>Git</strong>.  
+    So instead of saving files as “final_v2_reallyFINAL_fixed_REALLY_final”, GitHub keeps your entire version history clean.
+  </p>
+
+  <h2>📚 Example: What a Git Commit Looks Like</h2>
+  <textarea id="ghIntroCode">
+# This is what a Git commit looks like (simplified)
+
+commit 3f92a1b
+Author: Alex
+Date: Today
+
+    Added main menu UI and fixed bug in login system
+  </textarea>
+
+  <button onclick="simulateGitHubIntro()">▶️ Simulate</button>
+
+  <div class="output" id="ghIntroOutput">Output will appear here...</div>
+
+  <script>
+    function simulateGitHubIntro() {
+      const output = document.getElementById("ghIntroOutput");
+
+      const simulated = 
+`✔ Commit loaded!
+Author: Alex
+Message: "Added main menu UI and fixed bug in login system"
+Status: Successfully stored in repo history ✅`;
+
+      output.innerText = simulated;
+    }
+  </script>
+
+  <div class="tip">
+    💡 <strong>Fun fact:</strong> GitHub doesn’t replace Git — it just makes Git way easier to use with a clean UI.
+  </div>
+
+  <h2>🔧 What GitHub Actually Does</h2>
+  <ul>
+    <li><strong>Stores your code</strong> in online repositories</li>
+    <li>Tracks every change using <code>commits</code></li>
+    <li>Lets multiple people work together with <code>branches</code> & <code>pull requests</code></li>
+    <li>Hosts websites using <code>GitHub Pages</code></li>
+    <li>Runs automation & CI/CD using <code>GitHub Actions</code></li>
+  </ul>
+
+  <h2>📂 Example: Creating a GitHub Repo (CLI demo)</h2>
+  <textarea id="ghCreateRepoCode">
+# GitHub CLI example (pretend demo)
+
+gh repo create MyCoolProject --public
+cd MyCoolProject
+git add .
+git commit -m "initial commit"
+git push origin main
+  </textarea>
+
+  <button onclick="simulateRepoCreation()">▶️ Simulate Repo Creation</button>
+
+  <div class="output" id="ghCreateRepoOutput">Simulation output will appear here...</div>
+
+  <script>
+    function simulateRepoCreation() {
+      const out = document.getElementById("ghCreateRepoOutput");
+
+      const result =
+`✔ Repo "MyCoolProject" created.
+✔ Initial commit pushed.
+🌐 View it online:
+https://github.com/you/MyCoolProject`;
+
+      out.innerText = result;
+    }
+  </script>
+
+  <div class="tip">
+    ✅ Using the GitHub CLI is optional — most beginners just use the GitHub website, and that’s totally fine.
+  </div>
+
+  <h2>🧠 Core Concepts to Remember</h2>
+  <ul>
+    <li><strong>Repo</strong> = project folder in the cloud</li>
+    <li><strong>Commit</strong> = snapshot of your code</li>
+    <li><strong>Branch</strong> = safe workspace to try ideas</li>
+    <li><strong>Pull Request</strong> = “hey can we add this change?”</li>
+    <li><strong>Fork</strong> = copy someone else's repo to your account</li>
+  </ul>
+
+  <div class="tip">
+    🔥 Once you understand repos, commits, and branches…  
+    GitHub becomes stupidly easy — and super powerful.
+  </div>
+<h2>📸 Snapshots</h2>
+<div class="snapshot-gallery" id="snapshotGallery">
+  <img data-src="img/commit-example.png" src="img/commit-example.png" alt="Commit Example">
+  <img data-src="img/repo-dashboard.png" src="img/repo-dashboard.png" alt="Repository Dashboard">
+  <img data-src="img/pull-request-view.png" src="img/pull-request-view.png" alt="Pull Request View">
+</div>
+
+
+  <!-- Modal -->
+  <div id="snapshotModal" class="snapshot-modal" aria-hidden="true">
+    <div class="snapshot-content" role="dialog" aria-modal="true" aria-labelledby="snapshotTitle">
+      <button id="snapshotClose" class="snapshot-close" aria-label="Close">✕</button>
+      <h3 id="snapshotTitle" style="margin:0 0 0.5rem 0;">Preview</h3>
+      <img id="snapshotLarge" src="" alt="Large snapshot">
+      <br>
+      <a id="downloadBtn" class="download-btn" download>⬇️ Download Image</a>
+    </div>
+  </div>
+
+  <style>
+    .snapshot-gallery {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .snapshot-gallery img {
+      width: 140px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .snapshot-gallery img:hover {
+      transform: scale(1.05);
+      border-color: #0366d6;
+    }
+
+    /* Modal */
+    .snapshot-modal {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .snapshot-content {
+      position: relative;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 92%;
+      max-height: 92%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .snapshot-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .download-btn {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      background: #0366d6;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .download-btn:hover { background: #024d9c; }
+
+    .snapshot-close {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    (function () {
+      // Safe DOM-ready
+      function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
+      function qsa(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
+
+      const gallery = qs('#snapshotGallery');
+      const modal = qs('#snapshotModal');
+      const largeImg = qs('#snapshotLarge');
+      const downloadBtn = qs('#downloadBtn');
+      const closeBtn = qs('#snapshotClose');
+
+      // Attach listeners to thumbnails
+      qsa('#snapshotGallery img').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.dataset.src || img.src;
+          openSnapshot(src);
+        });
+      });
+
+      // Open modal and set image + download
+      function openSnapshot(src) {
+        largeImg.src = src;
+        downloadBtn.href = src;
+        // set filename for download (nice fallback)
+        const fileName = src.split('/').pop() || 'snapshot.png';
+        downloadBtn.setAttribute('download', fileName);
+
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        // trap focus on close button for accessibility
+        closeBtn.focus();
+      }
+
+      // Close modal
+      function closeSnapshot() {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        largeImg.src = '';
+      }
+
+      // Overlay click closes if clicked outside content
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeSnapshot();
+      });
+
+      closeBtn.addEventListener('click', closeSnapshot);
+
+      // ESC to close
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+          closeSnapshot();
+        }
+      });
+
+      // expose nothing to global scope — prevents collisions
+      // If you still want a global function named openSnapshot, uncomment:
+      // window.openSnapshot = openSnapshot;
+    })();
+  </script>
+
+</body>
+</html>
