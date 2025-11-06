@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GitHub Repo Dashboard — HTML</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#38bdf8}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,#071023 0%, #07182a 100%);color:#e6eef8;min-height:100vh;padding:28px}
+    .wrap{max-width:980px;margin:0 auto}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 8px 0;font-size:20px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+    input,select,button{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:14px}
+    input::placeholder{color:var(--muted)}
+    button{cursor:pointer;background:var(--accent);color:#042028;border:none}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;font-size:13px;vertical-align:top}
+    th{color:var(--muted);font-weight:600;font-size:12px}
+    a.repo{color:#8be9ff;text-decoration:none;font-weight:600}
+    .muted{color:var(--muted);font-size:12px}
+    .small{font-size:12px}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-weight:600}
+    .row-actions{display:flex;gap:8px}
+    .notice{margin-top:12px;color:#ffd1a9}
+    .spinner{display:inline-block;border:3px solid rgba(255,255,255,0.06);border-top-color:var(--accent);border-radius:50%;width:18px;height:18px;animation:spin 1s linear infinite;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error{color:#ff7b7b}
+    @media (max-width:700px){th,td{font-size:12px;padding:8px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1>GitHub Repo Dashboard</h1>
+          <div class="muted">Shows stars, forks, and latest commit for top repos (by stars).</div>
+        </div>
+        <div class="muted small">No server — runs in your browser.</div>
+      </div>
+
+      <div class="controls" role="region" aria-label="controls">
+        <input id="username" placeholder="GitHub username (e.g. octocat)" value="" />
+        <select id="topN" title="Number of repos to show">
+          <option value="5">Top 5</option>
+          <option value="10" selected>Top 10</option>
+          <option value="20">Top 20</option>
+        </select>
+        <input id="token" placeholder="Optional: GitHub token (paste here to avoid rate limits)" style="min-width:280px" />
+        <button id="fetchBtn">Fetch</button>
+        <button id="clearBtn" style="background:#2a2f36">Clear</button>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div id="status" class="muted small">Idle.</div>
+        <div id="error" class="error"></div>
+      </div>
+
+      <div id="tableWrap"></div>
+
+      <div class="notice">Tip: If you hit rate limits, create a GitHub Personal Access Token (no scopes required) and paste it above. Avoid sharing tokens publicly.</div>
+    </div>
+  </div>
+
+<script>
+  // --- helpers ---
+  const $ = (id) => document.getElementById(id);
+  const status = $('status');
+  const errEl = $('error');
+  const tableWrap = $('tableWrap');
+  const fetchBtn = $('fetchBtn');
+  const clearBtn = $('clearBtn');
+
+  function setStatus(text, busy=false) {
+    status.textContent = text;
+    fetchBtn.disabled = busy;
+    clearBtn.disabled = busy;
+    if (busy) status.innerHTML = '<span class="spinner"></span> ' + text;
+  }
+
+  function showError(msg) {
+    errEl.textContent = msg || '';
+  }
+
+  // concurrency-limited promise pool (classic)
+  async function asyncPool(poolLimit, array, iteratorFn) {
+    const ret = [];
+    const executing = [];
+    for (const item of array) {
+      const p = Promise.resolve().then(() => iteratorFn(item));
+      ret.push(p);
+      if (poolLimit <= array.length) {
+        const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+        executing.push(e);
+        if (executing.length >= poolLimit) {
+          await Promise.race(executing);
+        }
+      }
+    }
+    return Promise.all(ret);
+  }
+
+  // format date
+  function fmtDate(iso) {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString();
+    } catch(e) { return iso }
+  }
+
+  // main fetch logic
+  async function fetchRepos() {
+    showError('');
+    tableWrap.innerHTML = '';
+    const username = $('username').value.trim();
+    const token = $('token').value.trim();
+    const topN = parseInt($('topN').value, 10) || 10;
+
+    if (!username) { showError('Enter a GitHub username.'); return; }
+
+    const headers = {
+      'Accept': 'application/vnd.github+json'
+    };
+    if (token) headers['Authorization'] = 'token ' + token;
+
+    setStatus('Fetching repositories…', true);
+
+    try {
+      const reposResp = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100`, { headers });
+      if (reposResp.status === 404) throw new Error('User not found (404). Check the username.');
+      if (reposResp.status === 403) {
+        const text = await reposResp.text();
+        throw new Error('Rate limited or access forbidden. '+ (text || 'HTTP 403'));
+      }
+      if (!reposResp.ok) {
+        const txt = await reposResp.text();
+        throw new Error('Failed to fetch repos: ' + (reposResp.status + ' ' + txt));
+      }
+
+      let allRepos = await reposResp.json();
+      if (!Array.isArray(allRepos)) throw new Error('Unexpected response.');
+
+      // sort by stars desc and slice
+      allRepos.sort((a,b) => (b.stargazers_count||0) - (a.stargazers_count||0));
+      const topRepos = allRepos.slice(0, topN);
+
+      if (topRepos.length === 0) {
+        setStatus('No public repos found.');
+        return;
+      }
+
+      setStatus(`Fetching latest commit for ${topRepos.length} repos (rate-friendly)…`, true);
+
+      // fetch most recent commit per repo with small concurrency
+      const fetchCommitFor = async (r) => {
+        try {
+          const url = `https://api.github.com/repos/${encodeURIComponent(r.owner.login)}/${encodeURIComponent(r.name)}/commits?per_page=1`;
+          const resp = await fetch(url, { headers });
+          if (!resp.ok) {
+            return { repo: r, commit: null, error: `HTTP ${resp.status}` };
+          }
+          const commits = await resp.json();
+          const latest = (Array.isArray(commits) && commits.length) ? commits[0] : null;
+          return { repo: r, commit: latest, error: null };
+        } catch (e) {
+          return { repo: r, commit: null, error: e.message };
+        }
+      };
+
+      // concurrency 4 to be safe
+      const results = await asyncPool(4, topRepos, fetchCommitFor);
+
+      // render table
+      renderTable(results, username);
+      setStatus('Done — results below.');
+    } catch (err) {
+      console.error(err);
+      showError(err.message || String(err));
+      setStatus('Failed.');
+    } finally {
+      fetchBtn.disabled = false;
+      clearBtn.disabled = false;
+    }
+  }
+
+  function renderTable(items, username) {
+    const rows = items.map(({repo, commit, error}) => {
+      const repoLink = `<a class="repo" href="${repo.html_url}" target="_blank" rel="noreferrer">${escapeHtml(repo.name)}</a>`;
+      const desc = repo.description ? `<div class="muted small">${escapeHtml(repo.description)}</div>` : '';
+      const stars = numberWithCommas(repo.stargazers_count);
+      const forks = numberWithCommas(repo.forks_count);
+      const commitHtml = commit ? `
+          <div><strong>${escapeHtml(commit.commit.message.split('\\n')[0])}</strong></div>
+          <div class="muted small">${escapeHtml(commit.commit.author.name || commit.commit.committer?.name || '')} · ${fmtDate(commit.commit.author.date)}</div>
+          <div class="small"><a href="${repo.html_url}/commit/${commit.sha}" target="_blank" rel="noreferrer">view commit</a></div>
+        ` : `<div class="muted small">${error ? 'Failed: '+escapeHtml(error) : 'No commits'}</div>`;
+
+      return `<tr>
+        <td>${repoLink}${desc}</td>
+        <td><span class="badge">★ ${stars}</span></td>
+        <td><span class="badge">🍴 ${forks}</span></td>
+        <td>${commitHtml}</td>
+      </tr>`;
+    }).join('');
+
+    tableWrap.innerHTML = `
+      <table role="table" aria-label="GitHub repositories">
+        <thead>
+          <tr><th>Repository</th><th>Stars</th><th>Forks</th><th>Most recent commit</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  // small utilities
+  function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+  function numberWithCommas(x){ if (x==null) return '0'; return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+  // hooks
+  fetchBtn.addEventListener('click', fetchRepos);
+  clearBtn.addEventListener('click', () => {
+    $('username').value = '';
+    $('token').value = '';
+    tableWrap.innerHTML = '';
+    showError('');
+    setStatus('Idle.');
+  });
+
+  // allow Enter to trigger fetch
+  $('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchRepos(); });
+  $('token').addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchRepos(); });
+
+  // prefill with your GitHub username for convenience (optional)
+  // $('username').value = 'octocat';
+</script>
+</body>
+</html>
