@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Repos: Your Code's Home Base</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 2rem;
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    h1, h2 { color: #0366d6; }
+
+    textarea {
+      width: 100%;
+      height: 260px;
+      font-family: Consolas, monospace;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #024d9c; }
+
+    .output {
+      margin-top: 1rem;
+      background: #222;
+      color: #0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+
+    .tip {
+      background-color: #dbeafe;
+      padding: 0.5rem 1rem;
+      border-left: 5px solid #0366d6;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: #e0e0e0;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    ul {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    /* Snapshot Gallery */
+    .snapshot-gallery {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .snapshot-gallery img {
+      width: 140px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .snapshot-gallery img:hover {
+      transform: scale(1.05);
+      border-color: #0366d6;
+    }
+
+    /* Modal */
+    .snapshot-modal {
+      display: none;
+      position: fixed;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .snapshot-content {
+      position: relative;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 92%;
+      max-height: 92%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .snapshot-content img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .download-btn {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      background: #0366d6;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .download-btn:hover { background: #024d9c; }
+
+    .snapshot-close {
+      position: absolute;
+      right: 8px; top: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 Repos: Your Code's Home Base</h1>
+  <p>
+    A <strong>repository</strong> (aka repo) is where your entire project lives on GitHub.
+    It’s your code’s home — its folder in the cloud — plus:
+  </p>
+  <ul>
+    <li>all the versions of your project</li>
+    <li>branches you're experimenting with</li>
+    <li>issues, pull requests, discussions</li>
+    <li>your README (your project's landing page)</li>
+  </ul>
+
+  <p>
+    Think of a repo like the “master folder” that keeps everything organized while Git tracks every change you make.
+  </p>
+
+  <h2>📚 Example: Creating a Local Repo</h2>
+  <textarea id="repoInitBox">
+# Create a new repository locally
+mkdir MyProject
+cd MyProject
+git init
+
+# Add a file
+echo "# MyProject" > README.md
+
+# Save it to Git
+git add .
+git commit -m "Initial commit"
+  </textarea>
+  <button onclick="simulateRepoInit()">▶️ Simulate</button>
+
+  <div class="output" id="repoInitOutput">Output will appear here...</div>
+
+  <script>
+    function simulateRepoInit() {
+      document.getElementById("repoInitOutput").innerText =
+`✔ Initialized empty Git repository.
+✔ README.md added.
+✔ Commit saved: "Initial commit"`;
+    }
+  </script>
+
+  <div class="tip">
+    💡 You don’t need GitHub to use Git… but GitHub makes everything 100× easier.
+  </div>
+
+  <h2>🌐 Creating a Repo on GitHub</h2>
+  <p>
+    On GitHub.com, click <code>New Repository</code>, choose a name, add an optional README, and boom — repo created.
+  </p>
+
+  <h2>📚 Example: Creating a Repo using GitHub CLI</h2>
+  <textarea id="repoCLICode">
+# Create a new GitHub repo from your terminal
+gh repo create MyProject --public --source=. --remote=origin
+
+git push -u origin main
+  </textarea>
+  <button onclick="simulateRepoCLI()">▶️ Simulate CLI</button>
+
+  <div class="output" id="repoCLIOutput">Output will appear here...</div>
+
+  <script>
+    function simulateRepoCLI() {
+      document.getElementById("repoCLIOutput").innerText =
+`✔ GitHub repo "MyProject" created.
+✔ Pushed local code to GitHub.
+🌐 Repo available at: https://github.com/you/MyProject`;
+    }
+  </script>
+
+  <div class="tip">
+    ✅ The GitHub CLI is super handy when you’re building tons of projects — no website required.
+  </div>
+
+  <h2>🧠 What Lives Inside a Repo?</h2>
+  <ul>
+    <li><strong>Code</strong> (obviously)</li>
+    <li><strong>.gitignore</strong> to hide junk files</li>
+    <li><strong>README.md</strong> — your project’s homepage</li>
+    <li><strong>LICENSE</strong> — legal “what people can do with your code”</li>
+    <li><strong>Branches</strong></li>
+    <li><strong>Issues & PRs</strong> for teamwork</li>
+  </ul>
+
+  <div class="tip">
+    🔥 A clean README makes your repo look 10× more professional instantly.
+  </div>
+
+  <!-- ✅ SNAPSHOTS -->
+  <h2>📸 Snapshots</h2>
+  <div class="snapshot-gallery" id="snapshotGallery">
+    <img data-src="img/repo-home.png" src="img/repo-home.png" alt="Repo Home Screen">
+    <img data-src="img/repo-readme.png" src="img/repo-readme.png" alt="README Example">
+    <img data-src="img/repo-files.png" src="img/repo-files.png" alt="Repo File Structure">
+  </div>
+
+  <div id="snapshotModal" class="snapshot-modal" aria-hidden="true">
+    <div class="snapshot-content">
+      <button id="snapshotClose" class="snapshot-close">✕</button>
+      <h3>Preview</h3>
+      <img id="snapshotLarge" src="">
+      <a id="downloadBtn" class="download-btn" download>⬇️ Download Image</a>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function qs(sel, ctx){ return (ctx||document).querySelector(sel); }
+      function qsa(sel, ctx){ return Array.from((ctx||document).querySelectorAll(sel)); }
+
+      const modal = qs('#snapshotModal');
+      const largeImg = qs('#snapshotLarge');
+      const downloadBtn = qs('#downloadBtn');
+
+      qsa('#snapshotGallery img').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.dataset.src;
+          largeImg.src = src;
+          downloadBtn.href = src;
+          downloadBtn.setAttribute('download', src.split('/').pop());
+          modal.style.display = 'flex';
+        });
+      });
+
+      const closeBtn = qs('#snapshotClose');
+
+      function closeSnapshot() {
+        modal.style.display = 'none';
+        largeImg.src = '';
+      }
+
+      closeBtn.addEventListener('click', closeSnapshot);
+      modal.addEventListener('click', e => { if (e.target === modal) closeSnapshot(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSnapshot(); });
+    })();
+  </script>
+
+</body>
+</html>
