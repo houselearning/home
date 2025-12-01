@@ -24,15 +24,16 @@ let profileContainer = null;
 let profilePic = null;
 let accountDropdown = null;
 let signUpButton = null;
-let anonymousPopup = null; // NEW reference for the anonymous pop-up
+let anonymousPopup = null; 
 
 // --- Local Storage Keys ---
 const POPUP_DISMISS_KEY = 'houselearning_popup_dismissed'; 
 const AUTH_PAGE_URL = 'https://houselearning.github.io/auth/';
+const GITHUB_URL = 'https://github.com/houselearning'; 
 
 
 // ====================================================================
-// 1. DYNAMIC CSS INJECTION - Includes PFP/Dropdown and NEW Popup Styles
+// 1. DYNAMIC CSS INJECTION - COMBINED STYLES
 // ====================================================================
 
 /**
@@ -47,7 +48,7 @@ function injectStyles() {
             top: 15px;      
             right: 20px;    
             z-index: 2000;  
-            display: none;  /* Hidden by default, shown by JS when logged in */
+            display: none; 
         }
         
         #sign-up-btn {
@@ -85,34 +86,106 @@ function injectStyles() {
             transform: scale(1.05);
         }
 
+        /* --- DROPDOWN STYLES (MODAL-LIKE) --- */
         .dropdown-menu {
             position: absolute; 
             top: 50px;          
-            right: 0;           
+            right: -10px;           
             background-color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            border-radius: 12px; 
             z-index: 1000;
-            min-width: 200px;
+            width: 280px; 
             overflow: hidden;
-            display: none; /* Hidden by default, toggled by JS */
+            display: none; 
+            border: 1px solid #ddd;
+            padding: 10px 0; 
+        }
+        
+        .dropdown-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 15px 25px 15px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
         }
 
-        .dropdown-menu a {
-            color: #333;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-weight: 400;
-            font-size: 14px;
-            border-radius: 0;
+        .dropdown-pfp {
+            width: 70px; 
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #61dafb;
+            margin-bottom: 10px;
         }
 
-        .dropdown-menu a:hover {
-            background-color: #f0f0f0;
+        .dropdown-username {
+            font-weight: 600;
+            font-size: 16px;
             color: #20232a;
         }
         
+        .dropdown-icon {
+            position: absolute;
+            top: 15px;
+            cursor: pointer;
+        }
+
+        #github-icon {
+            left: 15px;
+        }
+        #close-icon {
+            right: 15px;
+        }
+
+        .dropdown-menu .menu-link {
+            color: #555;
+            padding: 10px 25px;
+            text-decoration: none;
+            display: block;
+            font-weight: 500;
+            font-size: 15px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .dropdown-menu .menu-link:hover {
+            background-color: #f0f8ff; 
+            color: #007bff;
+        }
+        
+        .logout-container {
+            padding: 15px 25px;
+            border-top: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        
+        #logout-dropdown-btn {
+            background-color: #f8f8f8;
+            color: #333;
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background-color 0.15s;
+        }
+        
+        #logout-dropdown-btn:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .icon-svg {
+            width: 20px;
+            height: 20px;
+            fill: #61dafb;
+        }
+
         /* --- Anonymous Pop-up Styles --- */
         #anonymous-popup {
             position: fixed;
@@ -207,7 +280,7 @@ function injectStyles() {
             background-color: #4285f4;
             color: white;
             border: 1px solid #4285f4;
-            flex-grow: 1; /* Allow sign-in buttons to fill space */
+            flex-grow: 1; 
         }
         #sign-in-popup-btn:hover, #perks-sign-in-btn:hover {
             background-color: #3b78e7;
@@ -217,7 +290,7 @@ function injectStyles() {
         #view-perks-btn {
             background-color: white;
             color: #3c4043;
-            flex-grow: 1; /* Allow view perks button to fill space */
+            flex-grow: 1; 
         }
         
         /* Perks View Specific Styles */
@@ -234,7 +307,6 @@ function injectStyles() {
             cursor: pointer;
             padding: 5px;
             line-height: 1;
-            /* SVG for back arrow */
         }
         #perks-back-btn svg {
             width: 20px;
@@ -290,8 +362,7 @@ function createAuthButton() {
     return button;
 }
 
-function createProfileUI(userPhotoURL) {
-    // ... (PFP Creation Logic - kept short for brevity, but same as before)
+function createProfileUI(userPhotoURL, userName) {
     const container = document.createElement('div');
     container.className = 'profile-container'; 
     container.id = 'profile-container';
@@ -307,9 +378,30 @@ function createProfileUI(userPhotoURL) {
     dropdown.id = 'account-dropdown';
     
     dropdown.innerHTML = `
-        <a href="#" id="join-class-btn">Join Class</a>
-        <a href="https://houselearning.github.io/auth/dashboard" id="account-settings-btn">Account Settings Menu</a>
-        <a href="#" id="logout-dropdown-btn">Log Out</a>
+        <div class="dropdown-header">
+            <a id="github-icon" class="dropdown-icon" href="${GITHUB_URL}" target="_blank" title="View on GitHub">
+                <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.3-1.2-1.7-1.2-1.7-1-.7.1-.7.1-.7 1.1 0 1.7 1.1 1.7 1.1 1 1.7 2.7 1.2 3.4.9.1-.7.4-.9.7-1.1-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.1-3.1-.1-.3-.5-1.5.1-3.2 0 0 .9-.3 3 1.1a10.6 10.6 0 0 1 2.8-.4 10.6 10.6 0 0 1 2.8.4c2.1-1.4 3-1.1 3-1.1.6 1.7.2 2.9.1 3.2.7.8 1.1 1.8 1.1 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.7 1.1.7 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z" fill-rule="evenodd"/>
+                </svg>
+            </a>
+            
+            <button id="close-icon" class="dropdown-icon" aria-label="Close menu">
+                <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#333">
+                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/>
+                </svg>
+            </button>
+
+            <img class="dropdown-pfp" src="${userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png'}" alt="Profile Image">
+            <span class="dropdown-username">[${userName || 'User Name'}]</span>
+        </div>
+        
+        <a href="https://houselearning.github.io/dashboard" class="menu-link">Dashboard</a>
+        <a href="https://houselearning.github.io/auth/dashboard" id="account-settings-btn" class="menu-link">Account Settings</a>
+        <a href="#" id="join-class-btn" class="menu-link">Join Class</a>
+
+        <div class="logout-container">
+            <button id="logout-dropdown-btn">Sign out</button>
+        </div>
     `;
 
     container.appendChild(pic);
@@ -321,7 +413,8 @@ function createProfileUI(userPhotoURL) {
         pic: pic,
         dropdown: dropdown,
         logoutBtn: dropdown.querySelector('#logout-dropdown-btn'),
-        joinBtn: dropdown.querySelector('#join-class-btn')
+        joinBtn: dropdown.querySelector('#join-class-btn'),
+        closeBtn: dropdown.querySelector('#close-icon') 
     };
 }
 
@@ -394,32 +487,42 @@ async function handleLogout() {
         await auth.signOut();
     } catch (error) {
         console.error("Logout Error:", error);
-        // Note: Using alert() here because it's an error handler, but consider a custom modal instead.
         alert("Logout failed. Please try again.");
     }
 }
 
 
 // ====================================================================
-// 3. MAIN EXECUTION BLOCK (Wrapped in DOMContentLoaded)
+// 3. MAIN EXECUTION BLOCK 
 // ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inject CSS styles immediately when the DOM is ready
     injectStyles();
 
-    // Create the Sign Up button element right away (it starts hidden by CSS)
+    // Create the Sign Up button element right away
     if (!signUpButton) {
         signUpButton = createAuthButton();
     }
     
+    // Global click handler to close the dropdown when clicking outside (Setup immediately)
+    // NOTE: This listener must be defined outside the auth.onAuthStateChanged scope.
+    window.addEventListener('click', (event) => {
+        if (accountDropdown && accountDropdown.style.display === 'block' && 
+            !profileContainer.contains(event.target)) {
+            accountDropdown.style.display = 'none';
+        }
+    });
+
     if (auth) {
         auth.onAuthStateChanged(user => {
             if (user) {
                 // USER IS LOGGED IN: SHOW PFP, HIDE SIGN UP & POPUP
                 
+                const userName = user.displayName || user.email; 
+
                 if (!profileContainer) {
-                    const elements = createProfileUI(user.photoURL);
+                    const elements = createProfileUI(user.photoURL, userName); 
                     profileContainer = elements.container;
                     profilePic = elements.pic;
                     accountDropdown = elements.dropdown;
@@ -428,21 +531,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
                     elements.logoutBtn.addEventListener('click', handleLogout);
                     elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard?action=join');
-                    
-                    // Global click handler to close the dropdown
-                     window.addEventListener('click', (event) => {
-                        if (accountDropdown.style.display === 'block' && 
-                            !profileContainer.contains(event.target)) {
-                            accountDropdown.style.display = 'none';
-                        }
-                    });
+                    elements.closeBtn.addEventListener('click', () => toggleDropdown(accountDropdown));
                 } 
                 
-                // Set visibility
+                // Update dynamic content and visibility
                 profileContainer.style.display = 'block';
                 profilePic.src = user.photoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
                 signUpButton.style.display = 'none';
-                
+
+                const dropdownUsername = accountDropdown.querySelector('.dropdown-username');
+                if (dropdownUsername) {
+                    dropdownUsername.textContent = `[${userName || 'User Name'}]`;
+                }
+
                 // Hide popup when logged in
                 if (anonymousPopup) {
                     anonymousPopup.classList.remove('show');
@@ -453,24 +554,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // USER IS NOT LOGGED IN: HIDE PFP, SHOW SIGN UP & HANDLE POPUP
                 
-                // 1. Hide PFP
                 if (profileContainer) {
                     profileContainer.style.display = 'none';
                     accountDropdown.style.display = 'none';
                 }
                 
-                // 2. Show Sign Up Button
                 signUpButton.style.display = 'block';
 
-                // 3. Handle Anonymous Pop-up Logic
-                
-                // NOTE: We rely on the external cookie banner script to handle consent.
-                // Assuming consent means the user is ready for functional elements like this popup.
+                // --- Anonymous Pop-up Logic Restored ---
                 const isDismissed = localStorage.getItem(POPUP_DISMISS_KEY) === 'true';
 
                 if (!isDismissed) {
                     setTimeout(() => {
-                        // If user signed in during the 3s, abort
                         if (auth.currentUser) return; 
 
                         if (!anonymousPopup) {
@@ -507,5 +602,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    } else {
+         // Fallback if Firebase initialization failed
+         console.error("Authentication setup failed. Profile features disabled.");
     }
 });
