@@ -392,12 +392,12 @@ function createProfileUI(userPhotoURL, userName) {
             </button>
 
             <img class="dropdown-pfp" src="${userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png'}" alt="Profile Image">
-            <span class="dropdown-username">[${userName || 'User Name'}]</span>
+            <span class="dropdown-username">${userName || 'User Name'}</span>
         </div>
         
-        <a href="https://houselearning.github.io/dashboard" class="menu-link">Dashboard</a>
-        <a href="https://houselearning.github.io/auth/dashboard" id="account-settings-btn" class="menu-link">Account Settings</a>
-        <a href="#" id="join-class-btn" class="menu-link">Join Class</a>
+        <a href="https://houselearning.github.io/auth/dashboard" class="menu-link">Dashboard</a>
+        <a href="https://houselearning.github.io/auth/dashboard/settings" id="account-settings-btn" class="menu-link">Account Settings</a>
+        <a href="https://houselearning.github.io/auth/dashboard" id="join-class-btn" class="menu-link">Join Class</a>
 
         <div class="logout-container">
             <button id="logout-dropdown-btn">Sign out</button>
