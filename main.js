@@ -19,6 +19,10 @@ try {
     console.error("Firebase initialization failed on main page:", error);
 }
 
+// Add DB vars for notifications real-time listener
+let db = null;
+let notificationsUnsubscribe = null;
+
 // --- Dynamic Element References ---
 let profileContainer = null;
 let profilePic = null;
@@ -342,6 +346,98 @@ function injectStyles() {
         .popup-view.active {
             display: block;
         }
+
+        /* Notification badge on profile pic */
+        .notif-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: #ff3b30;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Notification panel inside dropdown */
+        .notifications-panel {
+            display: none;
+            padding: 10px;
+            border-top: 1px solid #f0f0f0;
+            max-height: 260px;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .notifications-panel.active {
+            display: block;
+        }
+        #notifications-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        .notification-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            border: 1px solid #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .notification-item.unread {
+            border-color: #61dafb;
+            background: #f6fdff;
+        }
+        .notification-item .notif-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #20232a;
+        }
+        .notification-item .notif-body {
+            font-size: 13px;
+            color: #555;
+        }
+        .notification-item .notif-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .notif-small-btn {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .notif-small-btn:hover {
+            background: #f6f6f6;
+        }
+
+        /* Make profile-container position able to hold badge */
+        .profile-container {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            z-index: 2000;
+            display: none;
+        }
+        .profile-pic-wrapper {
+            position: relative;
+            display: inline-block;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -364,19 +460,33 @@ function createAuthButton() {
 
 function createProfileUI(userPhotoURL, userName) {
     const container = document.createElement('div');
-    container.className = 'profile-container'; 
+    container.className = 'profile-container';
     container.id = 'profile-container';
+    
+    const picWrapper = document.createElement('div');
+    picWrapper.className = 'profile-pic-wrapper';
     
     const pic = document.createElement('img');
     pic.src = userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
     pic.alt = 'Profile Picture';
-    pic.className = 'profile-pic'; 
+    pic.className = 'profile-pic';
     pic.id = 'profile-pic';
     
+    // badge for unread count
+    const badge = document.createElement('span');
+    badge.id = 'notif-count';
+    badge.className = 'notif-badge';
+    badge.style.display = 'none';
+    badge.textContent = '0';
+    
+    picWrapper.appendChild(pic);
+    picWrapper.appendChild(badge);
+    
     const dropdown = document.createElement('div');
-    dropdown.className = 'dropdown-menu'; 
+    dropdown.className = 'dropdown-menu';
     dropdown.id = 'account-dropdown';
     
+    // main dropdown content (added Notifications link and notifications panel)
     dropdown.innerHTML = `
         <div class="dropdown-header">
             <a id="github-icon" class="dropdown-icon" href="${GITHUB_URL}" target="_blank" title="View on GitHub">
@@ -399,12 +509,30 @@ function createProfileUI(userPhotoURL, userName) {
         <a href="https://houselearning.github.io/auth/dashboard/settings" id="account-settings-btn" class="menu-link">Account Settings</a>
         <a href="https://houselearning.github.io/auth/dashboard" id="join-class-btn" class="menu-link">Join Class</a>
 
+        <!-- Notifications Link -->
+        <a href="#" id="notifications-btn" class="menu-link">Notifications <span id="notif-count-inline" class="notif-badge" style="display:none; margin-left:8px;">0</span></a>
+
+        <!-- Notifications Panel -->
+        <div id="notifications-panel" class="notifications-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <strong>Notifications</strong>
+                <div>
+                    <button id="notif-mark-all-read" class="notif-small-btn">Mark all read</button>
+                    <button id="notifications-back-btn" class="notif-small-btn">Back</button>
+                </div>
+            </div>
+            <ul id="notifications-list">
+                <!-- realtime notifications inserted here -->
+            </ul>
+            <div id="no-notifs" style="text-align:center; color:#777; font-size:13px; display:none;">No notifications</div>
+        </div>
+
         <div class="logout-container">
             <button id="logout-dropdown-btn">Sign out</button>
         </div>
     `;
-
-    container.appendChild(pic);
+    
+    container.appendChild(picWrapper);
     container.appendChild(dropdown);
     document.body.appendChild(container);
     
@@ -414,7 +542,15 @@ function createProfileUI(userPhotoURL, userName) {
         dropdown: dropdown,
         logoutBtn: dropdown.querySelector('#logout-dropdown-btn'),
         joinBtn: dropdown.querySelector('#join-class-btn'),
-        closeBtn: dropdown.querySelector('#close-icon') 
+        closeBtn: dropdown.querySelector('#close-icon'),
+        notificationsBtn: dropdown.querySelector('#notifications-btn'),
+        notificationsPanel: dropdown.querySelector('#notifications-panel'),
+        notificationsBackBtn: dropdown.querySelector('#notifications-back-btn'),
+        notifCountElem: badge,
+        notifCountInline: dropdown.querySelector('#notif-count-inline'),
+        markAllReadBtn: dropdown.querySelector('#notif-mark-all-read'),
+        notificationsList: dropdown.querySelector('#notifications-list'),
+        noNotifsElem: dropdown.querySelector('#no-notifs')
     };
 }
 
@@ -484,10 +620,120 @@ function toggleDropdown(dropdownElement) {
 
 async function handleLogout() {
     try {
+        // detach real-time notifications listener
+        if (notificationsUnsubscribe) {
+            notificationsUnsubscribe();
+            notificationsUnsubscribe = null;
+        }
         await auth.signOut();
     } catch (error) {
         console.error("Logout Error:", error);
         alert("Logout failed. Please try again.");
+    }
+}
+
+// New helper: render notifications into panel
+function renderNotifications(docs) {
+    if (!accountDropdown) return;
+    const listElem = accountDropdown.querySelector('#notifications-list');
+    const noNotifs = accountDropdown.querySelector('#no-notifs');
+    listElem.innerHTML = '';
+    if (!docs || docs.length === 0) {
+        noNotifs.style.display = 'block';
+        return;
+    } else {
+        noNotifs.style.display = 'none';
+    }
+
+    docs.forEach(n => {
+        const item = document.createElement('li');
+        item.className = 'notification-item' + (n.read ? '' : ' unread');
+        item.dataset.id = n.id;
+        item.innerHTML = `
+            <div class="notif-title">${n.title || 'Notification'}</div>
+            <div class="notif-body">${n.body || ''}</div>
+            <div style="font-size:12px; color:#888;">${n.timestamp ? new Date(n.timestamp).toLocaleString() : ''}</div>
+            <div class="notif-actions">
+                ${n.url ? `<button class="notif-small-btn open-link-btn">Open</button>` : ''}
+                ${n.read ? '' : `<button class="notif-small-btn mark-read-btn">Mark read</button>`}
+            </div>
+        `;
+        listElem.appendChild(item);
+
+        // handlers
+        if (!n.read) {
+            item.querySelector('.mark-read-btn').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    if (!db) return;
+                    await db.collection('notifications').doc(n.id).update({ read: true });
+                } catch (err) {
+                    console.error('Mark read failed', err);
+                }
+            });
+        }
+        const openBtn = item.querySelector('.open-link-btn');
+        if (openBtn) {
+            openBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (n.url) window.open(n.url, '_blank');
+            });
+        }
+    });
+}
+
+// Initialize notifications real-time listener for the logged-in user
+function initNotificationsListener(uid) {
+    if (!db || !uid) return;
+    // detach previous listener if any
+    if (notificationsUnsubscribe) {
+        notificationsUnsubscribe();
+        notificationsUnsubscribe = null;
+    }
+    try {
+        notificationsUnsubscribe = db.collection('notifications')
+            .where('recipientUid', '==', uid)
+            .orderBy('timestamp', 'desc')
+            .onSnapshot(snapshot => {
+                const notifications = [];
+                let unreadCount = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const ts = data.timestamp && data.timestamp.toDate ? data.timestamp.toDate().getTime() : (data.timestamp || Date.now());
+                    const normalized = {
+                        id: doc.id,
+                        title: data.title,
+                        body: data.body,
+                        url: data.url,
+                        read: !!data.read,
+                        timestamp: ts
+                    };
+                    if (!normalized.read) unreadCount++;
+                    notifications.push(normalized);
+                });
+
+                // update badges
+                if (profileContainer) {
+                    const badge = profileContainer.querySelector('#notif-count');
+                    const inline = profileContainer.querySelector('#notif-count-inline');
+                    if (unreadCount > 0) {
+                        if (badge) { badge.style.display = 'inline-flex'; badge.textContent = unreadCount; }
+                        if (inline) { inline.style.display = 'inline-flex'; inline.textContent = unreadCount; }
+                    } else {
+                        if (badge) badge.style.display = 'none';
+                        if (inline) inline.style.display = 'none';
+                    }
+                }
+
+                // render list
+                if (accountDropdown) {
+                    renderNotifications(notifications);
+                }
+            }, err => {
+                console.error('Notifications listener error:', err);
+            });
+    } catch (error) {
+        console.error('initNotificationsListener error:', error);
     }
 }
 
@@ -605,5 +851,17 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
          // Fallback if Firebase initialization failed
          console.error("Authentication setup failed. Profile features disabled.");
+    }
+
+    // Initialize firebase services safely (firestore)
+    try {
+        if (firebase && firebase.firestore) {
+            db = firebase.firestore();
+        } else {
+            console.warn('Firestore not available on firebase object.');
+        }
+    } catch (err) {
+        console.error('Firestore init failed:', err);
+        db = null;
     }
 });
