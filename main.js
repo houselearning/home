@@ -22,6 +22,10 @@ try {
 // Add DB vars for notifications real-time listener
 let db = null;
 let notificationsUnsubscribe = null;
+let latestNotifications = []; // <-- existing cache
+let notifReminderTimer = null; // NEW: timer id for scheduled reminder
+let notifReminderPopup = null; // NEW: DOM for reminder
+const NOTIF_REMINDER_DISMISS_KEY = 'houselearning_notif_reminder_dismissed_at'; // NEW: store dismissal time (ms)
 
 // --- Dynamic Element References ---
 let profileContainer = null;
@@ -366,77 +370,104 @@ function injectStyles() {
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* Notification panel inside dropdown */
-        .notifications-panel {
+        /* small red dot on pfp (separate from count badge) */
+        .notif-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff3b30;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+            z-index: 2;
             display: none;
-            padding: 10px;
-            border-top: 1px solid #f0f0f0;
-            max-height: 260px;
-            overflow: hidden;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .notifications-panel.active {
-            display: block;
-        }
-        #notifications-list {
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-        .notification-item {
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #ffffff;
-            border: 1px solid #f1f1f1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .notification-item.unread {
-            border-color: #61dafb;
-            background: #f6fdff;
-        }
-        .notification-item .notif-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: #20232a;
-        }
-        .notification-item .notif-body {
-            font-size: 13px;
-            color: #555;
-        }
-        .notification-item .notif-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-        .notif-small-btn {
-            background: none;
-            border: 1px solid #ddd;
-            padding: 6px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .notif-small-btn:hover {
-            background: #f6f6f6;
         }
 
-        /* Make profile-container position able to hold badge */
-        .profile-container {
+        /* --- Notifications Modal Styles --- */
+        .notif-modal-overlay {
             position: fixed;
-            top: 15px;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .notif-modal-overlay.show {
+            display: flex;
+        }
+        .notif-modal {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+        }
+        .notif-modal-header {
+            padding: 16px 18px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            border-bottom: 1px solid #eee;
+        }
+        .notif-modal-body {
+            padding: 12px 16px;
+            overflow-y: auto;
+        }
+        .notif-modal-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #f0f0f0;
+            display:flex;
+            gap:8px;
+            justify-content: flex-end;
+        }
+
+        /* reuse .notification-item styles in modal */
+        .notif-modal .notification-item { margin-bottom: 10px; }
+
+        /* Reminder popup (re-using anonymous popup visual language) */
+        #notif-reminder-popup {
+            position: fixed;
+            top: 80px;
             right: 20px;
-            z-index: 2000;
+            width: 320px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            z-index: 2500;
+            padding: 18px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: 1px solid #e0e0e0;
             display: none;
         }
-        .profile-pic-wrapper {
-            position: relative;
-            display: inline-block;
+        #notif-reminder-popup.show {
+            display: block;
+        }
+        #notif-reminder-popup .reminder-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:10px;
+        }
+        #notif-reminder-popup .reminder-header h4 {
+            margin:0;
+            font-size:16px;
+        }
+        #notif-reminder-popup .reminder-body {
+            color:#444;
+            font-size:14px;
+            margin-bottom:12px;
+        }
+        #notif-reminder-popup .reminder-actions {
+            display:flex;
+            gap:8px;
+            justify-content:flex-end;
         }
     `;
     document.head.appendChild(style);
@@ -478,8 +509,15 @@ function createProfileUI(userPhotoURL, userName) {
     badge.className = 'notif-badge';
     badge.style.display = 'none';
     badge.textContent = '0';
+
+    // small red dot indicator (no number)
+    const dot = document.createElement('span');
+    dot.id = 'notif-dot';
+    dot.className = 'notif-dot';
+    dot.style.display = 'none';
     
     picWrapper.appendChild(pic);
+    picWrapper.appendChild(dot);   // NEW: dot above pic
     picWrapper.appendChild(badge);
     
     const dropdown = document.createElement('div');
@@ -535,7 +573,46 @@ function createProfileUI(userPhotoURL, userName) {
     container.appendChild(picWrapper);
     container.appendChild(dropdown);
     document.body.appendChild(container);
-    
+
+    // --- Create Notifications Modal (overlay + modal)
+    const notifOverlay = document.createElement('div');
+    notifOverlay.className = 'notif-modal-overlay';
+    notifOverlay.id = 'notifications-modal-overlay';
+    notifOverlay.innerHTML = `
+        <div class="notif-modal" role="dialog" aria-modal="true" aria-label="Notifications">
+            <div class="notif-modal-header">
+                <strong>Notifications</strong>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button id="notif-mark-all-read-modal" class="notif-small-btn">Mark all read</button>
+                    <button id="notifications-modal-close" class="notif-small-btn" aria-label="Close">Close</button>
+                </div>
+            </div>
+            <div class="notif-modal-body">
+                <ul id="notifications-modal-list" style="list-style:none; padding:0; margin:0;"></ul>
+                <div id="notifications-modal-no-notifs" style="text-align:center; color:#777; font-size:13px; display:none; margin-top:12px;">No notifications</div>
+            </div>
+            <div class="notif-modal-footer">
+                <button id="notifications-modal-back" class="notif-small-btn">Back</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(notifOverlay);
+
+    // --- Create Reminder popup (hidden by default)
+    const reminder = document.createElement('div');
+    reminder.id = 'notif-reminder-popup';
+    reminder.innerHTML = `
+        <div class="reminder-header">
+            <h4>Hey!</h4>
+        </div>
+        <div class="reminder-body">You have unread notifications!</div>
+        <div class="reminder-actions">
+            <button id="notif-reminder-dismiss" class="notif-small-btn">Dismiss</button>
+            <button id="notif-reminder-action" class="notif-small-btn">Take Action</button>
+        </div>
+    `;
+    document.body.appendChild(reminder);
+
     return {
         container: container,
         pic: pic,
@@ -550,7 +627,18 @@ function createProfileUI(userPhotoURL, userName) {
         notifCountInline: dropdown.querySelector('#notif-count-inline'),
         markAllReadBtn: dropdown.querySelector('#notif-mark-all-read'),
         notificationsList: dropdown.querySelector('#notifications-list'),
-        noNotifsElem: dropdown.querySelector('#no-notifs')
+        noNotifsElem: dropdown.querySelector('#no-notifs'),
+        // modal refs
+        notificationsModalOverlay: notifOverlay,
+        notificationsModalClose: notifOverlay.querySelector('#notifications-modal-close'),
+        notificationsModalBack: notifOverlay.querySelector('#notifications-modal-back'),
+        notificationsModalList: notifOverlay.querySelector('#notifications-modal-list'),
+        notificationsModalNoNotifs: notifOverlay.querySelector('#notifications-modal-no-notifs'),
+        notificationsModalMarkAll: notifOverlay.querySelector('#notif-mark-all-read-modal'),
+        // reminder refs
+        notificationsReminder: reminder,
+        notificationsReminderDismiss: reminder.querySelector('#notif-reminder-dismiss'),
+        notificationsReminderAction: reminder.querySelector('#notif-reminder-action')
     };
 }
 
@@ -632,17 +720,97 @@ async function handleLogout() {
     }
 }
 
-// New helper: render notifications into panel
+// NEW: hide & show helper for reminder and scheduling logic
+function showNotifReminder(elements) {
+    if (!elements || !elements.notificationsReminder) return;
+    // Do not show if user recently dismissed (cooldown)
+    const lastDismiss = parseInt(localStorage.getItem(NOTIF_REMINDER_DISMISS_KEY) || '0', 10);
+    const now = Date.now();
+    if (lastDismiss && (now - lastDismiss) < (10 * 60 * 1000)) {
+        // still in cooldown
+        return;
+    }
+    elements.notificationsReminder.classList.add('show');
+}
+
+function hideNotifReminder(elements) {
+    if (!elements || !elements.notificationsReminder) return;
+    elements.notificationsReminder.classList.remove('show');
+}
+
+function clearNotifReminderTimer() {
+    if (notifReminderTimer) {
+        clearTimeout(notifReminderTimer);
+        notifReminderTimer = null;
+    }
+}
+
+/**
+ * Schedule or show reminder based on unread notifications' ages.
+ * - If any unread is already >=10min old, show immediately (respecting dismissal cooldown).
+ * - Otherwise schedule a timer to show when the earliest unread reaches 10 minutes.
+ */
+function scheduleReminderBasedOnNotifications(notifications) {
+    clearNotifReminderTimer();
+    // find unread notifications
+    const unread = (notifications || []).filter(n => !n.read);
+    const elements = profileContainer ? {
+        notificationsReminder: document.querySelector('#notif-reminder-popup'),
+        notificationsModalOverlay: document.querySelector('#notifications-modal-overlay')
+    } : null;
+
+    if (!unread || unread.length === 0) {
+        // nothing unread -> hide reminder
+        if (elements) hideNotifReminder(elements);
+        return;
+    }
+
+    const now = Date.now();
+    const tenMinMs = 10 * 60 * 1000;
+
+    // compute ages and earliest time until some unread reaches 10min
+    let earliestDelay = Infinity;
+    let showImmediately = false;
+    for (const u of unread) {
+        const age = now - (u.timestamp || now);
+        if (age >= tenMinMs) {
+            showImmediately = true;
+            break;
+        } else {
+            const remaining = tenMinMs - age;
+            if (remaining < earliestDelay) earliestDelay = remaining;
+        }
+    }
+
+    if (showImmediately) {
+        showNotifReminder(elements);
+    } else if (earliestDelay !== Infinity) {
+        // schedule showing after earliestDelay, but check dismissal cooldown at show time
+        notifReminderTimer = setTimeout(() => {
+            notifReminderTimer = null;
+            showNotifReminder(elements);
+        }, earliestDelay + 200); // small buffer
+    }
+}
+
+// New helper: render notifications into panel or modal
 function renderNotifications(docs) {
-    if (!accountDropdown) return;
-    const listElem = accountDropdown.querySelector('#notifications-list');
-    const noNotifs = accountDropdown.querySelector('#no-notifs');
+    // prefer modal list if it exists, otherwise use dropdown list
+    const modalListElem = document.querySelector('#notifications-modal-list');
+    const dropdownListElem = document.querySelector('#notifications-list');
+    const listElem = modalListElem || dropdownListElem;
+    if (!listElem) return;
+
+    const modalNoNotifs = document.querySelector('#notifications-modal-no-notifs');
+    const dropdownNoNotifs = document.querySelector('#no-notifs');
+    const noNotifs = modalNoNotifs || dropdownNoNotifs;
+
     listElem.innerHTML = '';
     if (!docs || docs.length === 0) {
-        noNotifs.style.display = 'block';
+        if (noNotifs) noNotifs.style.display = 'block';
         return;
     } else {
-        noNotifs.style.display = 'none';
+        if (noNotifs) noNotifs.style.display = 'none';
     }
 
     docs.forEach(n => {
@@ -653,7 +821,7 @@ function renderNotifications(docs) {
             <div class="notif-title">${n.title || 'Notification'}</div>
             <div class="notif-body">${n.body || ''}</div>
             <div style="font-size:12px; color:#888;">${n.timestamp ? new Date(n.timestamp).toLocaleString() : ''}</div>
-            <div class="notif-actions">
+            <div class="notif-actions" style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
                 ${n.url ? `<button class="notif-small-btn open-link-btn">Open</button>` : ''}
                 ${n.read ? '' : `<button class="notif-small-btn mark-read-btn">Mark read</button>`}
             </div>
@@ -662,15 +830,18 @@ function renderNotifications(docs) {
 
         // handlers
         if (!n.read) {
-            item.querySelector('.mark-read-btn').addEventListener('click', async (e) => {
-                e.stopPropagation();
-                try {
-                    if (!db) return;
-                    await db.collection('notifications').doc(n.id).update({ read: true });
-                } catch (err) {
-                    console.error('Mark read failed', err);
-                }
-            });
+            const markBtn = item.querySelector('.mark-read-btn');
+            if (markBtn) {
+                markBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    try {
+                        if (!db) return;
+                        await db.collection('notifications').doc(n.id).update({ read: true });
+                    } catch (err) {
+                        console.error('Mark read failed', err);
+                    }
+                });
+            }
         }
         const openBtn = item.querySelector('.open-link-btn');
         if (openBtn) {
@@ -680,6 +851,14 @@ function renderNotifications(docs) {
             });
         }
     });
+
+    // after rendering, also if no unread, ensure reminder is hidden and timer cleared
+    const anyUnread = (docs || []).some(n => !n.read);
+    if (!anyUnread) {
+        clearNotifReminderTimer();
+        const reminderEl = document.querySelector('#notif-reminder-popup');
+        if (reminderEl) reminderEl.classList.remove('show');
+    }
 }
 
 // Initialize notifications real-time listener for the logged-in user
@@ -712,23 +891,30 @@ function initNotificationsListener(uid) {
                     notifications.push(normalized);
                 });
 
-                // update badges
+                // update cache
+                latestNotifications = notifications.slice();
+
+                // update badges & dot
                 if (profileContainer) {
                     const badge = profileContainer.querySelector('#notif-count');
                     const inline = profileContainer.querySelector('#notif-count-inline');
+                    const dot = profileContainer.querySelector('#notif-dot'); // NEW: dot ref
                     if (unreadCount > 0) {
                         if (badge) { badge.style.display = 'inline-flex'; badge.textContent = unreadCount; }
                         if (inline) { inline.style.display = 'inline-flex'; inline.textContent = unreadCount; }
+                        if (dot) { dot.style.display = 'inline-block'; }
                     } else {
                         if (badge) badge.style.display = 'none';
                         if (inline) inline.style.display = 'none';
+                        if (dot) dot.style.display = 'none';
                     }
                 }
 
-                // render list
-                if (accountDropdown) {
-                    renderNotifications(notifications);
-                }
+                // render list (modal preferred if present)
+                renderNotifications(notifications);
+
+                // schedule or show reminder if unread notifications age >10min
+                scheduleReminderBasedOnNotifications(notifications);
             }, err => {
                 console.error('Notifications listener error:', err);
             });
@@ -778,6 +964,96 @@ document.addEventListener('DOMContentLoaded', () => {
                     elements.logoutBtn.addEventListener('click', handleLogout);
                     elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard?action=join');
                     elements.closeBtn.addEventListener('click', () => toggleDropdown(accountDropdown));
+
+                    // --- NEW: Notifications modal handlers ---
+                    // Open modal when notifications link clicked
+                    elements.notificationsBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (elements.notificationsModalOverlay) {
+                            elements.notificationsModalOverlay.classList.add('show');
+                            renderNotifications(latestNotifications);
+                            // also hide reminder if present when user opens notifications
+                            if (elements.notificationsReminder) elements.notificationsReminder.classList.remove('show');
+                            // reset dismissal timer so it won't reappear immediately
+                            localStorage.setItem(NOTIF_REMINDER_DISMISS_KEY, Date.now().toString());
+                        }
+                    });
+
+                    // Close/Back modal
+                    if (elements.notificationsModalClose) {
+                        elements.notificationsModalClose.addEventListener('click', () => {
+                            elements.notificationsModalOverlay.classList.remove('show');
+                        });
+                    }
+                    if (elements.notificationsModalBack) {
+                        elements.notificationsModalBack.addEventListener('click', () => {
+                            elements.notificationsModalOverlay.classList.remove('show');
+                        });
+                    }
+
+                    // Modal "Mark all read"
+                    if (elements.notificationsModalMarkAll) {
+                        elements.notificationsModalMarkAll.addEventListener('click', async () => {
+                            if (!db) return;
+                            const toMark = latestNotifications.filter(n => !n.read);
+                            if (toMark.length === 0) return;
+                            try {
+                                const batch = db.batch();
+                                toMark.forEach(n => {
+                                    const ref = db.collection('notifications').doc(n.id);
+                                    batch.update(ref, { read: true });
+                                });
+                                await batch.commit();
+                                // clear reminder when all read
+                                clearNotifReminderTimer();
+                                if (elements.notificationsReminder) elements.notificationsReminder.classList.remove('show');
+                            } catch (err) {
+                                console.error('Mark all read failed', err);
+                            }
+                        });
+                    }
+
+                    // Also keep dropdown 'Mark all read' working if present
+                    if (elements.markAllReadBtn) {
+                        elements.markAllReadBtn.addEventListener('click', async () => {
+                            if (!db) return;
+                            const toMark = latestNotifications.filter(n => !n.read);
+                            if (toMark.length === 0) return;
+                            try {
+                                const batch = db.batch();
+                                toMark.forEach(n => {
+                                    const ref = db.collection('notifications').doc(n.id);
+                                    batch.update(ref, { read: true });
+                                });
+                                await batch.commit();
+                                // clear reminder when all read
+                                clearNotifReminderTimer();
+                                if (elements.notificationsReminder) elements.notificationsReminder.classList.remove('show');
+                            } catch (err) {
+                                console.error('Mark all read failed', err);
+                            }
+                        });
+                    }
+
+                    // Reminder popup handlers
+                    if (elements.notificationsReminderDismiss) {
+                        elements.notificationsReminderDismiss.addEventListener('click', () => {
+                            // set dismissal timestamp so it won't reappear for 10 minutes
+                            localStorage.setItem(NOTIF_REMINDER_DISMISS_KEY, Date.now().toString());
+                            // hide popup and clear timer
+                            elements.notificationsReminder.classList.remove('show');
+                            clearNotifReminderTimer();
+                        });
+                    }
+                    if (elements.notificationsReminderAction) {
+                        elements.notificationsReminderAction.addEventListener('click', () => {
+                            // open notifications modal and hide reminder
+                            if (elements.notificationsModalOverlay) elements.notificationsModalOverlay.classList.add('show');
+                            if (elements.notificationsReminder) elements.notificationsReminder.classList.remove('show');
+                            // store dismissal so it won't instantly reappear
+                            localStorage.setItem(NOTIF_REMINDER_DISMISS_KEY, Date.now().toString());
+                        });
+                    }
                 } 
                 
                 // Update dynamic content and visibility
