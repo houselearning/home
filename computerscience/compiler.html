@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Studio Web | Master Resizable Edition v5.0</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* --- CORE THEME: HOUSELEARNING & VS BLEND --- */
+        :root {
+            --sidebar-width: 50px; 
+            --view-panel-min-width: 150px; /* Minimum width for the view panel */
+            --vs-blue: #007acc;
+            --vs-dark: #1e1e1e;
+            --vs-gray: #252526;
+            --vs-light-gray: #333333;
+            --vs-border: #3e3e42;
+            --vs-text: #cccccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--vs-dark);
+            color: var(--vs-text);
+            overflow: hidden;
+        }
+        
+        /* --- RESIZER STYLES --- */
+        .h-splitter, .v-splitter {
+            position: absolute;
+            z-index: 10;
+        }
+
+        /* Vertical Splitter (Horizontal Drag) */
+        .v-splitter {
+            width: 5px;
+            cursor: ew-resize;
+            top: 0;
+            bottom: 0;
+        }
+        /* Horizontal Splitter (Vertical Drag) */
+        .h-splitter {
+            height: 5px;
+            cursor: ns-resize;
+            left: 0;
+            right: 0;
+        }
+        .v-splitter-view { /* Splitter between Activity Bar and View Panel */
+            right: -2px;
+        }
+        .v-splitter-toolbox { /* Splitter between Toolbox and Designer/Editor */
+            right: -2px;
+        }
+        .v-splitter-mid { /* Splitter between Designer/Code and Preview */
+            left: -2px;
+        }
+        .h-splitter-terminal { /* Splitter between Main Editor area and Terminal */
+            top: -2px;
+        }
+
+        /* --- ACTIVITY BAR (Far Left) --- */
+        .activity-bar {
+            width: var(--sidebar-width);
+            background-color: var(--vs-light-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+        }
+        .activity-icon {
+            width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #858585; font-size: 1.2rem;
+        }
+        .activity-icon:hover { color: white; }
+        .activity-icon.active { border-left: 2px solid white; color: white; }
+
+        /* --- VIEW PANEL (Dynamic Sidebar) --- */
+        .view-panel {
+            min-width: var(--view-panel-min-width);
+            width: 250px; /* Default width */
+            background-color: var(--vs-gray);
+            border-right: 1px solid var(--vs-border);
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Container for splitter */
+        }
+        .view-content { display: none; flex-direction: column; flex: 1; overflow-y: auto; }
+        .view-content.active { display: flex; }
+        .sidebar-header { padding: 10px 20px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--vs-border); }
+
+        /* --- TOOLBOX (WinForms Specific) --- */
+        .toolbox {
+            width: 180px; /* Default width */
+            min-width: 100px;
+            background-color: var(--vs-gray);
+            border-right: 1px solid var(--vs-border);
+            display: none; 
+            flex-direction: column;
+            position: relative; /* Container for splitter */
+        }
+        .toolbox-header { background: #2d2d2d; padding: 8px; font-size: 0.8rem; font-weight: bold; }
+        .tool-group { margin-bottom: 10px; }
+        .tool-item { padding: 8px 15px; cursor: grab; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; border: 1px solid transparent; }
+        .tool-item:hover { background-color: #3e3e42; border-color: #505050; }
+
+        /* --- MAIN EDITOR AREA --- */
+        .main-editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .main-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--vs-dark);
+            min-height: 100px; /* Minimum height for code/designer */
+        }
+
+        .tabs-header { display: flex; background-color: #2d2d2d; height: 35px; }
+        .toolbar { height: 40px; border-bottom: 1px solid var(--vs-border); display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        
+        /* Split View (The content area above the console) */
+        .split-view {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* DESIGNER / CODE / PREVIEW PANES */
+        .editor-pane { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+            min-width: 100px;
+        }
+        textarea {
+            flex: 1; background-color: var(--vs-dark); color: #d4d4d4; border: none; resize: none; padding: 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; line-height: 1.5; outline: none;
+        }
+        .designer-pane, #previewPane {
+            flex: 1;
+        }
+
+        /* --- TERMINAL (Console) --- */
+        .terminal-container {
+            height: 150px; /* Default height */
+            min-height: 30px;
+            background-color: var(--vs-dark);
+            border-top: 1px solid var(--vs-border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .terminal-header {
+            height: 30px;
+            background-color: #2d2d2d;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--vs-border);
+        }
+        .terminal-header button {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .terminal-header button:hover {
+            color: white;
+        }
+        .terminal {
+            flex: 1;
+            padding: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            overflow-y: auto;
+        }
+        
+        /* Reused styles for inner components (control icons, debug, etc.) */
+        /* ... (Include all other necessary styles from v4.0 here) ... */
+        .tab { padding: 0 15px; display: flex; align-items: center; background-color: #2d2d2d; color: #969696; cursor: pointer; font-size: 0.9rem; border-right: 1px solid #252526; }
+        .tab.active { background-color: var(--vs-dark); color: white; border-top: 1px solid var(--vs-blue); }
+        .btn-vs { background-color: #0e639c; color: white; border: none; padding: 6px 14px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-vs:hover { background-color: #1177bb; }
+        .btn-download { background-color: #2d2d2d; border: 1px solid #3e3e42; }
+        .btn-download:hover { background-color: #3e3e42; }
+        .designer-pane {
+            flex: 1; background-color: #cfcfcf; background-image: radial-gradient(#999 1px, transparent 1px); background-size: 15px 15px; display: none; padding: 30px; overflow: auto; position: relative;
+        }
+        #virtualForm {
+            width: 400px; height: 300px; background-color: #f0f0f0; border: 1px solid #555; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); position: relative; transition: width 0.2s, height 0.2s;
+        }
+        .form-titlebar { height: 25px; background: white; display: flex; align-items: center; padding-left: 8px; font-size: 12px; border-bottom: 1px solid #aaa; cursor: default; }
+        .form-body { position: relative; height: calc(100% - 25px); overflow: hidden; }
+        .designer-control { position: absolute; cursor: move; border: 1px dashed transparent; }
+        .designer-control:hover { border: 1px dashed #007acc; }
+
+        .debug-panel { padding: 10px; }
+        .debug-panel h4 { font-size: 0.9rem; margin: 0 0 5px 0; color: #d4d4d4; padding-top: 10px; }
+        .watch-item { font-family: monospace; font-size: 0.85rem; padding: 2px 0; }
+        .watch-name { color: #569cd6; margin-right: 5px; } 
+        .watch-value { color: #ce9178; } 
+        .watch-modified { background-color: rgba(0, 122, 204, 0.2); padding: 0 4px; border-radius: 3px; }
+        .watch-new { background-color: rgba(45, 164, 78, 0.2); padding: 0 4px; border-radius: 3px; }
+
+        /* Explorer: categories & file actions */
+        .category {
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .category-header {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:8px 12px;
+            font-weight:700;
+            color:#ddd;
+            background: linear-gradient(180deg, rgba(0,0,0,0.03), transparent);
+            cursor: pointer;
+            gap:8px;
+        }
+        .category-toggle { display:flex; align-items:center; gap:8px; }
+        .category-actions { display:flex; gap:6px; align-items:center; }
+        .cat-btn { background:transparent; border:1px solid rgba(255,255,255,0.03); color:#aaa; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:12px; }
+        .file-list { padding:6px 8px 12px 18px; display:block; }
+        .file-item { padding:6px 6px; color:#ccc; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:center; border-radius:3px; }
+        .file-item:hover { background: rgba(255,255,255,0.02); color:#fff; }
+        .file-item .file-actions { display:flex; gap:6px; }
+        .file-actions .small { font-size:11px; padding:2px 6px; border-radius:3px; background:transparent; border:1px solid rgba(255,255,255,0.03); color:#999; cursor:pointer; }
+        .file-item.active { background: linear-gradient(90deg, rgba(0,122,204,0.12), transparent); color:#fff; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal {
+            width: 420px;
+            max-width: 94%;
+            background: #1f1f1f;
+            color: #ddd;
+            border: 1px solid #333;
+            border-radius: 6px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-header {
+            padding: 10px 12px;
+            background: linear-gradient(180deg,#2b2b2b,#222);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            border-bottom:1px solid #333;
+            font-weight:600;
+            font-size:14px;
+        }
+        .modal-body { padding: 12px; font-size:13px; }
+        .modal-footer { padding: 10px 12px; display:flex; justify-content:flex-end; gap:8px; background:#151515; border-top:1px solid #2a2a2a; }
+        .modal input[type="text"], .modal select {
+            width:100%;
+            padding:8px 10px;
+            border-radius:4px;
+            border:1px solid #444;
+            background:#111;
+            color:#ddd;
+            margin-top:6px;
+            box-sizing:border-box;
+        }
+        .modal .btn { padding:6px 12px; border-radius:4px; border:1px solid transparent; cursor:pointer; font-size:13px; }
+        .btn.primary { background: linear-gradient(#0e639c,#056aa6); color:#fff; border-color:#044f71; }
+        .btn.secondary { background:transparent; color:#ccc; border:1px solid #333; }
+        .modal-close { background:transparent; border:none; color:#aaa; font-size:18px; cursor:pointer; padding:0 6px; }
+        .modal .hint { font-size:12px; color:#9a9a9a; margin-top:8px; }
+
+    </style>
+    <!-- Add JSZip + FileSaver for zip downloads -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <!-- Markdown renderer (client-side) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+    <div class="activity-bar">
+        <div class="activity-icon active" data-view="explorer" onclick="toggleView(this, 'explorer')"><i class="far fa-copy"></i></div>
+        <div class="activity-icon" data-view="search" onclick="toggleView(this, 'search')"><i class="fas fa-search"></i></div>
+        <div class="activity-icon" data-view="source-control" onclick="toggleView(this, 'source-control')"><i class="fas fa-code-branch"></i></div>
+        <div class="activity-icon" data-view="debug" onclick="toggleView(this, 'debug')"><i class="fas fa-bug"></i></div>
+    </div>
+
+    <div class="view-panel" id="viewPanel">
+        <div class="v-splitter v-splitter-view" onmousedown="initResize(event, 'view-panel')"></div>
+        
+        <div class="view-content active" id="view-explorer">
+            <!-- Updated header: add button to create new files -->
+            <div class="sidebar-header" style="display:flex; align-items:center; justify-content:space-between;">
+                <div>Solution Explorer</div>
+                <div>
+                    <button class="cat-btn" onclick="addNewFile()" title="Add new file"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+            <!-- Reworked file explorer: categories and files -->
+            <div class="file-explorer" id="fileExplorer">
+                <!-- buildExplorer() will populate this -->
+            </div>
+        </div>
+
+        <div class="view-content" id="view-search">
+            <div class="sidebar-header">Search</div>
+            <div class="search-controls">
+                <input type="text" id="searchBox" placeholder="Search files (Ctrl+Shift+F)" oninput="runSearch()">
+            </div>
+            <div id="searchResults" style="padding: 10px;">
+                <div style="color:#888; font-size:0.8rem;">Type a word to search...</div>
+            </div>
+        </div>
+
+        <div class="view-content" id="view-source-control">
+            <div class="sidebar-header">Source Control (Simulated)</div>
+            <div style="padding: 10px;">
+                <div style="font-size:0.9rem; color:#fff; margin-bottom:5px;">CHANGES (3)</div>
+                <div class="sc-file">Form1.vb <span class="sc-status status-M">M</span></div>
+                <div class="sc-file">main.py <span class="sc-status status-M">M</span></div>
+                <div class="sc-file">index.html <span class="sc-status status-U">U</span></div>
+            </div>
+        </div>
+
+        <div class="view-content" id="view-debug">
+            <div class="sidebar-header">Debug</div>
+            <div class="debug-panel">
+                <h4>VARIABLES (Pre-Execution Analysis)</h4>
+                <div id="variableWatchPre">
+                    <div style="font-size: 0.8rem; color:#888;">Run Python code to populate Watch panel.</div>
+                </div>
+
+                <h4>WATCH (Post-Execution Result)</h4>
+                <div id="variableWatchPost">
+                    <div style="font-size: 0.8rem; color:#888;">Values will appear here after execution.</div>
+                </div>
+                
+                <h4 style="margin-top: 15px;">CALL STACK</h4>
+                <div style="font-size: 0.85rem; color:#888;">&gt; Global (Main)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toolbox" id="toolbox">
+        <div class="v-splitter v-splitter-toolbox" onmousedown="initResize(event, 'toolbox')"></div>
+
+        <div class="sidebar-header">Toolbox</div>
+        
+        <div class="tool-group">
+            <div class="toolbox-header">Common Controls (3)</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'Button')"><i class="fas fa-square"></i> Button</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'Label')"><i class="fas fa-font"></i> Label</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'TextBox')"><i class="fas fa-i-cursor"></i> TextBox</div>
+        </div>
+
+        <div class="tool-group">
+            <div class="toolbox-header">Containers & Data (5 New)</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'Panel')"><i class="fas fa-box"></i> Panel</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'GroupBox')"><i class="fas fa-box-open"></i> GroupBox</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'DataGridView')"><i class="fas fa-table"></i> DataGridView</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'ComboBox')"><i class="fas fa-caret-down"></i> ComboBox</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'PictureBox')"><i class="fas fa-image"></i> PictureBox</div>
+        </div>
+
+        <div class="tool-group">
+            <div class="toolbox-header">User Input (5 New)</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'CheckBox')"><i class="fas fa-check-square"></i> CheckBox</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'RadioButton')"><i class="far fa-dot-circle"></i> RadioButton</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'DateTimePicker')"><i class="fas fa-calendar-alt"></i> DateTimePicker</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'ListBox')"><i class="fas fa-list"></i> ListBox</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'ProgressBar')"><i class="fas fa-tasks"></i> ProgressBar</div>
+        </div>
+
+        <div class="tool-group">
+            <div class="toolbox-header">Menus (2 New)</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'MenuStrip')"><i class="fas fa-bars"></i> MenuStrip</div>
+            <div class="tool-item" draggable="true" ondragstart="drag(event, 'ContextMenuStrip')"><i class="fas fa-list-alt"></i> ContextMenuStrip</div>
+        </div>
+
+    </div>
+
+    <div class="main-editor-container">
+        <div class="main-editor">
+            <div class="tabs-header">
+                <div class="tab active" id="tabName">Form1.vb [Design]</div>
+                <div class="tab" style="font-style: italic;">Powered by HouseLearning Engine</div>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn-vs" onclick="runCode()">
+                    <i class="fas fa-play"></i> Start
+                </button>
+                <button class="btn-vs btn-download" onclick="downloadCode()">
+                    <i class="fas fa-download"></i> Download Code
+                </button>
+                <span style="margin-left:auto; font-size:0.8rem; color:#888;">Master Coder v5.0</span>
+            </div>
+
+            <div class="split-view" id="splitView">
+                
+                <div class="designer-pane" id="designerPane" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div id="virtualForm">
+                        <div class="form-titlebar">Form1</div>
+                        <div class="form-body" id="virtualFormBody">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="v-splitter v-splitter-mid" onmousedown="initResize(event, 'mid-split')"></div>
+
+                <div class="editor-pane" id="codeEditorPane">
+                    <textarea id="editor" spellcheck="false" oninput="parseEditorForDesigner()"></textarea>
+                </div>
+                
+                <div class="editor-pane" id="previewPane" style="display:none; background:white;">
+                    <iframe id="previewFrame" style="width:100%; height:100%; border:none;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-container" id="terminalContainer">
+            <div class="h-splitter h-splitter-terminal" onmousedown="initResize(event, 'terminal')"></div>
+
+            <div class="terminal-header">
+                OUTPUT
+                <span style="margin-left: auto;"></span>
+                <button onclick="toggleDevBar()" title="Dev Console" id="devToggleBtn">
+                    <i class="fas fa-terminal"></i> Dev
+                </button>
+                <button onclick="clearTerminal()" title="Clear Console">
+                    <i class="fas fa-ban"></i> Clear
+                </button>
+            </div>
+
+            <!-- Dev Bar: paste JS here and press Run to execute inside the preview iframe (acts like F12 console) -->
+            <div id="devBar" style="display:none; padding:8px; border-top:1px solid rgba(255,255,255,0.03); background:#1b1b1b;">
+                <textarea id="devInput" placeholder="Paste JS here, then Run (runs in preview iframe if present)" style="width:100%; height:70px; background:#0f0f10; color:#eee; border:1px solid #333; padding:8px; box-sizing:border-box;"></textarea>
+                <div style="margin-top:6px; display:flex; gap:8px;">
+                    <button class="btn secondary" onclick="document.getElementById('devInput').value='';">Clear</button>
+                    <button class="btn primary" onclick="evalInPreview()">Run</button>
+                </div>
+            </div>
+
+            <div class="terminal" id="terminal">
+                <div style="color: #007acc;">HouseLearning Output [Trace]: Ready...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal overlay used for add / rename / confirm -->
+    <div id="modalOverlay" class="modal-overlay" onclick="modalOverlayClick(event)">
+        <div class="modal" role="dialog" aria-modal="true" id="modalDialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div id="modalTitle">Dialog</div>
+                <button class="modal-close" onclick="hideModal()" title="Close">&times;</button>
+            </div>
+
+            <div class="modal-body" id="modalBody">
+                <!-- Add File Form -->
+                <div id="addForm" style="display:none;">
+                    <label>Filename</label>
+                    <input type="text" id="addFilename" placeholder="example.py">
+                    <label style="margin-top:8px;">Category</label>
+                    <!-- replaced free-text with dropdown + optional custom input -->
+                    <select id="addCategory"></select>
+                    <input type="text" id="addCategoryCustom" placeholder="Enter custom category" style="margin-top:8px; display:none;">
+                    <div class="hint">Choose a category or select "Other..." to type a custom category.</div>
+                </div>
+
+                <!-- Rename Form -->
+                <div id="renameForm" style="display:none;">
+                    <label>New filename</label>
+                    <input type="text" id="renameFilename" placeholder="newname.py">
+                </div>
+
+                <!-- Confirm Form -->
+                <div id="confirmForm" style="display:none;">
+                    <div id="confirmMessage" style="margin-bottom:12px;"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer" id="modalFooter">
+                <!-- Buttons will be wired dynamically -->
+            </div>
+        </div>
+    </div>
+
+<script>
+    /* --- STATE & TEMPLATES --- */
+    let currentMode = 'winforms';
+    const editor = document.getElementById('editor');
+    const terminal = document.getElementById('terminal');
+    const designer = document.getElementById('designerPane');
+    const toolbox = document.getElementById('toolbox');
+    const previewPane = document.getElementById('previewPane');
+    const virtualFormBody = document.getElementById('virtualFormBody');
+    const tabName = document.getElementById('tabName');
+    const viewPanel = document.getElementById('viewPanel');
+    const terminalContainer = document.getElementById('terminalContainer');
+    const mainEditor = document.querySelector('.main-editor');
+
+    // Add missing state that other functions reference
+    let activeView = 'explorer';
+
+    // Toggle the sidebar views (Explorer / Search / Source Control / Debug)
+    function toggleView(iconElement, viewId) {
+        document.querySelectorAll('.activity-icon').forEach(icon => icon.classList.remove('active'));
+        iconElement.classList.add('active');
+
+        if (activeView === viewId) {
+            // collapse panel if already active
+            viewPanel.style.width = '0px';
+            activeView = null;
+            document.querySelectorAll('.view-content').forEach(content => content.classList.remove('active'));
+            // hide toolbox when collapsed
+            toolbox.style.display = 'none';
+            return;
+        }
+
+        // expand and show the requested view
+        viewPanel.style.width = '250px';
+        activeView = viewId;
+
+        document.querySelectorAll('.view-content').forEach(content => content.classList.remove('active'));
+        const target = document.getElementById(`view-${viewId}`);
+        if (target) target.classList.add('active');
+
+        // show toolbox only for explorer + winforms
+        if (viewId === 'explorer' && currentMode === 'winforms') {
+            toolbox.style.display = 'flex';
+        } else {
+            toolbox.style.display = 'none';
+        }
+    }
+
+    // Clear terminal utility used by runCode and the Clear button
+    function clearTerminal() {
+        terminal.innerHTML = `<div style="color: #007acc;">HouseLearning Output [Trace]: Ready...</div>`;
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Control rendering map (reused from v4.0)
+    const controlRenderMap = {
+        'Button': { tag: 'button', class: 'wf-btn', text: 'Button', defaultSize: {w: 75, h: 25} },
+        'Label': { tag: 'div', class: 'wf-lbl', text: 'Label', defaultSize: {w: 100, h: 20} },
+        'TextBox': { tag: 'input', class: 'wf-txt', text: '', defaultSize: {w: 150, h: 20} },
+        'CheckBox': { tag: 'label', class: 'wf-chbx', text: 'CheckBox', defaultSize: {w: 100, h: 20}, html: '<input type="checkbox" style="margin-right: 5px;">' },
+        'RadioButton': { tag: 'label', class: 'wf-rdbtn', text: 'RadioButton', defaultSize: {w: 100, h: 20}, html: '<input type="radio" style="margin-right: 5px;">' },
+        'PictureBox': { tag: 'div', class: 'wf-picbx', text: 'PictureBox', defaultSize: {w: 100, h: 50} },
+        'GroupBox': { tag: 'fieldset', class: 'wf-group', text: 'GroupBox', defaultSize: {w: 200, h: 100}, html: '<legend style="padding: 0 5px; font-weight: bold;">GroupBox</legend>' },
+        'ComboBox': { tag: 'select', class: 'wf-combo', text: 'ComboBox', defaultSize: {w: 150, h: 20} },
+        'DataGridView': { tag: 'div', class: 'wf-group', text: 'DataGridView', defaultSize: {w: 250, h: 100}, html: '<div style="font-size: 9px; text-align: center; border: 1px solid #aaa; height: 100%;">Data Grid View</div>' },
+        'DateTimePicker': { tag: 'input', class: 'wf-date', text: '', defaultSize: {w: 150, h: 20}, type: 'date' },
+        'ListBox': { tag: 'select', class: 'wf-combo', text: 'ListBox', defaultSize: {w: 100, h: 80}, multiple: true },
+        'ProgressBar': { tag: 'div', class: 'wf-group', text: '', defaultSize: {w: 150, h: 20}, html: '<div style="background-color: #007acc; width: 50%; height: 100%;"></div>' },
+        'Panel': { tag: 'div', class: 'wf-group', text: 'Panel', defaultSize: {w: 200, h: 100}, html: '<div style="font-weight: normal; font-size: 10px; color: #555;">(Panel Container)</div>' },
+        'MenuStrip': { tag: 'div', class: 'wf-menu', text: 'File | Edit | Help', defaultSize: {w: 400, h: 20} },
+        'ContextMenuStrip': { tag: 'div', class: 'wf-group', text: 'Context Menu', defaultSize: {w: 100, h: 50}, html: '<div style="font-size: 10px;">Item 1<hr style="margin:2px 0;">Item 2</div>' }
+    };
+
+    // Code files storage (reused from v4.0)
+    const codeFiles = {
+        'html': `<h1>Hello World</h1>\n<button onclick="alert('It works!')">Click Me</button>`,
+        'python': 
+`# Python Debug Demo
+x = 10
+name = "Coder"
+result = 0
+
+if x > 5:
+    result = x * 2
+    name = "MasterCoder"
+
+print(f"Final Result: {result}")`,
+        'java': `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello from Java!");\n    }\n}`,
+        'vb': `Module Module1\n    Sub Main()\n        Console.WriteLine("Hello from VB Console")\n    End Sub\nEnd Module`,
+        'ruby': `# Ruby Demo
+name = "Coder"
+count = 3
+
+3.times do |i|
+  puts "Run \#{i+1} - \#{name}"
+end
+
+puts "Final count: \#{count}"`,
+        'kotlin': `// Kotlin Demo
+fun main() {
+  val name = "Coder"
+  for (i in 1..3) {
+    println("Run \$i - \$name")
+  }
+  println("Final count: ${3}")
+}`,
+        'swift': `// Swift Demo
+import Foundation
+
+var name = "Coder"
+for i in 1...3 {
+  print("Run \\(i) - \\(name)")
+}
+print("Final count: \\(3)")`,
+        'winforms': 
+`Public Class MainForm
+    Inherits Form
+
+    Private Sub InitializeComponent()
+        Me.Text = "Form1"
+        Me.Width = 600
+        Me.Height = 400
+    End Sub
+
+    Private Sub Form1_Load()
+        ' Code generated by Designer
+    End Sub
+End Class`,
+        // Go sample (added)
+        'go': `package main
+import "fmt"
+
+func main() {
+    name := "Coder"
+    count := 3
+    for i := 1; i <= count; i++ {
+        fmt.Printf("Run %d - %s\n", i, name)
+    }
+    fmt.Printf("Final count: %d\n", count)
+}`,
+        // R sample (added)
+        'r': `# R Demo
+name <- "Coder"
+count <- 3
+for (i in 1:count) {
+  cat(sprintf("Run %d - %s\n", i, name))
+}
+cat(sprintf("Final count: %d\n", count))`,
+        // SQL sample (added)
+        'sql': `-- SQL Demo (SQLite syntax)
+CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, score INTEGER);
+INSERT INTO users (name, score) VALUES ('Alice', 10), ('Bob', 20), ('Carol', 15);
+SELECT id, name, score FROM users ORDER BY score DESC;`,
+        // Dart sample (added)
+        'dart': `// Dart Demo
+void main() {
+  var name = 'Coder';
+  var count = 3;
+  for (var i = 1; i <= count; i++) {
+    print('Run \$i - \$name');
+  }
+  print('Final count: \$count');
+}`,
+        // MATLAB sample (added)
+        'matlab': `% MATLAB Demo
+name = 'Coder';
+count = 3;
+for i = 1:count
+    fprintf('Run %d - %s\n', i, name);
+end
+fprintf('Final count: %d\n', count);`,
+        // Bash sample (added)
+        'bash': `#!/usr/bin/env bash
+# Bash Demo
+name="Coder"
+count=3
+for i in $(seq 1 $count); do
+  echo "Run $i - $name"
+done
+echo "Final count: $count"`,
+        // Perl sample (added)
+        'perl': `#!/usr/bin/env perl
+use strict;
+use warnings;
+
+my $name = 'Coder';
+my $count = 3;
+for my $i (1..$count) {
+  print "Run $i - $name\n";
+}
+print "Final count: $count\n";`,
+        // C++ sample (added)
+        'cpp': `#include <iostream>
+using namespace std;
+
+int main() {
+    string name = "Coder";
+    int count = 3;
+    for (int i = 1; i <= count; ++i) {
+        cout << "Run " << i << " - " << name << endl;
+    }
+    cout << "Final count: " << count << endl;
+    return 0;
+}`,
+        // Assembly sample (added)
+        'assembly': `; NASM x86-64 Demo (Linux)
+section .data
+    msg db "Run 1 - Coder", 10
+    len equ $ - msg
+
+section .text
+    global _start
+_start:
+    ; write syscall (stdout)
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg
+    mov rdx, len
+    syscall
+
+    ; exit syscall
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+`,
+        // Markdown sample (added)
+        'markdown': `# Project README
++
++This is a sample Markdown file included as a language target.
++
++## Features
++- Simple Markdown preview
++- Download as .md
++
++> Edit the text and press Start to preview.`,
+    };
+
+    const fileMeta = {
+        'html':     { category: 'HTML', filename: 'index.html' },
+        'python':   { category: 'PYTHON', filename: 'main.py' },
+        'java':     { category: 'JAVA', filename: 'Main.java' },
+        'vb':       { category: 'VB', filename: 'Module1.vb' },
+        // Assembly metadata (added)
+        'assembly': { category: 'ASSEMBLY', filename: 'main.asm' },
+        // Markdown metadata (added)
+        'markdown': { category: 'MARKDOWN', filename: 'README.md' },
+        'ruby':     { category: 'RUBY', filename: 'main.rb' },
+        'kotlin':   { category: 'KOTLIN', filename: 'Main.kt' },
+        'swift':    { category: 'SWIFT', filename: 'main.swift' },
+        'winforms': { category: 'WINFORMS', filename: 'Form1.vb [Design]' },
+        // PowerShell metadata (added)
+        'powershell': { category: 'POWERSHELL', filename: 'script.ps1' },
+        // Generic Shell metadata (added) — grouped under BASH category for explorer
+        'shell': { category: 'BASH', filename: 'script.sh' },
+        // Go metadata (added)
+        'go':       { category: 'GO', filename: 'main.go' },
+        // C# metadata (added)
+        'csharp':           { category: 'CSHARP', filename: 'Program.cs' },
+        'csharp_winforms':  { category: 'CSHARP', filename: 'Form1.cs [Design]' },
+        // PHP metadata (added)
+        'php':      { category: 'PHP', filename: 'index.php' },
+        // TypeScript metadata (added)
+        'typescript': { category: 'TYPESCRIPT', filename: 'main.ts' },
+        // R metadata (added)
+        'r':        { category: 'R', filename: 'script.R' },
+        // SQL metadata (added)
+        'sql':      { category: 'SQL', filename: 'script.sql' },
+        // Dart metadata (added)
+        'dart':     { category: 'DART', filename: 'main.dart' },
+        // MATLAB metadata (added)
+        'matlab':   { category: 'MATLAB', filename: 'script.m' },
+        // Bash metadata (added)
+        'bash':     { category: 'BASH', filename: 'script.sh' },
+        // Perl metadata (added)
+        'perl':     { category: 'PERL', filename: 'script.pl' },
+        // C++ metadata (added)
+        'cpp':      { category: 'CPP', filename: 'main.cpp' }
+    };
+
+    // Utility: categories order
+    const categoryOrder = ['HTML','PYTHON','RUBY','SWIFT','KOTLIN','JAVA','VB','WINFORMS'];
+    // Insert GO into category ordering (added)
+    // Place GO after JAVA for logical grouping
+    if (!categoryOrder.includes('GO')) {
+        const javaIndex = categoryOrder.indexOf('JAVA');
+        categoryOrder.splice(javaIndex + 1, 0, 'GO');
+    }
+    // Insert MARKDOWN into category ordering (added) — place after HTML
+    if (!categoryOrder.includes('MARKDOWN')) {
+        const htmlIdx = categoryOrder.indexOf('HTML');
+        categoryOrder.splice((htmlIdx > -1 ? htmlIdx : 0) + 1, 0, 'MARKDOWN');
+    }
+    // Insert CSHARP into category ordering (added)
+    if (!categoryOrder.includes('CSHARP')) {
+        const javaIndex2 = categoryOrder.indexOf('JAVA');
+        // try place after GO if present, else after JAVA
+        const insertAt = Math.max(javaIndex2, categoryOrder.indexOf('GO'));
+        categoryOrder.splice(insertAt + 1, 0, 'CSHARP');
+    }
+    // Insert PHP into category ordering (added)
+    if (!categoryOrder.includes('PHP')) {
+        const javaIdx = categoryOrder.indexOf('JAVA');
+        // put PHP after JAVA (same grouping)
+        categoryOrder.splice(javaIdx + 1, 0, 'PHP');
+    }
+    // Insert TYPESCRIPT into category ordering (added)
+    if (!categoryOrder.includes('TYPESCRIPT')) {
+        const kotlinIdx = categoryOrder.indexOf('KOTLIN');
+        // place after KOTLIN if present, otherwise after JAVA
+        const insertAt = kotlinIdx > -1 ? kotlinIdx : categoryOrder.indexOf('JAVA');
+        categoryOrder.splice(insertAt + 1, 0, 'TYPESCRIPT');
+    }
+    // Insert R into category ordering (added) — place after PYTHON
+    if (!categoryOrder.includes('R')) {
+        const pyIdx = categoryOrder.indexOf('PYTHON');
+        categoryOrder.splice((pyIdx > -1 ? pyIdx : 0) + 1, 0, 'R');
+    }
+    // Insert SQL into category ordering (added) — place after R if present
+    if (!categoryOrder.includes('SQL')) {
+        const rIdx = categoryOrder.indexOf('R');
+        const insertAt = (rIdx > -1) ? rIdx : categoryOrder.indexOf('PYTHON');
+        categoryOrder.splice((insertAt > -1 ? insertAt : 0) + 1, 0, 'SQL');
+    }
+    // Insert DART into category ordering (added) — place after TYPESCRIPT if present
+    if (!categoryOrder.includes('DART')) {
+        const tsIdx = categoryOrder.indexOf('TYPESCRIPT');
+        const insertAt = (tsIdx > -1) ? tsIdx : categoryOrder.indexOf('KOTLIN');
+        categoryOrder.splice((insertAt > -1 ? insertAt : 0) + 1, 0, 'DART');
+    }
+    // Insert MATLAB into category ordering (added) — place after R if present
+    if (!categoryOrder.includes('MATLAB')) {
+        const rIdx2 = categoryOrder.indexOf('R');
+        const insertAt2 = (rIdx2 > -1) ? rIdx2 : categoryOrder.indexOf('PYTHON');
+        categoryOrder.splice((insertAt2 > -1 ? insertAt2 : 0) + 1, 0, 'MATLAB');
+    }
+    // Insert BASH into category ordering (added) — place after SQL if present
+    if (!categoryOrder.includes('BASH')) {
+        const sqlIdx2 = categoryOrder.indexOf('SQL');
+        const insertAt3 = (sqlIdx2 > -1) ? sqlIdx2 : categoryOrder.indexOf('PYTHON');
+        categoryOrder.splice((insertAt3 > -1 ? insertAt3 : 0) + 1, 0, 'BASH');
+    }
+    // Insert POWERSHELL into category ordering (added) — place after BASH
+    if (!categoryOrder.includes('POWERSHELL')) {
+        const bashIdx = categoryOrder.indexOf('BASH');
+        const insertAtPS = (bashIdx > -1) ? bashIdx : categoryOrder.indexOf('PYTHON');
+        categoryOrder.splice((insertAtPS > -1 ? insertAtPS : 0) + 1, 0, 'POWERSHELL');
+    }
+    // Insert PERL into category ordering (added) — place after BASH if present
+    if (!categoryOrder.includes('PERL')) {
+        const bashIdx = categoryOrder.indexOf('BASH');
+        const insertAt4 = (bashIdx > -1) ? bashIdx : categoryOrder.indexOf('PYTHON');
+        categoryOrder.splice((insertAt4 > -1 ? insertAt4 : 0) + 1, 0, 'PERL');
+    }
+    // Insert CPP into category ordering (added) — place after CSHARP if present
+    if (!categoryOrder.includes('CPP')) {
+        const csharpIdx = categoryOrder.indexOf('CSHARP');
+        const insertCppAt = (csharpIdx > -1) ? csharpIdx : categoryOrder.indexOf('JAVA');
+        categoryOrder.splice((insertCppAt > -1 ? insertCppAt : 0) + 1, 0, 'CPP');
+    }
+    // Insert ASSEMBLY into category ordering (added) — place after CPP
+    if (!categoryOrder.includes('ASSEMBLY')) {
+        const cppIdx = categoryOrder.indexOf('CPP');
+        const insertAsmAt = (cppIdx > -1) ? cppIdx : categoryOrder.indexOf('CSHARP');
+        categoryOrder.splice((insertAsmAt > -1 ? insertAsmAt : 0) + 1, 0, 'ASSEMBLY');
+    }
+    /* --- INITIALIZATION & VIEW MANAGEMENT (Modified) --- */
+
+    window.onload = function() {
+        editor.value = codeFiles['winforms'];
+        // initialize tab header with the default file name
+        try { tabName.innerText = (fileMeta['winforms'] && fileMeta['winforms'].filename) ? fileMeta['winforms'].filename : 'Form1.vb [Design]'; } catch(e){}
+ 
+        // Build the hierarchical explorer
+        buildExplorer();
+
+        // Initialize active view and mode
+        document.querySelector('[data-view="explorer"]').classList.add('active');
+        document.getElementById('view-explorer').classList.add('active');
+
+        // select the default file item element if present
+        const defaultEl = document.querySelector(`[data-key="winforms"]`);
+        if (defaultEl) { defaultEl.classList.add('active'); }
+
+        setMode('winforms', defaultEl);
+ };
+ 
+ /* --- SOLUTION EXPLORER: build, toggle, rename, duplicate, download ZIP --- */
+
+    function buildExplorer() {
+        const container = document.getElementById('fileExplorer');
+        container.innerHTML = '';
+
+        // Build groups by category
+        const groups = {};
+        Object.keys(fileMeta).forEach(key => {
+            const m = fileMeta[key];
+            if (!groups[m.category]) groups[m.category] = [];
+            groups[m.category].push({ key, filename: m.filename });
+        });
+
+        categoryOrder.forEach(cat => {
+            if (!groups[cat]) return;
+            const items = groups[cat];
+
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category';
+            catDiv.id = `cat-${cat}`;
+
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.innerHTML = `<div class="category-toggle"><i class="fas fa-folder-open"></i><span style="margin-left:8px">${cat}</span> <span style="margin-left:8px; color:#888; font-weight:400; font-size:12px">(${items.length})</span></div>`;
+            const actions = document.createElement('div');
+            actions.className = 'category-actions';
+            actions.innerHTML = `<button class="cat-btn" onclick="downloadCategoryZip('${cat}')"><i class="fas fa-download"></i> ZIP</button>
+                                 <button class="cat-btn" onclick="toggleCategory('${cat}', this)"><i class="fas fa-chevron-up"></i></button>`;
+            header.appendChild(actions);
+            header.addEventListener('click', (e) => {
+                if (e.target.closest('.cat-btn')) return; // ignore if clicked action button
+                toggleCategory(cat);
+            });
+
+            const fileList = document.createElement('div');
+            fileList.className = 'file-list';
+            fileList.id = `files-${cat}`;
+
+            items.forEach(it => {
+                const row = document.createElement('div');
+                row.className = 'file-item';
+                row.setAttribute('data-key', it.key);
+                row.innerHTML = `<div onclick="setMode('${it.key}', this)"><i class="far fa-file"></i> <span style="margin-left:8px">${it.filename}</span></div>
+                                 <div class="file-actions">
+                                     <button class="small" title="Rename" onclick="event.stopPropagation(); renameFile('${it.key}', this)"><i class="fas fa-i-cursor"></i></button>
+                                     <button class="small" title="Duplicate" onclick="event.stopPropagation(); duplicateFile('${it.key}', this)"><i class="far fa-copy"></i></button>
+                                     <button class="small" title="Delete" onclick="event.stopPropagation(); deleteFile('${it.key}', this)"><i class="fas fa-trash"></i></button>
+                                 </div>`;
+                fileList.appendChild(row);
+            });
+
+            catDiv.appendChild(header);
+            catDiv.appendChild(fileList);
+            container.appendChild(catDiv);
+        });
+    }
+
+    function toggleCategory(cat, btnEl) {
+        const list = document.getElementById(`files-${cat}`);
+        if (!list) return;
+        const isHidden = list.style.display === 'none';
+        list.style.display = isHidden ? 'block' : 'none';
+        // update small chevron if button provided
+        if (btnEl) {
+            const icon = btnEl.querySelector('i');
+            if (icon) icon.className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        } else {
+            // try to toggle header button icon
+            const headerBtn = document.querySelector(`#cat-${cat} .category-actions .cat-btn:nth-child(2) i`);
+            if (headerBtn) headerBtn.className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        }
+    }
+
+    async function downloadCategoryZip(cat) {
+        const zip = new JSZip();
+        const folder = zip.folder(cat.toLowerCase());
+        Object.keys(fileMeta).forEach(key => {
+            const m = fileMeta[key];
+            if (m.category !== cat) return;
+            const filename = m.filename;
+            const content = codeFiles[key] || '';
+            folder.file(filename, content);
+        });
+        const blob = await zip.generateAsync({ type: 'blob' });
+        saveAs(blob, `${cat.toLowerCase()}-files.zip`);
+    }
+
+    function renameFile(key, btn) {
+        const meta = fileMeta[key];
+        if (!meta) return;
+
+        // prefill input
+        document.getElementById('renameFilename').value = meta.filename;
+
+        const promise = showModal({
+            title: 'Rename File',
+            bodyId: 'renameForm',
+            footerButtons: [
+                { label: 'Cancel', class: 'secondary', onClick: () => hideModal(null) },
+                {
+                    label: 'Rename',
+                    class: 'primary',
+                    onClick: () => {
+                        const newName = document.getElementById('renameFilename').value || '';
+                        if (!newName.trim()) {
+                            alert('Filename required');
+                            return;
+                        }
+                        hideModal({ newName: newName.trim() });
+                    }
+                }
+            ]
+        });
+
+        promise.then(res => {
+            if (!res) return;
+            meta.filename = res.newName;
+            buildExplorer();
+        });
+    }
+
+    function duplicateFile(key, btn) {
+        const meta = fileMeta[key];
+        if (!meta) return;
+        const content = codeFiles[key] || '';
+        const newKey = `${key}_dup_${Date.now()}`;
+        // ensure unique filename
+        const extIndex = meta.filename.lastIndexOf('.');
+        let newFilename = meta.filename;
+        if (extIndex > 0) {
+            const base = meta.filename.substring(0, extIndex);
+            const ext = meta.filename.substring(extIndex);
+            newFilename = `${base} - Copy${ext}`;
+        } else {
+            newFilename = `${meta.filename} - Copy`;
+        }
+        codeFiles[newKey] = content;
+        fileMeta[newKey] = { category: meta.category, filename: newFilename };
+        buildExplorer();
+    }
+
+    // New: Add a file (prompt for filename + category)
+    function addNewFile() {
+        // populate category dropdown each time
+        const sel = document.getElementById('addCategory');
+        sel.innerHTML = '';
+        // add known categories from categoryOrder
+        categoryOrder.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.text = cat;
+            sel.appendChild(opt);
+        });
+        // "Other..." option for custom categories
+        const otherOpt = document.createElement('option');
+        otherOpt.value = 'OTHER';
+        otherOpt.text = 'Other...';
+        sel.appendChild(otherOpt);
+
+        // default selection (prefer PYTHON if present)
+        sel.value = categoryOrder.includes('PYTHON') ? 'PYTHON' : (categoryOrder[0] || 'OTHER');
+
+        const custom = document.getElementById('addCategoryCustom');
+        // show/hide custom input when selecting Other...
+        sel.onchange = () => {
+            custom.style.display = (sel.value === 'OTHER') ? 'block' : 'none';
+        };
+        // reset fields
+        document.getElementById('addFilename').value = '';
+        custom.value = '';
+        custom.style.display = 'none';
+
+        // show add form modal
+        const promise = showModal({
+            title: 'Add New File',
+            bodyId: 'addForm',
+            footerButtons: [
+                { label: 'Cancel', class: 'secondary', onClick: () => hideModal(null) },
+                {
+                    label: 'Create',
+                    class: 'primary',
+                    onClick: () => {
+                        const filename = document.getElementById('addFilename').value || '';
+                        let category = sel.value;
+                        if (!filename.trim()) {
+                            alert('Filename required'); // minimal validation; could be replaced with inline error
+                            return;
+                        }
+                        if (category === 'OTHER') {
+                            const customVal = custom.value.trim();
+                            category = customVal ? customVal.toUpperCase() : 'OTHER';
+                        }
+                        hideModal({ filename: filename.trim(), category });
+                    }
+                }
+            ]
+        });
+
+        promise.then(res => {
+            if (!res) return;
+            const filename = res.filename;
+            const category = res.category;
+
+            // Add category if missing
+            if (!categoryOrder.includes(category)) categoryOrder.push(category);
+
+            // Create a safe unique key
+            const baseKey = filename.replace(/\W+/g, '_').toLowerCase().replace(/^_+|_+$/g, '') || ('file_' + Date.now());
+            let key = baseKey;
+            let i = 1;
+            while (codeFiles.hasOwnProperty(key) || fileMeta.hasOwnProperty(key)) {
+                key = `${baseKey}_${i++}`;
+            }
+
+            // Initialize file
+            codeFiles[key] = '';
+            fileMeta[key] = { category: category, filename: filename };
+
+            buildExplorer();
+
+            // Ensure the category is expanded and select the new file
+            const filesDiv = document.getElementById(`files-${category}`);
+            if (filesDiv) filesDiv.style.display = 'block';
+
+            const el = document.querySelector(`[data-key="${key}"]`);
+            if (el) setMode(key, el);
+        });
+    }
+
+    // New: Delete a file
+    function deleteFile(key) {
+        const meta = fileMeta[key];
+        if (!meta) return;
+
+        document.getElementById('confirmMessage').innerText = `Delete "${meta.filename}"? This action cannot be undone.`;
+
+        const promise = showModal({
+            title: 'Confirm Delete',
+            bodyId: 'confirmForm',
+            footerButtons: [
+                { label: 'Cancel', class: 'secondary', onClick: () => hideModal(null) },
+                {
+                    label: 'Delete',
+                    class: 'primary',
+                    onClick: () => {
+                        hideModal(true);
+                    }
+                }
+            ]
+        });
+
+        promise.then(ok => {
+            if (!ok) return;
+            // Remove from storage
+            if (codeFiles.hasOwnProperty(key)) delete codeFiles[key];
+            if (fileMeta.hasOwnProperty(key)) delete fileMeta[key];
+
+            buildExplorer();
+
+            // If the deleted file was active, switch to first available file
+            if (currentMode === key) {
+                const nextKey = Object.keys(fileMeta)[0];
+                if (nextKey) {
+                    const el = document.querySelector(`[data-key="${nextKey}"]`);
+                    setMode(nextKey, el);
+                } else {
+                    // No files left
+                    currentMode = null;
+                    editor.value = '';
+                    document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+                    designer.style.display = 'none';
+                    previewPane.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    /* --- setMode: tolerant to arbitrary file keys (modified) --- */
+
+    function setMode(mode, element) {
+        // Save previous file content if it was a known key
+        if (fileMeta[currentMode]) {
+            codeFiles[currentMode] = editor.value;
+        }
+ 
+        currentMode = mode;
+        // If new mode is not present in codeFiles, initialize it as empty string
+        if (!codeFiles.hasOwnProperty(mode)) {
+            codeFiles[mode] = codeFiles[mode] || '';
+        }
+        editor.value = codeFiles[mode];
+ 
+        // update the tab header and window title to reflect the selected file
+        const meta = fileMeta[mode];
+        const displayName = (meta && meta.filename) ? meta.filename : mode;
+        try { tabName.innerText = displayName; } catch(e){}
+        try { document.title = `${displayName} - Visual Studio Web | Master Resizable Edition v5.0`; } catch(e){}
+ 
+ 	// Update active UI
+ 	document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+ 	if (element) {
+ 		// element may be the inner div or the file-item; find closest .file-item
+ 		const fileItem = element.closest('.file-item') || element;
+ 		fileItem.classList.add('active');
+ 	} else {
+ 		const el = document.querySelector(`[data-key="${mode}"]`);
+ 		if (el) el.classList.add('active');
+ 	}
+ 
+ 	// Determine file type from known mapping or filename extension
+ 	const meta2 = fileMeta[mode];
+ 	const filename = meta2 ? meta2.filename : '';
+ 	const lower = filename.toLowerCase();
+ 
+ 	// treat any file marked as designer (contains "[Design]") or legacy WINFORMS as WinForms
+ 	const isWinForms = (mode === 'winforms') || (meta2 && (meta2.category === 'WINFORMS' || (meta2.filename && meta2.filename.includes('[Design]'))));
+ 	const isHTML = lower.endsWith('.html') || meta2 && meta2.category === 'HTML';
+    const isMarkdown = lower.endsWith('.md') || (meta2 && meta2.category === 'MARKDOWN');
+ 	const isCodeOnly = !isWinForms && !isHTML && !isMarkdown;
+ 
+ 	// Manage split view
+ 	document.getElementById('splitView').style.display = 'flex';
+ 	
+ 	// Designer/Preview visibility
+ 	designer.style.display = isWinForms ? 'block' : 'none';
+//	previewPane.style.display = isHTML ? 'block' : 'none';
+	previewPane.style.display = (isHTML || isMarkdown) ? 'block' : 'none';
+ 	
+ 	// Code Editor visibility
+ 	document.getElementById('codeEditorPane').style.display = 'flex';
+ 	
+ 	// Adjust flex sizing
+ 	if (isCodeOnly) {
+ 		designer.style.flexBasis = '0';
+ 		previewPane.style.flexBasis = '0';
+ 		document.getElementById('codeEditorPane').style.flexBasis = '100%';
+ 	} else if (isWinForms || isHTML) {
+ 		designer.style.flexBasis = '50%';
+ 		previewPane.style.flexBasis = '50%'; 
+ 		document.getElementById('codeEditorPane').style.flexBasis = '50%';
+ 	}
+ 
+ 	// Toolbox and render
+ 	if (activeView === 'explorer' && isWinForms) {
+ 		toolbox.style.display = 'flex';
+ 		parseEditorForDesigner(); 
+ 	} else {
+ 		toolbox.style.display = 'none';
+ 	}
+ 	
+//	if (isHTML) { runCode(); }
+    // trigger preview rendering for HTML and Markdown
+	if (isHTML || isMarkdown) { runCode(); }
+ 	if (mode === 'python') { preRunAnalysis(codeFiles[mode]); }
+ }
+ 
+ /* --- WINFORMS DESIGNER LOGIC --- */
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev, type) { ev.dataTransfer.setData("controlType", type); }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const type = ev.dataTransfer.getData("controlType");
+        const rect = virtualFormBody.getBoundingClientRect();
+        const x = Math.floor(ev.clientX - rect.left);
+        const y = Math.floor(ev.clientY - rect.top);
+
+        addControlToCode(type, x, y);
+    }
+
+    function addControlToCode(type, x, y) {
+        const id = Math.floor(Math.random() * 1000);
+        const config = controlRenderMap[type];
+        // prefix control names with language tag to avoid cross-language collisions
+        const meta = fileMeta[currentMode] || {};
+        const isCSharpDesigner = (currentMode === 'csharp_winforms') || (meta.filename && meta.filename.toLowerCase().endsWith('.cs [design]'));
+        const langTag = isCSharpDesigner ? 'cs' : 'vb';
+        const name = `${langTag}_${type}${id}`;
+        
+        let newCodeBlock = "";
+        if (isCSharpDesigner) {
+            // mark the block so parser can distinguish language-specific controls
+            newCodeBlock += `        // [Designer:CS]\n`;
+            newCodeBlock += `        var ${name} = new ${type}();\n`;
+            if (config.text) newCodeBlock += `        ${name}.Text = "${config.text}";\n`;
+            newCodeBlock += `        ${name}.Location = new System.Drawing.Point(${x}, ${y});\n`;
+            if (config.defaultSize) {
+                newCodeBlock += `        ${name}.Width = ${config.defaultSize.w};\n`;
+                newCodeBlock += `        ${name}.Height = ${config.defaultSize.h};\n`;
+            }
+            newCodeBlock += `        this.Controls.Add(${name});\n\n`;
+        } else {
+            newCodeBlock += `        ' [Designer:VB]\n`;
+            newCodeBlock += `        Dim ${name} As New ${type}()\n`;
+            if (config.text) newCodeBlock += `        ${name}.Text = "${config.text}"\n`;
+            newCodeBlock += `        ${name}.Location = New Point(${x}, ${y})\n`;
+            if (config.defaultSize) {
+                newCodeBlock += `        ${name}.Width = ${config.defaultSize.w}\n`;
+                newCodeBlock += `        ${name}.Height = ${config.defaultSize.h}\n`;
+            }
+            newCodeBlock += `        Me.Controls.Add(${name})\n\n`;
+        }
+
+        // Injection logic: look for InitializeComponent() in a tolerant way
+        const currentCode = editor.value;
+        const initMatch = currentCode.match(/InitializeComponent\(\)/i);
+        let injectionIndex = -1;
+        if (initMatch) {
+            injectionIndex = currentCode.indexOf(initMatch[0]) + initMatch[0].length;
+        } else {
+            // fallback to VB initializer
+            const insertionPoint = "Private Sub InitializeComponent()";
+            const idx = currentCode.indexOf(insertionPoint);
+            injectionIndex = idx > -1 ? idx + insertionPoint.length : -1;
+        }
+ 
+     if (injectionIndex > -1) {
+         const before = currentCode.substring(0, injectionIndex);
+         const after = currentCode.substring(injectionIndex);
+         editor.value = before + "\n" + newCodeBlock + after;
+         codeFiles[currentMode] = editor.value; 
+         parseEditorForDesigner();
+     }
+ }
+
+    function parseEditorForDesigner() {
+        // support both VB and C# designer sources
+        const meta = fileMeta[currentMode] || {};
+        const isDesignerFile = (meta.filename && meta.filename.includes('[Design]')) || currentMode === 'winforms' || currentMode === 'csharp_winforms';
+        if (!isDesignerFile) return;
+ 
+      virtualFormBody.innerHTML = ''; 
+      const code = editor.value;
+      const controls = {}; 
+      const lines = code.split('\n');
+        
+      // helper to find previous non-empty line (for markers)
+      function prevNonEmptyLine(idx) {
+          for (let i = idx - 1; i >= 0; i--) {
+              const t = lines[i].trim();
+              if (t.length > 0) return t;
+          }
+          return '';
+      }
+         
+      // 1. Creation Pass
+      lines.forEach((line, idx) => {
+          line = line.trim();
+            if(line.startsWith("Me.Text")) document.querySelector('.form-titlebar').innerText = line.split('=')[1].replace(/"/g, '').trim();
+            
+            // VB creation: "Dim name As New Type()"
+            let createMatch = line.match(/Dim\s+(\w+)\s+As\s+New\s+(\w+)/);
+            // C# creation: "var name = new Type();" or "Button name = new Button();"
+            if (!createMatch) createMatch = line.match(/(?:var\s+|\w+\s+)?(\w+)\s*=\s*new\s+(\w+)/i);
+            if (createMatch) {
+                const name = createMatch[1];
+                const type = createMatch[2];
+                const config = controlRenderMap[type];
+                if (!config) return;
+
+                // If a language marker exists on the previous non-empty line, ensure it matches the current designer
+                const prev = prevNonEmptyLine(idx);
+                if (prev.startsWith("' [Designer:VB]") || prev.startsWith("// [Designer:CS]")) {
+                    const wantCS = prev.indexOf('CS') !== -1;
+                    const wantVB = prev.indexOf('VB') !== -1;
+                    const currentIsCS = (currentMode === 'csharp_winforms') || (meta.filename && meta.filename.toLowerCase().endsWith('.cs [design]'));
+                    if ((wantCS && !currentIsCS) || (wantVB && currentIsCS)) {
+                        // this creation block belongs to other language — skip it
+                        return;
+                    }
+                }
+
+                let el = document.createElement('div');
+                el.className = 'designer-control';
+                let inner = document.createElement(config.tag);
+                inner.className = config.class;
+                if (config.text) inner.innerText = config.text;
+                if (config.html) inner.innerHTML = config.html + (config.text || '');
+                if (config.type) inner.type = config.type;
+                if (config.multiple) inner.setAttribute('multiple', true);
+                el.appendChild(inner);
+                controls[name] = { wrapper: el, inner: inner, type: type, config: config };
+                virtualFormBody.appendChild(el);
+            }
+         });
+ 
+         // 2. Property Pass
+         lines.forEach(line => {
+             line = line.trim();
+             Object.keys(controls).forEach(name => {
+                 if(line.startsWith(name)) {
+                     const ctrl = controls[name];
+ 
+                    if(line.includes('.Text =')) {
+                        let val = line.split('=')[1] || '';
+                        val = val.replace(/[";]/g, '').trim(); // remove quotes and trailing semicolons
+                        ctrl.inner.innerText = val;
+                    }
+                     
+                     let widthMatch = line.match(/\.Width = (\d+)/);
+                     if(widthMatch) ctrl.wrapper.style.width = widthMatch[1] + 'px';
+                     
+                     let heightMatch = line.match(/\.Height = (\d+)/);
+                     if(heightMatch) ctrl.wrapper.style.height = heightMatch[1] + 'px';
+ 
+                     if(line.includes('.Location = New Point')) {
+                         const m = line.match(/Point\((\d+),\s*(\d+)\)/);
+                         if(m) {
+                             ctrl.wrapper.style.left = m[1] + 'px';
+                             ctrl.wrapper.style.top = m[2] + 'px';
+                         }
+                     } else if (line.includes('.Location = new System.Drawing.Point') || line.includes('.Location = new Point')) {
+                        const m2 = line.match(/Point\((\d+),\s*(\d+)\)/);
+                        if(m2) {
+                            ctrl.wrapper.style.left = m2[1] + 'px';
+                            ctrl.wrapper.style.top = m2[2] + 'px';
+                        }
+                     }
+                 }
+             });
+         });
+     }
+
+    /* --- DEBUG LOGIC --- */
+
+    function preRunAnalysis(pythonCode) {
+        const initialVars = {};
+        const varRegex = /(\w+)\s*=\s*(".*"|\d+|\[.*\]|\{.*\})/g;
+        
+        let match;
+        while ((match = varRegex.exec(pythonCode)) !== null) {
+            initialVars[match[1]] = match[2].trim();
+        }
+
+        renderWatchPanel(initialVars, 'variableWatchPre', 'Initial State');
+    }
+    
+    function renderWatchPanel(vars, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        if (Object.keys(vars).length === 0) {
+            container.innerHTML = `<div style="font-size: 0.8rem; color:#888;">No variables detected in current scope.</div>`;
+            return;
+        }
+
+        for (const name in vars) {
+            const val = vars[name];
+            const div = document.createElement('div');
+            div.className = 'watch-item';
+            
+            let colorClass = '';
+            if (containerId === 'variableWatchPost') {
+                const initialValElement = document.querySelector(`#variableWatchPre .watch-name:contains('${name}:')`);
+                const initialVal = initialValElement ? initialValElement.nextElementSibling.innerText : null;
+
+                if (initialVal !== null && initialVal !== val) {
+                    colorClass = 'watch-modified';
+                } else if (initialVal === null) {
+                    colorClass = 'watch-new';
+                }
+            }
+
+            div.innerHTML = `<span class="watch-name">${name}:</span> <span class="watch-value ${colorClass}">${val}</span>`;
+            container.appendChild(div);
+        }
+    }
+
+    // --------- Dev / iframe console bridge helpers (insert before runCode) ----------
+function _iframeConsoleBridgeScript() {
+    // returns a string that will be injected into the preview HTML to forward console messages
+    return `<script>(function(){
+        function safeStringify(v){
+            try { return (typeof v === 'object') ? JSON.stringify(v) : String(v); } catch(e) { return String(v); }
+        }
+        function send(level, args){
+            try{
+                parent.postMessage({ houslearning_console: true, level: level, args: Array.from(args).map(safeStringify) }, '*');
+            }catch(e){}
+        }
+        ['log','info','warn','error','debug'].forEach(function(l){
+            var orig = console[l];
+            console[l] = function(){
+                send(l, arguments);
+                try { orig && orig.apply(console, arguments); } catch(e){}
+            };
+        });
+        window.addEventListener('message', function(ev){
+            try {
+                if (ev.data && ev.data.houselarning_eval) {
+                    var code = ev.data.code || '';
+                    try {
+                        var res = eval(code);
+                        parent.postMessage({ houslearning_console: true, level: 'log', args: ['<eval result>', (typeof res === 'undefined' ? 'undefined' : (typeof res === 'object' ? JSON.stringify(res) : String(res)))] }, '*');
+                    } catch(err) {
+                        parent.postMessage({ houslearning_console: true, level: 'error', args: ['<eval error>', String(err)] }, '*');
+                    }
+                }
+            } catch(e){}
+        }, false);
+    })();<\/script>`;
+}
+
+// Simple in-page terminal appender (safe plain-text)
+function appendToTerminal(text) {
+    const t = document.getElementById('terminal');
+    if (!t) return;
+    const row = document.createElement('div');
+    row.style.fontFamily = "Consolas, monospace";
+    row.style.fontSize = '12px';
+    row.style.whiteSpace = 'pre-wrap';
+    row.textContent = text;
+    t.appendChild(row);
+    t.scrollTop = t.scrollHeight;
+}
+
+// Toggle Dev Bar visibility
+function toggleDevBar() {
+    const el = document.getElementById('devBar');
+    if (!el) return;
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    if (el.style.display === 'block') {
+        setTimeout(()=> {
+            const inp = document.getElementById('devInput');
+            if (inp) inp.focus();
+        }, 50);
+    }
+}
+
+// Evaluate/paste input into preview iframe (or fallback to parent)
+function evalInPreview() {
+    const code = (document.getElementById('devInput') || {}).value || '';
+    if (!code) return;
+    // prefer running inside preview iframe when it's visible
+    if (previewPane && previewPane.style.display === 'block') {
+        const iframe = document.getElementById('previewFrame');
+        try {
+            iframe.contentWindow.postMessage({ houslearning_eval: true, code: code }, '*');
+            appendToTerminal('> Sent eval to preview iframe');
+        } catch(e) {
+            appendToTerminal('> Could not postMessage to iframe: ' + String(e));
+        }
+    } else {
+        // fallback: eval in parent (developer responsibility)
+        try {
+            const res = eval(code);
+            appendToTerminal('> Eval result: ' + String(res));
+            console.log('Eval result:', res);
+        } catch(err) {
+            appendToTerminal('> Eval error: ' + String(err));
+            console.error(err);
+        }
+    }
+}
+
+// Listen for messages from iframe bridge and route to browser console + in-page terminal
+window.addEventListener('message', function(ev){
+    try {
+        const d = ev.data;
+        if (d && d.houselarning_console) {
+            const lvl = d.level || 'log';
+            const args = Array.isArray(d.args) ? d.args : [String(d.args)];
+            // forward to the real devtools console
+            try {
+                if (console && console[lvl]) console[lvl].apply(console, args);
+                else console.log.apply(console, args);
+            } catch(e){
+                console.log.apply(console, args);
+            }
+            // append a simple textual representation to the in-page terminal
+            appendToTerminal('[iframe ' + lvl + '] ' + args.join(' '));
+        }
+    } catch(e){}
+}, false);
+
+    async function runCode() {
+        codeFiles[currentMode] = editor.value; 
+        clearTerminal();
+        terminal.innerHTML = `<div style="color: #007acc;">HouseLearning Output [Trace]: Building Solution...</div>`;
+
+        if (currentMode === 'html') {
+            const iframe = document.getElementById('previewFrame');
+            const doc = iframe.contentWindow.document;
+            // inject the bridge into the HTML so the iframe forwards console messages & accepts evals
+            const injected = editor.value + "\n" + _iframeConsoleBridgeScript();
+            doc.open();
+            doc.write(injected);
+            doc.close();
+            terminal.innerHTML += `<div style="color:green;">> HTML Rendered in Preview Pane.</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+                       return;
+        }
+        // Markdown preview rendering (uses marked.js loaded in the parent)
+        if (currentMode === 'markdown') {
+            const iframe = document.getElementById('previewFrame');
+            const doc = iframe.contentWindow.document;
+            // render markdown to HTML via marked (safe-ish for demo)
+            const md = editor.value || '';
+            let rendered = '';
+            try {
+                rendered = (typeof marked !== 'undefined') ? marked.parse(md) : '<pre>' + md.replace(/</g,'&lt;') + '</pre>';
+            } catch (e) {
+                rendered = '<pre>' + md.replace(/</g,'&lt;') + '</pre>';
+            }
+            const wrapper = `<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Segoe UI, Arial, sans-serif; padding:20px; color:#222}</style></head><body>${rendered}</body>${_iframeConsoleBridgeScript()}</html>`;
+            doc.open();
+            doc.write(wrapper);
+            doc.close();
+            terminal.innerHTML += `<div style="color:green;">> Markdown Rendered in Preview Pane.</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+            return;
+        }
+
+        if (currentMode === 'winforms') {
+            terminal.innerHTML += `<div style="color:green;">> WinForms Simulator Active. (Designer is the live run environment)</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+            return;
+        }
+        // also treat C# WinForms as simulator target
+        if (currentMode === 'csharp_winforms') {
+            terminal.innerHTML += `<div style="color:green;">> C# WinForms Simulator Active. (Designer is the live run environment)</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+            return;
+        }
+
+        // --- PYTHON DEBUG EXECUTION (The Core Logic) ---
+        if (currentMode === 'python') {
+            preRunAnalysis(codeFiles['python']);
+            
+            const code = codeFiles['python'];
+            const debugCode = code + '\n\n# --- DEBUG TRACE ---\nimport json\nlocal_vars = {}\nfor name, value in locals().items():\n    if not name.startswith("__") and name != "json":\n        local_vars[name] = str(value)\nprint("\\n\\n---END_VARS---" + json.dumps(local_vars))';
+
+            const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: 'python',
+                    version: "*",
+                    files: [{ content: debugCode }]
+                })
+            });
+            const data = await res.json();
+            
+            if(data.run) {
+                const output = data.run.stdout + data.run.stderr;
+                const varSeparator = "---END_VARS---";
+                
+                let finalOutput = output;
+                let finalVars = {};
+
+                if (output.includes(varSeparator)) {
+                    const parts = output.split(varSeparator);
+                    finalOutput = parts[0];
+                    try {
+                        finalVars = JSON.parse(parts[1]);
+                    } catch (e) {
+                        terminal.innerText += "\nDebug Error: Could not parse final variables.";
+                    }
+                }
+                
+                terminal.innerText += `\n${finalOutput}`;
+                renderWatchPanel(finalVars, 'variableWatchPost');
+            }
+
+        } else {
+             // Standard Piston API call for Java/VB
+             const langMap = { 'java': 'java', 'go': 'go', 'csharp': 'csharp', 'vb': 'vb.net', 'ruby': 'ruby', 'swift': 'swift', 'kotlin': 'kotlin' };
+             // add php mapping
+             langMap['php'] = 'php';
+             // add typescript mapping
+             langMap['typescript'] = 'typescript';
+             // add R mapping
+             langMap['r'] = 'r';
+             // add SQL mapping
+             langMap['sql'] = 'sql';
+             // add Dart mapping
+             langMap['dart'] = 'dart';
+             // add MATLAB mapping
+             langMap['matlab'] = 'matlab';
+             // add Bash mapping
+             langMap['bash'] = 'bash';
+             // add PowerShell mapping
+             langMap['powershell'] = 'powershell';
+             // add generic shell mapping -> use bash runtime (POSIX sh) on piston
+             langMap['shell'] = 'bash';
+             // add Assembly mapping (NASM)
+             langMap['assembly'] = 'nasm';
+              const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: langMap[currentMode],
+                    version: "*",
+                    files: [{ content: editor.value }]
+                })
+             });
+             const data = await res.json();
+             if(data.run) {
+                 terminal.innerText += `\n${data.run.stdout}\n${data.run.stderr}`;
+             }
+         }
+        
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+
+    /* --- DOWNLOAD LOGIC --- */
+
+    function downloadCode() {
+        const code = editor.value;
+        const extMap = { 'html': 'html', 'python': 'py', 'java': 'java', 'vb': 'vb', 'winforms': 'vb', 'ruby': 'rb', 'swift': 'swift', 'kotlin': 'kt' };
+        const nameMap = {'html': 'index', 'python': 'main', 'java': 'Main', 'vb': 'Module1', 'winforms': 'Form1', 'ruby': 'main', 'swift': 'main', 'kotlin': 'Main'};
+        // Add Go mappings
+        extMap['go'] = 'go';
+        nameMap['go'] = 'main';
+        // Add C# mappings
+        extMap['csharp'] = 'cs';
+        nameMap['csharp'] = 'Program';
+        // Add PowerShell mappings
+        extMap['powershell'] = 'ps1';
+        nameMap['powershell'] = 'script';
+        // Add Generic Shell mappings (use .sh)
+        extMap['shell'] = 'sh';
+        nameMap['shell'] = 'script';
+        // Add Assembly mappings
+        extMap['assembly'] = 'asm';
+        nameMap['assembly'] = 'main';
+        // Add Markdown mappings
+        extMap['markdown'] = 'md';
+        nameMap['markdown'] = 'README';
+        extMap['csharp_winforms'] = 'cs';
+        nameMap['csharp_winforms'] = 'Form1';
+        // Add PHP mappings
+        extMap['php'] = 'php';
+        nameMap['php'] = 'index';
+        // Add TypeScript mappings
+        extMap['typescript'] = 'ts';
+        nameMap['typescript'] = 'main';
+        // Add R mappings
+        extMap['r'] = 'r';
+        nameMap['r'] = 'script';
+        // Add SQL mappings
+        extMap['sql'] = 'sql';
+        nameMap['sql'] = 'script';
+        // Add Dart mappings
+        extMap['dart'] = 'dart';
+        nameMap['dart'] = 'main';
+        // Add MATLAB mappings
+        extMap['matlab'] = 'm';
+        nameMap['matlab'] = 'script';
+        // Add Bash mappings
+        extMap['bash'] = 'sh';
+        nameMap['bash'] = 'script';
+        // Add Perl mappings
+        extMap['perl'] = 'pl';
+        nameMap['perl'] = 'script';
+        // Add C++ mappings
+        extMap['cpp'] = 'cpp';
+        nameMap['cpp'] = 'main';
+         const ext = extMap[currentMode];
+         const name = nameMap[currentMode];
+        
+         const blob = new Blob([code], { type: 'text/plain' });
+         const anchor = document.createElement('a');
+         anchor.download = `${name}.${ext}`;
+         anchor.href = window.URL.createObjectURL(blob);
+         anchor.click();
+     }
+
+    /* --- Modal helper state & functions --- */
+let modalResolve = null; // Promise resolver for modal result
+
+function modalOverlayClick(e) {
+	// close by clicking overlay
+	hideModal();
+}
+
+function showModal({ title = 'Dialog', bodyId = null, footerButtons = [] } = {}) {
+	document.getElementById('modalTitle').innerText = title;
+
+	// hide all form panels first
+	['addForm','renameForm','confirmForm'].forEach(id => {
+		const el = document.getElementById(id);
+		if (el) el.style.display = 'none';
+	});
+
+	if (bodyId) {
+		const panel = document.getElementById(bodyId);
+		if (panel) panel.style.display = 'block';
+	}
+
+	const footer = document.getElementById('modalFooter');
+	footer.innerHTML = '';
+
+	footerButtons.forEach(b => {
+		const btn = document.createElement('button');
+		btn.className = 'btn ' + (b.class || 'secondary');
+		btn.innerText = b.label;
+		btn.type = 'button';
+		btn.onclick = () => {
+			if (b.onClick) b.onClick();
+		};
+		footer.appendChild(btn);
+	});
+
+	document.getElementById('modalOverlay').style.display = 'flex';
+	// keyboard handler
+	document.addEventListener('keydown', modalKeyHandler);
+
+	// return a promise for result-based flows
+	return new Promise(resolve => modalResolve = resolve);
+}
+
+function hideModal(result = null) {
+	document.getElementById('modalOverlay').style.display = 'none';
+	document.removeEventListener('keydown', modalKeyHandler);
+	if (modalResolve) {
+		modalResolve(result);
+		modalResolve = null;
+	}
+}
+
+function modalKeyHandler(e) {
+	if (e.key === 'Escape') hideModal(null);
+	if (e.key === 'Enter') {
+		// try to submit visible form by triggering primary button if present
+		const footer = document.getElementById('modalFooter');
+		const btn = footer.querySelector('.btn.primary');
+		if (btn) btn.click();
+	}
+}
+
+// Search helpers + runSearch implementation
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function makeSnippet(content, term, ctx = 40) {
+    const lower = content.toLowerCase();
+    const idx = lower.indexOf(term.toLowerCase());
+    if (idx === -1) return escapeHtml(content.substring(0, Math.min(120, content.length)));
+    const start = Math.max(0, idx - ctx);
+    const end = Math.min(content.length, idx + term.length + ctx);
+    const prefix = (start > 0) ? '... ' : '';
+    const suffix = (end < content.length) ? ' ...' : '';
+    const snippet = content.substring(start, end);
+    // highlight term (case-insensitive)
+    const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+    return prefix + escapeHtml(snippet).replace(re, '<strong style="background:#ffd54f;color:#000;padding:0 2px;">$1</strong>') + suffix;
+}
+
+function runSearch() {
+    const q = (document.getElementById('searchBox') || {}).value || '';
+    const resultsEl = document.getElementById('searchResults');
+    if (!resultsEl) return;
+
+    const term = q.trim();
+    if (!term) {
+        resultsEl.innerHTML = `<div style="color:#888; font-size:0.8rem;">Type a word to search...</div>`;
+        return;
+    }
+
+    const matches = [];
+
+    // search filenames and contents
+    Object.keys(fileMeta).forEach(key => {
+        const meta = fileMeta[key];
+        const filename = meta.filename || key;
+        const fileContent = (codeFiles[key] || '');
+        const filenameLower = filename.toLowerCase();
+        const termLower = term.toLowerCase();
+
+        let score = 0;
+        if (filenameLower.includes(termLower)) score += 10;
+        if (fileContent.toLowerCase().includes(termLower)) score += 1;
+
+        if (score > 0) {
+            // snippet preferring content match; if none, show filename
+            const snippet = fileContent.toLowerCase().includes(termLower) ? makeSnippet(fileContent, term) : escapeHtml(filename);
+            matches.push({ key, filename, category: meta.category, snippet, score });
+        }
+    });
+
+    // sort by score desc then filename
+    matches.sort((a,b) => b.score - a.score || a.filename.localeCompare(b.filename));
+
+    if (matches.length === 0) {
+        resultsEl.innerHTML = `<div style="color:#888; font-size:0.8rem;">No results for "<span style="color:#fff">${escapeHtml(term)}</span>".</div>`;
+        return;
+    }
+
+    // build result UI
+    const frag = document.createElement('div');
+    matches.forEach(m => {
+        const row = document.createElement('div');
+        row.style.padding = '8px 6px';
+        row.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+        row.style.cursor = 'pointer';
+        row.onmouseenter = () => row.style.background = 'rgba(255,255,255,0.02)';
+        row.onmouseleave = () => row.style.background = 'transparent';
+
+        row.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:600; color:#ddd;">${escapeHtml(m.filename)}</div>
+            <div style="font-size:11px; color:#888;">${escapeHtml(m.category || '')}</div>
+        </div>
+        <div style="margin-top:6px; font-size:12px; color:#cfcfcf;">${m.snippet}</div>`;
+
+        row.onclick = (e) => {
+            // open file
+            const el = document.querySelector(`[data-key="${m.key}"]`);
+            if (el) {
+                setMode(m.key, el);
+                // focus editor and optionally move cursor to first match
+                const content = editor.value || '';
+                const pos = content.toLowerCase().indexOf(term.toLowerCase());
+                if (pos >= 0) {
+                    // place cursor near match
+                    editor.focus();
+                    editor.selectionStart = pos;
+                    editor.selectionEnd = pos + term.length;
+                    // For large files, ensure visible (best-effort)
+                    const lines = content.substring(0, pos).split('\n').length;
+                    const lineHeight = 18; // approximate
+                    editor.scrollTop = Math.max(0, (lines - 5) * lineHeight);
+                }
+            }
+        };
+
+        frag.appendChild(row);
+    });
+
+    // replace results
+    resultsEl.innerHTML = '';
+    resultsEl.appendChild(frag);
+}
+</script>
+
+</body>
+</html>
