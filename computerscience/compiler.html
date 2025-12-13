@@ -2448,6 +2448,113 @@ function runSearch() {
             }
         };
  
+        // --- START: Save to Web modal + performSave implementation (INSERTED) ---
+        // Replaces the earlier no-op fallbacks once Firebase is ready.
+        window.openSaveModal = async function() {
+            try {
+                const user = firebase && firebase.auth && firebase.auth().currentUser;
+                // If not signed in, prompt user to sign in
+                if (!user) {
+                    showModal({
+                        title: 'Sign in required',
+                        bodyId: null,
+                        footerButtons: [
+                            { label: 'Sign In', class: 'primary', onClick: () => { hideModal(); signInNow(); } },
+                            { label: 'Close', class: 'secondary', onClick: () => hideModal(null) }
+                        ]
+                    });
+                    return;
+                }
+
+                // populate any state (persisted option)
+                try {
+                    const last = localStorage.getItem('hl_last_save_option');
+                    const sel = document.getElementById('saveOption');
+                    if (sel) sel.value = last || sel.value || 'file';
+                } catch (e) {}
+
+                // show modal with Save/Cancel wired
+                showModal({
+                    title: 'Save to Web',
+                    bodyId: 'saveForm',
+                    footerButtons: [
+                        { label: 'Cancel', class: 'secondary', onClick: () => hideModal(null) },
+                        { label: 'Save', class: 'primary', onClick: () => { performSave(); } }
+                    ]
+                });
+            } catch (e) {
+                console.warn('openSaveModal error', e);
+                alert('Unable to open Save dialog right now.');
+            }
+        };
+
+        window.performSave = async function() {
+            try {
+                const user = firebase && firebase.auth && firebase.auth().currentUser;
+                if (!user) {
+                    appendToTerminal('[HouseLearning] Save failed: user not signed in.');
+                    alert('Please sign in to save projects.');
+                    return;
+                }
+
+                const db = window._hl_db;
+                if (!db) {
+                    appendToTerminal('[HouseLearning] Save failed: database not available.');
+                    alert('Save failed: backend unavailable.');
+                    return;
+                }
+
+                // read options from modal
+                const sel = document.getElementById('saveOption');
+                const option = sel ? sel.value : 'file';
+                const persist = (document.getElementById('savePersist') || {}).checked;
+
+                const payload = { filename: '', category: '', content: '', ts: Date.now() };
+
+                if (option === 'file') {
+                    // Save current file only
+                    const key = currentMode;
+                    const meta = fileMeta[key] || {};
+                    payload.filename = meta.filename || key;
+                    payload.category = meta.category || '';
+                    payload.content = codeFiles[key] !== undefined ? codeFiles[key] : (editor ? editor.value : '');
+                } else {
+                    // Save entire category (use current file's category as selection)
+                    const curMeta = fileMeta[currentMode] || {};
+                    const category = curMeta.category || 'UNNAMED_CATEGORY';
+                    payload.filename = `${category}-bundle`;
+                    payload.category = category;
+
+                    // gather files under that category
+                    const filesObj = {};
+                    Object.keys(fileMeta).forEach(k => {
+                        if (fileMeta[k] && fileMeta[k].category === category) {
+                            filesObj[fileMeta[k].filename] = codeFiles[k] !== undefined ? codeFiles[k] : '';
+                        }
+                    });
+
+                    payload.content = JSON.stringify({ files: filesObj });
+                }
+
+                // push to user's projects
+                const ref = db.ref('users/' + user.uid + '/projects').push();
+                await ref.set(payload);
+
+                // persist preference if requested
+                if (persist) {
+                    try { localStorage.setItem('hl_last_save_option', option); } catch (e) {}
+                }
+
+                appendToTerminal(`[HouseLearning] Saved "${payload.filename}" to your projects.`);
+                hideModal(true);
+            } catch (e) {
+                console.error('performSave error', e);
+                appendToTerminal('[HouseLearning] Save error: ' + String(e));
+                alert('Save failed: ' + (e && e.message ? e.message : String(e)));
+            }
+        };
+        // --- END: Save to Web implementation ---
+        
          // open project into side navigator & editor
          window.openProject = async function(projectKey) {
              const user = firebase && firebase.auth && firebase.auth().currentUser;
