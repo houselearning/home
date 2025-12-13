@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="/feedback.js"></script>
-    
+    <link rel="stylesheet" href="compiler-footer-style.css">
     <style>
         /* --- CORE THEME: HOUSELEARNING & VS BLEND --- */
         :root {
@@ -288,6 +287,89 @@
         .modal-close { background:transparent; border:none; color:#aaa; font-size:18px; cursor:pointer; padding:0 6px; }
         .modal .hint { font-size:12px; color:#9a9a9a; margin-top:8px; }
 
+        /* Footer */
+        body { /* ensure page content doesn't hide behind fixed footer */
+            padding-bottom: 56px;
+        }
+        .app-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 56px;
+            background: #151515;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 14px;
+            z-index: 3000;
+            color: #cfcfcf;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        .app-footer .footer-logo {
+            width: 40px;
+            height: 40px;
+            display: block;
+            flex: 0 0 auto;
+            border-radius: 6px;
+        }
+        .app-footer .footer-text {
+            flex: 1 1 auto;
+            text-align: center;
+            color: #9aa0a6;
+            letter-spacing: 0.6px;
+        }
+        .app-footer a.footer-logo-link { display:inline-block; }
+
+        /* Auth gating overlays */
+        .auth-top-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: none;
+            z-index: 4000;
+            background: linear-gradient(180deg, rgba(30,30,30,0.95), rgba(20,20,20,0.95));
+            color: #fff;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+        .auth-top-banner .msg { flex: 1; text-align: center; color: #ffd; font-weight: 600; }
+        .auth-top-banner .btn { background:#0e639c; color:#fff; border:0; padding:6px 10px; border-radius:4px; cursor:pointer; }
+        .auth-top-banner .close-x { background:transparent; border:0; color:#ccc; cursor:pointer; font-size:16px; padding:4px; }
+
+        .auth-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            pointer-events: auto;
+        }
+        .auth-overlay .overlay-inner {
+            background: rgba(12,12,12,0.88);
+            color: #fff;
+            padding: 22px;
+            border-radius: 8px;
+            text-align: center;
+            width: min(560px, 92%);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+        }
+        .auth-overlay h1 { margin:0 0 6px; font-size:20px; }
+        .auth-overlay h2 { margin:6px 0 12px; font-size:14px; font-weight:400; color:#ddd; }
+        .auth-overlay .signin-btn { background:#0e639c; color:#fff; border:0; padding:8px 12px; border-radius:5px; cursor:pointer; }
+        .auth-overlay .signin-btn:hover { background:#1177bb; }
+
+        /* blurred content helper */
+        .blurred { filter: blur(4px); pointer-events: none; user-select: none; }
     </style>
     <!-- Add JSZip + FileSaver for zip downloads -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -297,6 +379,13 @@
 </head>
 <body>
 
+    <!-- top banner: shown when not signed in -->
+    <div id="authTopBanner" class="auth-top-banner" role="status" aria-hidden="true">
+        <button class="btn" onclick="signInNow()">Sign In Now</button>
+        <div class="msg">You must be signed in to save files to web.</div>
+        <button class="close-x" title="Dismiss" onclick="closeTopBanner()">✕</button>
+    </div>
+
     <div class="activity-bar">
         <div class="activity-icon active" data-view="explorer" onclick="toggleView(this, 'explorer')"><i class="far fa-copy"></i></div>
         <div class="activity-icon" data-view="search" onclick="toggleView(this, 'search')"><i class="fas fa-search"></i></div>
@@ -304,6 +393,7 @@
         <div class="activity-icon" data-view="debug" onclick="toggleView(this, 'debug')"><i class="fas fa-bug"></i></div>
     </div>
 
+    <!-- VIEW PANEL -->
     <div class="view-panel" id="viewPanel">
         <div class="v-splitter v-splitter-view" onmousedown="initResize(event, 'view-panel')"></div>
         
@@ -329,6 +419,7 @@
             <div id="searchResults" style="padding: 10px;">
                 <div style="color:#888; font-size:0.8rem;">Type a word to search...</div>
             </div>
+            <!-- moved searchAuthOverlay out of this block to avoid it being blurred when this view is blurred -->
         </div>
 
         <div class="view-content" id="view-source-control">
@@ -356,6 +447,24 @@
                 
                 <h4 style="margin-top: 15px;">CALL STACK</h4>
                 <div style="font-size: 0.85rem; color:#888;">&gt; Global (Main)</div>
+            </div>
+            <!-- moved debugAuthOverlay out of this block to avoid it being blurred when this view is blurred -->
+        </div>
+
+        <!-- Insert search/debug overlays here as siblings inside view-panel so they are not descendants of the blurred view-content -->
+        <div id="searchAuthOverlay" class="auth-overlay" aria-hidden="true" style="display:none;">
+            <div class="overlay-inner">
+                <h1>Woah There!</h1>
+                <h2>You must be signed in to use Search.</h2>
+                <button class="signin-btn" onclick="signInNow()">Sign In now</button>
+            </div>
+        </div>
+
+        <div id="debugAuthOverlay" class="auth-overlay" aria-hidden="true" style="display:none;">
+            <div class="overlay-inner">
+                <h1>Woah There!</h1>
+                <h2>You must be signed in to use Debug.</h2>
+                <button class="signin-btn" onclick="signInNow()">Sign In now</button>
             </div>
         </div>
     </div>
@@ -433,6 +542,20 @@
                 
                 <div class="editor-pane" id="previewPane" style="display:none; background:white;">
                     <iframe id="previewFrame" style="width:100%; height:100%; border:none;"></iframe>
+                </div>
+
+                <!-- language gate overlay covering the split view (designer + editor + preview) -->
+                <!-- moved out of the split-view so the overlay itself is not blurred -->
+            </div>
+        </div>
+
+        <!-- Add the langOverlay as a direct child of .main-editor (so it's above the split-view blur) -->
+        <div id="langOverlay" class="auth-overlay" aria-hidden="true" style="display:none;">
+            <div class="overlay-inner">
+                <h1>Woah There!</h1>
+                <h2 id="langOverlayMsg">You must be signed in to use %PROGRAMMING_LANGUAGE%.</h2>
+                <div style="display:flex; gap:12px; justify-content:center; margin-top:10px;">
+                    <button class="signin-btn" onclick="signInNow()">Sign In now</button>
                 </div>
             </div>
         </div>
@@ -1216,7 +1339,6 @@ _start:
  	
  	// Designer/Preview visibility
  	designer.style.display = isWinForms ? 'block' : 'none';
-//	previewPane.style.display = isHTML ? 'block' : 'none';
 	previewPane.style.display = (isHTML || isMarkdown) ? 'block' : 'none';
  	
  	// Code Editor visibility
@@ -1245,7 +1367,10 @@ _start:
     // trigger preview rendering for HTML and Markdown
 	if (isHTML || isMarkdown) { runCode(); }
  	if (mode === 'python') { preRunAnalysis(codeFiles[mode]); }
- }
+
+        // ensure overlays reflect current mode/auth
+        try { updateAuthUI(); } catch(e){}
+    }
  
  /* --- WINFORMS DESIGNER LOGIC --- */
 
@@ -1367,7 +1492,7 @@ _start:
                 let el = document.createElement('div');
                 el.className = 'designer-control';
                 let inner = document.createElement(config.tag);
-                inner.className = config.class;
+                               inner.className = config.class;
                 if (config.text) inner.innerText = config.text;
                 if (config.html) inner.innerHTML = config.html + (config.text || '');
                 if (config.type) inner.type = config.type;
@@ -1570,7 +1695,23 @@ window.addEventListener('message', function(ev){
     async function runCode() {
         codeFiles[currentMode] = editor.value; 
         clearTerminal();
-        terminal.innerHTML = `<div style="color: #007acc;">HouseLearning Output [Trace]: Building Solution...</div>`;
+        appendToTerminal('HouseLearning Output [Trace]: Building Solution...');
+
+        // AUTH GUARD: if trying to run anything besides html, python, java, ensure user is authenticated
+        const allowed = ['html','python','java'];
+        const requiresAuth = !allowed.includes(currentMode);
+        let isAuthed = false;
+        if (requiresAuth) {
+            if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+                isAuthed = true;
+            }
+            if (!isAuthed) {
+                appendToTerminal('[HouseLearning] CRITICAL: USER IS NOT AUTHENTICATED. UNABLE TO RUN');
+                return;
+            } else {
+                appendToTerminal('[HouseLearning] Auth Successful!');
+            }
+        }
 
         if (currentMode === 'html') {
             const iframe = document.getElementById('previewFrame');
@@ -1699,7 +1840,76 @@ window.addEventListener('message', function(ev){
 
 
     /* --- DOWNLOAD LOGIC --- */
+    // Add: initResize - handle dragging of vertical/horizontal splitters
+function initResize(e, target) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
 
+    const viewPanelEl = document.getElementById('viewPanel');
+    const toolboxEl = document.getElementById('toolbox');
+    const splitView = document.getElementById('splitView');
+    const designerEl = document.getElementById('designerPane');
+    const codeEl = document.getElementById('codeEditorPane');
+    const previewEl = document.getElementById('previewPane');
+    const terminalEl = document.getElementById('terminalContainer');
+
+    const rects = {
+        viewW: viewPanelEl ? viewPanelEl.getBoundingClientRect().width : 250,
+        toolboxW: toolboxEl ? toolboxEl.getBoundingClientRect().width : 180,
+        designerW: designerEl ? designerEl.getBoundingClientRect().width : 400,
+        codeW: codeEl ? codeEl.getBoundingClientRect().width : 400,
+        terminalH: terminalEl ? terminalEl.getBoundingClientRect().height : 150
+    };
+
+    // minimum sizes
+    const minViewW = 80;
+    const minToolboxW = 80;
+    const minDesignerW = 100;
+    const minEditorW = 100;
+    const minTerminalH = 30;
+
+    function onMove(ev) {
+        if (!ev) return;
+        // vertical splitters: adjust widths based on horizontal movement
+        if (target === 'view-panel') {
+            const dx = ev.clientX - startX;
+            const newW = Math.max(minViewW, rects.viewW + dx);
+            if (viewPanelEl) viewPanelEl.style.width = newW + 'px';
+        } else if (target === 'toolbox') {
+            const dx = ev.clientX - startX;
+            const newW = Math.max(minToolboxW, rects.toolboxW + dx);
+            if (toolboxEl) toolboxEl.style.width = newW + 'px';
+        } else if (target === 'mid-split') {
+            // Adjust left (designer) pane width; right side remains flexible
+            const dx = ev.clientX - startX;
+            const newDesignerW = Math.max(minDesignerW, rects.designerW + dx);
+            if (designerEl) designerEl.style.flexBasis = newDesignerW + 'px';
+            // Optionally ensure editor has minimum space
+            if (codeEl && splitView) {
+                // no-op here; flex will naturally reflow. You can set codeEl.style.flexBasis if needed.
+            }
+        } else if (target === 'terminal') {
+            // horizontal splitter: change terminal height (dragging up reduces height)
+            const dy = ev.clientY - startY;
+            const newH = Math.max(minTerminalH, rects.terminalH - dy);
+            if (terminalEl) terminalEl.style.height = newH + 'px';
+        }
+    }
+
+    function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        // restore default cursor
+        document.body.style.cursor = '';
+    }
+
+    // attach listeners
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    // set appropriate cursor
+    document.body.style.cursor = (target === 'terminal') ? 'ns-resize' : 'ew-resize';
+}
     function downloadCode() {
         const code = editor.value;
         const extMap = { 'html': 'html', 'python': 'py', 'java': 'java', 'vb': 'vb', 'winforms': 'vb', 'ruby': 'rb', 'swift': 'swift', 'kotlin': 'kt' };
@@ -1928,7 +2138,146 @@ function runSearch() {
     resultsEl.appendChild(frag);
 }
 </script>
-<footer>
+
+<!-- Footer: logo (click -> /home) + required text -->
+<footer class="app-footer" role="contentinfo" aria-label="Application footer">
+    <a class="footer-logo-link" href="/home" title="Home">
+        <img class="footer-logo" src="https://houselearning.github.io/android-chrome-192x192.png" alt="HouseLearning logo">
+    </a>
+    <div class="footer-text">
+        <a href="/privacy">Privacy</a>
+        <a href="/home">Home</a>
+        <a href="/apply">Apply</a>
+        <a href="/staff">Staff</a>
+        <a href="/documentation">Documentation</a>
+        <a href="/contact">Contact</a>
+    </div>
 </footer>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <!-- Firebase init + auth helpers (runs after Firebase SDKs are loaded) -->
+  <script>
+    // 🚨 FIREBASE CONFIGURATION (as provided)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+        authDomain: "contract-center-llc-10.firebaseapp.com",
+        projectId: "contract-center-llc-10",
+        storageBucket: "contract-center-llc-10.firebasestorage.app",
+        messagingSenderId: "323221512767",
+        appId: "1:323221512767:web:6421260f875997dbf64e8a",
+    };
+
+    // safe init if firebase available
+    (function waitForFirebase(){
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+            // try again shortly
+            return window.setTimeout(waitForFirebase, 250);
+        }
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        } catch (e) {
+            console.warn('Firebase init error', e);
+        }
+
+        // AUTH STATE
+        firebase.auth().onAuthStateChanged(function(user) {
+            updateAuthUI();
+        });
+
+        // expose sign-in function
+        window.signInNow = function() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then(result => {
+                appendToTerminal('[HouseLearning] Auth Successful!');
+                updateAuthUI();
+            }).catch(err => {
+                appendToTerminal('[HouseLearning] Auth Failed: ' + String(err));
+            });
+        };
+
+        window.closeTopBanner = function() {
+            const b = document.getElementById('authTopBanner');
+            if (b) b.style.display = 'none';
+        };
+
+        // helper: determine if mode is allowed without auth
+        window.isAllowedMode = function(mode) {
+            const allowed = ['html','python','java'];
+            return allowed.includes(mode);
+        };
+
+        // update overlays / top banner based on auth & currentMode
+        window.updateAuthUI = function() {
+            const user = (firebase && firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser : null;
+            const signedIn = !!user;
+
+            // top banner
+            const top = document.getElementById('authTopBanner');
+            if (top) top.style.display = signedIn ? 'none' : 'flex';
+
+            // search & debug overlays
+            const searchOverlay = document.getElementById('searchAuthOverlay');
+            const debugOverlay = document.getElementById('debugAuthOverlay');
+
+            // Show search overlay only when the Search view is active and user is not signed in
+            if (searchOverlay) {
+                if (!signedIn && activeView === 'search') {
+                    searchOverlay.style.display = 'flex';
+                } else {
+                    searchOverlay.style.display = 'none';
+                }
+            }
+
+            // Show debug overlay only when the Debug view is active and user is not signed in
+            if (debugOverlay) {
+                if (!signedIn && activeView === 'debug') {
+                    debugOverlay.style.display = 'flex';
+                } else {
+                    debugOverlay.style.display = 'none';
+                }
+            }
+
+            // language overlay over split-view (only for modes NOT in allowed list)
+            const overlay = document.getElementById('langOverlay');
+            const split = document.getElementById('splitView');
+            let needOverlay = false;
+            let langName = '';
+
+            if (!signedIn) {
+                // if current mode is outside allowed set, lock UI
+                if (typeof currentMode !== 'undefined' && !isAllowedMode(currentMode)) {
+                    needOverlay = true;
+                    const meta = fileMeta[currentMode] || {};
+                    langName = (meta && meta.category) ? meta.category : (meta && meta.filename ? meta.filename : currentMode);
+                }
+            }
+
+            if (overlay) {
+                overlay.style.display = needOverlay ? 'flex' : 'none';
+                const msg = document.getElementById('langOverlayMsg');
+                if (msg) msg.innerText = `You must be signed in to use ${langName}.`;
+            }
+
+            // apply visual blur to split area when overlay active (to meet "blurry banner appears over the code")
+            if (split) {
+                if (needOverlay) split.classList.add('blurred');
+                else split.classList.remove('blurred');
+            }
+
+            // ensure search/debug content is visually blurred when overlay present (only when not signed in)
+            const viewSearch = document.getElementById('view-search');
+            const viewDebug = document.getElementById('view-debug');
+            if (viewSearch) { if (!signedIn) viewSearch.classList.add('blurred'); else viewSearch.classList.remove('blurred'); }
+            if (viewDebug) { if (!signedIn) viewDebug.classList.add('blurred'); else viewDebug.classList.remove('blurred'); }
+        };
+
+        // initial UI update (after boot)
+        try { updateAuthUI(); } catch(e){}
+    })();
+  </script>
+
+  <!-- <script src="https://houselearning.github.io/home/main.js"></script> -->
 </body>
 </html>
+
