@@ -719,9 +719,16 @@
     // These are safe no-op / graceful fallbacks and will be overridden by the Firebase init later.
     window.updateAuthUI = window.updateAuthUI || function() {
         try {
-            // Default: show top banner (not signed in) and hide in-panel overlays
             const top = document.getElementById('authTopBanner');
-            if (top) top.style.display = 'flex';
+            // honor user dismissal stored in localStorage
+            const dismissed = localStorage.getItem('hl_auth_top_banner_dismissed') === '1';
+            // if firebase is loaded and there's a current user, treat as signed in
+            const isSignedIn = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) ? true : false;
+
+            // show banner only if NOT signed in AND not dismissed
+            if (top) top.style.display = (!isSignedIn && !dismissed) ? 'flex' : 'none';
+
+            // hide in-panel overlays by default
             ['searchAuthOverlay','debugAuthOverlay','langOverlay'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
@@ -729,6 +736,17 @@
         } catch(e){}
     };
 
+    // allow the top banner to be dismissed (prevents ReferenceError)
+    window.closeTopBanner = window.closeTopBanner || function() {
+        try {
+            const top = document.getElementById('authTopBanner');
+            if (top) top.style.display = 'none';
+            // persist dismissal so it doesn't reappear
+            try { localStorage.setItem('hl_auth_top_banner_dismissed', '1'); } catch(e){}
+        } catch(e){}
+    };
+
+    // Existing signInNow fallback (unchanged)
     window.signInNow = window.signInNow || function() {
         // If firebase isn't loaded yet, give a clear message.
         if (typeof firebase !== 'undefined' && firebase.auth) {
@@ -741,6 +759,23 @@
             alert('Sign-in is not available right now. Please try again shortly.');
         }
     };
+
+    // Close profile menu when clicking outside of it
+    document.addEventListener('click', function(e) {
+        try {
+            const menu = document.getElementById('profileMenu');
+            const btn = document.getElementById('profileBtn');
+            if (!menu || !btn) return;
+            // Only act when menu is visible
+            if (menu.style.display !== 'block') return;
+
+            // If the click target is not inside the menu or the button, close menu
+            const target = e.target;
+            if (!target.closest('#profileMenu') && !target.closest('#profileBtn')) {
+                menu.style.display = 'none';
+            }
+        } catch (e) {}
+    }, false);
 
     const editor = document.getElementById('editor');
     const terminal = document.getElementById('terminal');
@@ -2472,5 +2507,5 @@ function runSearch() {
         try { updateAuthUI(); } catch(e){}
     })();
   </script>
-</body>
-</html>
+
+
