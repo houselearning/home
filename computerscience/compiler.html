@@ -816,23 +816,25 @@
             document.querySelectorAll('.view-content').forEach(content => content.classList.remove('active'));
             // hide toolbox when collapsed
             toolbox.style.display = 'none';
-            return;
-        }
-
-        // expand and show the requested view
-        viewPanel.style.width = '250px';
-        activeView = viewId;
-
-        document.querySelectorAll('.view-content').forEach(content => content.classList.remove('active'));
-        const target = document.getElementById(`view-${viewId}`);
-        if (target) target.classList.add('active');
-
-        // show toolbox only for explorer + winforms
-        if (viewId === 'explorer' && currentMode === 'winforms') {
-            toolbox.style.display = 'flex';
         } else {
-            toolbox.style.display = 'none';
+            // expand and show the requested view
+            viewPanel.style.width = '250px';
+            activeView = viewId;
+
+            document.querySelectorAll('.view-content').forEach(content => content.classList.remove('active'));
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) target.classList.add('active');
+
+            // show toolbox only for explorer + winforms
+            if (viewId === 'explorer' && currentMode === 'winforms') {
+                toolbox.style.display = 'flex';
+            } else {
+                toolbox.style.display = 'none';
+            }
         }
+
+        // update overlays when changing view
+        try { updateAuthUI(); } catch (e) {}
     }
 
     // Clear terminal utility used by runCode and the Clear button
@@ -2527,15 +2529,22 @@ function runSearch() {
 
         // small confirm helper using existing modal system that returns Promise<boolean>
         function showModalPromiseConfirm(title, message) {
-            const bodyId = null;
-            document.getElementById('modalTitle').innerText = title;
-            // hide panels
+            // ensure header is set
+            document.getElementById('modalTitle').innerText = title || 'Confirm';
+
+            // hide any panel content that might be visible
             ['addForm','renameForm','confirmForm','saveForm','myProjects'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
+
+            // build a simple, centered body for confirmation
             const body = document.getElementById('modalBody');
-            body.innerHTML = `<div style="padding:12px;"><h1 style="margin-top:0">${escapeHtml(message)}</h1></div>`;
+            body.innerHTML = `<div style="padding:18px; text-align:center;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:8px;">${escapeHtml(message)}</div>
+            </div>`;
+
+            // footer with Cancel / Confirm (Report) buttons
             const footer = document.getElementById('modalFooter');
             footer.innerHTML = '';
             const btnCancel = document.createElement('button');
@@ -2548,8 +2557,12 @@ function runSearch() {
             btnOk.onclick = () => hideModal(true);
             footer.appendChild(btnCancel);
             footer.appendChild(btnOk);
+
+            // show modal and attach keyboard handler
             document.getElementById('modalOverlay').style.display = 'flex';
             document.addEventListener('keydown', modalKeyHandler);
+
+            // return promise<boolean>
             return new Promise(resolve => {
                 const prevResolve = modalResolve;
                 modalResolve = (res) => {
