@@ -284,7 +284,7 @@
         .modal .btn { padding:6px 12px; border-radius:4px; border:1px solid transparent; cursor:pointer; font-size:13px; }
         .btn.primary { background: linear-gradient(#0e639c,#056aa6); color:#fff; border-color:#044f71; }
         .btn.secondary { background:transparent; color:#ccc; border:1px solid #333; }
-        .modal-close { background:transparent; border:none; color:#aaa; font-size:18px; cursor:pointer; padding:0 6px; }
+        .modal-close { background:transparent; border:0; color:#aaa; font-size:18px; cursor:pointer; padding:0 6px; }
         .modal .hint { font-size:12px; color:#9a9a9a; margin-top:8px; }
 
         /* Footer */
@@ -370,6 +370,39 @@
 
         /* blurred content helper */
         .blurred { filter: blur(4px); pointer-events: none; user-select: none; }
+
+        /* profile dropdown (top-right) */
+        .profile-btn {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            cursor:pointer;
+            color:#ccc;
+            border-radius:6px;
+            padding:6px 8px;
+            background:transparent;
+            border:1px solid transparent;
+        }
+        .profile-avatar {
+            width:32px; height:32px; border-radius:50%; background:#555; display:inline-block; overflow:hidden; flex:0 0 auto;
+        }
+        .profile-name { font-size:13px; color:#ddd; display:none; }
+        .profile-menu {
+            position: absolute;
+            right: 14px;
+            top: 10px;
+            background: #1b1b1b;
+            border: 1px solid #333;
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 12px;
+            display: none;
+            z-index: 4500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        .profile-menu .menu-item { padding:8px 6px; color:#ddd; cursor:pointer; border-radius:6px; }
+        .profile-menu .menu-item:hover { background: rgba(255,255,255,0.02); color:#fff; }
+        .profile-menu .signout { margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.03); padding-top:8px; }
     </style>
     <!-- Add JSZip + FileSaver for zip downloads -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -521,7 +554,28 @@
                 <button class="btn-vs btn-download" onclick="downloadCode()">
                     <i class="fas fa-download"></i> Download Code
                 </button>
+
+                <!-- Save to Web button -->
+                <button class="btn-vs" onclick="openSaveModal()" id="saveToWebBtn" title="Save to Web">
+                    <i class="fas fa-cloud-upload-alt"></i> Save to Web
+                </button>
+
                 <span style="margin-left:auto; font-size:0.8rem; color:#888;">Master Coder v5.0</span>
+
+                <!-- Profile button (top-right) -->
+                <div style="position:relative; margin-left:10px;">
+                    <div id="profileBtn" class="profile-btn" onclick="toggleProfileMenu()" title="Account">
+                        <div id="profileAvatar" class="profile-avatar"><!-- image injected --></div>
+                        <div id="profileName" class="profile-name"></div>
+                    </div>
+                    <div id="profileMenu" class="profile-menu" aria-hidden="true">
+                        <div style="font-weight:700; margin-bottom:8px;" id="pm-username">Not signed in</div>
+                        <div class="menu-item" onclick="openMyProjectsModal()">My Projects</div>
+                        <div class="menu-item" onclick="location.href='/docs/intro/compiler/'">Code Compiler Docs</div>
+                        <div class="menu-item" onclick="location.href='/home/'">HouseLearning Home</div>
+                        <div class="menu-item signout" id="pm-signout" onclick="signOutNow()" style="display:none;">Sign Out</div>
+                    </div>
+                </div>
             </div>
 
             <div class="split-view" id="splitView">
@@ -599,7 +653,7 @@
 
             <div class="modal-body" id="modalBody">
                 <!-- Add File Form -->
-                <div id="addForm" style="display:none;">
+                <div id="addForm" class="modal-panel" style="display:none;">
                     <label>Filename</label>
                     <input type="text" id="addFilename" placeholder="example.py">
                     <label style="margin-top:8px;">Category</label>
@@ -610,15 +664,46 @@
                 </div>
 
                 <!-- Rename Form -->
-                <div id="renameForm" style="display:none;">
+                <div id="renameForm" class="modal-panel" style="display:none;">
                     <label>New filename</label>
                     <input type="text" id="renameFilename" placeholder="newname.py">
                 </div>
 
                 <!-- Confirm Form -->
-                <div id="confirmForm" style="display:none;">
+                <div id="confirmForm" class="modal-panel" style="display:none;">
                     <div id="confirmMessage" style="margin-bottom:12px;"></div>
                 </div>
+
+                <!-- New: Save to Web Form -->
+                <div id="saveForm" class="modal-panel" style="display:none;">
+                    <h2 style="margin:0 0 8px;">Save to Web</h2>
+                    <div>Please select the save options.</div>
+                    <div style="margin-top:10px;">
+                        <select id="saveOption" style="width:100%; padding:8px; box-sizing:border-box;">
+                            <option value="file">Save File Only</option>
+                            <option value="category">Save Entire Category</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:12px; display:flex; align-items:center;">
+                        <label style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="savePersist" /> Save settings for later
+                        </label>
+                    </div>
+                    <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
+                        <button class="btn secondary" onclick="hideModal()">Close</button>
+                        <button class="btn primary" onclick="performSave()">Save</button>
+                    </div>
+                </div>
+
+                <!-- New: My Projects List -->
+                <div id="myProjects" class="modal-panel" style="display:none;">
+                    <h2 style="margin:0 0 8px;">My Projects</h2>
+                    <div id="myProjectsList" style="max-height:320px; overflow:auto; padding-top:6px;"></div>
+                    <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
+                        <button class="btn secondary" onclick="hideModal()">Close</button>
+                    </div>
+                </div>
+
             </div>
 
             <div class="modal-footer" id="modalFooter">
@@ -629,7 +714,34 @@
 
 <script>
     /* --- STATE & TEMPLATES --- */
-    let currentMode = 'winforms';
+
+    // --- Add: small auth stubs to avoid ReferenceError before Firebase loads ---
+    // These are safe no-op / graceful fallbacks and will be overridden by the Firebase init later.
+    window.updateAuthUI = window.updateAuthUI || function() {
+        try {
+            // Default: show top banner (not signed in) and hide in-panel overlays
+            const top = document.getElementById('authTopBanner');
+            if (top) top.style.display = 'flex';
+            ['searchAuthOverlay','debugAuthOverlay','langOverlay'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        } catch(e){}
+    };
+
+    window.signInNow = window.signInNow || function() {
+        // If firebase isn't loaded yet, give a clear message.
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).catch(err => {
+                try { appendToTerminal('[HouseLearning] Auth Failed: ' + String(err)); } catch(e){}
+            });
+        } else {
+            // Friendly fallback — will be replaced when Firebase initializes
+            alert('Sign-in is not available right now. Please try again shortly.');
+        }
+    };
+
     const editor = document.getElementById('editor');
     const terminal = document.getElementById('terminal');
     const designer = document.getElementById('designerPane');
@@ -643,6 +755,7 @@
 
     // Add missing state that other functions reference
     let activeView = 'explorer';
+    let currentMode = 'winforms';
 
     // Toggle the sidebar views (Explorer / Search / Source Control / Debug)
     function toggleView(iconElement, viewId) {
@@ -1983,7 +2096,7 @@ function showModal({ title = 'Dialog', bodyId = null, footerButtons = [] } = {})
 	document.getElementById('modalTitle').innerText = title;
 
 	// hide all form panels first
-	['addForm','renameForm','confirmForm'].forEach(id => {
+	['addForm','renameForm','confirmForm','saveForm','myProjects'].forEach(id => {
 		const el = document.getElementById(id);
 		if (el) el.style.display = 'none';
 	});
@@ -2155,6 +2268,7 @@ function runSearch() {
 </footer>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <!-- Firebase init + auth helpers (runs after Firebase SDKs are loaded) -->
   <script>
@@ -2180,104 +2294,183 @@ function runSearch() {
             console.warn('Firebase init error', e);
         }
 
+        // expose db for use
+        const db = firebase.database ? firebase.database() : null;
+        window._hl_db = db;
+
         // AUTH STATE
         firebase.auth().onAuthStateChanged(function(user) {
+            renderProfile(user);
             updateAuthUI();
         });
 
-        // expose sign-in function
-        window.signInNow = function() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider).then(result => {
-                appendToTerminal('[HouseLearning] Auth Successful!');
+        // update profile display
+        window.renderProfile = function(user) {
+            const btn = document.getElementById('profileBtn');
+            const avatar = document.getElementById('profileAvatar');
+            const nameEl = document.getElementById('profileName');
+            const pmUser = document.getElementById('pm-username');
+            const signout = document.getElementById('pm-signout');
+
+            if (!btn) return;
+            if (user) {
+                const display = user.displayName || (user.email || 'User');
+                nameEl.innerText = display;
+                nameEl.style.display = 'inline';
+                pmUser.innerText = display;
+                signout.style.display = 'block';
+                // avatar: use photoURL if available
+                if (user.photoURL) {
+                    avatar.style.backgroundImage = `url(${user.photoURL})`;
+                    avatar.style.backgroundSize = 'cover';
+                } else {
+                    avatar.style.backgroundImage = '';
+                    avatar.innerText = (display || 'U').charAt(0).toUpperCase();
+                }
+            } else {
+                nameEl.style.display = 'none';
+                pmUser.innerText = 'Not signed in';
+                signout.style.display = 'none';
+                avatar.style.backgroundImage = '';
+                avatar.innerText = ' ';
+            }
+        };
+
+        window.toggleProfileMenu = function() {
+            const menu = document.getElementById('profileMenu');
+            if (!menu) return;
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        };
+
+        window.signOutNow = function() {
+            firebase.auth().signOut().then(()=> {
+                appendToTerminal('[HouseLearning] Signed out.');
+                renderProfile(null);
                 updateAuthUI();
-            }).catch(err => {
-                appendToTerminal('[HouseLearning] Auth Failed: ' + String(err));
-            });
+            }).catch(err => appendToTerminal('[HouseLearning] Sign out error: ' + String(err)));
         };
 
-        window.closeTopBanner = function() {
-            const b = document.getElementById('authTopBanner');
-            if (b) b.style.display = 'none';
-        };
-
-        // helper: determine if mode is allowed without auth
-        window.isAllowedMode = function(mode) {
-            const allowed = ['html','python','java'];
-            return allowed.includes(mode);
-        };
-
-        // update overlays / top banner based on auth & currentMode
-        window.updateAuthUI = function() {
-            const user = (firebase && firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser : null;
-            const signedIn = !!user;
-
-            // top banner
-            const top = document.getElementById('authTopBanner');
-            if (top) top.style.display = signedIn ? 'none' : 'flex';
-
-            // search & debug overlays
-            const searchOverlay = document.getElementById('searchAuthOverlay');
-            const debugOverlay = document.getElementById('debugAuthOverlay');
-
-            // Show search overlay only when the Search view is active and user is not signed in
-            if (searchOverlay) {
-                if (!signedIn && activeView === 'search') {
-                    searchOverlay.style.display = 'flex';
-                } else {
-                    searchOverlay.style.display = 'none';
-                }
+        // Open "My Projects" modal
+        window.openMyProjectsModal = async function() {
+            const user = firebase && firebase.auth && firebase.auth().currentUser;
+            const listEl = document.getElementById('myProjectsList');
+            listEl.innerHTML = '<div style="color:#999">Loading...</div>';
+            showModal({ title: 'My Projects', bodyId: 'myProjects', footerButtons: [] });
+            if (!user) {
+                listEl.innerHTML = '<div style="color:#f99">You must sign in to view projects.</div>';
+                return;
             }
-
-            // Show debug overlay only when the Debug view is active and user is not signed in
-            if (debugOverlay) {
-                if (!signedIn && activeView === 'debug') {
-                    debugOverlay.style.display = 'flex';
-                } else {
-                    debugOverlay.style.display = 'none';
-                }
+            try {
+                const snap = await db.ref('users/' + user.uid + '/projects').once('value');
+                const val = snap.val() || {};
+                listEl.innerHTML = '';
+                const keys = Object.keys(val).sort((a,b)=> (val[b].ts||0)-(val[a].ts||0));
+                if (keys.length === 0) listEl.innerHTML = '<div style="color:#999">No projects saved.</div>';
+                keys.forEach(k => {
+                    const p = val[k];
+                    const row = document.createElement('div');
+                    row.className = 'menu-item';
+                    row.style.display = 'flex';
+                    row.style.justifyContent = 'space-between';
+                    row.style.alignItems = 'center';
+                    row.innerHTML = `<div style="flex:1">${escapeHtml(p.filename || 'untitled')} <div style="font-size:11px;color:#888">${escapeHtml(p.category||'')}</div></div>
+                                     <div style="margin-left:8px"><button class="btn secondary" onclick="event.stopPropagation(); openProject('${k}')">Open</button></div>`;
+                    row.onclick = () => openProject(k);
+                    listEl.appendChild(row);
+                });
+            } catch(e) {
+                listEl.innerHTML = '<div style="color:#f99">Error loading projects.</div>';
             }
+        };
 
-            // language overlay over split-view (only for modes NOT in allowed list)
-            const overlay = document.getElementById('langOverlay');
-            const split = document.getElementById('splitView');
-            let needOverlay = false;
-            let langName = '';
+        // open project into side navigator & editor
+        window.openProject = async function(projectKey) {
+            const user = firebase && firebase.auth && firebase.auth().currentUser;
+            if (!user) { appendToTerminal('[HouseLearning] Sign in required to open project.'); return; }
+            const snap = await db.ref('users/' + user.uid + '/projects/' + projectKey).once('value');
+            const p = snap.val();
+            if (!p) { appendToTerminal('[HouseLearning] Project not found.'); return; }
+            // create a local unique key to represent this remote project
+            const localKey = 'remote_' + projectKey;
+            codeFiles[localKey] = p.content || '';
+            fileMeta[localKey] = { category: p.category || 'REMOTE', filename: p.filename || ('project_' + projectKey) };
+            buildExplorer();
+            const el = document.querySelector(`[data-key="${localKey}"]`);
+            if (el) setMode(localKey, el);
+            hideModal();
+        };
 
-            if (!signedIn) {
-                // if current mode is outside allowed set, lock UI
-                if (typeof currentMode !== 'undefined' && !isAllowedMode(currentMode)) {
-                    needOverlay = true;
+        // Save modal open
+        window.openSaveModal = function() {
+            const saveOpt = document.getElementById('saveOption');
+            const savePersist = document.getElementById('savePersist');
+            // set defaults from saved settings if present
+            const user = firebase && firebase.auth && firebase.auth().currentUser;
+            if (user) {
+                db.ref('users/' + user.uid + '/settings/savePrefs').once('value').then(s => {
+                    const v = s.val();
+                    if (v && v.option) {
+                        saveOpt.value = v.option;
+                        savePersist.checked = !!v.persist;
+                    }
+                }).catch(()=>{});
+            }
+            showModal({ title: 'Save to Web', bodyId: 'saveForm', footerButtons: [] });
+        };
+
+        // perform save
+        window.performSave = async function() {
+            const user = firebase && firebase.auth && firebase.auth().currentUser;
+            if (!user) {
+                appendToTerminal('[HouseLearning] You must sign in to save to web.');
+                signInNow();
+                return;
+            }
+            const option = document.getElementById('saveOption').value;
+            const persist = document.getElementById('savePersist').checked;
+            const uid = user.uid;
+
+            // prepare payload(s)
+            const ts = Date.now();
+            try {
+                if (option === 'file') {
                     const meta = fileMeta[currentMode] || {};
-                    langName = (meta && meta.category) ? meta.category : (meta && meta.filename ? meta.filename : currentMode);
+                    const filename = meta.filename || currentMode;
+                    const category = meta.category || 'UNCATEGORIZED';
+                    const content = editor.value || '';
+                    const key = db.ref('users/' + uid + '/projects').push().key;
+                    const payload = { filename, category, content, ts, source: currentMode };
+                    await db.ref('users/' + uid + '/projects/' + key).set(payload);
+                    appendToTerminal(`[HouseLearning] Saved ${filename} to web (id: ${key}).`);
+                } else if (option === 'category') {
+                    const meta = fileMeta[currentMode] || {};
+                    const cat = meta.category || null;
+                    if (!cat) { appendToTerminal('[HouseLearning] Could not determine category for save.'); return; }
+                    const entries = Object.keys(fileMeta).filter(k=> (fileMeta[k] && fileMeta[k].category) === cat);
+                    const updates = {};
+                    entries.forEach(k => {
+                        const m = fileMeta[k];
+                        const content = codeFiles[k] || '';
+                        const pushKey = db.ref('users/' + uid + '/projects').push().key;
+                        updates[pushKey] = { filename: m.filename || k, category: m.category, content, ts, source: k };
+                    });
+                    await db.ref('users/' + uid + '/projects').update(updates);
+                    appendToTerminal(`[HouseLearning] Saved ${entries.length} files from category ${cat} to web.`);
                 }
+                if (persist) {
+                    await db.ref('users/' + uid + '/settings/savePrefs').set({ option: document.getElementById('saveOption').value, persist: true, updated: ts });
+                }
+            } catch (e) {
+                appendToTerminal('[HouseLearning] Save error: ' + String(e));
+            } finally {
+                hideModal(true);
             }
-
-            if (overlay) {
-                overlay.style.display = needOverlay ? 'flex' : 'none';
-                const msg = document.getElementById('langOverlayMsg');
-                if (msg) msg.innerText = `You must be signed in to use ${langName}.`;
-            }
-
-            // apply visual blur to split area when overlay active (to meet "blurry banner appears over the code")
-            if (split) {
-                if (needOverlay) split.classList.add('blurred');
-                else split.classList.remove('blurred');
-            }
-
-            // ensure search/debug content is visually blurred when overlay present (only when not signed in)
-            const viewSearch = document.getElementById('view-search');
-            const viewDebug = document.getElementById('view-debug');
-            if (viewSearch) { if (!signedIn) viewSearch.classList.add('blurred'); else viewSearch.classList.remove('blurred'); }
-            if (viewDebug) { if (!signedIn) viewDebug.classList.add('blurred'); else viewDebug.classList.remove('blurred'); }
         };
+
 
         // initial UI update (after boot)
         try { updateAuthUI(); } catch(e){}
     })();
   </script>
-
-  <!-- <script src="https://houselearning.github.io/home/main.js"></script> -->
 </body>
 </html>
-
