@@ -711,7 +711,6 @@
             </div>
         </div>
     </div>
-
 <script>
     /* --- STATE & TEMPLATES --- */
 
@@ -758,6 +757,19 @@
             // Friendly fallback — will be replaced when Firebase initializes
             alert('Sign-in is not available right now. Please try again shortly.');
         }
+    };
+
+    // Add: safe openSaveModal + performSave fallbacks to avoid ReferenceError before Firebase init
+    window.openSaveModal = window.openSaveModal || function() {
+        try {
+            // show modal even if Firebase isn't ready so UI doesn't throw
+            showModal({ title: 'Save to Web', bodyId: 'saveForm', footerButtons: [] });
+            return;
+        } catch (e) {}
+        alert('Save to Web is not available right now. Please try again shortly.');
+    };
+    window.performSave = window.performSave || function() {
+        alert('Save to Web is not available right now. Please try again after signing in.');
     };
 
     // Close profile menu when clicking outside of it
@@ -1850,7 +1862,7 @@ window.addEventListener('message', function(ev){
         const requiresAuth = !allowed.includes(currentMode);
         let isAuthed = false;
         if (requiresAuth) {
-            if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
                 isAuthed = true;
             }
             if (!isAuthed) {
@@ -2408,8 +2420,15 @@ function runSearch() {
                     row.style.display = 'flex';
                     row.style.justifyContent = 'space-between';
                     row.style.alignItems = 'center';
-                    row.innerHTML = `<div style="flex:1">${escapeHtml(p.filename || 'untitled')} <div style="font-size:11px;color:#888">${escapeHtml(p.category||'')}</div></div>
-                                     <div style="margin-left:8px"><button class="btn secondary" onclick="event.stopPropagation(); openProject('${k}')">Open</button></div>`;
+                    // left: filename + category
+                    const leftHtml = `<div style="flex:1">${escapeHtml(p.filename || 'untitled')} <div style="font-size:11px;color:#888">${escapeHtml(p.category||'')}</div></div>`;
+                    // right: Open, Share buttons and placeholder for "Project Shared!"
+                    const rightHtml = `<div style="display:flex; gap:6px; align-items:center;">
+                                            <button class="btn secondary" onclick="event.stopPropagation(); openProject('${k}')">Open</button>
+                                            <button class="btn secondary" title="Share" onclick="event.stopPropagation(); shareProject('${k}', this)"><i class="fas fa-share-alt"></i></button>
+                                            <div class="share-msg" style="font-size:12px;color:#7ed957; margin-left:6px; display:none;">Project Shared!</div>
+                                       </div>`;
+                    row.innerHTML = leftHtml + rightHtml;
                     row.onclick = () => openProject(k);
                     listEl.appendChild(row);
                 });
@@ -2417,95 +2436,202 @@ function runSearch() {
                 listEl.innerHTML = '<div style="color:#f99">Error loading projects.</div>';
             }
         };
+ 
+         // open project into side navigator & editor
+         window.openProject = async function(projectKey) {
+             const user = firebase && firebase.auth && firebase.auth().currentUser;
+             if (!user) { appendToTerminal('[HouseLearning] Sign in required to open project.'); return; }
+             const snap = await db.ref('users/' + user.uid + '/projects/' + projectKey).once('value');
+             const p = snap.val();
+             if (!p) { appendToTerminal('[HouseLearning] Project not found.'); return; }
+             // create a local unique key to represent this remote project
+             const localKey = 'remote_' + projectKey;
+             codeFiles[localKey] = p.content || '';
+             fileMeta[localKey] = { category: p.category || 'REMOTE', filename: p.filename || ('project_' + projectKey) };
+             buildExplorer();
+             const el = document.querySelector(`[data-key="${localKey}"]`);
+             if (el) setMode(localKey, el);
+             hideModal();
+         };
+ 
+        // Generate a 16-char alphanumeric share ID
+        function genShareID() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let s = '';
+            for (let i = 0; i < 16; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+            return s;
+        }
 
-        // open project into side navigator & editor
-        window.openProject = async function(projectKey) {
-            const user = firebase && firebase.auth && firebase.auth().currentUser;
-            if (!user) { appendToTerminal('[HouseLearning] Sign in required to open project.'); return; }
-            const snap = await db.ref('users/' + user.uid + '/projects/' + projectKey).once('value');
-            const p = snap.val();
-            if (!p) { appendToTerminal('[HouseLearning] Project not found.'); return; }
-            // create a local unique key to represent this remote project
-            const localKey = 'remote_' + projectKey;
-            codeFiles[localKey] = p.content || '';
-            fileMeta[localKey] = { category: p.category || 'REMOTE', filename: p.filename || ('project_' + projectKey) };
-            buildExplorer();
-            const el = document.querySelector(`[data-key="${localKey}"]`);
-            if (el) setMode(localKey, el);
-            hideModal();
-        };
-
-        // Save modal open
-        window.openSaveModal = function() {
-            const saveOpt = document.getElementById('saveOption');
-            const savePersist = document.getElementById('savePersist');
-            // set defaults from saved settings if present
-            const user = firebase && firebase.auth && firebase.auth().currentUser;
-            if (user) {
-                db.ref('users/' + user.uid + '/settings/savePrefs').once('value').then(s => {
-                    const v = s.val();
-                    if (v && v.option) {
-                        saveOpt.value = v.option;
-                        savePersist.checked = !!v.persist;
-                    }
-                }).catch(()=>{});
-            }
-            showModal({ title: 'Save to Web', bodyId: 'saveForm', footerButtons: [] });
-        };
-
-        // perform save
-        window.performSave = async function() {
-            const user = firebase && firebase.auth && firebase.auth().currentUser;
-            if (!user) {
-                appendToTerminal('[HouseLearning] You must sign in to save to web.');
-                signInNow();
-                return;
-            }
-            const option = document.getElementById('saveOption').value;
-            const persist = document.getElementById('savePersist').checked;
-            const uid = user.uid;
-
-            // prepare payload(s)
-            const ts = Date.now();
+        // Share a project: create /shares/<shareID> with content and copy link
+        window.shareProject = async function(projectKey, btnEl) {
             try {
-                if (option === 'file') {
-                    const meta = fileMeta[currentMode] || {};
-                    const filename = meta.filename || currentMode;
-                    const category = meta.category || 'UNCATEGORIZED';
-                    const content = editor.value || '';
-                    const key = db.ref('users/' + uid + '/projects').push().key;
-                    const payload = { filename, category, content, ts, source: currentMode };
-                    await db.ref('users/' + uid + '/projects/' + key).set(payload);
-                    appendToTerminal(`[HouseLearning] Saved ${filename} to web (id: ${key}).`);
-                } else if (option === 'category') {
-                    const meta = fileMeta[currentMode] || {};
-                    const cat = meta.category || null;
-                    if (!cat) { appendToTerminal('[HouseLearning] Could not determine category for save.'); return; }
-                    const entries = Object.keys(fileMeta).filter(k=> (fileMeta[k] && fileMeta[k].category) === cat);
-                    const updates = {};
-                    entries.forEach(k => {
-                        const m = fileMeta[k];
-                        const content = codeFiles[k] || '';
-                        const pushKey = db.ref('users/' + uid + '/projects').push().key;
-                        updates[pushKey] = { filename: m.filename || k, category: m.category, content, ts, source: k };
-                    });
-                    await db.ref('users/' + uid + '/projects').update(updates);
-                    appendToTerminal(`[HouseLearning] Saved ${entries.length} files from category ${cat} to web.`);
+                const user = firebase && firebase.auth && firebase.auth().currentUser;
+                if (!user) { alert('Please sign in to share projects.'); return; }
+                const snap = await db.ref('users/' + user.uid + '/projects/' + projectKey).once('value');
+                const p = snap.val();
+                if (!p) { alert('Project not found'); return; }
+                const shareID = genShareID();
+                const payload = {
+                    ownerUid: user.uid,
+                    ownerName: user.displayName || (user.email || 'Unknown'),
+                    projectKey: projectKey,
+                    filename: p.filename || 'project',
+                    category: p.category || '',
+                    content: p.content || '',
+                    ts: Date.now()
+                };
+                await db.ref('shares/' + shareID).set(payload);
+                const link = location.origin + location.pathname + '?shareID=' + shareID;
+                // copy to clipboard
+                try {
+                    await navigator.clipboard.writeText(link);
+                } catch (e) {
+                    // fallback: create temp input
+                    const input = document.createElement('input');
+                    input.value = link;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
                 }
-                if (persist) {
-                    await db.ref('users/' + uid + '/settings/savePrefs').set({ option: document.getElementById('saveOption').value, persist: true, updated: ts });
-                }
+                // show inline confirmation next to the button
+                try {
+                    const row = btnEl.closest('.menu-item');
+                    const msg = row ? row.querySelector('.share-msg') : null;
+                    if (msg) { msg.style.display = 'block'; msg.innerText = 'Project Shared!'; }
+                } catch (e) {}
+                appendToTerminal('[HouseLearning] Share link copied to clipboard: ' + link);
             } catch (e) {
-                appendToTerminal('[HouseLearning] Save error: ' + String(e));
-            } finally {
-                hideModal(true);
+                appendToTerminal('[HouseLearning] Share error: ' + String(e));
             }
         };
 
+        // Report a user (writes to /reports)
+        window.reportUser = async function(shareID, reportedUid) {
+            const ok = await showModalPromiseConfirm('Report User', 'Are you sure you want to report this user?');
+            if (!ok) return;
+            try {
+                const reporter = firebase && firebase.auth && firebase.auth().currentUser;
+                const rObj = {
+                    reportedUid: reportedUid,
+                    shareID: shareID,
+                    reporterUid: reporter ? reporter.uid : null,
+                    ts: Date.now()
+                };
+                await db.ref('reports').push(rObj);
+                appendToTerminal('[HouseLearning] Report submitted.');
+            } catch (e) {
+                appendToTerminal('[HouseLearning] Report error: ' + String(e));
+            }
+        };
+
+        // small confirm helper using existing modal system that returns Promise<boolean>
+        function showModalPromiseConfirm(title, message) {
+            const bodyId = null;
+            document.getElementById('modalTitle').innerText = title;
+            // hide panels
+            ['addForm','renameForm','confirmForm','saveForm','myProjects'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            const body = document.getElementById('modalBody');
+            body.innerHTML = `<div style="padding:12px;"><h1 style="margin-top:0">${escapeHtml(message)}</h1></div>`;
+            const footer = document.getElementById('modalFooter');
+            footer.innerHTML = '';
+            const btnCancel = document.createElement('button');
+            btnCancel.className = 'btn secondary';
+            btnCancel.innerText = 'Cancel';
+            btnCancel.onclick = () => hideModal(false);
+            const btnOk = document.createElement('button');
+            btnOk.className = 'btn primary';
+            btnOk.innerText = 'Report';
+            btnOk.onclick = () => hideModal(true);
+            footer.appendChild(btnCancel);
+            footer.appendChild(btnOk);
+            document.getElementById('modalOverlay').style.display = 'flex';
+            document.addEventListener('keydown', modalKeyHandler);
+            return new Promise(resolve => {
+                const prevResolve = modalResolve;
+                modalResolve = (res) => {
+                    resolve(!!res);
+                    modalResolve = prevResolve;
+                };
+            });
+        }
+
+        // If page opened with ?shareID=..., load the shared entry and adapt UI
+        async function processShareLink() {
+            try {
+                const params = new URLSearchParams(location.search);
+                const shareID = params.get('shareID');
+                if (!shareID) return;
+                const snap = await db.ref('shares/' + shareID).once('value');
+                if (!snap.exists()) {
+                    // show invalid modal as requested
+                    showModal({ title: 'This share link is invalid.', bodyId: null, footerButtons: [{ label: 'Ok', class: 'primary', onClick: () => hideModal(null) }] });
+                    return;
+                }
+                const share = snap.val();
+                // create a local key to represent the shared content
+                const localKey = 'shared_' + shareID;
+                codeFiles[localKey] = share.content || '';
+                fileMeta[localKey] = { category: share.category || 'SHARED', filename: share.filename || ('shared_' + shareID) };
+                buildExplorer();
+
+                // show banner "Viewing <owner>'s project." with flag icon
+                const bannerId = 'shareViewBanner';
+                let banner = document.getElementById(bannerId);
+                if (!banner) {
+                    banner = document.createElement('div');
+                    banner.id = bannerId;
+                    banner.className = 'auth-top-banner';
+                    banner.style.display = 'flex';
+                    banner.style.justifyContent = 'center';
+                    banner.style.alignItems = 'center';
+                    banner.style.gap = '12px';
+                    banner.style.zIndex = 4500;
+                    banner.innerHTML = `<div class="msg">Viewing ${escapeHtml(share.ownerName || 'Unknown')}'s project.</div>
+                                        <div style="margin-left: auto; padding-right:12px;"><button class="btn" id="shareFlagBtn" title="Report"><i class="fas fa-flag"></i></button></div>`;
+                    document.body.appendChild(banner);
+                    const flagBtn = banner.querySelector('#shareFlagBtn');
+                    flagBtn.onclick = () => reportUser(shareID, share.ownerUid);
+                } else {
+                    banner.querySelector('.msg').innerText = `Viewing ${share.ownerName || 'Unknown'}'s project.`;
+                }
+
+                // If current user is the owner -> open normally (full editor)
+                const currentUser = firebase && firebase.auth && firebase.auth().currentUser;
+                if (currentUser && currentUser.uid === share.ownerUid) {
+                    const el = document.querySelector(`[data-key="${localKey}"]`);
+                    if (el) setMode(localKey, el);
+                    return;
+                }
+
+                // Otherwise show read-only code-only view
+                // hide left activity bar & view panel & toolbox & profile and disable save/start
+                try { document.querySelector('.activity-bar').style.display = 'none'; } catch(e){}
+                try { document.getElementById('viewPanel').style.width = '0px'; } catch(e){}
+                try { document.getElementById('toolbox').style.display = 'none'; } catch(e){}
+                try { document.getElementById('profileBtn').style.display = 'none'; } catch(e){}
+                try { document.getElementById('saveToWebBtn').style.display = 'none'; } catch(e){}
+                // show editor and set readOnly
+                const el = document.querySelector(`[data-key="${localKey}"]`);
+                if (el) setMode(localKey, el);
+                try {
+                    document.getElementById('editor').readOnly = true;
+                    document.getElementById('editor').style.background = '#f5f5f5';
+                } catch(e){}
+            } catch (e) {
+                console.warn('processShareLink error', e);
+            }
+        }
 
         // initial UI update (after boot)
         try { updateAuthUI(); } catch(e){}
-    })();
-  </script>
-
+        // then process any share link in URL
+        try { processShareLink(); } catch(e){}
+     })();
+   </script>
+</body>
+</html>
 
