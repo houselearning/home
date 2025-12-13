@@ -1195,7 +1195,7 @@ _start:
         Object.keys(fileMeta).forEach(key => {
             const m = fileMeta[key];
             if (!groups[m.category]) groups[m.category] = [];
-            groups[m.category].push({ key, filename: m.filename });
+            groups[m.category].push({ key: key, filename: m.filename });
         });
 
         categoryOrder.forEach(cat => {
@@ -1212,6 +1212,7 @@ _start:
             const actions = document.createElement('div');
             actions.className = 'category-actions';
             actions.innerHTML = `<button class="cat-btn" onclick="downloadCategoryZip('${cat}')"><i class="fas fa-download"></i> ZIP</button>
+                                 <button class="cat-btn" onclick="renameCategory('${cat}', this)" title="Rename Category"><i class="fas fa-i-cursor"></i></button>
                                  <button class="cat-btn" onclick="toggleCategory('${cat}', this)"><i class="fas fa-chevron-up"></i></button>`;
             header.appendChild(actions);
             header.addEventListener('click', (e) => {
@@ -2415,7 +2416,7 @@ function runSearch() {
             listEl.innerHTML = '<div style="color:#999">Loading...</div>';
             showModal({ title: 'My Projects', bodyId: 'myProjects', footerButtons: [] });
             if (!user) {
-                listEl.innerHTML = '<div style="color:#f99">You must sign in to view projects.</div>';
+                listEl.innerHTML = '<div style="color:#f99">You must be signed in to view projects.</div>';
                 return;
             }
             try {
@@ -2433,12 +2434,15 @@ function runSearch() {
                     row.style.alignItems = 'center';
                     // left: filename + category
                     const leftHtml = `<div style="flex:1">${escapeHtml(p.filename || 'untitled')} <div style="font-size:11px;color:#888">${escapeHtml(p.category||'')}</div></div>`;
-                    // right: Open, Share buttons and placeholder for "Project Shared!"
+                    // right: Open, Share, Rename, Delete buttons and placeholder for "Project Shared!"
                     const rightHtml = `<div style="display:flex; gap:6px; align-items:center;">
                                             <button class="btn secondary" onclick="event.stopPropagation(); openProject('${k}')">Open</button>
                                             <button class="btn secondary" title="Share" onclick="event.stopPropagation(); shareProject('${k}', this)"><i class="fas fa-share-alt"></i></button>
+                                            <button class="btn secondary" title="Rename" onclick="event.stopPropagation(); renameProject('${k}', this)"><i class="fas fa-i-cursor"></i></button>
+                                            <button class="btn secondary" title="Delete" onclick="event.stopPropagation(); deleteProject('${k}', this)"><i class="fas fa-trash"></i></button>
                                             <div class="share-msg" style="font-size:12px;color:#7ed957; margin-left:6px; display:none;">Project Shared!</div>
                                        </div>`;
+
                     row.innerHTML = leftHtml + rightHtml;
                     row.onclick = () => openProject(k);
                     listEl.appendChild(row);
