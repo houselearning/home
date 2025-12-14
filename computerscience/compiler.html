@@ -45,7 +45,30 @@
             position: absolute;
             z-index: 10;
         }
-
+        /* Editor gutter (line numbers) */
+        .editor-with-gutter {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .editor-with-gutter .gutter {
+            width: 44px;
+            background: #1b1b1b;
+            color: #6e6e6e;
+            /* match textarea padding so lines align, and preserve newlines (no wrapping) */
+            padding: 20px 6px;
+            white-space: pre;
+            overflow-y: auto;
+            box-sizing: border-box;
+            text-align: right;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            /* explicit pixel line-height to ensure pixel-perfect alignment with textarea */
+            line-height: 21px;
+            user-select: none;
+            overflow: hidden;
+        }
         /* Vertical Splitter (Horizontal Drag) */
         .v-splitter {
             width: 5px;
@@ -600,7 +623,10 @@
                 <div class="v-splitter v-splitter-mid" onmousedown="initResize(event, 'mid-split')"></div>
 
                 <div class="editor-pane" id="codeEditorPane">
-                    <textarea id="editor" spellcheck="false" oninput="parseEditorForDesigner()"></textarea>
+                    <div class="editor-with-gutter">
+                        <div class="gutter" id="editorGutter" aria-hidden="true">1</div>
+                        <textarea id="editor" spellcheck="false" oninput="(function(){ parseEditorForDesigner(); updateEditorGutter(); })()"></textarea>
+                    </div>
                 </div>
                 
                 <div class="editor-pane" id="previewPane" style="display:none; background:white;">
@@ -781,6 +807,55 @@
         alert('Save to Web is not available right now. Please try again after signing in.');
     };
 
+    // Safe fallback for renameCategory (replaced prompt with modal) - updated to use modal UI
+    window.renameCategory = window.renameCategory || function(oldCat, btnEl) {
+        try {
+            const input = document.getElementById('renameFilename');
+            const label = document.querySelector('#renameForm label');
+            const prevLabelText = label ? label.innerText : null;
+            if (label) label.innerText = 'New category name';
+
+            if (input) input.value = oldCat;
+
+            showModal({
+                title: 'Rename Category',
+                bodyId: 'renameForm',
+                footerButtons: [
+                    { label: 'Cancel', class: 'secondary', onClick: () => { if (label) label.innerText = prevLabelText; hideModal(null); } },
+                    {
+                        label: 'Rename',
+                        class: 'primary',
+                        onClick: () => {
+                            const newName = (document.getElementById('renameFilename') || {}).value || '';
+                            if (!newName.trim()) { alert('Category name required'); return; }
+                            hideModal(newName.trim());
+                        }
+                    }
+                ]
+            }).then(res => {
+                if (!res) { if (label) label.innerText = prevLabelText; return; }
+                const newName = String(res);
+                // update ordering (preserve relative position)
+                const idx = categoryOrder.findIndex(c => c === oldCat || (c && c.toUpperCase() === oldCat.toUpperCase()));
+                if (idx > -1) categoryOrder[idx] = newName;
+
+                // update file metadata categories
+                Object.keys(fileMeta).forEach(k => {
+                    if (fileMeta[k] && (fileMeta[k].category === oldCat || (fileMeta[k].category && fileMeta[k].category.toUpperCase() === oldCat.toUpperCase()))) {
+                        fileMeta[k].category = newName;
+                    }
+                });
+
+                buildExplorer();
+                appendToTerminal('[HouseLearning] Category renamed: ' + newName);
+                if (label) label.innerText = prevLabelText;
+            }).catch(e => {
+                if (label) label.innerText = prevLabelText;
+                console.warn('renameCategory modal error', e);
+            });
+        } catch (e) { console.warn('renameCategory fallback error', e); }
+    };
+
     // Close profile menu when clicking outside of it
     document.addEventListener('click', function(e) {
         try {
@@ -808,6 +883,32 @@
     const viewPanel = document.getElementById('viewPanel');
     const terminalContainer = document.getElementById('terminalContainer');
     const mainEditor = document.querySelector('.main-editor');
+
+    // Editor gutter updater & scroll sync
+    function updateEditorGutter() {
+        try {
+            const gutter = document.getElementById('editorGutter');
+            if (!gutter || !editor) return;
+            const lines = (editor.value || '').split('\n').length || 1;
+            let nums = '';
+            for (let i = 1; i <= lines; i++) {
+                nums += i + (i < lines ? '\n' : '');
+            }
+            // Use textContent to avoid HTML injection; preserve monospace appearance via CSS
+            gutter.textContent = nums;
+            // sync scroll positions so numbers align with textarea scroll
+            gutter.scrollTop = editor.scrollTop;
+        } catch (e) { console.warn('updateEditorGutter error', e); }
+    }
+
+    // keep gutter scroll in sync while editing/scrolling
+    if (editor) {
+        editor.addEventListener('input', updateEditorGutter, { passive: true });
+        editor.addEventListener('scroll', () => {
+            const gutter = document.getElementById('editorGutter');
+            if (gutter) gutter.scrollTop = editor.scrollTop;
+        }, { passive: true });
+    }
 
     // Add missing state that other functions reference
     let activeView = 'explorer';
@@ -1180,8 +1281,9 @@ _start:
         // select the default file item element if present
         const defaultEl = document.querySelector(`[data-key="winforms"]`);
         if (defaultEl) { defaultEl.classList.add('active'); }
-
         setMode('winforms', defaultEl);
+        // ensure gutter is updated for initial content
+        try { updateEditorGutter(); } catch(e){}
  };
  
  /* --- SOLUTION EXPLORER: build, toggle, rename, duplicate, download ZIP --- */
