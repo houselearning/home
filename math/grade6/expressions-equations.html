@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Expressions & Equations</title>
+    <style>
+        :root{  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;}
+        *{box-sizing:border-box}
+        body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
+        header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
+        header h1{margin:0;font-size:clamp(20px,3vw,30px)}
+        main{max-width:1100px;margin:20px auto;padding:14px}
+        section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+        h2{color:var(--accent2);margin:0 0 10px 0}
+        p{margin:8px 0}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+        button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+        button.secondary{background:#60a5fa;color:#fff}
+        button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
+        button.warn{background:#f97316}
+        input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
+        .grid{display:grid;gap:10px}
+        .grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+        .tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
+        .status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+        .pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
+        .muted{color:var(--muted)}
+        footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
+        .answer{font-weight:800;margin-top:8px}
+        .ok{color:var(--ok)}.bad{color:var(--bad)}
+        canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;width:100%;}
+    </style>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Expressions & Equations</h1>
+        <p style="margin:6px 0 0 0;opacity:.95">6th Grade Math • Variables and Solving</p>
+    </header>
+
+    <main>
+        <section aria-labelledby="introTitle">
+            <h2 id="introTitle">Expressions vs. Equations</h2>
+            <p>Expressions and equations are the building blocks of algebra! Knowing the difference is key:</p>
+            <ul>
+                <li>An **Expression** is a mathematical phrase containing numbers, variables, and operations, but **no** equal sign (e.g., $4x + 7$). You **evaluate** or **simplify** it.</li>
+                <li>An **Equation** is a statement that two expressions are equal (e.g., $4x + 7 = 19$). It **must** have an equal sign ($=$). You **solve** it to find the variable's value.</li>
+            </ul>
+            <div class="status" style="margin-top:8px">
+                <div class="pill" id="score">Score: 0</div>
+                <div class="muted" id="streak">Streak: 0</div>
+            </div>
+        </section>
+
+        <section aria-labelledby="videoTitle">
+            <h2 id="videoTitle">Visualizer: Solving for X</h2>
+            <p>Equations are like a balancing scale! What you do to one side, you must do to the other to keep it balanced. Let's solve $$x + 3 = 8$$ 🎥</p>
+            <div class="canvas-wrapper">
+                <canvas id="tutorialCanvas" width="800" height="300"></canvas>
+            </div>
+            <div class="controls">
+                <button id="playTutorial" class="secondary">▶️ Start Visualizer</button>
+            </div>
+            <div class="settings">
+                <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.5" max="2" step="0.1"></label>
+            </div>
+        </section>
+
+        <section aria-labelledby="practiceTitle">
+            <h2 id="practiceTitle">Practice Problems</h2>
+            <p>Try to solve these one-step equations by isolating the variable. Remember to balance the sides!</p>
+            <div class="grid cols-4" style="margin-top:10px">
+                <div class="tile">
+                    <div style="font-weight:700">1) $$x + 12 = 20$$</div>
+                    <input id="q1" type="number" placeholder="x = ?">
+                    <div style="margin-top:6px"><button onclick="check('q1', '8')">Check</button></div>
+                    <div id="r1" class="answer"></div>
+                </div>
+                <div class="tile">
+                    <div style="font-weight:700">2) $$y - 5 = 15$$</div>
+                    <input id="q2" type="number" placeholder="y = ?">
+                    <div style="margin-top:6px"><button onclick="check('q2', '20')">Check</button></div>
+                    <div id="r2" class="answer"></div>
+                </div>
+                <div class="tile">
+                    <div style="font-weight:700">3) $$3z = 21$$</div>
+                    <input id="q3" type="number" placeholder="z = ?">
+                    <div style="margin-top:6px"><button onclick="check('q3', '7')">Check</button></div>
+                    <div id="r3" class="answer"></div>
+                </div>
+                <div class="tile">
+                    <div style="font-weight:700">4) $$\frac{w}{4} = 5$$</div>
+                    <input id="q4" type="number" placeholder="w = ?">
+                    <div style="margin-top:6px"><button onclick="check('q4', '20')">Check</button></div>
+                    <div id="r4" class="answer"></div>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="speedTitle">
+            <h2 id="speedTitle">⚡ Quick Expressions Quiz</h2>
+            <p>Evaluate these expressions for the given value of the variable.</p>
+            <div class="controls">
+                <label>Duration:
+                    <select id="quizDuration">
+                        <option value="30" selected>30s</option>
+                        <option value="60">60s</option>
+                        <option value="90">90s</option>
+                    </select>
+                </label>
+                <button id="startQuiz" class="warn">Start Quiz</button>
+                <button id="stopQuiz" class="ghost">Stop</button>
+                <div class="muted" id="quizTimer">Time: 0</div>
+                <div id="quizScore" class="pill">Correct: 0</div>
+            </div>
+            <div style="margin-top:12px">
+                <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
+                <div style="margin-top:8px" class="controls">
+                    <input id="quizInput" type="number" placeholder="Answer">
+                    <button id="quizCheck" class="secondary">Submit</button>
+                    <div id="quizFeedback" class="answer"></div>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="csvTitle">
+            <h2 id="csvTitle">Download CSV Log</h2>
+            <p>Track all practice & quiz answers in a CSV file.</p>
+            <button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
+        </section>
+
+        <footer>Algebra is the language of math! Keep practicing.</footer>
+    </main>
+
+    <script>
+        /* ===== Utilities ===== */
+        const tone = (f = 880, d = 0.06) => {
+            try {
+                const A = new (window.AudioContext || window.webkitAudioContext)();
+                const o = A.createOscillator();
+                const g = A.createGain();
+                o.type = 'sine';
+                o.frequency.value = f;
+                g.gain.value = 0.0001;
+                o.connect(g);
+                g.connect(A.destination);
+                o.start();
+                g.gain.exponentialRampToValueAtTime(0.12, A.currentTime + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + d);
+                setTimeout(() => { o.stop(); A.close().catch(() => {}); }, d * 1000 + 50);
+            } catch (e) {}};
+
+        let totalScore = 0, streak = 0, csvData = [['Question', 'User Answer', 'Correct Answer']];
+
+        function updateScore(points) {
+            if (points > 0) {
+                totalScore += points;
+                streak++;
+            } else {
+                streak = 0;
+            }
+            document.getElementById('score').textContent = `Score: ${totalScore}`;
+            document.getElementById('streak').textContent = `Streak: ${streak}`;
+        }
+
+        window.check = (inputId, correct) => {
+            const inputEl = document.getElementById(inputId);
+            const val = inputEl.value.trim();
+            const resultId = 'r' + inputId.slice(1);
+            const res = document.getElementById(resultId);
+
+            if (!res) {
+                console.error(`Result element with ID '${resultId}' not found.`);
+                return;
+            }
+            
+            // Check if input is meant to be a number (Practice problems 1-4)
+            let correctValue = correct.toString();
+            let userValue = val.toString();
+            
+            const questionText = inputEl.parentNode.parentNode.querySelector('div:first-child').textContent;
+            const isCorrect = (userValue === correctValue);
+
+            if (isCorrect) {
+                res.textContent = '✅ Correct!';
+                res.className = 'answer ok';
+                tone(880, 0.06);
+                updateScore(1);
+            } else {
+                res.textContent = `❌ Wrong (Answer: ${correct})`;
+                res.className = 'answer bad';
+                tone(220, 0.06);
+                updateScore(0);
+            }
+            csvData.push([questionText, val, correct]);
+        };
+
+        /* ===== Canvas Visualizer ===== */
+        const tutorialCanvas = document.getElementById('tutorialCanvas');
+        const ctx = tutorialCanvas.getContext('2d');
+        const tutorialSpeedInput = document.getElementById('videoSpeed');
+        const voice = window.speechSynthesis.getVoices().find(v => v.name.includes('female') || v.name.includes('F'));
+        
+        const canvasWidth = 800;
+        const canvasHeight = 300;
+        tutorialCanvas.width = canvasWidth;
+        tutorialCanvas.height = canvasHeight;
+
+        // Constants for drawing
+        const scaleCenter = canvasWidth / 2;
+        const scaleArmLength = 250;
+        const scalePivotY = canvasHeight * 0.4;
+        const boxSize = 30;
+
+        function drawScale(rotation = 0, equationText, leftBoxes = [], rightBoxes = []) {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Draw Equation Text
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#04263b';
+            ctx.fillText(equationText, canvasWidth / 2, 40);
+
+            // Draw Pivot (Triangle)
+            ctx.fillStyle = '#334155';
+            ctx.beginPath();
+            ctx.moveTo(scaleCenter, scalePivotY + 50);
+            ctx.lineTo(scaleCenter - 30, scalePivotY);
+            ctx.lineTo(scaleCenter + 30, scalePivotY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Apply rotation for balance beam
+            ctx.save();
+            ctx.translate(scaleCenter, scalePivotY);
+            ctx.rotate(rotation);
+
+            // Draw Beam
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-scaleArmLength, 0);
+            ctx.lineTo(scaleArmLength, 0);
+            ctx.stroke();
+
+            // Draw Platforms
+            const platformY = 10;
+            ctx.fillStyle = '#60a5fa';
+            
+            // Left Platform
+            ctx.fillRect(-scaleArmLength - 20, platformY, 40, 10);
+            ctx.fillRect(-scaleArmLength, platformY, 20, 10);
+            ctx.fillRect(-scaleArmLength - 10, platformY, 20, 10);
+            ctx.fillRect(-scaleArmLength - 30, platformY, 60, 10);
+            
+            // Right Platform
+            ctx.fillRect(scaleArmLength - 40, platformY, 60, 10);
+
+            // Draw Boxes (Items on the scale)
+            function drawBoxes(boxes, xOffset) {
+                let currentX = xOffset - 10;
+                let currentY = 20;
+
+                boxes.forEach((box, index) => {
+                    if (box === 'X') {
+                        ctx.fillStyle = '#f97316'; // Orange for X
+                        ctx.fillRect(currentX, currentY, boxSize, boxSize);
+                        ctx.fillStyle = '#fff';
+                        ctx.font = '20px Arial';
+                        ctx.fillText('X', currentX + boxSize / 2, currentY + boxSize * 0.75);
+                    } else {
+                        ctx.fillStyle = '#1d4ed8'; // Blue for numbers
+                        ctx.fillRect(currentX, currentY, boxSize, boxSize);
+                        ctx.fillStyle = '#fff';
+                        ctx.font = '18px Arial';
+                        ctx.fillText(box, currentX + boxSize / 2, currentY + boxSize * 0.75);
+                    }
+                    currentX += boxSize + 5;
+                });
+            }
+
+            drawBoxes(leftBoxes, -scaleArmLength);
+            drawBoxes(rightBoxes, scaleArmLength - leftBoxes.length * (boxSize + 5)); // Center right boxes
+
+            ctx.restore(); // Restore context state
+        }
+        
+        const visualizerSteps = [
+            { audio: "Our equation is x plus 3 equals 8. The scale is perfectly balanced.", text: "$$x + 3 = 8$$", left: ['X', '1', '1', '1'], right: ['1', '1', '1', '1', '1', '1', '1', '1'], rotation: 0 },
+            { audio: "Our goal is to get X all alone on one side. We have to remove the plus 3.", text: "$$x + 3 = 8$$ (Remove 3)", left: ['X', '1', '1', '1'], right: ['1', '1', '1', '1', '1', '1', '1', '1'], rotation: 0 },
+            { audio: "To do this, we subtract 3 from the left side. Notice the scale starts to tilt.", text: "$$x + 3 - 3 = 8$$ (Tilt starts)", left: ['X'], right: ['1', '1', '1', '1', '1', '1', '1', '1'], rotation: 0.05 },
+            { audio: "The three boxes are gone from the left. To keep the scale balanced, we must subtract 3 from the right side as well.", text: "$$x = 8 - 3$$ (Subtract 3 from right)", left: ['X'], right: ['1', '1', '1', '1', '1', '1', '1', '1'], rotation: 0.05 },
+            { audio: "We remove three boxes from the right side. Now the scale is balanced again.", text: "$$x = 5$$ (Balanced)", left: ['X'], right: ['1', '1', '1', '1', '1'], rotation: 0 },
+            { audio: "We are left with X on the left, and 5 on the right. The solution is x equals 5.", text: "Solution: $$x = 5$$", left: ['X'], right: ['1', '1', '1', '1', '1'], rotation: 0 },
+            { audio: "Every time you solve an equation, remember to keep the scale balanced!", text: "You solved it!" },
+        ];
+        
+        let tutorialIndex = 0;
+        let isAnimating = false;
+
+        async function speak(text, speed, onEnd) {
+            return new Promise((resolve) => {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = speed;
+                utterance.pitch = 1.2;
+                utterance.volume = 1;
+                if (voice) utterance.voice = voice;
+                utterance.onend = () => {
+                    if (onEnd) onEnd();
+                    resolve();
+                };
+                utterance.onerror = () => {
+                    if (onEnd) onEnd();
+                    resolve();
+                };
+                speechSynthesis.speak(utterance);
+            });
+        }
+
+        async function animateStep(startRotation, endRotation, duration, step) {
+            return new Promise((resolve) => {
+                if (Math.abs(startRotation - endRotation) < 0.001) {
+                    drawScale(endRotation, step.text, step.left, step.right);
+                    resolve();
+                    return;
+                }
+
+                const startTime = performance.now();
+                function stepAnimation(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const currentRotation = startRotation + (endRotation - startRotation) * progress;
+                    
+                    drawScale(currentRotation, step.text, step.left, step.right);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(stepAnimation);
+                    } else {
+                        resolve();
+                    }
+                }
+                requestAnimationFrame(stepAnimation);
+            });
+        }
+
+        async function playTutorialVideo() {
+            if (isAnimating) return;
+            isAnimating = true;
+            tutorialIndex = 0;
+            const speed = parseFloat(tutorialSpeedInput.value) || 1;
+            const stepDuration = 1000; // Animation duration for tilt
+
+            while (tutorialIndex < visualizerSteps.length) {
+                const step = visualizerSteps[tutorialIndex];
+                
+                // Set initial scale state for the step
+                if (step.left) {
+                    drawScale(step.rotation || 0, step.text, step.left, step.right);
+                    window.MathJax.typeset([document.getElementById('tutorialCanvas').previousElementSibling.querySelector('p:first-child')]); // Re-render math
+                } else {
+                    drawScale(0, step.text || "Final Review", [], []);
+                }
+
+                await speak(step.audio, speed);
+
+                // Handle tilt animation between step 2 and 4
+                if (tutorialIndex === 2) {
+                    const nextStep = visualizerSteps[3];
+                    await animateStep(0, 0.05, stepDuration, step); // Tilts after audio for step 2
+                    drawScale(0.05, nextStep.text, nextStep.left, nextStep.right);
+                } else if (tutorialIndex === 4) {
+                    await animateStep(0.05, 0, stepDuration, step); // Balances after audio for step 4
+                }
+
+                tutorialIndex++;
+                await new Promise(r => setTimeout(r, 500)); // Short pause between steps
+            }
+            isAnimating = false;
+        }
+
+        document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+        drawScale(0, "$$x + 3 = 8$$", ['X', '1', '1', '1'], ['1', '1', '1', '1', '1', '1', '1', '1']);
+
+        /* ===== Speed Quiz (Expressions) ===== */
+        function generateProblem() {
+            const op = Math.random() < 0.5 ? '+' : '-';
+            const value = Math.floor(Math.random() * 8) + 2; // Value for variable
+            const coeff = Math.floor(Math.random() * 4) + 2; // Coefficient 2-5
+            const constant = Math.floor(Math.random() * 15) + 5; // Constant 5-19
+            
+            let answer;
+            let expression;
+
+            if (op === '+') {
+                expression = `${coeff}x + ${constant}`;
+                answer = (coeff * value) + constant;
+            } else {
+                expression = `${coeff}x - ${constant}`;
+                answer = (coeff * value) - constant;
+            }
+
+            return { q: `${expression} when x = ${value}`, a: answer.toString() };
+        }
+
+        let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+
+        function newQuizQuestion() {
+            const problem = generateProblem();
+            currentQuiz = problem;
+            const qEl = document.getElementById('quizQ');
+            // Display as a single line for speed quiz
+            qEl.textContent = `Evaluate: ${currentQuiz.q}`;
+            document.getElementById('quizInput').value = '';
+            document.getElementById('quizFeedback').textContent = '';
+        }
+
+        document.getElementById('startQuiz').addEventListener('click', () => {
+            quizTime = parseInt(document.getElementById('quizDuration').value, 10);
+            quizScore = 0;
+            document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+            newQuizQuestion();
+            clearInterval(quizTimerInt);
+            quizTimerInt = setInterval(() => {
+                quizTime--;
+                document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
+                if (quizTime <= 0) {
+                    clearInterval(quizTimerInt);
+                    document.getElementById('quizQ').textContent = `Time Up! Final Score: ${quizScore}`;
+                }
+            }, 1000);
+        });
+
+        document.getElementById('stopQuiz').addEventListener('click', () => {
+            clearInterval(quizTimerInt);
+            document.getElementById('quizQ').textContent = `Quiz Stopped. Score: ${quizScore}`;
+        });
+
+        document.getElementById('quizCheck').addEventListener('click', () => {
+            if (quizTime <= 0) return;
+            const val = document.getElementById('quizInput').value.trim();
+            const f = document.getElementById('quizFeedback');
+            let userAnswer = val;
+            let correctAnswer = currentQuiz.a;
+
+            if (val === currentQuiz.a) {
+                f.textContent = '✅ Correct!';
+                f.className = 'answer ok';
+                quizScore++;
+                document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
+                tone(880, 0.06);
+            } else {
+                f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
+                f.className = 'answer bad';
+                tone(220, 0.06);
+            }
+            csvData.push([`Evaluate: ${currentQuiz.q}`, userAnswer, correctAnswer]);
+            if (quizTime > 0) newQuizQuestion();
+        });
+
+        /* ===== CSV Download ===== */
+        document.getElementById('downloadCSVBtn').addEventListener('click', () => {
+            const csvContent = "data:text/csv;charset=utf-8," + csvData.map(e => e.map(item => item.includes(',') ? `"${item}"` : item).join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "expressions_equations_log.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>
