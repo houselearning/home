@@ -36,7 +36,7 @@ let anonymousPopup = null;
 
 // --- Local Storage Keys ---
 const POPUP_DISMISS_KEY = 'houselearning_popup_dismissed'; 
-const AUTH_PAGE_URL = 'https://houselearning.github.io/auth/';
+const AUTH_PAGE_URL = 'https://houselearning.org/auth/';
 const GITHUB_URL = 'https://github.com/houselearning'; 
 
 
@@ -498,7 +498,7 @@ function createProfileUI(userPhotoURL, userName) {
     picWrapper.className = 'profile-pic-wrapper';
     
     const pic = document.createElement('img');
-    pic.src = userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
+    pic.src = userPhotoURL || 'https://houselearning.org/auth/dashboard/default.png';
     pic.alt = 'Profile Picture';
     pic.className = 'profile-pic';
     pic.id = 'profile-pic';
@@ -539,13 +539,13 @@ function createProfileUI(userPhotoURL, userName) {
                 </svg>
             </button>
 
-            <img class="dropdown-pfp" src="${userPhotoURL || 'https://houselearning.github.io/auth/dashboard/default.png'}" alt="Profile Image">
+            <img class="dropdown-pfp" src="${userPhotoURL || 'https://houselearning.org/auth/dashboard/default.png'}" alt="Profile Image">
             <span class="dropdown-username">${userName || 'User Name'}</span>
         </div>
         
-        <a href="https://houselearning.github.io/auth/dashboard" class="menu-link">Dashboard</a>
-        <a href="https://houselearning.github.io/auth/dashboard/settings" id="account-settings-btn" class="menu-link">Account Settings</a>
-        <a href="https://houselearning.github.io/auth/dashboard" id="join-class-btn" class="menu-link">Join Class</a>
+        <a href="https://houselearning.org/auth/dashboard" class="menu-link">Dashboard</a>
+        <a href="https://houselearning.org/auth/dashboard/settings" id="account-settings-btn" class="menu-link">Account Settings</a>
+        <a href="https://houselearning.org/auth/dashboard" id="join-class-btn" class="menu-link">Join Class</a>
 
         <!-- Notifications Link -->
         <a href="#" id="notifications-btn" class="menu-link">Notifications <span id="notif-count-inline" class="notif-badge" style="display:none; margin-left:8px;">0</span></a>
@@ -962,7 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Attach static listeners
                     profilePic.addEventListener('click', () => toggleDropdown(accountDropdown));
                     elements.logoutBtn.addEventListener('click', handleLogout);
-                    elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.github.io/auth/dashboard?action=join');
+                    elements.joinBtn.addEventListener('click', () => window.location.href = 'https://houselearning.org/auth/dashboard?action=join');
                     elements.closeBtn.addEventListener('click', () => toggleDropdown(accountDropdown));
 
                     // --- NEW: Notifications modal handlers ---
@@ -1058,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Update dynamic content and visibility
                 profileContainer.style.display = 'block';
-                profilePic.src = user.photoURL || 'https://houselearning.github.io/auth/dashboard/default.png';
+                profilePic.src = user.photoURL || 'https://houselearning.org/auth/dashboard/default.png';
                 signUpButton.style.display = 'none';
 
                 const dropdownUsername = accountDropdown.querySelector('.dropdown-username');
