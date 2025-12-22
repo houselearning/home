@@ -111,7 +111,7 @@
     const randomLang = languagesKeys[Math.floor(Math.random() * languagesKeys.length)];
     const lessons = programmingLanguages[randomLang];
     const randomLesson = lessons[Math.floor(Math.random() * lessons.length)];
-    const lessonUrl = `https://houselearning.github.io/home/computerscience/${randomLang}/${randomLesson}`;
+    const lessonUrl = `https://houselearning.org/home/computerscience/${randomLang}/${randomLesson}`;
 
     lessonIframe.src = lessonUrl;
     lessonLink.href = lessonUrl;
