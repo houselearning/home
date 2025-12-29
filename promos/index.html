@@ -1,85 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-<!-- Google tag (gtag.js) -->
-<script src="/cookiebanner.js"></script>
-<script src="/feedback.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HouseLearning — Learn Smarter, Not Longer</title>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoolMathTime - Math Lessons & Games</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #ffeb3b;
-        }
-        header {
-            background: #0288d1;
-            color: white;
-            padding: 20px;
-            font-size: 28px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .navbar {
-            display: flex;
-            justify-content: center;
-            background: #0277bd;
-            padding: 10px;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            margin: 0 10px;
-            font-size: 18px;
-            background: #01579b;
-            border-radius: 5px;
-        }
-        .navbar a:hover {
-            background: #013a63;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 20px;
-        }
-        .lesson-card, .game-card {
-            background: white;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 10px;
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-            width: 220px;
-            text-align: center;
-        }
-        .lesson-card h3, .game-card h3 {
-            font-size: 18px;
-            color: #0288d1;
-        }
-        .lesson-card a, .game-card a {
-            text-decoration: none;
-            color: white;
-            background: #0288d1;
-            padding: 10px 15px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .lesson-card a:hover, .game-card a:hover {
-            background: #01579b;
-        }
-    </style>
+  <meta name="description" content="Free bite-sized lessons in Math, Science & 15+ programming languages. Built for students, self-learners, and teachers." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="/cookiebanner.js"></script>
+  <style>
+    :root {
+      --bg: #0e0e11;
+      --card: #16161c;
+      --accent: #4f7cff;
+      --accent2: #ff6a88;
+      --text: #eaeaf0;
+      --muted: #a1a1b3;
+      --border: #24242d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(1200px 600px at top, #1a1a24, var(--bg));
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    header {
+      padding: 90px 20px 70px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: clamp(2.5rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 15px;
+    }
+
+    header p {
+      max-width: 720px;
+      margin: 0 auto 35px;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .cta {
+      display: inline-flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 14px 26px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      box-shadow: 0 10px 30px rgba(79,124,255,.35);
+    }
+
+    .btn.secondary {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    section {
+      padding: 60px 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(79,124,255,.15);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: .85rem;
+      margin-bottom: 12px;
+    }
+
+    .signup {
+      text-align: center;
+      background: linear-gradient(180deg, transparent, #111118);
+      border-top: 1px solid var(--border);
+    }
+
+    .signup form {
+      max-width: 420px;
+      margin: 30px auto 0;
+    }
+
+    .signup input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    footer {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
 </head>
+
 <body>
-    <header>CoolMathTime - Math Lessons & Games</header>
-    <center>
-      <h1>Ready to start putting the FUN in learning? Visit CoolMathTime today!</h1>
-      <a href="houselearning.github.io/home">Click to start</a>
-    </center>
+
+<header>
+  <span class="badge">100% Free • No Ads • No Fluff</span>
+  <h1>Learn Smarter.<br>Not Longer.</h1>
+  <p>
+    HouseLearning delivers bite-sized lessons in Math, Science, and 15+ programming languages.
+    Built for students, self-learners, and teachers who hate wasting time.
+  </p>
+
+  <div class="cta">
+    <a href="#signup" class="btn primary">Start Learning Free</a>
+    <a href="/docs" class="btn secondary">View Docs</a>
+  </div>
+</header>
+
+<section>
+  <div class="container grid">
+    <div class="card">
+      <h3>📘 Bite-Sized Lessons</h3>
+      <p>Short, focused lessons designed to be finished in minutes — not hours.</p>
+    </div>
+
+    <div class="card">
+      <h3>💻 15+ Languages</h3>
+      <p>Python, C#, JavaScript, Java, and more — with real examples.</p>
+    </div>
+
+    <div class="card">
+      <h3>🎓 Student & Teacher Ready</h3>
+      <p>Perfect for homework, self-study, or classroom use.</p>
+    </div>
+
+    <div class="card">
+      <h3>🌍 Community Powered</h3>
+      <p>Public forums, GitHub integration, blogs, and guides.</p>
+    </div>
+  </div>
+</section>
+
+<section class="signup" id="signup">
+  <div class="container">
+    <h2>Join HouseLearning</h2>
+    <p class="muted">Create a free account and start learning instantly.</p>
+
+    <form action="/auth" method="post">
+      <input type="email" name="email" placeholder="you@example.com" required />
+      <button class="btn primary" style="width:100%;">Create Free Account</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  © 2025 HouseLearning.org • Built for curious minds
+</footer>
+
 </body>
 </html>
