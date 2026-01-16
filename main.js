@@ -12,19 +12,19 @@ const firebaseConfig = {
 
 // Initialize Firebase App
 let auth;
+let db = null;
 try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
+    db = firebase.firestore();
 } catch (error) {
-    console.error("Firebase initialization failed on main page:", error);
+    console.error("Firebase initialization failed:", error);
 }
 
 // Global Variables
-let db = null;
 let notificationsUnsubscribe = null;
 let latestNotifications = []; 
 let notifReminderTimer = null; 
-let notifReminderPopup = null; 
 const NOTIF_REMINDER_DISMISS_KEY = 'houselearning_notif_reminder_dismissed_at'; 
 
 // Dynamic Element References
@@ -46,8 +46,7 @@ function injectStyles() {
     style.textContent = `
         /* PFP & Sign Up Button */
         .profile-container { position: fixed; top: 15px; right: 20px; z-index: 2000; display: none; }
-        #sign-up-btn { position: fixed; top: 18px; right: 20px; z-index: 2000; display: none; background-color: #61dafb; color: #20232a; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: background-color 0.3s ease; }
-        #sign-up-btn:hover { background-color: #53c4e3; }
+        #sign-up-btn { position: fixed; top: 18px; right: 20px; z-index: 2000; display: none; background-color: #61dafb; color: #20232a; padding: 8px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
         .profile-pic { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; object-fit: cover; border: 2px solid #61dafb; transition: transform 0.1s ease; }
         .profile-pic:hover { transform: scale(1.05); }
 
@@ -59,12 +58,12 @@ function injectStyles() {
         .dropdown-icon { position: absolute; top: 15px; cursor: pointer; }
         #github-icon { left: 15px; }
         #close-icon { right: 15px; }
-        .dropdown-menu .menu-link { color: #555; padding: 10px 25px; text-decoration: none; display: block; font-weight: 500; font-size: 15px; transition: background-color 0.15s; }
-        .dropdown-menu .menu-link:hover { background-color: #f0f8ff; color: #007bff; }
+        .menu-link { color: #555; padding: 10px 25px; text-decoration: none; display: block; font-weight: 500; font-size: 15px; }
+        .menu-link:hover { background-color: #f0f8ff; color: #007bff; }
         .logout-container { padding: 15px 25px; border-top: 1px solid #f0f0f0; }
         #logout-dropdown-btn { background-color: #f8f8f8; color: #333; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid #ccc; width: 100%; }
 
-        /* Notification Elements */
+        /* Notifications */
         .notif-badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #ff3b30; color: white; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
         .notif-dot { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: #ff3b30; display: none; }
         
@@ -72,21 +71,15 @@ function injectStyles() {
         .notif-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
         .notif-modal-overlay.show { display: flex; }
         .notif-modal { background: #fff; border-radius: 12px; max-width: 500px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
-        .notif-modal-header { padding: 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .notif-modal-header { padding: 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .notif-modal-body { padding: 10px; overflow-y: auto; }
         .notification-item { padding: 12px; border-bottom: 1px solid #f9f9f9; list-style: none; }
-        .notification-item.unread { background-color: #f0f7ff; }
-        .notif-small-btn { padding: 4px 8px; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid #ddd; background: #fff; }
+        .notification-item.unread { background-color: #f0f7ff; border-left: 4px solid #007bff; }
+        .notif-small-btn { padding: 5px 10px; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid #ddd; background: #fff; }
 
         /* Reminder Popup */
         #notif-reminder-popup { position: fixed; top: 80px; right: 20px; width: 280px; background: white; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 2500; padding: 15px; border: 1px solid #e0e0e0; display: none; }
         #notif-reminder-popup.show { display: block; }
-
-        /* Anonymous Popup */
-        #anonymous-popup { position: fixed; top: 15px; right: 20px; width: 300px; background: white; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 1999; padding: 20px; display: none; }
-        #anonymous-popup.show { display: block; }
-        .popup-view { display: none; }
-        .popup-view.active { display: block; }
     `;
     document.head.appendChild(style);
 }
@@ -94,22 +87,21 @@ function injectStyles() {
 // ====================================================================
 // 2. UI CREATION
 // ====================================================================
-function createAuthButton() {
-    const button = document.createElement('button');
-    button.id = 'sign-up-btn';
-    button.textContent = 'Sign Up / Login';
-    button.onclick = () => window.location.href = AUTH_PAGE_URL;
-    document.body.appendChild(button);
-    return button;
+function createAuthUI() {
+    const btn = document.createElement('button');
+    btn.id = 'sign-up-btn';
+    btn.textContent = 'Sign Up / Login';
+    btn.onclick = () => window.location.href = AUTH_PAGE_URL;
+    document.body.appendChild(btn);
+    return btn;
 }
 
 function createProfileUI(userPhotoURL, userName) {
     const container = document.createElement('div');
-    container.className = 'profile-container';
     container.id = 'profile-container';
-    
+    container.className = 'profile-container';
     container.innerHTML = `
-        <div class="profile-pic-wrapper" style="position:relative;">
+        <div style="position:relative;">
             <img src="${userPhotoURL || 'https://houselearning.org/auth/dashboard/default.png'}" class="profile-pic" id="profile-pic">
             <span id="notif-dot" class="notif-dot"></span>
             <span id="notif-count" class="notif-badge" style="display:none;">0</span>
@@ -132,8 +124,8 @@ function createProfileUI(userPhotoURL, userName) {
     `;
 
     const modal = document.createElement('div');
-    modal.className = 'notif-modal-overlay';
     modal.id = 'notifications-modal-overlay';
+    modal.className = 'notif-modal-overlay';
     modal.innerHTML = `
         <div class="notif-modal">
             <div class="notif-modal-header">
@@ -145,7 +137,7 @@ function createProfileUI(userPhotoURL, userName) {
             </div>
             <div class="notif-modal-body">
                 <ul id="notifications-modal-list" style="padding:0; margin:0;"></ul>
-                <div id="no-notifs" style="text-align:center; display:none; padding:20px; color:#999;">No notifications</div>
+                <div id="no-notifs-msg" style="text-align:center; display:none; padding:20px; color:#999;">No notifications</div>
             </div>
         </div>
     `;
@@ -153,11 +145,11 @@ function createProfileUI(userPhotoURL, userName) {
     const reminder = document.createElement('div');
     reminder.id = 'notif-reminder-popup';
     reminder.innerHTML = `
-        <div style="font-weight:bold; margin-bottom:5px;">Hey!</div>
-        <div style="font-size:14px; margin-bottom:10px;">You have unread notifications!</div>
+        <div style="font-weight:bold; margin-bottom:5px;">New Updates!</div>
+        <div style="font-size:14px; margin-bottom:12px;">You have unread notifications waiting.</div>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button id="notif-reminder-dismiss" class="notif-small-btn">Dismiss</button>
-            <button id="notif-reminder-action" class="notif-small-btn">View</button>
+            <button id="reminder-dismiss" class="notif-small-btn">Dismiss</button>
+            <button id="reminder-view" class="notif-small-btn" style="background:#007bff; color:#fff; border:none;">View</button>
         </div>
     `;
     
@@ -169,44 +161,38 @@ function createProfileUI(userPhotoURL, userName) {
         container,
         pic: container.querySelector('#profile-pic'),
         dropdown: container.querySelector('#account-dropdown'),
-        logoutBtn: container.querySelector('#logout-dropdown-btn'),
         notificationsBtn: container.querySelector('#notifications-btn'),
-        modalOverlay: modal,
+        modal: modal,
         modalList: modal.querySelector('#notifications-modal-list'),
-        modalClose: modal.querySelector('#notifications-modal-close'),
-        modalMarkAll: modal.querySelector('#notif-mark-all-read-modal'),
-        reminder,
-        reminderDismiss: reminder.querySelector('#notif-reminder-dismiss'),
-        reminderAction: reminder.querySelector('#notif-reminder-action')
+        reminder: reminder
     };
 }
 
 // ====================================================================
-// 3. NOTIFICATION LOGIC
+// 3. LOGIC & DATA
 // ====================================================================
 function initNotificationsListener(uid) {
     if (!db || !uid) return;
     if (notificationsUnsubscribe) notificationsUnsubscribe();
 
+    // Listen for private (UID) and Broadcast (GLOBAL_ALL) messages
     notificationsUnsubscribe = db.collection('notifications')
-        .where('recipientUid', 'in', [uid, 'GLOBAL_ALL']) // Unified query for both private and global
+        .where('recipientUid', 'in', [uid, 'GLOBAL_ALL'])
         .orderBy('timestamp', 'desc')
         .onSnapshot(snapshot => {
             const notifications = [];
             let unreadCount = 0;
-
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const normalized = { id: doc.id, ...data, read: !!data.read };
-                if (!normalized.read) unreadCount++;
-                notifications.push(normalized);
+                if (!data.read) unreadCount++;
+                notifications.push({ id: doc.id, ...data });
             });
 
             latestNotifications = notifications;
             updateBadges(unreadCount);
             renderNotifications(notifications);
-            scheduleReminder(notifications);
-        }, err => console.error('Notif Error:', err));
+            checkReminder(notifications);
+        }, err => console.error("Index or Permission Error:", err));
 }
 
 function updateBadges(count) {
@@ -222,7 +208,7 @@ function updateBadges(count) {
 
 function renderNotifications(docs) {
     const list = document.querySelector('#notifications-modal-list');
-    const empty = document.querySelector('#no-notifs');
+    const empty = document.querySelector('#no-notifs-msg');
     if (!list) return;
 
     list.innerHTML = '';
@@ -234,36 +220,27 @@ function renderNotifications(docs) {
         li.className = `notification-item ${n.read ? '' : 'unread'}`;
         li.innerHTML = `
             <div style="font-weight:bold;">${n.title}</div>
-            <div style="font-size:14px; color:#444;">${n.body}</div>
-            <div style="margin-top:8px; display:flex; gap:5px;">
-                ${!n.read ? `<button class="notif-small-btn mark-read" data-id="${n.id}">Mark Read</button>` : ''}
+            <div style="font-size:13px; color:#444;">${n.body}</div>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+                ${!n.read ? `<button class="notif-small-btn" onclick="markAsRead('${n.id}')">Mark Read</button>` : ''}
                 ${n.url ? `<button class="notif-small-btn" onclick="window.open('${n.url}')">Open</button>` : ''}
             </div>
         `;
         list.appendChild(li);
     });
-
-    list.querySelectorAll('.mark-read').forEach(btn => {
-        btn.onclick = async () => {
-            await db.collection('notifications').doc(btn.dataset.id).update({ read: true });
-        };
-    });
 }
 
-function scheduleReminder(notifications) {
-    if (notifReminderTimer) clearTimeout(notifReminderTimer);
+window.markAsRead = (id) => db.collection('notifications').doc(id).update({ read: true });
+
+function checkReminder(notifications) {
     const unread = notifications.filter(n => !n.read);
-    if (!unread.length) {
-        document.querySelector('#notif-reminder-popup').classList.remove('show');
-        return;
-    }
+    const popup = document.querySelector('#notif-reminder-popup');
+    if (unread.length === 0) { popup.classList.remove('show'); return; }
 
     const lastDismiss = parseInt(localStorage.getItem(NOTIF_REMINDER_DISMISS_KEY) || '0');
     if (Date.now() - lastDismiss < 600000) return; // 10 min cooldown
 
-    notifReminderTimer = setTimeout(() => {
-        document.querySelector('#notif-reminder-popup').classList.add('show');
-    }, 3000); 
+    setTimeout(() => popup.classList.add('show'), 2000);
 }
 
 // ====================================================================
@@ -271,51 +248,39 @@ function scheduleReminder(notifications) {
 // ====================================================================
 document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
-    signUpButton = createAuthButton();
+    signUpButton = createAuthUI();
 
-    if (auth) {
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                if (!profileContainer) {
-                    const ui = createProfileUI(user.photoURL, user.displayName || user.email);
-                    profileContainer = ui.container;
-                    profilePic = ui.pic;
-                    accountDropdown = ui.dropdown;
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            if (!profileContainer) {
+                const ui = createProfileUI(user.photoURL, user.displayName || user.email);
+                profileContainer = ui.container;
+                
+                ui.pic.onclick = () => ui.dropdown.style.display = (ui.dropdown.style.display === 'block' ? 'none' : 'block');
+                ui.notificationsBtn.onclick = (e) => { e.preventDefault(); ui.modal.classList.add('show'); ui.dropdown.style.display = 'none'; };
+                ui.modal.querySelector('#notifications-modal-close').onclick = () => ui.modal.classList.remove('show');
+                
+                ui.modal.querySelector('#notif-mark-all-read-modal').onclick = async () => {
+                    const batch = db.batch();
+                    latestNotifications.filter(n => !n.read).forEach(n => batch.update(db.collection('notifications').doc(n.id), { read: true }));
+                    await batch.commit();
+                };
 
-                    profilePic.onclick = () => accountDropdown.style.display = accountDropdown.style.display === 'block' ? 'none' : 'block';
-                    ui.logoutBtn.onclick = () => auth.signOut();
-                    ui.notificationsBtn.onclick = (e) => { e.preventDefault(); ui.modalOverlay.classList.add('show'); };
-                    ui.modalClose.onclick = () => ui.modalOverlay.classList.remove('show');
-                    
-                    ui.modalMarkAll.onclick = async () => {
-                        const batch = db.batch();
-                        latestNotifications.filter(n => !n.read).forEach(n => {
-                            batch.update(db.collection('notifications').doc(n.id), { read: true });
-                        });
-                        await batch.commit();
-                    };
-
-                    ui.reminderDismiss.onclick = () => {
-                        localStorage.setItem(NOTIF_REMINDER_DISMISS_KEY, Date.now().toString());
-                        ui.reminder.classList.remove('show');
-                    };
-                    ui.reminderAction.onclick = () => {
-                        ui.modalOverlay.classList.add('show');
-                        ui.reminder.classList.remove('show');
-                    };
-                }
-                profileContainer.style.display = 'block';
-                signUpButton.style.display = 'none';
-                initNotificationsListener(user.uid);
-            } else {
-                if (profileContainer) profileContainer.style.display = 'none';
-                signUpButton.style.display = 'block';
-                if (notificationsUnsubscribe) notificationsUnsubscribe();
+                document.querySelector('#reminder-dismiss').onclick = () => {
+                    localStorage.setItem(NOTIF_REMINDER_DISMISS_KEY, Date.now().toString());
+                    ui.reminder.classList.remove('show');
+                };
+                document.querySelector('#reminder-view').onclick = () => { ui.modal.classList.add('show'); ui.reminder.classList.remove('show'); };
+                
+                document.querySelector('#logout-dropdown-btn').onclick = () => auth.signOut();
             }
-        });
-    }
-
-    try {
-        if (firebase.firestore) db = firebase.firestore();
-    } catch (e) { console.error(e); }
+            profileContainer.style.display = 'block';
+            signUpButton.style.display = 'none';
+            initNotificationsListener(user.uid);
+        } else {
+            if (profileContainer) profileContainer.style.display = 'none';
+            signUpButton.style.display = 'block';
+            if (notificationsUnsubscribe) notificationsUnsubscribe();
+        }
+    });
 });
