@@ -21,7 +21,7 @@ Welcome to **HouseLearning Home** — a fun and interactive learning game websit
 - **HTML5**
 - **CSS3**
 - **JavaScript**
-- *(Optionally Node.js/NPM for development tooling)*
+- **Firebase API**
 
 ## 📸 Screenshots
 
