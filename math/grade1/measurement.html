@@ -1,130 +1,220 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Measurement Tools Lesson</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1st Grade Math: Measurement Tools</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      text-align: center;
-      padding: 20px;
+    :root {
+      --math-green: #27ae60;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    h1 {
-      color: #2c3e50;
-    }
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 700px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .tool {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 15px 0;
-      padding: 10px;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      background: #fafafa;
-    }
-    .tool img {
-      width: 100px;
-      height: auto;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #3498db;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #2980b9;
-    }
-    .question {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    .feedback {
-      margin-top: 10px;
-      font-weight: bold;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-green); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #eafaf1; color: var(--math-green); font-weight: bold; border-left: 5px solid var(--math-green); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-green); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .ruler-sim { background: #fffde7; padding: 20px; border-radius: 10px; border: 2px dashed #fbc02d; margin: 20px 0; position: relative; height: 150px; }
+    .object-to-measure { height: 40px; background: #3498db; position: absolute; top: 30px; left: 50px; border-radius: 5px; }
+    .ruler-graphic { width: 90%; height: 40px; border-top: 2px solid #333; position: absolute; bottom: 20px; left: 5%; display: flex; justify-content: space-between; padding-top: 5px; }
+    .ruler-tick { height: 10px; width: 2px; background: #333; }
   </style>
 </head>
 <body>
-  <h1>📏 Measurement Tools Lesson</h1>
 
-  <div class="card">
-    <h2>Introduction</h2>
-    <p>Measurement tools help us find out <b>how long, how heavy, what time, or how hot/cold</b> something is.  
-    Let’s explore the four main tools: <b>Ruler, Clock, Scale, Thermometer</b>.</p>
-  </div>
+  <nav>
+    <div class="nav-header">
+      <strong>Measurement Lab</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Measuring Length Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Start at the End!</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Units of Length</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Reading a Ruler</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Comparing Size</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Real Tools</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Measurement Pro</div>
+    </div>
+  </nav>
 
-  <div class="card">
-    <h2>🛠 Learn the Tools</h2>
-    <div class="tool">
-      <p><b>Ruler</b> – measures length in inches or centimeters.</p>
-      <img src="ruler.png" alt="Ruler">
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>How Long Is It?</h1>
+        <p>Measuring helps us find out the size of things. We can use rulers or even paperclips!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I'm Ready to Measure!</button>
     </div>
-    <div class="tool">
-      <p><b>Clock</b> – measures time in hours and minutes.</p>
-      <img src="clock.png" alt="Clock">
-    </div>
-    <div class="tool">
-      <p><b>Scale</b> – measures weight in pounds or kilograms.</p>
-      <img src="scale.png" alt="Scale">
-    </div>
-    <div class="tool">
-      <p><b>Thermometer</b> – measures temperature in °C or °F.</p>
-      <img src="thermometer.png" alt="Thermometer">
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>📝 Practice Time!</h2>
-    <p class="question" id="question">Which tool do we use to measure weight?</p>
-    <div>
-      <button onclick="checkAnswer('Ruler')">Ruler</button>
-      <button onclick="checkAnswer('Clock')">Clock</button>
-      <button onclick="checkAnswer('Scale')">Scale</button>
-      <button onclick="checkAnswer('Thermometer')">Thermometer</button>
+    <div id="p1" class="content-card">
+      <h1>The Golden Rule of Measuring</h1>
+      <p>Always line up the <b>end</b> of your object with the <b>0</b> mark on your tool!</p>
+      
+      <div style="background: #eafaf1; padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <p>If you don't start at 0, your measurement will be wrong. We call the things we use to measure <b>Units</b>.</p>
+      </div>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
     </div>
-    <p class="feedback" id="feedback"></p>
-    <button onclick="nextQuestion()">Next Question ➡️</button>
-  </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 22px; text-align: center; font-weight: bold; margin-bottom: 20px;">How many units long?</div>
+      
+      <div class="ruler-sim">
+          <div id="obj-bar" class="object-to-measure" style="width: 150px;"></div>
+          <div class="ruler-graphic">
+              <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+          </div>
+      </div>
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" style="width:100px; font-size:28px; text-align:center; padding:10px; border:2px solid var(--math-green); border-radius:8px;">
+        <br><br>
+        <button class="btn" onclick="checkPractice()">Check Measurement</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
+
+    <div id="p6" class="content-card">
+        <h1>🏆 Measurement Pro!</h1>
+        <p>You know how to use tools to find the length of any object. You're a math scientist!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Unit</button>
+    </div>
+  </main>
 
   <script>
-    const questions = [
-      {q: "Which tool do we use to measure weight?", a: "Scale"},
-      {q: "Which tool do we use to measure time?", a: "Clock"},
-      {q: "Which tool do we use to measure temperature?", a: "Thermometer"},
-      {q: "Which tool do we use to measure length?", a: "Ruler"}
-    ];
-    let current = 0;
+    const lessonID = "1st_grade_measurement";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    function checkAnswer(answer) {
-      let correct = questions[current].a;
-      let feedback = document.getElementById("feedback");
-      if (answer === correct) {
-        feedback.textContent = "✅ Correct! Great job!";
-        feedback.style.color = "green";
-      } else {
-        feedback.textContent = "❌ Oops! The correct answer is " + correct + ".";
-        feedback.style.color = "red";
-      }
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { window.location.href = "/auth"; }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    function nextQuestion() {
-      current = (current + 1) % questions.length;
-      document.getElementById("question").textContent = questions[current].q;
-      document.getElementById("feedback").textContent = "";
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.classList.remove('completed', 'locked');
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.getElementById(`nav-${index}`).classList.add('active');
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genMeasureQ(step);
+    }
+
+    function genMeasureQ(step) {
+      // Logic for simulated ruler measurement
+      // 1 unit = roughly 50px in this display
+      let lengthInUnits = Math.floor(Math.random() * 5) + 2; 
+      let pixelWidth = lengthInUnits * 60; // scale for the UI
+      
+      document.getElementById('obj-bar').style.width = pixelWidth + "px";
+      
+      if(step === 4) {
+          document.getElementById('q-prompt').textContent = "Is this object LONGER or SHORTER than 4 units?";
+          // Simplified for input: 1 for longer, 2 for shorter
+          currentQ = { a: (lengthInUnits > 4 ? 1 : 2) };
+          document.getElementById('feedback').textContent = "Type 1 for Longer, 2 for Shorter";
+      } else {
+          document.getElementById('q-prompt').textContent = "How many units long is the blue bar?";
+          currentQ = { a: lengthInUnits };
+          document.getElementById('feedback').textContent = "";
+      }
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great job! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
+        if(practiceCount >= 5) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => { fb.textContent = ""; genMeasureQ(currentStep); }, 800);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Try looking closer at the numbers!";
+      }
     }
   </script>
 </body>

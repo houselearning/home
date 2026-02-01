@@ -1,245 +1,207 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>🕒 Time to the Hour — Interactive Lesson</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f8ff;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 { color: #2c3e50; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px auto;
-            max-width: 600px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        canvas { background: #eef6ff; border-radius: 15px; margin: 20px 0; }
-        .digital-display {
-            font-size: 2em;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            background: #3498db;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover { background: #2980b9; }
-        .feedback { font-weight: bold; margin-top: 10px; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1st Grade Math: Telling Time</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --math-gold: #f39c12;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
+    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-gold); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #fff9f0; color: var(--math-gold); font-weight: bold; border-left: 5px solid var(--math-gold); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-gold); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    /* Interactive Clock Styles */
+    .clock-container { width: 200px; height: 200px; border: 8px solid #333; border-radius: 50%; position: relative; background: white; margin: 20px auto; }
+    .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; border-radius: 10px; background: #333; transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44); }
+    .hour-hand { width: 6px; height: 50px; background: var(--math-gold); z-index: 2; }
+    .minute-hand { width: 4px; height: 80px; z-index: 1; }
+    .center-dot { position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; }
+    .clock-number { position: absolute; width: 100%; height: 100%; text-align: center; font-weight: bold; font-size: 14px; padding: 5px; box-sizing: border-box; }
+  </style>
 </head>
 <body>
-    <h1>🕒 Time to the Hour</h1>
 
-    <div class="card">
-        <h2>Introduction</h2>
-        <p>Learning to tell time on an analog clock is important. The **hour hand** shows the hour, and the **minute hand** points to 12 for exact hours. Try moving the hour hand to match the question below!</p>
+  <nav>
+    <div class="nav-header">
+      <strong>Time Teller</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Tick Tock Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Short & Long Hands</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Exact Hours</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Digital vs Analog</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Day & Night</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Mixed Time</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Clock Champion</div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Telling Time</h1>
+        <p>The clock tells us when to eat, sleep, and go to school. Let's learn how it works!</p>
+        <div style="background: #000; height: 300px; border-radius: 12px;"></div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I'm Ready!</button>
     </div>
 
-    <div class="card">
-        <h2>Interactive Clock</h2>
-        <div class="digital-display" id="digital-time">--:--</div>
-        <canvas id="clock" width="300" height="300"></canvas>
-        <h3>How to use the clock</h3>
-        <img src="clock.gif" alt="A GIF showing how to drag the clock hand.">
-        <div>
-            <button onclick="checkTime()">Check Answer</button>
-            <button onclick="nextQuestion()">Next Question ➡️</button>
-        </div>
-        <p class="feedback" id="feedback"></p>
+    <div id="p1" class="content-card">
+      <h1>The Hands of a Clock</h1>
+      
+      <p>A clock has two main hands:</p>
+      <ul>
+        <li><b>Hour Hand:</b> Short and slow. It tells the hour.</li>
+        <li><b>Minute Hand:</b> Long and fast. At "o'clock," it points to <b>12</b>.</li>
+      </ul>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Try the Practice!</button>
     </div>
 
-<script>
-    const canvas = document.getElementById("clock");
-    const ctx = canvas.getContext("2d");
-    const radius = canvas.width / 2;
-    ctx.translate(radius, radius);
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <h2 style="text-align:center">What time is it?</h2>
+      
+      <div class="clock-container" id="clock">
+        <div class="center-dot"></div>
+        <div id="hour-hand" class="hand hour-hand"></div>
+        <div id="minute-hand" class="hand minute-hand"></div>
+      </div>
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" style="width:80px; font-size:28px; text-align:center; padding:10px; border:2px solid var(--math-gold); border-radius:8px;">
+        <span style="font-size: 28px; font-weight: bold;"> : 00</span>
+        <br><br>
+        <button class="btn" onclick="checkClock()">Check Time</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
 
-    let currentHour = 12;
-    let currentMinute = 0;
-    let questionHour = 3;
-    let questionMinute = 0;
+    <div id="p6" class="content-card">
+        <h1>🏆 Clock Champion!</h1>
+        <p>You can read any analog clock to the hour. You're never going to be late!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Save Progress</button>
+    </div>
+  </main>
 
-    const questions = [
-        { hour: 3, minute: 0 },
-        { hour: 7, minute: 30 },
-        { hour: 11, minute: 15 },
-        { hour: 9, minute: 45 },
-        { hour: 1, minute: 0 },
-        { hour: 5, minute: 5 }
-    ];
-    let currentQIndex = 0;
-
-    function drawClock(hour, minute) {
-        ctx.clearRect(-radius, -radius, canvas.width, canvas.height);
-
-        // Clock face
-        ctx.beginPath();
-        ctx.arc(0, 0, radius - 10, 0, 2 * Math.PI);
-        ctx.fillStyle = "#fff";
-        ctx.fill();
-        ctx.lineWidth = 4;
-        ctx.stroke();
-
-        // Hour marks
-        for (let i = 1; i <= 12; i++) {
-            let ang = i * Math.PI / 6;
-            ctx.rotate(ang);
-            ctx.translate(0, -radius * 0.85);
-            ctx.fillStyle = "#000";
-            ctx.font = "16px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(i.toString(), 0, 0);
-            ctx.translate(0, radius * 0.85);
-            ctx.rotate(-ang);
-        }
-
-        // Hour hand
-        let angHour = ((hour % 12) + minute / 60) * Math.PI / 6;
-        ctx.beginPath();
-        ctx.lineWidth = 8;
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.sin(angHour) * 50, -Math.cos(angHour) * 50);
-        ctx.strokeStyle = "#3498db";
-        ctx.stroke();
-
-        // Minute hand
-        let angMinute = (minute / 60) * 2 * Math.PI;
-        ctx.beginPath();
-        ctx.lineWidth = 5;
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.sin(angMinute) * 80, -Math.cos(angMinute) * 80);
-        ctx.strokeStyle = "#e74c3c";
-        ctx.stroke();
-
-        // Digital time display
-        const displayedHour = Math.floor(hour) > 12 ? Math.floor(hour) - 12 : Math.floor(hour);
-        const formattedHour = displayedHour === 0 ? 12 : displayedHour;
-        const formattedMinute = Math.round(minute).toString().padStart(2, '0');
-        document.getElementById("digital-time").textContent = `${formattedHour}:${formattedMinute}`;
-    }
-
-    drawClock(currentHour, currentMinute);
-
-    // Drag hands
-    let dragging = false;
-    let activeHand = 'none';
-
-    canvas.addEventListener('mousedown', (e) => {
-        dragging = true;
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left - radius;
-        const y = e.clientY - rect.top - radius;
-        const dist = Math.sqrt(x * x + y * y);
-
-        // Check if user clicked on the minute hand (further out)
-        if (dist > 60 && dist < 100) {
-            activeHand = 'minute';
-        }
-        // Otherwise, assume they are dragging the hour hand (closer to the center)
-        else if (dist <= 60) {
-            activeHand = 'hour';
-        } else {
-            activeHand = 'none'; // Clicked outside the hands
-        }
-    });
-
-    canvas.addEventListener('mouseup', () => { dragging = false; activeHand = 'none'; });
-
-    canvas.addEventListener('mousemove', (e) => {
-        if (dragging && activeHand !== 'none') {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left - radius;
-            const y = e.clientY - rect.top - radius;
-            let angle = Math.atan2(y, x);
-            if (angle < 0) angle += 2 * Math.PI; // Normalize angle to 0-2PI
-
-            if (activeHand === 'hour') {
-                currentHour = (angle / (Math.PI / 6));
-                if (currentHour < 0) currentHour += 12;
-                currentMinute = Math.round((currentHour % 1) * 60); // Update minutes based on hour hand position
-                currentHour = Math.floor(currentHour) === 0 ? 12 : Math.floor(currentHour);
-
-            } else if (activeHand === 'minute') {
-                currentMinute = Math.round((angle / (Math.PI / 30)));
-                if (currentMinute === 60) currentMinute = 0;
-                // Update hour based on minute hand movement (more gradual)
-                currentHour = questionHour + (currentMinute / 60);
-                if (currentHour > 12) currentHour -= 12;
-                if (currentHour < 1) currentHour += 12;
-            }
-            drawClock(currentHour, currentMinute);
-        }
-    });
-
-    // Quiz
-    function nextQuestion() {
-        currentQIndex = (currentQIndex + 1) % questions.length;
-        questionHour = questionsByLevel.easy.basicToHour()[currentQIndex].hour;
-        questionMinute = questionsByLevel.easy.basicToHour()[currentQIndex].minute;
-        currentHour = 12;
-        currentMinute = 0;
-        drawClock(currentHour, currentMinute);
-
-        const displayQuestion = `${questionHour}:${questionMinute.toString().padStart(2, '0')}`;
-        document.getElementById("feedback").textContent = `Set the clock to ${displayQuestion}`;
-        speak(`Set the clock to ${displayQuestion}`);
-    }
-
-    function checkTime() {
-        const feedback = document.getElementById("feedback");
-        const userHour = Math.round(currentHour % 12 === 0 ? 12 : currentHour % 12);
-        const userMinute = Math.round(currentMinute);
-
-        if (userHour === questionHour && userMinute === questionMinute) {
-            feedback.textContent = `✅ Correct! It's ${questionHour}:${questionMinute.toString().padStart(2, '0')}`;
-            feedback.style.color = "green";
-            speak(`Correct! It's ${questionHour} ${questionMinute === 0 ? "o'clock" : questionMinute}`);
-        } else {
-            feedback.textContent = `❌ Try again. The correct time is ${questionHour}:${questionMinute.toString().padStart(2, '0')}`;
-            feedback.style.color = "red";
-            speak(`Try again. The correct time is ${questionHour} ${questionMinute === 0 ? "o'clock" : questionMinute}`);
-        }
-    }
-
-    function speak(text) {
-        try {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(msg);
-        } catch (e) { }
-    }
-
-    // Define your question structure properly
-    const questionsByLevel = {
-        easy: {
-            basicToHour: () => [
-                { hour: 3, minute: 0 },
-                { hour: 7, minute: 0 },
-                { hour: 11, minute: 0 },
-                { hour: 9, minute: 0 },
-                { hour: 1, minute: 0 },
-                { hour: 5, minute: 0 }
-            ],
-            // Add other question levels as needed
-        }
+  <script>
+    const lessonID = "1st_grade_time_hour";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
     };
 
-    nextQuestion();
-    </script>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentHour = 12;
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { window.location.href = "/auth"; }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.classList.remove('completed', 'locked');
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.getElementById(`nav-${index}`).classList.add('active');
+      if(index >= 2 && index <= 5) setupPractice();
+    }
+
+    function setupPractice() {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      setRandomTime();
+    }
+
+    function setRandomTime() {
+      currentHour = Math.floor(Math.random() * 12) + 1;
+      const hourDegrees = (currentHour * 30); // 360 / 12 = 30
+      document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hourDegrees}deg)`;
+      document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(0deg)`;
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkClock() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentHour) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great job! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
+        if(practiceCount >= 5) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => { fb.textContent = ""; setRandomTime(); }, 800);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Check the short hand!";
+      }
+    }
+  </script>
 </body>
 </html>

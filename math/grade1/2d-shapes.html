@@ -1,171 +1,233 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>2D Shapes Lesson</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1st Grade Math: 2D Shapes</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Comic Sans MS, sans-serif;
-      background: #f0f9ff;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
+    :root {
+      --math-blue: #3498db;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    h1 {
-      color: #ff6f61;
-      font-size: 40px;
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-blue); color: white; }
+    .nav-item {
+      padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9;
+      display: flex; align-items: center; color: #555; font-size: 14px; position: relative;
     }
-    .lesson {
-      background: #fff;
-      padding: 20px;
-      border-radius: 20px;
-      display: inline-block;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 800px;
-    }
-    .shapes {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 30px;
-      margin: 20px 0;
-    }
-    .shape-card {
-      width: 150px;
-      height: 150px;
-      border-radius: 15px;
-      background: #e0f7fa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      transition: transform 0.3s;
-    }
-    .shape-card:hover {
-      transform: scale(1.1);
-    }
-    canvas {
-      margin-bottom: 10px;
-    }
-    .quiz {
-      margin-top: 30px;
-      padding: 20px;
-      background: #ffe0b2;
-      border-radius: 15px;
-    }
-    .btn {
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #4caf50;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #388e3c;
-    }
-    .feedback {
-      font-size: 20px;
-      margin-top: 15px;
-      font-weight: bold;
-    }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #eaf2f8; color: var(--math-blue); font-weight: bold; border-left: 5px solid var(--math-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    /* Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .shape-display { font-size: 80px; text-align: center; margin: 20px 0; }
+    .attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+    .attr-box { border: 2px solid #eee; padding: 15px; border-radius: 10px; text-align: center; }
   </style>
 </head>
 <body>
-  <h1>🌟 2D Shapes Adventure 🌟</h1>
-  <div class="lesson">
-    <h2>👋 Welcome!</h2>
-    <p>Today we are learning about <strong>2D Shapes</strong>. Shapes are all around us—your plate is a circle, a book is a rectangle, and a slice of pizza is a triangle! Let’s explore!</p>
 
+  <nav>
+    <div class="nav-header">
+      <strong>2D Shapes Exploration</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Shape Attributes Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Sides and Corners</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Counting Sides</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Counting Corners</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Naming Shapes</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Real World Shapes</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Shape Master Quiz</div>
+    </div>
+  </nav>
 
-    <h2>🔹 Meet the Shapes</h2>
-    <div class="shapes">
-      <div class="shape-card" onclick="playShape('Circle')">
-        <canvas id="circle" width="80" height="80"></canvas>
-        <span>Circle</span>
-      </div>
-      <div class="shape-card" onclick="playShape('Square')">
-        <canvas id="square" width="80" height="80"></canvas>
-        <span>Square</span>
-      </div>
-      <div class="shape-card" onclick="playShape('Triangle')">
-        <canvas id="triangle" width="80" height="80"></canvas>
-        <span>Triangle</span>
-      </div>
-      <div class="shape-card" onclick="playShape('Rectangle')">
-        <canvas id="rectangle" width="100" height="60"></canvas>
-        <span>Rectangle</span>
-      </div>
-      <div class="shape-card" onclick="playShape('Hexagon')">
-        <canvas id="hexagon" width="90" height="80"></canvas>
-        <span>Hexagon</span>
-      </div>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>What Makes a Shape?</h1>
+        <p>Watch to see how we group shapes by their <b>sides</b> and <b>corners</b> (vertices)!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I'm Ready to Build!</button>
     </div>
 
-    <div class="quiz">
-      <h2>📝 Shape Quiz</h2>
-      <p id="question">Which shape has 3 sides?</p>
-      <button class="btn" onclick="checkAnswer('Circle')">Circle</button>
-      <button class="btn" onclick="checkAnswer('Triangle')">Triangle</button>
-      <button class="btn" onclick="checkAnswer('Square')">Square</button>
-      <p id="feedback" class="feedback"></p>
+    <div id="p1" class="content-card">
+      <h1>Sides vs. Corners</h1>
+      <p>A <b>side</b> is a straight line. A <b>corner</b> is where two lines meet.</p>
+      
+      <div class="attr-grid">
+        <div class="attr-box"><b>Triangle</b><br>3 Sides<br>3 Corners</div>
+        <div class="attr-box"><b>Square</b><br>4 Equal Sides<br>4 Corners</div>
+        <div class="attr-box"><b>Rectangle</b><br>4 Sides (2 long, 2 short)<br>4 Corners</div>
+        <div class="attr-box"><b>Circle</b><br>0 Sides<br>0 Corners</div>
+      </div>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
     </div>
-  </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 24px; text-align: center; font-weight: bold; margin-bottom: 20px;">How many sides?</div>
+      <div id="shape-visual" class="shape-display">⬜</div>
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" style="width:100px; font-size:28px; text-align:center; padding:10px; border:2px solid var(--math-blue); border-radius:8px;">
+        <br><br>
+        <button class="btn" onclick="checkPractice()">Check Answer</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
+
+    <div id="p6" class="content-card">
+        <h1>🏆 Shape Master!</h1>
+        <p>You can identify 2D shapes like a pro! You know exactly what makes a triangle a triangle.</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Finish Unit</button>
+    </div>
+  </main>
 
   <script>
-    // Draw shapes
-    const circle = document.getElementById("circle").getContext("2d");
-    circle.beginPath();
-    circle.arc(40, 40, 35, 0, 2 * Math.PI);
-    circle.fillStyle = "lightblue";
-    circle.fill();
+    const lessonID = "1st_grade_2d_shapes";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    const square = document.getElementById("square").getContext("2d");
-    square.fillStyle = "lightgreen";
-    square.fillRect(10, 10, 60, 60);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    const triangle = document.getElementById("triangle").getContext("2d");
-    triangle.fillStyle = "pink";
-    triangle.beginPath();
-    triangle.moveTo(40, 5);
-    triangle.lineTo(75, 75);
-    triangle.lineTo(5, 75);
-    triangle.closePath();
-    triangle.fill();
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
 
-    const rectangle = document.getElementById("rectangle").getContext("2d");
-    rectangle.fillStyle = "orange";
-    rectangle.fillRect(5, 5, 90, 50);
+    const shapes = [
+        { name: "Triangle", icon: "▲", sides: 3, corners: 3 },
+        { name: "Square", icon: "⬜", sides: 4, corners: 4 },
+        { name: "Rectangle", icon: "▭", sides: 4, corners: 4 },
+        { name: "Circle", icon: "◯", sides: 0, corners: 0 },
+        { name: "Pentagon", icon: "⬠", sides: 5, corners: 5 },
+        { name: "Hexagon", icon: "⬢", sides: 6, corners: 6 }
+    ];
 
-    const hex = document.getElementById("hexagon").getContext("2d");
-    hex.fillStyle = "purple";
-    hex.beginPath();
-    let size = 35, x = 45, y = 40;
-    for (let i = 0; i < 6; i++) {
-      hex.lineTo(x + size * Math.cos(i * Math.PI / 3), y + size * Math.sin(i * Math.PI / 3));
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { window.location.href = "/auth"; }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
-    hex.closePath();
-    hex.fill();
 
-    // Audio for shapes
-    function playShape(shape) {
-      let msg = new SpeechSynthesisUtterance(shape);
-      speechSynthesis.speak(msg);
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
     }
 
-    // Quiz logic
-    function checkAnswer(answer) {
-      let feedback = document.getElementById("feedback");
-      if (answer === "Triangle") {
-        feedback.textContent = "✅ Correct! A triangle has 3 sides.";
-        feedback.style.color = "green";
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.classList.remove('completed', 'locked');
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.getElementById(`nav-${index}`).classList.add('active');
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      document.getElementById('feedback').textContent = '';
+      genQuestion(step);
+    }
+
+    function genQuestion(step) {
+      const shape = shapes[Math.floor(Math.random()*shapes.length)];
+      document.getElementById('shape-visual').textContent = shape.icon;
+      
+      if (step === 2) {
+        document.getElementById('q-prompt').textContent = `How many SIDES does a ${shape.name} have?`;
+        currentQ = { a: shape.sides };
+      } else if (step === 3) {
+        document.getElementById('q-prompt').textContent = `How many CORNERS does a ${shape.name} have?`;
+        currentQ = { a: shape.corners };
+      } else if (step === 4) {
+          // This would ideally be a multiple choice, but for simplicity we'll ask for side count again 
+          // to reinforce naming.
+          document.getElementById('q-prompt').textContent = `A ${shape.name} has how many sides?`;
+          currentQ = { a: shape.sides };
       } else {
-        feedback.textContent = "❌ Oops! Try again.";
-        feedback.style.color = "red";
+          // Mixed review
+          const askSides = Math.random() > 0.5;
+          document.getElementById('q-prompt').textContent = askSides ? `Sides in a ${shape.name}?` : `Corners in a ${shape.name}?`;
+          currentQ = { a: askSides ? shape.sides : shape.corners };
+      }
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great job! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
+        if(practiceCount >= 5) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => { fb.textContent = ""; genQuestion(currentStep); }, 800);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Try counting again!";
       }
     }
   </script>
