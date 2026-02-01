@@ -1,8 +1,8 @@
-# HouseLearning Home 
+# HouseLearning Lessons Page
 
-Welcome to **HouseLearning Home** — a fun and interactive learning game website designed to make education engaging through browser-based mini-games and activities. The platform offers a collection of educational games that help users practice and reinforce their skills while having fun.
+Welcome to **HouseLearning Lessons Page** — a fun and interactive learning website designed to make education engaging through browser-based mini-games and activities. The platform offers a collection of educational games that help users practice and reinforce their skills while having fun.
 
-## 🎮 Features
+## Features
 
 - 🌟 **Interactive educational games**  
   Engaging activities that respond to player input in real time.
