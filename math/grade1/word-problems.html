@@ -1,133 +1,230 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Word Problems Basics</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1st Grade Math: Word Problem Stories</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Comic Sans MS, sans-serif;
-      background: linear-gradient(to bottom right, #ffe9a9, #fff5d7);
-      text-align: center;
-      padding: 20px;
-      color: #333;
+    :root {
+      --math-teal: #1abc9c;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    h1 {
-      color: #ff6600;
-      font-size: 40px;
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-teal); color: white; }
+    .nav-item {
+      padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9;
+      display: flex; align-items: center; color: #555; font-size: 14px; position: relative;
     }
-    .lesson-box {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      padding: 20px;
-      margin: 20px auto;
-      width: 80%;
-    }
-    .btn {
-      background: #ff6600;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 20px;
-      margin: 10px;
-      font-size: 18px;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #e55a00;
-    }
-    .problem {
-      font-size: 22px;
-      margin: 15px 0;
-    }
-    input {
-      padding: 8px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: 2px solid #ff6600;
-      text-align: center;
-    }
-    #feedback {
-      font-size: 20px;
-      margin-top: 10px;
-      font-weight: bold;
-    }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #e8f8f5; color: var(--math-teal); font-weight: bold; border-left: 5px solid var(--math-teal); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    /* Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-teal); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .story-box { background: #fdfdfd; border: 2px solid #eee; padding: 25px; border-radius: 15px; font-size: 24px; line-height: 1.5; color: #444; margin-bottom: 20px; }
+    .math-input-row { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 32px; font-weight: bold; }
+    input { width: 80px; font-size: 28px; text-align: center; padding: 10px; border: 2px solid var(--math-teal); border-radius: 8px; }
   </style>
 </head>
 <body>
 
-  <h1>📖 Word Problems Basics</h1>
+  <nav>
+    <div class="nav-header">
+      <strong>Story Problems (1-20)</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Clue Words Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 The "CUBES" Method</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Addition Stories</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Subtraction Stories</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: All Together</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Missing Parts</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Word Problem Master</div>
+    </div>
+  </nav>
 
-  <div class="lesson-box" id="intro">
-    <h2>Introduction</h2>
-    <p>Word problems are math problems told as a <b>story</b>!  
-    We read the story, figure out what math is needed, and solve it.  
-    Key steps:</p>
-    <ol style="text-align:left; display:inline-block; font-size:20px;">
-      <li>👀 Read the problem carefully.</li>
-      <li>🔍 Look for important numbers.</li>
-      <li>➕➖ Decide if you should add or subtract.</li>
-      <li>✏️ Write the math sentence.</li>
-      <li>✅ Solve it!</li>
-    </ol>
-    <button class="btn" onclick="startLesson()">Start Practice</button>
-  </div>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Clue Words</h1>
+        <p>Listen for special words! <b>"Total"</b> usually means add. <b>"Left"</b> usually means subtract.</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I Know My Clue Words!</button>
+    </div>
 
-  <div class="lesson-box" id="practice" style="display:none;">
-    <h2>Practice Problems</h2>
-    <p class="problem" id="problemText"></p>
-    <input type="number" id="answerBox" placeholder="Your answer">
-    <br>
-    <button class="btn" onclick="checkAnswer()">Check Answer</button>
-    <p id="feedback"></p>
-    <button class="btn" onclick="nextProblem()">Next Problem</button>
-  </div>
+    <div id="p1" class="content-card">
+      <h1>How to Solve Stories</h1>
+      <p>Use the <b>CUBES</b> strategy to be a math detective!</p>
+      
+      <ul style="font-size: 18px; line-height: 2;">
+        <li><b>C</b> - Circle the numbers.</li>
+        <li><b>U</b> - Underline the question.</li>
+        <li><b>B</b> - Box clue words (like "more" or "less").</li>
+        <li><b>E</b> - Eliminate extra info.</li>
+        <li><b>S</b> - Solve and check!</li>
+      </ul>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Solving!</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="story-display" class="story-box">Loading story...</div>
+      
+      <div class="math-input-row">
+        <input type="number" id="q-input" placeholder="?">
+        <span>Answer</span>
+      </div>
+      
+      <div style="text-align:center; margin-top:30px;">
+        <button class="btn" onclick="checkPractice()">Check Story Answer</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold;"></div>
+    </div>
+
+    <div id="p6" class="content-card">
+        <h1>🏆 Word Problem Master</h1>
+        <p>You can turn any story into a math equation! You are ready for 2nd grade challenges.</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Unit</button>
+    </div>
+  </main>
 
   <script>
-    const problems = [
-      { text: "Sarah has 5 apples. She buys 3 more. How many apples does she have now?", answer: 8 },
-      { text: "Tom had 10 balloons. 4 flew away. How many balloons are left?", answer: 6 },
-      { text: "A basket has 7 oranges. Anna adds 2 more. How many oranges in total?", answer: 9 },
-      { text: "Jake had 12 candies. He ate 5. How many candies does he have now?", answer: 7 },
-      { text: "Lisa has 6 toy cars. Her friend gives her 4 more. How many toy cars does she have?", answer: 10 }
-    ];
-    let currentIndex = 0;
+    const lessonID = "1st_grade_word_problems";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    function startLesson() {
-      document.getElementById("intro").style.display = "none";
-      document.getElementById("practice").style.display = "block";
-      showProblem();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { window.location.href = "/auth"; }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    function showProblem() {
-      document.getElementById("problemText").textContent = problems[currentIndex].text;
-      document.getElementById("answerBox").value = "";
-      document.getElementById("feedback").textContent = "";
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
     }
 
-    function checkAnswer() {
-      const userAnswer = parseInt(document.getElementById("answerBox").value);
-      const correct = problems[currentIndex].answer;
-      if (userAnswer === correct) {
-        document.getElementById("feedback").textContent = "🎉 Correct! Great job!";
-        document.getElementById("feedback").style.color = "green";
-      } else {
-        document.getElementById("feedback").textContent = "❌ Not quite. Try again!";
-        document.getElementById("feedback").style.color = "red";
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.classList.remove('completed', 'locked');
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
       }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    function nextProblem() {
-      currentIndex++;
-      if (currentIndex >= problems.length) {
-        document.getElementById("problemText").textContent = "🏆 You finished all the word problems!";
-        document.getElementById("answerBox").style.display = "none";
-        document.getElementById("feedback").textContent = "Amazing work!";
-      } else {
-        showProblem();
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.getElementById(`nav-${index}`).classList.add('active');
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genStory(step);
+    }
+
+    function genStory(step) {
+      const names = ["Sam", "Mia", "Leo", "Ava"];
+      const items = ["apples", "stickers", "toy cars", "cupcakes"];
+      let name = names[Math.floor(Math.random()*names.length)];
+      let item = items[Math.floor(Math.random()*items.length)];
+      let a = Math.floor(Math.random() * 8) + 5;
+      let b = Math.floor(Math.random() * 5) + 2;
+      
+      let story = "";
+      let answer = 0;
+
+      if (step === 2) { // Add
+        story = `${name} has ${a} ${item}. They get ${b} more. How many ${item} do they have in all?`;
+        answer = a + b;
+      } else if (step === 3) { // Sub
+        story = `${name} has ${a} ${item}. They give ${b} to a friend. How many ${item} are left?`;
+        answer = a - b;
+      } else { // Mixed or Comparison
+        if(Math.random() > 0.5) {
+            story = `${name} saw ${a} birds. ${b} flew away. How many birds are still there?`;
+            answer = a - b;
+        } else {
+            story = `${name} found ${a} shells. ${b} more shells were in the sand. How many total?`;
+            answer = a + b;
+        }
+      }
+
+      currentQ = { a: answer };
+      document.getElementById('story-display').textContent = story;
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      if(val === currentQ.a) {
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else genStory(currentStep);
       }
     }
   </script>
-
 </body>
 </html>

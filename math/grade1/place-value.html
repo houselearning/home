@@ -1,118 +1,200 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Place Value (Tens & Ones)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Place Value: Tens & Ones</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Comic Sans MS, sans-serif;
-      background: #fff9e6;
-      text-align: center;
-      padding: 20px;
+    :root {
+      --pv-orange: #f39c12;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #008a00;
     }
-    h1 {
-      color: #ff6600;
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--pv-orange); color: white; }
+    .nav-item {
+      padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9;
+      display: flex; align-items: center; color: #555; font-size: 14px; position: relative;
     }
-    .example, .practice {
-      background: #ffe0b3;
-      margin: 15px auto;
-      padding: 20px;
-      width: 60%;
-      border-radius: 12px;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
-    }
-    .number-box {
-      font-size: 2em;
-      margin: 10px;
-      display: inline-block;
-      background: #fff;
-      border: 2px solid #333;
-      border-radius: 8px;
-      padding: 10px 20px;
-    }
-    .btn {
-      padding: 10px 15px;
-      font-size: 1em;
-      margin-top: 10px;
-      cursor: pointer;
-      background: #ff6600;
-      border: none;
-      border-radius: 8px;
-      color: white;
-    }
-    .btn:hover {
-      background: #e55a00;
-    }
-    .correct {
-      color: green;
-      font-weight: bold;
-    }
-    .wrong {
-      color: red;
-      font-weight: bold;
-    }
+    .nav-item.active { background: #fff5e6; color: var(--pv-orange); font-weight: bold; border-left: 5px solid var(--pv-orange); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    /* Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    /* Place Value Visuals */
+    .pv-visual-container { display: flex; gap: 20px; justify-content: center; margin: 30px 0; }
+    .digit-box { font-size: 48px; font-weight: bold; width: 80px; height: 100px; border: 3px solid var(--pv-orange); border-radius: 10px; display: flex; align-items: center; justify-content: center; background: white; }
+    .digit-label { font-size: 12px; font-weight: bold; color: #666; text-align: center; margin-top: 8px; }
+
+    .btn { background: var(--pv-orange); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
   </style>
 </head>
 <body>
-  <h1>🎯 Place Value: Tens & Ones</h1>
-  <p>Numbers are made of <b>Tens</b> and <b>Ones</b>. Let's learn how to break them apart!</p>
 
-  <div class="example">
-    <h2>Example</h2>
-    <p>The number <span class="number-box">47</span> has:</p>
-    <p><b>4 Tens</b> (40) and <b>7 Ones</b> (7)</p>
-    <p>👉 40 + 7 = 47</p>
-    <button class="btn" onclick="playExample()">🔊 Hear Example</button>
-  </div>
+  <nav>
+    <div class="nav-header">
+      <strong>Unit: Place Value</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading progress...</div>
+    </div>
+    <div id="nav-list">
+      <div class="nav-item active" onclick="showPage(0)">1. 🎥 Tens & Ones Video</div>
+      <div class="nav-item" onclick="showPage(1)">2. 📝 Chart Basics</div>
+      <div class="nav-item" onclick="showPage(2)">3. ⭐️ Practice: Counting Tens</div>
+      <div class="nav-item" onclick="showPage(3)">4. ⭐️ Practice: Building</div>
+      <div class="nav-item" onclick="showPage(4)">5. ⭐️ Practice: Expanded</div>
+      <div class="nav-item" onclick="showPage(5)">6. ⭐️ Practice: Mystery</div>
+      <div class="nav-item" onclick="showPage(6)">7. 🏆 Mastery Quiz</div>
+    </div>
+  </nav>
 
-  <div class="practice">
-    <h2>Practice Time</h2>
-    <p id="practice-question">What are the Tens and Ones in <span class="number-box" id="num">36</span>?</p>
-    <label>Tens: <input type="number" id="tens" min="0"></label>
-    <br><br>
-    <label>Ones: <input type="number" id="ones" min="0"></label>
-    <br><br>
-    <button class="btn" onclick="checkAnswer()">Check Answer ✅</button>
-    <p id="feedback"></p>
-  </div>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Lesson Video</h1>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Finished Video</button>
+    </div>
+
+    <div id="p1" class="content-card">
+      <h1>The Place Value Chart</h1>
+      
+      <div class="pv-visual-container">
+        <div><div class="digit-box">5</div><div class="digit-label">TENS</div></div>
+        <div><div class="digit-box">3</div><div class="digit-label">ONES</div></div>
+      </div>
+      <p style="text-align:center">This number is <b>53</b>.</p>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:20px;">
+        <div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div>
+      </div>
+      <h2 id="practice-title">Practice</h2>
+      <div style="font-size:28px; text-align:center; margin:30px 0;" id="q-text">...</div>
+      <div style="text-align:center">
+        <input type="number" id="q-input" style="font-size:24px; width:120px; text-align:center; padding:10px;">
+        <button class="btn" onclick="checkPractice()">Check</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:20px; font-weight:bold;"></div>
+    </div>
+
+    <div id="p6" class="content-card">
+        <h1>🏆 Unit Mastery</h1>
+        <p>Great job! You finished the Place Value unit.</p>
+        <button class="btn" onclick="saveStepProgress(6, 6)">Save & Exit</button>
+    </div>
+  </main>
 
   <script>
-    let numbers = [12, 25, 47, 63, 89, 54, 71, 99];
-    let currentNum = 36;
+    const lessonID = "1st_grade_place_value";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    function playExample() {
-      let msg = new SpeechSynthesisUtterance("The number forty-seven has four tens and seven ones. Forty plus seven equals forty-seven.");
-      window.speechSynthesis.speak(msg);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    function newQuestion() {
-      currentNum = numbers[Math.floor(Math.random() * numbers.length)];
-      document.getElementById("num").innerText = currentNum;
-      document.getElementById("tens").value = "";
-      document.getElementById("ones").value = "";
-      document.getElementById("feedback").innerText = "";
-    }
+    let currentUser = null;
+    let stepsCompleted = {};
+    let practiceCount = 0;
+    let currentQ = {};
 
-    function checkAnswer() {
-      let tens = parseInt(document.getElementById("tens").value);
-      let ones = parseInt(document.getElementById("ones").value);
-      let actualTens = Math.floor(currentNum / 10);
-      let actualOnes = currentNum % 10;
-      
-      if (tens === actualTens && ones === actualOnes) {
-        document.getElementById("feedback").innerHTML = "<span class='correct'>✅ Correct! " + currentNum + " = " + tens*10 + " + " + ones + "</span>";
-        let msg = new SpeechSynthesisUtterance("Great job! " + currentNum + " is " + tens + " tens and " + ones + " ones.");
-        window.speechSynthesis.speak(msg);
-        setTimeout(newQuestion, 2500);
+    // SIMPLE AUTH REDIRECT
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        syncProgress();
       } else {
-        document.getElementById("feedback").innerHTML = "<span class='wrong'>❌ Try again!</span>";
-        let msg = new SpeechSynthesisUtterance("Oops! That's not correct. Try again.");
-        window.speechSynthesis.speak(msg);
+        // Redirect to /auth if not logged in
+        window.location.href = "/auth";
+      }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      const items = document.querySelectorAll('.nav-item');
+      let count = 0;
+      for(let i=0; i<7; i++) {
+        if(stepsCompleted[`step_${i}`]) { items[i].classList.add('completed'); count++; }
+      }
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((count/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.nav-item')[index].classList.add('active');
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genQ(step);
+    }
+
+    function genQ(step) {
+      let n = Math.floor(Math.random() * 80) + 11;
+      let t = Math.floor(n/10);
+      let o = n%10;
+      if(step === 2) currentQ = { q: `How many TENS are in ${t*10}?`, a: t };
+      else if(step === 3) currentQ = { q: `What number is ${t} tens and ${o} ones?`, a: n };
+      else if(step === 4) currentQ = { q: `What is ${t*10} + ${o}?`, a: n };
+      else currentQ = { q: `In ${n}, which digit is in the ONES place?`, a: o };
+      
+      document.getElementById('q-text').textContent = currentQ.q;
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      if(val === currentQ.a) {
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
+        if(practiceCount >= 5) saveStepProgress(currentStep, currentStep + 1);
+        else genQ(currentStep);
       }
     }
-
-    // start with first question
-    newQuestion();
   </script>
 </body>
 </html>

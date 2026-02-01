@@ -3,123 +3,261 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Counting to 100 - Kindergarten Lesson</title>
+  <title>1st Grade Math: Numbers to 100</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin:0; font-family: 'Segoe UI', Tahoma, sans-serif;
-      background:#f9f9f9; color:#333;
-      min-height:100vh; display:flex; flex-direction:column;
+    :root {
+      --khan-green: #0085a1;
+      --1st-blue: #1865f2;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #008a00;
     }
-    body.dark-mode { background:#0f1113; color:#eaeaea; }
 
-    main { flex:1; padding:20px; }
-    .section {
-      background:white; padding:18px; border-radius:10px;
-      box-shadow:0 6px 18px rgb(2 8 23 / 6%);
-    }
-    body.dark-mode .section { background:#1e1e1e; }
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
 
-    h1 { font-size:28px; color:#0288d1; margin-bottom:14px; }
-    h2 { font-size:22px; margin:16px 0 8px; border-bottom:2px solid #61dafb; }
-    body.dark-mode h1, body.dark-mode h2 { color:#61dafb; }
+    /* Sidebar */
+    nav { width: 320px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--1st-blue); color: white; }
+    .nav-item {
+      padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9;
+      display: flex; align-items: center; color: #555; font-size: 14px; position: relative;
+    }
+    .nav-item.active { background: #e8f0fe; color: var(--1st-blue); font-weight: bold; border-left: 5px solid var(--1st-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
 
-    .count-grid {
-      display:grid; grid-template-columns: repeat(10, 1fr);
-      gap:6px; margin:20px 0;
-    }
-    .count-grid div {
-      background:#0288d1; color:white; font-weight:bold;
-      padding:12px; border-radius:8px;
-      text-align:center; font-size:18px;
-      transition: transform 0.12s, background 0.2s;
-      cursor:pointer;
-    }
-    .count-grid div:hover { transform: scale(1.1); background:#01579b; }
+    /* Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; }
+    .content-card.active { display: block; }
+    
+    /* Place Value UI */
+    .place-value-box { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
+    .pv-col { border: 2px solid #ddd; padding: 15px; border-radius: 8px; text-align: center; width: 90px; }
+    .pv-label { font-size: 12px; font-weight: bold; color: #777; margin-bottom: 5px; }
+    .pv-num { font-size: 32px; font-weight: bold; color: var(--1st-blue); }
 
-    .game-area {
-      margin-top:20px; padding:16px;
-      background:#fff3cd; border-radius:10px; border:1px solid #ffeeba;
-      text-align:center;
-    }
-    .game-area button {
-      background:#0288d1; color:white; font-weight:600;
-      padding:10px 16px; border:none; border-radius:8px;
-      margin-top:12px; cursor:pointer;
-      transition: background 0.2s;
-    }
-    .game-area button:hover { background:#01579b; }
-    .question { font-size:20px; margin:10px 0; }
-
-    body.dark-mode .count-grid div { background:#262626; color:#9be7ff; }
-    body.dark-mode .game-area { background:#332f17; border-color:#5f4c1f; color:#f9f9f9; }
-    body.dark-mode .game-area button { background:#61dafb; color:#0f1113; }
+    .btn { background: var(--1st-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:hover { background: #1452c1; }
+    
+    .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 20px 0; }
+    .grid div { border: 1px solid #eee; padding: 8px 0; text-align: center; font-size: 12px; border-radius: 4px; }
+    .highlight { background: #fff9c4; font-weight: bold; border-color: #fbc02d; }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
   </style>
 </head>
 <body>
+
+  <div id="auth-overlay" style="position:fixed; inset:0; background:white; z-index:1000; display:flex; align-items:center; justify-content:center;">
+    <div style="text-align:center; padding:40px; border:1px solid #ddd; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+      <h2 style="color:var(--1st-blue)">1st Grade Math</h2>
+      <p>Log in to save your progress</p>
+      <input type="email" id="email" placeholder="Email" style="padding:10px; margin-bottom:10px; width:220px;"><br>
+      <input type="password" id="password" placeholder="Password" style="padding:10px; margin-bottom:20px; width:220px;"><br>
+      <button class="btn" onclick="handleAuth()">Login / Sign Up</button>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-header">
+      <strong>1st Grade: Numbers to 100</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Progress: 0%</div>
+    </div>
+    <div id="nav-list">
+      <div class="nav-item active" onclick="showPage(0)">1. 🎥 Lesson Video</div>
+      <div class="nav-item" onclick="showPage(1)">2. 📝 The 100 Grid</div>
+      <div class="nav-item" onclick="showPage(2)">3. ⭐️ Mental Math (+10/-10)</div>
+      <div class="nav-item" onclick="showPage(3)">4. ⭐️ Building Tens & Ones</div>
+      <div class="nav-item" onclick="showPage(4)">5. ⭐️ Comparing 1-100</div>
+      <div class="nav-item" onclick="showPage(5)">6. ⭐️ Number Patterns</div>
+      <div class="nav-item" onclick="showPage(6)">7. 🏆 Unit Mastery Quiz</div>
+    </div>
+  </nav>
+
   <main>
-    <section class="section">
-      <h1>👶 Counting to 100</h1>
-      <p>Click each number to hear it out loud. Then try the practice game below!</p>
+    <div id="p0" class="content-card active">
+        <h1>Lesson Video</h1>
+        <p>Watch this video to learn about tens and ones!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I've Finished the Video</button>
+    </div>
 
-      <h2>🔢 Number Grid</h2>
-      <div class="count-grid" id="grid"></div>
+    <div id="p1" class="content-card">
+      <h1>The 100 Chart</h1>
+      <p>Look at the pattern! Every row adds another <b>Ten</b>.</p>
+      
 
-      <h2>🎲 Practice Game</h2>
-      <div class="game-area">
-        <p class="question" id="question">Press “New Question” to start!</p>
-        <input type="number" id="answer" placeholder="Type number…" />
-        <br />
-        <button onclick="newQuestion()">New Question</button>
-        <button onclick="checkAnswer()">Check Answer</button>
-        <p id="feedback"></p>
+[Image of a 100 chart for kids]
+
+      <div class="grid" id="cheat-grid"></div>
+      <button class="btn" onclick="saveStepProgress(1, 2)">I'm Ready to Practice!</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:10px; background:#eee; border-radius:5px; margin-bottom:25px;">
+        <div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s; border-radius:5px;"></div>
       </div>
-    </section>
+      <h2 id="practice-title">Practice</h2>
+      
+      <div id="pv-container" class="place-value-box" style="display:none;">
+          <div class="pv-col"><div class="pv-label">TENS</div><div class="pv-num" id="pv-tens">0</div></div>
+          <div class="pv-col"><div class="pv-label">ONES</div><div class="pv-num" id="pv-ones">0</div></div>
+      </div>
+
+      <div style="font-size:32px; text-align:center; margin:40px 0; font-weight:bold; color:#333;" id="q-text">...</div>
+      
+      <div style="text-align:center">
+        <input type="number" id="q-input" style="font-size:28px; width:140px; text-align:center; padding:15px; border:2px solid #ddd; border-radius:10px;">
+        <br><br>
+        <button class="btn" onclick="checkPractice()">Check My Answer</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:20px; font-size:18px; font-weight:bold;"></div>
+    </div>
+
+    <div id="p6" class="content-card">
+        <h1 style="text-align:center;">🏆 Unit Mastery 🏆</h1>
+        <p style="text-align:center;">You are a 1st Grade Number Champion!</p>
+        <div style="text-align:center; font-size:80px;">🌟</div>
+        <br><button class="btn" style="width:100%" onclick="saveStepProgress(6, 6)">Finish & Save Progress</button>
+    </div>
   </main>
 
   <script>
-    // Build 1–100 grid with speech
-    const grid = document.getElementById("grid");
-    for(let i=1; i<=100; i++){
-      const cell = document.createElement("div");
-      cell.textContent = i;
-      cell.addEventListener("click", ()=> {
-        cell.style.background = "#4caf50";
-        cell.style.color = "white";
-        speakNumber(i);
-      });
-      grid.appendChild(cell);
-    }
+    const lessonID = "1st_grade_100";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a",
+      measurementId: "G-S2RJ0C6BWH"
+    };
 
-    // Use Web Speech API for numbers
-    function speakNumber(num){
-      const msg = new SpeechSynthesisUtterance(num.toString());
-      msg.lang = "en-US";
-      window.speechSynthesis.speak(msg);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // Quiz game
-    let currentQ = 0;
-    const correctSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-    const wrongSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
 
-    function newQuestion(){
-      currentQ = Math.floor(Math.random()*100)+1;
-      document.getElementById("question").textContent =
-        "👉 What number comes after " + (currentQ-1) + "?";
-      document.getElementById("feedback").textContent = "";
-      document.getElementById("answer").value = "";
-    }
-    function checkAnswer(){
-      const ans = parseInt(document.getElementById("answer").value);
-      const feedback = document.getElementById("feedback");
-      if(ans === currentQ){
-        feedback.textContent = "✅ Correct! Great job!";
-        correctSound.play();
-      } else {
-        feedback.textContent = "❌ Oops! Try again.";
-        wrongSound.play();
+    async function handleAuth() {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+      } catch(e) { 
+        try { await auth.createUserWithEmailAndPassword(email, pass); } 
+        catch(err) { alert(err.message); }
       }
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-overlay').style.display = 'none';
+        syncProgress();
+      }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      const items = document.querySelectorAll('.nav-item');
+      let count = 0;
+      for(let i=0; i<7; i++) {
+        if(stepsCompleted[`step_${i}`]) { items[i].classList.add('completed'); count++; }
+      }
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((count/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.nav-item')[index].classList.add('active');
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      document.getElementById('feedback').textContent = '';
+      genQ(step);
+    }
+
+    function genQ(step) {
+      const pv = document.getElementById('pv-container');
+      pv.style.display = "none";
+      let n = Math.floor(Math.random() * 80) + 10;
+
+      if(step === 2) { 
+        const isAdd = Math.random() > 0.5;
+        currentQ = isAdd ? { q: `What is 10 more than ${n}?`, a: n+10 } : { q: `What is 10 less than ${n}?`, a: n-10 };
+      } else if (step === 3) {
+        pv.style.display = "flex";
+        const t = Math.floor(n/10); const o = n%10;
+        document.getElementById('pv-tens').textContent = t;
+        document.getElementById('pv-ones').textContent = o;
+        currentQ = { q: `Look at the blocks! What number is it?`, a: n };
+      } else if (step === 4) {
+        let n2 = n + (Math.random() > 0.5 ? 2 : -2);
+        currentQ = { q: `Is ${n} GREATER than ${n2}? (1=Yes, 0=No)`, a: n > n2 ? 1 : 0 };
+      } else {
+        currentQ = { q: `Fill in: ${n-1}, ${n}, ___, ${n+2}`, a: n+1 };
+      }
+      document.getElementById('q-text').textContent = currentQ.q;
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great job!";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/6 * 100) + '%';
+        if(practiceCount >= 6) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout( () => genQ(currentStep), 800);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Keep trying!";
+      }
+    }
+
+    const grid = document.getElementById('cheat-grid');
+    for(let i=1; i<=100; i++) {
+      const d = document.createElement('div');
+      d.textContent = i;
+      if(i%10===0) d.className = "highlight";
+      grid.appendChild(d);
     }
   </script>
 </body>

@@ -1,193 +1,212 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Subtract Within 20 Lesson</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1st Grade Math: Subtract within 20</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background: #fef6e4;
-      margin: 0;
-      padding: 0;
-      color: #333;
+    :root {
+      --math-red: #e74c3c;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    header {
-      background: #ffb703;
-      color: #fff;
-      text-align: center;
-      padding: 20px;
-      font-size: 2em;
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-red); color: white; }
+    
+    .nav-item {
+      padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9;
+      display: flex; align-items: center; color: #555; font-size: 14px; position: relative;
+      transition: 0.2s;
     }
-    main {
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
-    section {
-      background: #fff;
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    h2 {
-      color: #fb8500;
-    }
-    .example, .practice {
-      font-size: 1.2em;
-      margin: 10px 0;
-    }
-    .blocks {
-      display: flex;
-      gap: 5px;
-      margin: 10px 0;
-      flex-wrap: wrap;
-    }
-    .block {
-      width: 40px;
-      height: 40px;
-      background: #8ecae6;
-      border-radius: 5px;
-    }
-    .number-line {
-      margin: 20px 0;
-      position: relative;
-      height: 60px;
-    }
-    .line {
-      position: absolute;
-      top: 30px;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: #219ebc;
-    }
-    .tick {
-      position: absolute;
-      top: 20px;
-      width: 2px;
-      height: 15px;
-      background: #333;
-      text-align: center;
-    }
-    .tick span {
-      position: absolute;
-      top: 20px;
-      font-size: 12px;
-      transform: translateX(-50%);
-    }
-    input {
-      padding: 5px;
-      font-size: 1em;
-      border-radius: 5px;
-      border: 2px solid #ccc;
-    }
-    button {
-      background: #ffb703;
-      border: none;
-      padding: 10px 15px;
-      font-size: 1em;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #fb8500;
-      color: white;
-    }
-    #feedback {
-      font-weight: bold;
-      margin-top: 10px;
-    }
+    
+    /* State Styling */
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; font-size: 12px; }
+    .nav-item.active { background: #fdf2f2; color: var(--math-red); font-weight: bold; border-left: 5px solid var(--math-red); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    /* Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-red); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:hover:not(:disabled) { background: #c0392b; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .math-eqn { font-size: 48px; font-weight: bold; color: #333; margin: 30px 0; display: flex; align-items: center; gap: 15px; justify-content: center; }
   </style>
 </head>
 <body>
-  <header>Subtract Within 20 ✨</header>
+
+  <nav>
+    <div class="nav-header">
+      <strong>Subtraction within 20</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Checking Progress...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Take Away Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Think Addition</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Back 1,2,3</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: -0 and -All</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Doubles</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Mixed</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Mastery Quiz</div>
+    </div>
+  </nav>
+
   <main>
-    <section>
-      <h2>👋 Introduction</h2>
-      <p>Subtraction means taking away. When we subtract, the number gets smaller. Today, we’ll learn how to subtract numbers within 20 using blocks and number lines!</p>
-    </section>
+    <div id="p0" class="content-card active">
+        <h1>Subtraction Video</h1>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Finish Video</button>
+    </div>
 
-    <section>
-      <h2>🧩 How To Do It</h2>
-      <p><b>Example: 14 - 5</b></p>
-      <div class="example">Step 1: Start with 14 blocks.</div>
-      <div class="blocks" id="start-blocks"></div>
-      <div class="example">Step 2: Take away 5 blocks.</div>
-      <div class="blocks" id="takeaway-blocks"></div>
-      <div class="example">Step 3: Count how many are left = 9 ✅</div>
-      <div class="number-line" id="number-line">
-        <div class="line"></div>
+    <div id="p1" class="content-card">
+      <h1>Think Addition!</h1>
+      <p>Solve subtraction by asking "What number plus this equals the total?"</p>
+      
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%;"></div></div>
+      <h2 id="practice-title" style="text-align: center;">Practice</h2>
+      <div class="math-eqn">
+        <span id="num1">0</span> <span>−</span> <span id="num2">0</span> <span>=</span>
+        <input type="number" id="q-input" style="font-size:32px; width:100px; text-align:center;">
       </div>
-    </section>
+      <div style="text-align:center"><button class="btn" onclick="checkPractice()">Check</button></div>
+    </div>
 
-    <section>
-      <h2>🎮 Practice Time</h2>
-      <p class="practice">Solve: <b id="problem">12 - 7 = ?</b></p>
-      <input type="number" id="answer" placeholder="Your answer">
-      <button onclick="checkAnswer()">Check Answer</button>
-      <div id="feedback"></div>
-    </section>
+    <div id="p6" class="content-card">
+        <h1>🏆 Unit Mastery</h1>
+        <p>You have unlocked the final certificate!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Unit</button>
+    </div>
   </main>
 
   <script>
-    // Fill in example blocks
-    function createBlocks(containerId, count) {
-      let container = document.getElementById(containerId);
-      for (let i = 0; i < count; i++) {
-        let block = document.createElement("div");
-        block.className = "block";
-        container.appendChild(block);
+    const lessonID = "1st_grade_sub_20";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {}; 
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { window.location.href = "/auth"; }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+
+        // UI state
+        item.classList.remove('completed', 'locked');
+        if (isDone) {
+          item.classList.add('completed');
+          completedCount++;
+        }
+        if (!isPrevDone) {
+          item.classList.add('locked');
+        }
       }
-    }
-    createBlocks("start-blocks", 14);
-    createBlocks("takeaway-blocks", 5);
 
-    // Number line
-    let numberLine = document.getElementById("number-line");
-    for (let i = 0; i <= 20; i++) {
-      let tick = document.createElement("div");
-      tick.className = "tick";
-      tick.style.left = (i * 5) + "%";
-      tick.innerHTML = `<span>${i}</span>`;
-      numberLine.appendChild(tick);
+      // Mastery Button Safety
+      const allPrevDone = stepsCompleted.step_0 && stepsCompleted.step_1 && stepsCompleted.step_2 && stepsCompleted.step_3 && stepsCompleted.step_4 && stepsCompleted.step_5;
+      document.getElementById('mastery-btn').disabled = !allPrevDone;
+
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    // Practice problems
-    let problems = [
-      { q: "12 - 7", a: 5 },
-      { q: "15 - 9", a: 6 },
-      { q: "18 - 4", a: 14 },
-      { q: "20 - 13", a: 7 },
-      { q: "9 - 3", a: 6 }
-    ];
-    let current = 0;
-
-    function checkAnswer() {
-      let userAnswer = parseInt(document.getElementById("answer").value);
-      let feedback = document.getElementById("feedback");
-      if (userAnswer === problems[current].a) {
-        feedback.innerHTML = "✅ Correct! Great job!";
-        feedback.style.color = "green";
-        setTimeout(() => {
-          nextProblem();
-        }, 1500);
-      } else {
-        feedback.innerHTML = "❌ Try again!";
-        feedback.style.color = "red";
+    function showPage(index) {
+      // Check if locked
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) {
+        alert("Finish the previous lesson first! 🔒");
+        return;
       }
+
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      document.getElementById(`nav-${index}`).classList.add('active');
+      
+      if(index >= 2 && index <= 5) setupPractice(index);
     }
 
-    function nextProblem() {
-      current++;
-      if (current < problems.length) {
-        document.getElementById("problem").innerText = problems[current].q + " = ?";
-        document.getElementById("answer").value = "";
-        document.getElementById("feedback").innerText = "";
-      } else {
-        document.getElementById("problem").innerText = "🎉 You finished all the problems!";
-        document.getElementById("answer").style.display = "none";
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genQ(step);
+    }
+
+    function genQ(step) {
+      let a = Math.floor(Math.random() * 10) + 10;
+      let b = Math.floor(Math.random() * 9);
+      currentQ = { n1: a, n2: b, a: a - b };
+      document.getElementById('num1').textContent = a;
+      document.getElementById('num2').textContent = b;
+      document.getElementById('q-input').value = '';
+    }
+
+    function checkPractice() {
+      if(parseInt(document.getElementById('q-input').value) === currentQ.a) {
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/6 * 100) + '%';
+        if(practiceCount >= 6) saveStepProgress(currentStep, currentStep + 1);
+        else genQ(currentStep);
       }
     }
   </script>
