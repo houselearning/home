@@ -2275,8 +2275,16 @@ outputCanvas.appendChild(playButton);`
         consoleOutput += args.join(' ') + '\n';
       };
       const originalConsoleError = console.error;
+
+      // Helper to safely escape error messages for HTML output
+      const escapeHtml = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      };
+
       console.error = (...args) => {
-        const errorMessage = args.join(' ').replace(/`/g, '\\`'); // Escape backticks
+        const errorMessage = escapeHtml(args.join(' '));
         consoleOutput += `<span class="console-error">Error: ${errorMessage}</span>\n`;
       };
 
