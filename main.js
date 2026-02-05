@@ -169,15 +169,16 @@ function createProfileUI(userPhotoURL, userName) {
 }
 
 // ====================================================================
-// 3. LOGIC & DATA
+// 3. LOGIC & DATA (Updated for Security Rules)
 // ====================================================================
 function initNotificationsListener(uid) {
     if (!db || !uid) return;
     if (notificationsUnsubscribe) notificationsUnsubscribe();
 
-    // Listen for private (UID) and Broadcast (GLOBAL_ALL) messages
+    // The query MUST match your security rules. 
+    // We filter specifically for this user's UID.
     notificationsUnsubscribe = db.collection('notifications')
-        .where('recipientUid', 'in', [uid, 'GLOBAL_ALL'])
+        .where('recipientUid', '==', uid) 
         .orderBy('timestamp', 'desc')
         .onSnapshot(snapshot => {
             const notifications = [];
@@ -192,8 +193,19 @@ function initNotificationsListener(uid) {
             updateBadges(unreadCount);
             renderNotifications(notifications);
             checkReminder(notifications);
-        }, err => console.error("Index or Permission Error:", err));
+        }, err => {
+            console.error("Firestore Notification Error:", err);
+            // If you see an 'index' error in the console, click the link 
+            // provided by Firebase to generate the required Composite Index.
+        });
 }
+
+// Function to update 'read' status
+window.markAsRead = (id) => {
+    db.collection('notifications').doc(id).update({ 
+        read: true 
+    }).catch(err => console.error("Error marking as read:", err));
+};
 
 function updateBadges(count) {
     const badge = document.querySelector('#notif-count');
