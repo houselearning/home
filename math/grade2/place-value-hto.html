@@ -140,7 +140,14 @@
         e.preventDefault();
         const data = e.dataTransfer.getData("text");
         const digit = document.getElementById(data).textContent;
-        e.target.innerHTML = e.target.innerHTML.split("<br>")[0] + "<br>" + digit;
+        const labelText = e.target.textContent.split("\n")[0];
+        // Clear current content and rebuild safely without using innerHTML
+        while (e.target.firstChild) {
+          e.target.removeChild(e.target.firstChild);
+        }
+        e.target.appendChild(document.createTextNode(labelText));
+        e.target.appendChild(document.createElement("br"));
+        e.target.appendChild(document.createTextNode(digit));
 
         checkAnswer();
       });
