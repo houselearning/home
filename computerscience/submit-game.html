@@ -156,6 +156,15 @@
       reader.readAsText(file);
     }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function submitSite() {
   const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
   const title = titleInput.value || "Untitled Submission";
@@ -178,7 +187,8 @@ function submitSite() {
   const url = URL.createObjectURL(blob);
 
   // Escape for iframe srcdoc
-  const safeSrcdoc = finalHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const safeSrcdoc = escapeHtml(finalHTML);
+  const safeTitle = escapeHtml(title);
 
   document.write(`
     <style>
@@ -196,9 +206,9 @@ function submitSite() {
       }
     </style>
     <h1>✅ Submission Complete!</h1>
-    <p><strong>${title}</strong> has been submitted. We'll review it in 2–3 business days.</p>
+    <p><strong>${safeTitle}</strong> has been submitted. We'll review it in 2–3 business days.</p>
     <h2>Final Preview</h2>
-    <iframe srcdoc="${finalHTML.replace(/"/g, '&quot;')}"></iframe><br>
+    <iframe srcdoc="${safeSrcdoc}"></iframe><br>
     <a class="view-link" href="${url}" target="_blank">🔗 View in Browser</a>
   `);
 }
