@@ -115,6 +115,15 @@
   </div>
 
   <script>
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
     function renderMarkdown() {
       const md = document.getElementById("markdownInput").value.trim();
       const output = document.getElementById("renderedOutput");
@@ -132,12 +141,12 @@
       );
 
       let html = "<table><thead><tr>";
-      headers.forEach(h => html += `<th>${h}</th>`);
+      headers.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
       html += "</tr></thead><tbody>";
 
       bodyRows.forEach(row => {
         html += "<tr>";
-        row.forEach(cell => html += `<td>${cell}</td>`);
+        row.forEach(cell => html += `<td>${escapeHtml(cell)}</td>`);
         html += "</tr>";
       });
 

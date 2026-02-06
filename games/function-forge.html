@@ -492,7 +492,21 @@
             const messageText = document.getElementById('message-text');
             const messageButtons = document.getElementById('message-buttons');
 
-            messageText.innerHTML = `<span class="block text-2xl font-extrabold mb-2">${title}</span>${text}`;
+            // Clear previous content
+            messageText.textContent = '';
+
+            // Create and append the title span safely
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'block text-2xl font-extrabold mb-2';
+            titleSpan.textContent = title;
+            messageText.appendChild(titleSpan);
+
+            // Append the remaining message text safely
+            if (text) {
+                const textNode = document.createTextNode(text);
+                messageText.appendChild(textNode);
+            }
+
             messageButtons.innerHTML = ''; 
 
             if (isSuccess) {
