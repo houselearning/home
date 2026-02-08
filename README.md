@@ -1,36 +1,37 @@
-# House Learning
+# HouseLearning Lessons Page
 
-## Overview
-House Learning is a collaborative platform designed to enhance learning experiences through community engagement and shared resources.
+Welcome to **HouseLearning Lessons Page** — a fun and interactive learning website designed to make education engaging through browser-based mini-games and activities. The platform offers a collection of educational games that help users practice and reinforce their skills while having fun.
 
 ## Features
-- **Interactive Learning Modules:** Engage with various subjects through modules designed for different learning styles.
-- **Community Support:** Join discussions and forums to connect with peers and educators.
-- **Resource Library:** Access a library filled with articles, videos, and other learning materials.
 
-## Getting Started
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/houselearning/home.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd home
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Launch the application:
-   ```bash
-   npm start
-   ```
+- 🌟 **Interactive educational games**  
+  Engaging activities that respond to player input in real time.
 
-## Contributing
-We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) file to get started.
+- 🏆 **Instant feedback and rewards**  
+  Players get immediate results, points, and progress indicators to track learning.
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- 📱 **Simple, clean, and responsive interface**  
+  Designed to be easy to use on desktop and mobile browsers.
 
-## Contact
-For inquiries, please reach out to us at [contact@houselearning.com](mailto:contact@houselearning.com).
+- 🎨 **Web-based — no installation required**  
+  Runs directly in your web browser with no extra software needed.
+
+## 🛠️ Tech Stack
+
+- **HTML5**
+- **CSS3**
+- **JavaScript**
+- **Firebase API**
+
+## 📸 Screenshots
+
+Here’s a preview of the HouseLearning Home website (*subject to change*):
+![HouseLearning Home Screenshot](https://houselearning.github.io/home/readme/screenshot.png)
+
+## 🚀 Getting Started
+
+To get a local copy up and running, follow these steps:
+
+### 1️⃣ Clone the repository
+```bash
+git clone https://github.com/houselearning/home.git
