@@ -181,25 +181,30 @@
     }
 
     function genMeasureQ(step) {
-      // Logic for simulated ruler measurement
-      // 1 unit = roughly 50px in this display
-      let lengthInUnits = Math.floor(Math.random() * 5) + 2; 
-      let pixelWidth = lengthInUnits * 60; // scale for the UI
-      
-      document.getElementById('obj-bar').style.width = pixelWidth + "px";
-      
-      if(step === 4) {
-          document.getElementById('q-prompt').textContent = "Is this object LONGER or SHORTER than 4 units?";
-          // Simplified for input: 1 for longer, 2 for shorter
-          currentQ = { a: (lengthInUnits > 4 ? 1 : 2) };
-          document.getElementById('feedback').textContent = "Type 1 for Longer, 2 for Shorter";
-      } else {
-          document.getElementById('q-prompt').textContent = "How many units long is the blue bar?";
-          currentQ = { a: lengthInUnits };
-          document.getElementById('feedback').textContent = "";
-      }
-      document.getElementById('q-input').value = '';
+    // 1. Generate a whole number between 1 and 8
+    let lengthInUnits = Math.floor(Math.random() * 7) + 1; 
+    
+    // 2. Calculate width as a percentage of the ruler
+    // Since we have marks 0-8 (9 marks total), 
+    // each unit is exactly 12.5% of the ruler width (100 / 8 = 12.5)
+    let percentWidth = lengthInUnits * 12.5; 
+    
+    // 3. Apply the width to the blue bar
+    const bar = document.getElementById('obj-bar');
+    bar.style.left = "5%"; // Align exactly with the '0' mark
+    bar.style.width = `calc(90% * ${lengthInUnits / 8})`; 
+
+    if(step === 4) {
+        document.getElementById('q-prompt').textContent = "Is this object LONGER or SHORTER than 4 units?";
+        currentQ = { a: (lengthInUnits > 4 ? 1 : 2) };
+        document.getElementById('feedback').textContent = "Type 1 for Longer, 2 for Shorter";
+    } else {
+        document.getElementById('q-prompt').textContent = "How many units long is the blue bar?";
+        currentQ = { a: lengthInUnits };
+        document.getElementById('feedback').textContent = "";
     }
+    document.getElementById('q-input').value = '';
+}
 
     function checkPractice() {
       const val = parseInt(document.getElementById('q-input').value);
