@@ -1,191 +1,253 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Two-Digit Addition Lesson</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Two-Digit Addition</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: "Comic Sans MS", sans-serif;
-      background: #fef9f5;
-      margin: 0;
-      padding: 0;
-      color: #333;
+    :root {
+      --math-purple: #8e44ad;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
+      --carry-color: #e67e22;
     }
-    header {
-      background: #ffcc80;
-      padding: 20px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2.5em;
-    }
-    section {
-      padding: 20px;
-      margin: 20px;
-      background: #fff3e0;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    button {
-      background: #ff9800;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      margin: 5px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #e68900;
-    }
-    .example, .practice, .challenge {
-      background: #ffe0b2;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 8px;
-    }
-    input {
-      padding: 8px;
-      margin: 5px;
-      border: 2px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
-    }
-    canvas {
-      border: 2px solid #333;
-      display: block;
-      margin: 20px auto;
-      background: #fff8e1;
-    }
-    .scroll-buttons {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-purple); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #f4ecf7; color: var(--math-purple); font-weight: bold; border-left: 5px solid var(--math-purple); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-purple); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #eee; border: 2px dashed #ccc; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Vertical Math Alignment */
+    .math-problem { font-family: 'Courier New', monospace; font-size: 48px; text-align: right; width: 150px; margin: 20px auto; line-height: 1.2; position: relative; }
+    .math-line { border-bottom: 4px solid #333; margin-top: 5px; margin-bottom: 10px; }
+    .carry-box { color: var(--carry-color); font-size: 20px; position: absolute; top: -25px; right: 65px; font-weight: bold; }
+    .plus-sign { position: absolute; left: -40px; bottom: 65px; }
+
+    .cheatsheet-step { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; background: #fdfcf0; padding: 15px; border-radius: 10px; }
+    .step-num { background: var(--math-purple); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📘 Two-Digit Addition Lesson</h1>
-    <p>Learn how to add numbers with two digits (tens & ones) step by step!</p>
-  </header>
 
-  <section>
-    <h2>📖 Introduction</h2>
-    <p>
-      Two-digit addition means we’re adding numbers from 10 to 99.  
-      Each number has a <strong>tens place</strong> and a <strong>ones place</strong>.  
-      When we add them, we start with the <strong>ones</strong>. If the sum is 10 or greater, we carry (regroup) the extra ten into the tens place.
-    </p>
-  </section>
+  <nav>
+    <div class="nav-header">
+      <strong>Addition Adventure</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Addition Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 How to Regroup</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: No Regrouping</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Making a Ten</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Vertical Mastery</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Word Problems</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Addition Hero</div>
+    </div>
+  </nav>
 
-  <section>
-    <h2>🧩 Step-by-Step Example</h2>
-    <div class="example">
-      <p><strong>Example:</strong> 47 + 36</p>
-      <ol>
-        <li>Line up the numbers by place value:
-          <pre>
-   47
-+ 36
-          </pre>
-        </li>
-        <li>Add the ones: 7 + 6 = 13 → Write 3, carry the 1 to the tens.</li>
-        <li>Add the tens: 4 + 3 = 7, plus the carried 1 = 8.</li>
-        <li>Final Answer: <strong>83</strong></li>
-      </ol>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Adding Two-Digit Numbers</h1>
+        <p>Watch this video to see how we put numbers together!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I'm Ready to Add!</button>
     </div>
-  </section>
 
-  <section>
-    <h2>✏️ Practice Problems</h2>
-    <div class="practice">
-      <p>Solve: 28 + 46 = ?</p>
-      <input type="number" id="q1">
-      <button onclick="checkAnswer('q1', 74)">Check</button>
-      <span id="q1result"></span>
-    </div>
-    <div class="practice">
-      <p>Solve: 59 + 27 = ?</p>
-      <input type="number" id="q2">
-      <button onclick="checkAnswer('q2', 86)">Check</button>
-      <span id="q2result"></span>
-    </div>
-    <div class="practice">
-      <p>Solve: 34 + 48 = ?</p>
-      <input type="number" id="q3">
-      <button onclick="checkAnswer('q3', 82)">Check</button>
-      <span id="q3result"></span>
-    </div>
-  </section>
+    <div id="p1" class="content-card">
+      <h1>The Secret of Regrouping</h1>
+      <p>Sometimes, the "Ones" column gets too full (10 or more). We have to move the extra to the "Tens" column!</p>
+      
+      
 
-  <section>
-    <h2>🔥 Challenge Problems</h2>
-    <div class="challenge">
-      <p>Solve: 76 + 89 = ?</p>
-      <input type="number" id="c1">
-      <button onclick="checkAnswer('c1', 165)">Check</button>
-      <span id="c1result"></span>
-    </div>
-    <div class="challenge">
-      <p>Solve: 95 + 68 = ?</p>
-      <input type="number" id="c2">
-      <button onclick="checkAnswer('c2', 163)">Check</button>
-      <span id="c2result"></span>
-    </div>
-  </section>
+      <div class="cheatsheet-step">
+          <div class="step-num">1</div>
+          <div><b>Add the Ones:</b> Always start on the right side.</div>
+      </div>
+      <div class="cheatsheet-step">
+          <div class="step-num">2</div>
+          <div><b>Regroup:</b> If the sum is 10 or more, carry the 1 to the top of the tens column.</div>
+      </div>
+      <div class="cheatsheet-step">
+          <div class="step-num">3</div>
+          <div><b>Add the Tens:</b> Don't forget to add the 1 you carried!</div>
+      </div>
 
-  <section>
-    <h2>🔢 Number Chart (100–1000)</h2>
-    <div class="scroll-buttons">
-      <button onclick="scrollUp()">⬆️ Up</button>
-      <button onclick="scrollDown()">⬇️ Down</button>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Let's Practice!</button>
     </div>
-    <canvas id="chartCanvas" width="500" height="400"></canvas>
-  </section>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 20px; text-align: center; margin-bottom: 20px;">Solve the problem:</div>
+      
+      <div class="math-problem">
+          <div id="carry-display" class="carry-box"></div>
+          <div id="num1">24</div>
+          <div id="num2">15<span class="plus-sign">+</span></div>
+          <div class="math-line"></div>
+      </div>
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" style="width:150px; font-size:32px; text-align:center; padding:10px; border:2px solid var(--math-purple); border-radius:8px;">
+        <br><br>
+        <button class="btn" onclick="checkPractice()">Check Sum</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 60px;">🦸‍♂️</h1>
+        <h1>Addition Hero!</h1>
+        <p>You can add two-digit numbers like a pro. Your math powers are growing!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Unit</button>
+    </div>
+  </main>
 
   <script>
-    function checkAnswer(id, correct) {
-      const input = document.getElementById(id).value;
-      const result = document.getElementById(id + "result");
-      if (parseInt(input) === correct) {
-        result.textContent = "✅ Correct!";
-        result.style.color = "green";
-      } else {
-        result.textContent = "❌ Try again!";
-        result.style.color = "red";
-      }
+    const lessonID = "2nd_grade_addition_2digit";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { /* Handle redirect */ }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    // Canvas number chart
-    const canvas = document.getElementById("chartCanvas");
-    const ctx = canvas.getContext("2d");
-    let start = 100;
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
 
-    function drawChart() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = "16px Arial";
-      ctx.fillStyle = "#333";
-      let x = 20, y = 30;
-      for (let i = start; i < start + 100; i++) {
-        ctx.fillText(i, x, y);
-        x += 40;
-        if (x > 400) {
-          x = 20;
-          y += 30;
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genAdditionQ(step);
+    }
+
+    function genAdditionQ(step) {
+        let n1, n2;
+        const carryBox = document.getElementById('carry-display');
+        carryBox.textContent = "";
+
+        if (step === 2) { // No Regrouping
+            n1 = Math.floor(Math.random() * 40) + 10;
+            n2 = Math.floor(Math.random() * 4) + 1; // ensures ones stay < 9
+            // adjust n2 to ensure no carry
+            let ones1 = n1 % 10;
+            let ones2 = Math.floor(Math.random() * (9 - ones1));
+            n2 = (Math.floor(Math.random() * 4) + 1) * 10 + ones2;
+        } else if (step === 3) { // Force Regrouping
+            n1 = Math.floor(Math.random() * 40) + 15;
+            let ones1 = n1 % 10;
+            let ones2 = Math.floor(Math.random() * 5) + (10 - ones1); // ensures ones > 10
+            n2 = (Math.floor(Math.random() * 3) + 1) * 10 + ones2;
+        } else { // Mixed
+            n1 = Math.floor(Math.random() * 70) + 11;
+            n2 = Math.floor(Math.random() * 20) + 11;
         }
+
+        document.getElementById('num1').textContent = n1;
+        document.getElementById('num2').innerHTML = n2 + '<span class="plus-sign">+</span>';
+        currentQ.a = n1 + n2;
+        
+        // Show carry box only for step 3 and beyond if regrouping is needed
+        if (step >= 3 && ( (n1%10) + (n2%10) >= 10 )) {
+            carryBox.innerHTML = "?"; // Hint for student
+        }
+
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Correct! You're a math whiz! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genAdditionQ(currentStep), 1000);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Check your ones column again!";
       }
     }
-
-    function scrollUp() {
-      if (start > 100) start -= 100;
-      drawChart();
-    }
-    function scrollDown() {
-      if (start < 900) start += 100;
-      drawChart();
-    }
-
-    drawChart();
   </script>
 </body>
 </html>
