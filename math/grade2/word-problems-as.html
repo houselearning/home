@@ -1,152 +1,252 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Word Problems: Addition & Subtraction</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Word Problem Detectives</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #f0f9ff;
-      color: #333;
+    :root {
+      --detective-blue: #2c3e50;
+      --clue-gold: #f39c12;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    header {
-      background: #4cafef;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-    section {
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
-    h2 {
-      color: #4cafef;
-      margin-top: 30px;
-    }
-    .example, .practice {
-      background: #fff;
-      padding: 15px;
-      margin: 15px 0;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-    button {
-      padding: 10px 15px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background: #4cafef;
-      color: white;
-    }
-    button:hover {
-      background: #3498db;
-    }
-    input {
-      padding: 6px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .correct { color: green; font-weight: bold; }
-    .wrong { color: red; font-weight: bold; }
-    footer {
-      text-align: center;
-      padding: 15px;
-      margin-top: 20px;
-      background: #4cafef;
-      color: white;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--detective-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #ebf5fb; color: var(--detective-blue); font-weight: bold; border-left: 5px solid var(--detective-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--detective-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #eee; border: 2px dashed #ccc; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Word Problem UI */
+    .problem-box { background: #fdfefe; border: 2px solid #ddd; padding: 30px; border-radius: 15px; margin: 20px 0; font-size: 24px; line-height: 1.6; color: #34495e; min-height: 100px; text-align: center; border-left: 8px solid var(--clue-gold); }
+    .clue-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .clue-table th, .clue-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    .clue-table th { background: #f8f9fa; }
+    
+    .answer-zone { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .input-row { display: flex; align-items: center; gap: 10px; font-size: 28px; font-weight: bold; }
+    .math-input { width: 100px; font-size: 32px; text-align: center; padding: 10px; border: 2px solid var(--detective-blue); border-radius: 8px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Word Problems with Addition & Subtraction</h1>
-    <p>Learn how to read, understand, and solve real-world math problems!</p>
-  </header>
 
-  <section>
-    <h2>Introduction</h2>
-    <p>
-      Word problems take math and put it into real-life situations. You’ll read a short story, figure out what the question is asking, decide whether to use <strong>addition</strong> or <strong>subtraction</strong>, and then solve it.
-    </p>
+  <nav>
+    <div class="nav-header">
+      <strong>Problem Detectives</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 How to Solve Word Problems</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Finding Clue Words</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Addition Clues</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Subtraction Clues</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Mixed Problems</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Challenge Mode</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Lead Detective</div>
+    </div>
+  </nav>
 
-    <h2>How to Solve Word Problems</h2>
-    <ol>
-      <li><strong>Read the problem carefully.</strong></li>
-      <li><strong>Underline the important numbers.</strong></li>
-      <li><strong>Decide:</strong> Do I need to add or subtract?</li>
-      <li><strong>Write the equation.</strong></li>
-      <li><strong>Solve it!</strong></li>
-    </ol>
-
-    <h2>Example 1: Addition</h2>
-    <div class="example">
-      <p>Sam has 23 marbles. His friend gives him 17 more. How many marbles does Sam have now?</p>
-      <p>We are <strong>adding</strong> because Sam is getting more marbles.</p>
-      <p>Equation: 23 + 17 = <strong>40</strong></p>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Cracking the Code</h1>
+        <p>A word problem is just a story with hidden numbers. Your job is to find the numbers and the "Clue Words" to solve the mystery!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Show Me the Clues!</button>
     </div>
 
-    <h2>Example 2: Subtraction</h2>
-    <div class="example">
-      <p>Lisa has 45 balloons. 18 of them flew away. How many balloons does Lisa still have?</p>
-      <p>We are <strong>subtracting</strong> because some balloons went away.</p>
-      <p>Equation: 45 - 18 = <strong>27</strong></p>
+    <div id="p1" class="content-card">
+      <h1>The Detective's Guide</h1>
+      <p>Look for these special words in your stories to know what to do:</p>
+      
+      
+
+      <table class="clue-table">
+          <tr>
+              <th style="color: #27ae60;">➕ Addition (Add)</th>
+              <th style="color: #c0392b;">➖ Subtraction (Take Away)</th>
+          </tr>
+          <tr>
+              <td>In All / Total</td>
+              <td>Left / Remains</td>
+          </tr>
+          <tr>
+              <td>Altogether</td>
+              <td>How many more / fewer</td>
+          </tr>
+          <tr>
+              <td>Plus / Sum</td>
+              <td>Difference</td>
+          </tr>
+          <tr>
+              <td>Both</td>
+              <td>Gave away / Lost</td>
+          </tr>
+      </table>
+
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Investigating!</button>
     </div>
 
-    <h2>Practice Problems</h2>
-
-    <div class="practice">
-      <p>1) Alex has 36 apples. He eats 12 of them. How many apples are left?</p>
-      <input type="number" id="q1">
-      <button onclick="checkAnswer(1, 24)">Check</button>
-      <p id="result1"></p>
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 20px; text-align: center; color: var(--detective-blue);">Read the case file:</div>
+      
+      <div class="problem-box" id="problem-text">
+          </div>
+      
+      <div class="answer-zone">
+        <div class="input-row">
+            <input type="number" id="q-input" class="math-input" placeholder="?">
+        </div>
+        <button class="btn" onclick="checkPractice()">Solve Case</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
     </div>
 
-    <div class="practice">
-      <p>2) Mia has 28 pencils. Her teacher gives her 14 more. How many pencils does Mia have now?</p>
-      <input type="number" id="q2">
-      <button onclick="checkAnswer(2, 42)">Check</button>
-      <p id="result2"></p>
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 60px;">🕵️‍♂️</h1>
+        <h1>Lead Detective!</h1>
+        <p>You can solve any math mystery that comes your way. Case closed!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Course</button>
     </div>
-
-    <div class="practice">
-      <p>3) A bus has 60 people. At the next stop, 25 people get off. How many people are still on the bus?</p>
-      <input type="number" id="q3">
-      <button onclick="checkAnswer(3, 35)">Check</button>
-      <p id="result3"></p>
-    </div>
-
-    <div class="practice">
-      <p>4) Emma reads 15 pages on Monday and 27 pages on Tuesday. How many pages did she read in total?</p>
-      <input type="number" id="q4">
-      <button onclick="checkAnswer(4, 42)">Check</button>
-      <p id="result4"></p>
-    </div>
-
-    <h2>Tips</h2>
-    <ul>
-      <li>If the word problem says “<em>in total</em>” or “<em>altogether</em>,” it’s usually <strong>addition</strong>.</li>
-      <li>If it says “<em>how many are left</em>” or “<em>how many more</em>,” it’s usually <strong>subtraction</strong>.</li>
-    </ul>
-  </section>
-
-  <footer>
-    <p>Math is everywhere! The more you practice word problems, the better you get at using math in real life.</p>
-  </footer>
+  </main>
 
   <script>
-    function checkAnswer(q, correct) {
-      let input = document.getElementById("q" + q).value;
-      let result = document.getElementById("result" + q);
-      if (parseInt(input) === correct) {
-        result.textContent = "✅ Correct!";
-        result.className = "correct";
+    const lessonID = "2nd_grade_word_problems_as";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genProblem(step);
+    }
+
+    function genProblem(step) {
+        const names = ["Mia", "Ben", "Ava", "Noah", "Zoe"];
+        const items = ["marbles", "stickers", "toy cars", "cupcakes", "balloons"];
+        const name = names[Math.floor(Math.random() * names.length)];
+        const item = items[Math.floor(Math.random() * items.length)];
+        
+        let n1, n2, story, answer;
+        let forceOp = (step === 2) ? 'add' : (step === 3) ? 'sub' : (Math.random() > 0.5 ? 'add' : 'sub');
+
+        if (forceOp === 'add') {
+            n1 = Math.floor(Math.random() * 40) + 10;
+            n2 = Math.floor(Math.random() * 40) + 10;
+            const endings = ["in all?", "altogether?", "total?"];
+            story = `${name} had ${n1} ${item}. They bought ${n2} more. How many ${item} do they have ${endings[Math.floor(Math.random()*3)]}`;
+            answer = n1 + n2;
+        } else {
+            n1 = Math.floor(Math.random() * 40) + 50;
+            n2 = Math.floor(Math.random() * 30) + 5;
+            const endings = ["are left?", "remains?"];
+            story = `${name} had ${n1} ${item}. They gave ${n2} away to a friend. How many ${item} ${endings[Math.floor(Math.random()*2)]}`;
+            answer = n1 - n2;
+        }
+
+        document.getElementById('problem-text').textContent = story;
+        currentQ.a = answer;
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great work, Detective! Case solved! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genProblem(currentStep), 1000);
       } else {
-        result.textContent = "❌ Try again!";
-        result.className = "wrong";
+        fb.style.color = "red";
+        fb.textContent = "Check your clue words and try again!";
       }
     }
   </script>
