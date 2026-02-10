@@ -1,191 +1,263 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Telling Time: Quarter & Half</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Clockwork Canyon (Quarter & Half)</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      color: #333;
-      text-align: center;
-      margin: 0;
-      padding: 0;
+    :root {
+      --math-gold: #d4af37;
+      --math-brown: #5d4037;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    header {
-      background: #4682b4;
-      color: white;
-      padding: 20px;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    section {
-      max-width: 900px;
-      margin: 20px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    canvas {
-      background: #fff;
-      border: 3px solid #4682b4;
-      border-radius: 50%;
-      margin: 20px auto;
-      display: block;
-    }
-    button {
-      background: #4682b4;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      margin: 6px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #315f7c;
-    }
-    .question {
-      margin-top: 20px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .feedback {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-gold); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #fffdf5; color: var(--math-brown); font-weight: bold; border-left: 5px solid var(--math-gold); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-brown); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #eee; border: 2px dashed #ccc; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Analog Clock Visualizer */
+    .clock-stage { background: #fff; padding: 30px; border-radius: 50%; border: 8px solid var(--math-brown); width: 250px; height: 250px; margin: 30px auto; position: relative; }
+    .clock-face { position: relative; width: 100%; height: 100%; border-radius: 50%; }
+    .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; border-radius: 4px; }
+    .hour-hand { width: 6px; height: 60px; background: #333; z-index: 2; }
+    .min-hand { width: 4px; height: 90px; background: #e74c3c; z-index: 1; }
+    .center-pin { position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; background: #000; border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; }
+    .clock-num { position: absolute; font-weight: bold; font-size: 20px; }
+
+    .digital-input-container { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 32px; font-weight: bold; }
+    .digital-box { width: 80px; font-size: 32px; text-align: center; padding: 10px; border: 2px solid var(--math-gold); border-radius: 8px; }
   </style>
 </head>
 <body>
-  <header>⏰ Telling Time: Quarter & Half</header>
-  
-  <section>
-    <h2>Introduction</h2>
-    <p>Today we are learning how to tell time to the nearest <b>quarter hour</b> and <b>half hour</b>!  
-    On an analog clock, the minute hand goes all the way around in 60 minutes.  
-    - <b>Quarter past</b> means 15 minutes after the hour.  
-    - <b>Half past</b> means 30 minutes after the hour.  
-    - <b>Quarter to</b> means 45 minutes after the hour (or 15 minutes before the next hour).  
-    Let's practice with the interactive clock below!</p>
-    
-    <canvas id="clock" width="300" height="300"></canvas>
-    <div>
-      <button onclick="setTime(3,0)">Set to 3:00</button>
-      <button onclick="setTime(3,15)">Quarter Past 3</button>
-      <button onclick="setTime(3,30)">Half Past 3</button>
-      <button onclick="setTime(3,45)">Quarter To 4</button>
+
+  <nav>
+    <div class="nav-header">
+      <strong>Clockwork Canyon</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
     </div>
-  </section>
-  
-  <section>
-    <h2>Practice Questions</h2>
-    <div class="question" id="question">What time is it?</div>
-    <input type="text" id="answer" placeholder="e.g., Quarter Past 3">
-    <button onclick="checkAnswer()">Submit</button>
-    <div class="feedback" id="feedback"></div>
-  </section>
-  
-  <section>
-    <h2>Challenge: Match the Time!</h2>
-    <p>Click the button to get a random time. Set the clock correctly and then check!</p>
-    <button onclick="newChallenge()">New Challenge</button>
-    <div class="question" id="challengeText"></div>
-    <button onclick="checkChallenge()">Check My Clock</button>
-    <div class="feedback" id="challengeFeedback"></div>
-  </section>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 The Round Clock</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Quarter & Half Slices</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Half Past (30)</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Quarter Past (15)</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Quarter To (45)</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Mixed Times</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Time Keeper</div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Understanding the Clock</h1>
+        <p>A clock is like a circle divided into parts. We use the big hand and small hand to tell the story of time!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">See the Slices!</button>
+    </div>
+
+    <div id="p1" class="content-card">
+      <h1>The Four Slices of an Hour</h1>
+      <p>Think of the clock as a <b>pizza</b>. We use special names for where the Minute Hand (big hand) lands.</p>
+      
+      <div style="background: #fffdf5; padding: 15px; border-radius: 10px; border-left: 5px solid var(--math-gold);">
+          <p><b>🕛 :00 (O'Clock):</b> Big hand is at the 12.</p>
+          <p><b>🕒 :15 (Quarter Past):</b> Big hand is at the 3.</p>
+          <p><b>🕕 :30 (Half Past):</b> Big hand is at the 6.</p>
+          <p><b>🕘 :45 (Quarter To):</b> Big hand is at the 9.</p>
+      </div>
+
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 22px; text-align: center; font-weight: bold;">What time is shown?</div>
+      
+      <div class="clock-stage">
+          <div class="clock-face" id="clock-face">
+              <div class="center-pin"></div>
+              <div id="hour-hand" class="hand hour-hand"></div>
+              <div id="min-hand" class="hand min-hand"></div>
+          </div>
+      </div>
+      
+      <div class="digital-input-container">
+        <input type="number" id="h-input" class="digital-box" placeholder="H">
+        <span>:</span>
+        <input type="number" id="m-input" class="digital-box" placeholder="M">
+      </div>
+      
+      <div style="text-align:center; margin-top: 20px;">
+        <button class="btn" onclick="checkPractice()">Check Time</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 60px;">⏳</h1>
+        <h1>Time Keeper Master!</h1>
+        <p>You can read analog clocks with ease. You'll never be late for recess again!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Course</button>
+    </div>
+  </main>
 
   <script>
-    const canvas = document.getElementById("clock");
-    const ctx = canvas.getContext("2d");
-    let currentHour = 3;
-    let currentMinute = 0;
-    let challengeHour = 3;
-    let challengeMinute = 0;
+    const lessonID = "2nd_grade_time_intro";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    function drawClock(hour, minute) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-      // Draw outer circle
-      ctx.beginPath();
-      ctx.arc(150, 150, 140, 0, Math.PI * 2);
-      ctx.fillStyle = "#f9f9f9";
-      ctx.fill();
-      ctx.stroke();
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
 
-      // Draw numbers
-      ctx.font = "18px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      for (let num = 1; num <= 12; num++) {
-        let angle = (num * Math.PI) / 6;
-        let x = 150 + Math.cos(angle - Math.PI/2) * 110;
-        let y = 150 + Math.sin(angle - Math.PI/2) * 110;
-        ctx.fillText(num, x, y);
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+      initClockFace();
+    }
+
+    function initClockFace() {
+        const face = document.getElementById('clock-face');
+        for(let i=1; i<=12; i++) {
+            const num = document.createElement('div');
+            num.className = 'clock-num';
+            num.textContent = i;
+            const angle = (i * 30) * (Math.PI / 180);
+            const x = 110 + 95 * Math.sin(angle);
+            const y = 110 - 95 * Math.cos(angle);
+            num.style.left = x + 'px';
+            num.style.top = y + 'px';
+            num.style.transform = 'translate(-50%, -50%)';
+            face.appendChild(num);
+        }
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
-
-      // Hour hand
-      let hourAngle = ((hour % 12) + minute / 60) * (Math.PI / 6);
-      ctx.beginPath();
-      ctx.moveTo(150, 150);
-      ctx.lineTo(150 + Math.cos(hourAngle - Math.PI/2) * 70, 150 + Math.sin(hourAngle - Math.PI/2) * 70);
-      ctx.lineWidth = 6;
-      ctx.stroke();
-
-      // Minute hand
-      let minuteAngle = (minute * Math.PI) / 30;
-      ctx.beginPath();
-      ctx.moveTo(150, 150);
-      ctx.lineTo(150 + Math.cos(minuteAngle - Math.PI/2) * 100, 150 + Math.sin(minuteAngle - Math.PI/2) * 100);
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    function setTime(hour, minute) {
-      currentHour = hour;
-      currentMinute = minute;
-      drawClock(hour, minute);
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
     }
 
-    function checkAnswer() {
-      let ans = document.getElementById("answer").value.toLowerCase();
-      let correct = "";
-      if (currentMinute === 0) correct = currentHour + ":00";
-      if (currentMinute === 15) correct = "quarter past " + currentHour;
-      if (currentMinute === 30) correct = "half past " + currentHour;
-      if (currentMinute === 45) correct = "quarter to " + ((currentHour % 12) + 1);
-      if (ans.includes(correct)) {
-        document.getElementById("feedback").innerText = "✅ Correct!";
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genClockQ(step);
+    }
+
+    function genClockQ(step) {
+        let hour = Math.floor(Math.random() * 12) + 1;
+        let minute;
+        
+        if (step === 2) minute = 30; // Half past
+        else if (step === 3) minute = 15; // Quarter past
+        else if (step === 4) minute = 45; // Quarter to
+        else {
+            const opts = [0, 15, 30, 45];
+            minute = opts[Math.floor(Math.random() * opts.length)];
+        }
+
+        currentQ.h = hour;
+        currentQ.m = minute;
+
+        // Rotate Hands
+        const minAngle = minute * 6;
+        const hourAngle = (hour * 30) + (minute * 0.5);
+        
+        document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${minAngle}deg)`;
+        document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hourAngle}deg)`;
+
+        document.getElementById('h-input').value = '';
+        document.getElementById('m-input').value = '';
+        document.getElementById('feedback').textContent = '';
+    }
+
+    function checkPractice() {
+      const hVal = parseInt(document.getElementById('h-input').value);
+      const mVal = parseInt(document.getElementById('m-input').value);
+      const fb = document.getElementById('feedback');
+      
+      if(hVal === currentQ.h && mVal === currentQ.m) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Exactly right! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genClockQ(currentStep), 1000);
       } else {
-        document.getElementById("feedback").innerText = "❌ Try again!";
+        fb.style.color = "red";
+        fb.textContent = "Check the hands one more time!";
       }
     }
-
-    function newChallenge() {
-      let times = [
-        {h: 2, m: 15, text: "Quarter Past 2"},
-        {h: 5, m: 30, text: "Half Past 5"},
-        {h: 7, m: 45, text: "Quarter To 8"},
-        {h: 9, m: 0, text: "9:00"}
-      ];
-      let choice = times[Math.floor(Math.random() * times.length)];
-      challengeHour = choice.h;
-      challengeMinute = choice.m;
-      document.getElementById("challengeText").innerText = "Set the clock to: " + choice.text;
-    }
-
-    function checkChallenge() {
-      if (currentHour === challengeHour && currentMinute === challengeMinute) {
-        document.getElementById("challengeFeedback").innerText = "🎉 Perfect!";
-      } else {
-        document.getElementById("challengeFeedback").innerText = "Not quite! Try again.";
-      }
-    }
-
-    // Draw initial clock
-    drawClock(currentHour, currentMinute);
   </script>
 </body>
 </html>
