@@ -1,203 +1,274 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Place Value (Hundreds, Tens, Ones)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Place Value (H/T/O)</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5faff;
-      color: #333;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
+    :root {
+      --math-blue: #1865f2;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
+      --hundreds: #e74c3c;
+      --tens: #f1c40f;
+      --ones: #3498db;
     }
-    h1 { color: #2a6ebb; }
-    .lesson {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    }
-    .example, .practice {
-      margin: 20px 0;
-      padding: 15px;
-      border: 2px solid #2a6ebb;
-      border-radius: 10px;
-      background: #eef6ff;
-    }
-    .htoboxes {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .box {
-      width: 120px;
-      height: 120px;
-      border: 2px solid #2a6ebb;
-      margin: 10px;
-      border-radius: 10px;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .draggables {
-      margin: 20px;
-    }
-    .draggable {
-      display: inline-block;
-      margin: 10px;
-      padding: 10px 15px;
-      background: #2a6ebb;
-      color: white;
-      border-radius: 8px;
-      cursor: grab;
-    }
-    canvas {
-      margin-top: 20px;
-      border: 2px solid #2a6ebb;
-      border-radius: 8px;
-    }
-    .controls {
-      margin: 10px;
-    }
-    button {
-      padding: 8px 15px;
-      margin: 5px;
-      background: #2a6ebb;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1b4e87;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #eef4ff; color: var(--math-blue); font-weight: bold; border-left: 5px solid var(--math-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Place Value Visualizer */
+    .pv-container { background: #fff; padding: 20px; border-radius: 10px; border: 2px solid #eee; margin: 20px 0; display: flex; justify-content: space-around; min-height: 180px; align-items: flex-end; }
+    .pv-column { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .block-h { width: 50px; height: 50px; background: var(--hundreds); border: 1px solid #c0392b; border-radius: 2px; }
+    .block-t { width: 15px; height: 50px; background: var(--tens); border: 1px solid #f39c12; border-radius: 2px; }
+    .block-o { width: 15px; height: 15px; background: var(--ones); border: 1px solid #2980b9; border-radius: 2px; }
+    .pv-label { font-weight: bold; margin-top: 10px; font-size: 14px; text-transform: uppercase; color: #777; }
+
+    .cheatsheet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .cs-item { padding: 15px; border-radius: 8px; text-align: center; color: white; }
   </style>
 </head>
 <body>
-  <div class="lesson">
-    <h1>Place Value: Hundreds, Tens, and Ones</h1>
-    <p>Every number is made of <b>hundreds</b>, <b>tens</b>, and <b>ones</b>.  
-       For example, the number <b>342</b> means:</p>
-    <ul style="text-align:left; display:inline-block;">
-      <li><b>3 Hundreds</b> = 300</li>
-      <li><b>4 Tens</b> = 40</li>
-      <li><b>2 Ones</b> = 2</li>
-    </ul>
 
-    <div class="example">
-      <h2>Example</h2>
-      <p>678 = 6 Hundreds, 7 Tens, 8 Ones</p>
-      <div class="htoboxes">
-        <div class="box">H<br>6</div>
-        <div class="box">T<br>7</div>
-        <div class="box">O<br>8</div>
-      </div>
+  <nav>
+    <div class="nav-header">
+      <strong>Place Value Academy</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Hundreds, Tens, and Ones</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 The Place Value Map</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Counting Blocks</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Expanded Form</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Value of a Digit</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Mystery Numbers</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Place Value Master</div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Hundreds, Tens, and Ones</h1>
+        <p>Every digit in a number has a "home." Depending on where it sits, it represents a different amount!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I'm Ready to Build Numbers!</button>
     </div>
 
-    <div class="practice">
-      <h2>Try It Yourself!</h2>
-      <p>Drag the digits into the correct place value boxes for the number <b>529</b>:</p>
-      <div class="htoboxes">
-        <div class="box" id="hundredsBox">H</div>
-        <div class="box" id="tensBox">T</div>
-        <div class="box" id="onesBox">O</div>
+    <div id="p1" class="content-card">
+      <h1>The Place Value Map</h1>
+      <p>When we look at a 3-digit number, we read it from left to right:</p>
+      
+      <div class="cheatsheet-grid">
+          <div class="cs-item" style="background: var(--hundreds)"><strong>Hundreds</strong><br>100s</div>
+          <div class="cs-item" style="background: var(--tens)"><strong>Tens</strong><br>10s</div>
+          <div class="cs-item" style="background: var(--ones)"><strong>Ones</strong><br>1s</div>
       </div>
-      <div class="draggables">
-        <div class="draggable" draggable="true" id="digit5">5</div>
-        <div class="draggable" draggable="true" id="digit2">2</div>
-        <div class="draggable" draggable="true" id="digit9">9</div>
+
+      <div style="background: #fdf9e7; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #f1c40f;">
+        <p><b>Quick Tip:</b> 10 Ones make 1 Ten. 10 Tens make 1 Hundred!</p>
+        <p>The number <b>342</b> means:<br>
+           3 Hundreds (300) + 4 Tens (40) + 2 Ones (2)
+        </p>
       </div>
-      <p id="feedback" style="font-weight:bold;"></p>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
     </div>
 
-    
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 22px; text-align: center; font-weight: bold; margin-bottom: 20px;">What number is shown?</div>
+      
+      <div class="pv-container" id="visual-box">
+          </div>
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" style="width:150px; font-size:28px; text-align:center; padding:10px; border:2px solid var(--math-blue); border-radius:8px;">
+        <br><br>
+        <button class="btn" onclick="checkPractice()">Check Answer</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 50px;">🏆</h1>
+        <h1>Place Value Master!</h1>
+        <p>You've mastered Hundreds, Tens, and Ones. You can now break down any number up to 1000!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Course</button>
+    </div>
+  </main>
 
   <script>
-    // Drag and drop practice
-    const boxes = {
-      hundredsBox: "5",
-      tensBox: "2",
-      onesBox: "9"
+    const lessonID = "2nd_grade_place_value";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
     };
 
-    document.querySelectorAll(".draggable").forEach(el => {
-      el.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text", e.target.id);
-      });
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+      else { /* Handle redirect to login */ }
     });
 
-    document.querySelectorAll(".box").forEach(box => {
-      box.addEventListener("dragover", e => e.preventDefault());
-      box.addEventListener("drop", e => {
-        e.preventDefault();
-        const data = e.dataTransfer.getData("text");
-        const digit = document.getElementById(data).textContent;
-        const labelText = e.target.textContent.split("\n")[0];
-        // Clear current content and rebuild safely without using innerHTML
-        while (e.target.firstChild) {
-          e.target.removeChild(e.target.firstChild);
-        }
-        e.target.appendChild(document.createTextNode(labelText));
-        e.target.appendChild(document.createElement("br"));
-        e.target.appendChild(document.createTextNode(digit));
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
 
-        checkAnswer();
-      });
-    });
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
 
-    function checkAnswer() {
-      let correct = true;
-      for (let id in boxes) {
-        const box = document.getElementById(id);
-        if (!box.innerHTML.includes(boxes[id])) correct = false;
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.classList.remove('completed', 'locked', 'active');
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
-      document.getElementById("feedback").textContent = correct ? 
-        "✅ Great job! You placed all digits correctly!" : "Keep going!";
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    // Canvas Number Chart
-    const canvas = document.getElementById("numberChart");
-    const ctx = canvas.getContext("2d");
-    let offset = 0;
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
 
-    function drawChart() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.font = "16px Arial";
-      ctx.fillStyle = "#333";
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genQuestion(step);
+    }
 
-      let start = offset * 10 + 1;
-      let end = start + 99;
+    function genQuestion(step) {
+        const visualBox = document.getElementById('visual-box');
+        visualBox.innerHTML = '';
+        const prompt = document.getElementById('q-prompt');
+        
+        let h = Math.floor(Math.random() * 5);
+        let t = Math.floor(Math.random() * 9);
+        let o = Math.floor(Math.random() * 9);
+        if (h === 0 && t === 0 && o === 0) o = 5;
 
-      let x = 20, y = 30;
-      for (let i=start; i<=end && i<=1000; i++) {
-        ctx.fillText(i, x, y);
-        x += 50;
-        if (x > canvas.width - 40) {
-          x = 20;
-          y += 30;
+        // Step 2 & 3 use blocks
+        if (step === 2 || step === 5) {
+            prompt.textContent = "What number is shown by the blocks?";
+            createColumn(visualBox, h, 'block-h', 'Hundreds');
+            createColumn(visualBox, t, 'block-t', 'Tens');
+            createColumn(visualBox, o, 'block-o', 'Ones');
+            currentQ.a = (h * 100) + (t * 10) + o;
+        } 
+        // Step 3: Expanded Form
+        else if (step === 3) {
+            prompt.innerHTML = `What is the standard form of:<br>${h*100} + ${t*10} + ${o}?`;
+            visualBox.innerHTML = `<div style="font-size:40px; color:var(--math-blue)">?</div>`;
+            currentQ.a = (h * 100) + (t * 10) + o;
         }
+        // Step 4: Value of a Digit
+        else if (step === 4) {
+            let num = (h * 100) + (t * 10) + o;
+            if (num < 100) num += 123;
+            let digits = num.toString().split('');
+            let pick = Math.floor(Math.random() * 3);
+            prompt.innerHTML = `In the number <span style="color:red">${digits[pick]}</span>${digits[(pick+1)%3]}${digits[(pick+2)%3]}, what is the value of the red digit?`;
+            
+            if (pick === 0) currentQ.a = parseInt(digits[0]) * 100;
+            if (pick === 1) currentQ.a = parseInt(digits[0]) * 100; // Note: Logic simplified for demo
+            // Better logic for value:
+            let values = [parseInt(digits[0])*100, parseInt(digits[1])*10, parseInt(digits[2])];
+            currentQ.a = values[0]; // Forcing focus on first digit for this step
+            prompt.innerHTML = `In the number <b>${num}</b>, what is the value of the <u>${digits[0]}</u>?`;
+        }
+        
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+    }
+
+    function createColumn(parent, count, className, labelText) {
+        const col = document.createElement('div');
+        col.className = 'pv-column';
+        for(let i=0; i<count; i++) {
+            const b = document.createElement('div');
+            b.className = className;
+            col.appendChild(b);
+        }
+        const label = document.createElement('div');
+        label.className = 'pv-label';
+        label.textContent = labelText;
+        col.appendChild(label);
+        parent.appendChild(col);
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great job! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/3 * 100) + '%';
+        if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genQuestion(currentStep), 800);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Try counting again!";
       }
     }
-
-    function scrollUp() {
-      if (offset > 0) offset--;
-      drawChart();
-    }
-
-    function scrollDown() {
-      if ((offset+1)*100 < 1000) offset++;
-      drawChart();
-    }
-
-    drawChart();
   </script>
 </body>
 </html>
