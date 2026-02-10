@@ -1,209 +1,449 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>2nd Grade Lesson: Numbers to 1000</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Numbers to 1000</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: 'Comic Sans MS', sans-serif;
-      background: #f0f9ff;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+    :root {
+      --math-blue: #1865f2;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #00a60e;
+      --locked: #bdc3c7;
+      --block-color: #4cd137;
+      --block-border: #44bd32;
     }
-    header {
-      background: #4CAF50;
-      color: white;
-      padding: 20px;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    section {
-      margin: 20px auto;
-      padding: 20px;
-      max-width: 800px;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    h2 {
-      color: #4CAF50;
-    }
-    .question {
-      margin: 15px 0;
-      font-size: 20px;
-    }
-    input[type="number"] {
-      padding: 8px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: 2px solid #4CAF50;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    .feedback {
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    #numberChart {
-      margin-top: 30px;
-      border: 2px solid #4CAF50;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Navigation Styles */
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; transition: background 0.2s; }
+    .nav-item:hover { background: #f0f0f0; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #e8f0fe; color: var(--math-blue); font-weight: bold; border-left: 5px solid var(--math-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    /* Main Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.3s ease-in; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Buttons & Inputs */
+    .btn { background: var(--math-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; margin-top: 20px; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    
+    input[type="number"] { width:120px; font-size:32px; text-align:center; padding:10px; border:2px solid var(--border); border-radius:8px; outline: none; transition: 0.2s; }
+    input[type="number"]:focus { border-color: var(--math-blue); }
+
+    /* Video Wrapper */
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* BASE-10 BLOCK VISUALS (CSS Art) */
+    .viz-container { min-height: 200px; background: #fff; display: flex; align-items: flex-end; justify-content: center; gap: 20px; padding: 20px; margin-bottom: 20px; flex-wrap: wrap;}
+    
+    .group { display: flex; flex-wrap: wrap; gap: 5px; align-items: flex-end; max-width: 220px; justify-content: center; }
+    .label-tag { width: 100%; text-align: center; font-size: 12px; color: #777; font-weight: bold; text-transform: uppercase; margin-top: 5px;}
+
+    /* 100 Block */
+    .b-100 { width: 60px; height: 60px; background: var(--block-color); border: 2px solid var(--block-border); position: relative; background-image: linear-gradient(var(--block-border) 1px, transparent 1px), linear-gradient(90deg, var(--block-border) 1px, transparent 1px); background-size: 6px 6px; box-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+    
+    /* 10 Stick */
+    .b-10 { width: 10px; height: 60px; background: var(--block-color); border: 2px solid var(--block-border); background-image: linear-gradient(var(--block-border) 1px, transparent 1px); background-size: 100% 6px; box-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+    
+    /* 1 Cube */
+    .b-1 { width: 10px; height: 10px; background: var(--block-color); border: 2px solid var(--block-border); box-shadow: 1px 1px 0px rgba(0,0,0,0.1); }
+
+    /* Cheatsheet Styles */
+    .cs-box { background: #f0f7ff; border-left: 5px solid var(--math-blue); padding: 15px; margin: 10px 0; border-radius: 4px; }
+    .cs-title { font-weight: bold; color: var(--math-blue); margin-bottom: 5px; display: block; }
+
+    /* Progress Bar */
+    .progress-track { height:8px; background:#eee; border-radius:4px; margin-bottom:25px; overflow: hidden; }
+    .progress-fill { height:100%; background:var(--success); width:0%; transition:width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
   </style>
 </head>
 <body>
-  <header>2nd Grade Lesson: Numbers to 1000</header>
 
-  <section>
-    <h2>📖 Introduction</h2>
-    <p>In 2nd grade, we learn numbers all the way up to <b>1000</b>!  
-    Numbers are grouped into <b>hundreds, tens, and ones</b>.  
-    For example: <br>
-    <b>527</b> = 5 hundreds + 2 tens + 7 ones.</p>
-  </section>
-
-  <section>
-    <h2>🧮 Practice: Numbers to 1000</h2>
-    <div class="question">
-      What number comes after <b>249</b>?<br>
-      <input type="number" id="q1"> 
-      <button onclick="checkAnswer(1, 250)">Check</button>
-      <div class="feedback" id="f1"></div>
+  <nav>
+    <div class="nav-header">
+      <div style="font-size: 20px; font-weight: bold;">Place Value Lab</div>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
     </div>
-    <div class="question">
-      What number comes before <b>600</b>?<br>
-      <input type="number" id="q2"> 
-      <button onclick="checkAnswer(2, 599)">Check</button>
-      <div class="feedback" id="f2"></div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Intro to Place Value</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Cheatsheet: H-T-O</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Block Party</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Expanded Form</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Big or Small?</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: What's it Worth?</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Number Master</div>
     </div>
-    <div class="question">
-      Fill in the missing number: <b>700, 710, ___, 730</b><br>
-      <input type="number" id="q3"> 
-      <button onclick="checkAnswer(3, 720)">Check</button>
-      <div class="feedback" id="f3"></div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Welcome to Place Value!</h1>
+        <p>Numbers are made of digits. The position of a digit tells us how much it is worth.</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <p>Watch the video to learn about Hundreds, Tens, and Ones!</p>
+        <button class="btn" onclick="saveStepProgress(0, 1)">I Watched It!</button>
     </div>
-  </section>
 
-<p>
-      In 2nd grade, we expand from counting to 100 all the way up to 1,000!  
-      Numbers are organized into hundreds, tens, and ones.  
-      A chart can help us see patterns as numbers grow larger.
-    </p>
+    <div id="p1" class="content-card">
+      <h1>Cheat Sheet: Numbers to 1000</h1>
+      
+      <div class="cs-box">
+        <span class="cs-title">1. Standard Form</span>
+        Writing the number normally.<br>
+        Example: <b>345</b>
+      </div>
 
-    <h2>How to Do It</h2>
-    <p>
-      • Numbers 1–9 are the building blocks.  
-      • After 9 comes 10, then 20, 30, and so on until 100.  
-      • Hundreds stack on top: 100, 200, 300 … all the way to 1000.  
-      • Look at the number chart below to see the order and patterns!
-    </p>
+      <div class="cs-box">
+        <span class="cs-title">2. Expanded Form</span>
+        Breaking the number apart.<br>
+        Example: <b>300 + 40 + 5</b>
+      </div>
 
-    <h2>Interactive Number Chart</h2>
-    <canvas id="numberChart" width="600" height="400"></canvas>
-    <div class="controls">
-      <button onclick="scrollUp()">⬆ Up</button>
-      <button onclick="scrollDown()">⬇ Down</button>
+      <div class="cs-box">
+        <span class="cs-title">3. The Blocks</span>
+        <div style="display: flex; gap: 20px; margin-top: 10px; align-items: flex-end;">
+            <div style="text-align:center;"><div class="b-100" style="margin:0 auto;"></div><small>Hundred</small></div>
+            <div style="text-align:center;"><div class="b-10" style="margin:0 auto;"></div><small>Ten</small></div>
+            <div style="text-align:center;"><div class="b-1" style="margin:0 auto;"></div><small>One</small></div>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
     </div>
-  </div>
+
+    <div id="p-practice" class="content-card">
+      <div class="progress-track"><div id="pb-fill" class="progress-fill"></div></div>
+      
+      <div id="q-text" style="font-size: 24px; text-align: center; font-weight: bold; margin-bottom: 20px; color: #333;">Question Loading...</div>
+      
+      <div id="viz-area" class="viz-container"></div>
+      
+      <div id="compare-buttons" style="display:none; justify-content: center; gap: 20px; margin-bottom: 20px;">
+          <button class="btn" onclick="checkComparison(1)">Greater (&gt;)</button>
+          <button class="btn" onclick="checkComparison(2)">Less (&lt;)</button>
+          <button class="btn" onclick="checkComparison(3)">Equal (=)</button>
+      </div>
+
+      <div id="input-area" style="text-align:center;">
+        <input type="number" id="q-input" placeholder="?">
+        <br>
+        <button class="btn" onclick="checkAnswer()">Check Answer</button>
+      </div>
+
+      <div id="feedback" style="text-align:center; margin-top:20px; font-weight:bold; height:24px; font-size: 18px;"></div>
+    </div>
+
+    <div id="p6" class="content-card">
+        <div style="text-align: center;">
+            <div style="font-size: 80px;">🏆</div>
+            <h1>Number Master!</h1>
+            <p>You can count, build, and understand numbers up to 1000.</p>
+            <div style="background: #e8f0fe; padding: 20px; border-radius: 10px; color: var(--math-blue);">
+                <h2>100% Complete</h2>
+            </div>
+            <br>
+            <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Finish Course</button>
+        </div>
+    </div>
+  </main>
 
   <script>
-    const canvas = document.getElementById("numberChart");
-    const ctx = canvas.getContext("2d");
+    /* --- CONFIGURATION --- */
+    const lessonID = "2nd_grade_numbers_1000";
+    // NOTE: This is a demo public config. In production, use your own environment variables.
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    const numbersPerRow = 10;
-    const cellWidth = 60;
-    const cellHeight = 40;
-    const visibleRows = 10; // visible at once
-    const totalNumbers = 1000;
+    /* --- INITIALIZATION --- */
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    let startRow = 0; // row index to start drawing
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    const QUESTIONS_TO_PASS = 4;
+    let currentAnswer = 0;
+    
+    // Auth Listener
+    auth.onAuthStateChanged(user => {
+      if (user) { 
+          currentUser = user; 
+          syncProgress(); 
+      } else { 
+          // Simulate login for demo if no auth system exists on parent page
+          console.log("No user found, redirecting to login or anonymous...");
+          // In a real app: window.location.href = "/login";
+      }
+    });
 
-    function drawChart() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = "16px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+    /* --- DATABASE & NAVIGATION LOGIC --- */
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      
+      // Default state if new user
+      stepsCompleted = doc.exists ? doc.data().steps : { 
+          step_0: false, step_1: false, step_2: false, 
+          step_3: false, step_4: false, step_5: false, step_6: false 
+      };
+      updateSidebar();
+    }
 
-      for (let row = 0; row < visibleRows; row++) {
-        for (let col = 0; col < numbersPerRow; col++) {
-          let number = (startRow + row) * numbersPerRow + col + 1;
-          if (number > totalNumbers) return;
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      if (currentUser) {
+        const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+        await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      }
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
 
-          let x = col * cellWidth + cellWidth / 2;
-          let y = row * cellHeight + cellHeight / 2;
-
-          ctx.strokeStyle = "#999";
-          ctx.strokeRect(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
-
-          ctx.fillStyle = "#000";
-          ctx.fillText(number, x, y);
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        // Allow access if previous step is done OR if it's the first step
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        
+        item.classList.remove('completed', 'locked', 'active');
+        
+        if (isDone) { 
+            item.classList.add('completed'); 
+            completedCount++; 
+        }
+        
+        if (!isPrevDone) {
+            item.classList.add('locked');
+        } else if (currentStep === i) {
+            item.classList.add('active');
         }
       }
+      
+      const btn = document.getElementById('mastery-btn');
+      if(btn) btn.disabled = !stepsCompleted.step_5;
+      
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    function scrollUp() {
-      if (startRow > 0) {
-        startRow--;
-        drawChart();
-      }
+    function showPage(index) {
+      // Prevent jumping to locked levels
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      
+      updateSidebar();
+      
+      if(index >= 2 && index <= 5) setupPractice(index);
     }
 
-    function scrollDown() {
-      let maxRow = Math.ceil(totalNumbers / numbersPerRow) - visibleRows;
-      if (startRow < maxRow) {
-        startRow++;
-        drawChart();
-      }
+    /* --- GAME ENGINE --- */
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      document.getElementById('q-input').value = '';
+      document.getElementById('feedback').textContent = '';
+      generateQuestion(step);
     }
 
-    // Initial draw
-    drawChart();
-  </script>
+    function generateQuestion(step) {
+        const viz = document.getElementById('viz-area');
+        const prompt = document.getElementById('q-text');
+        const inputArea = document.getElementById('input-area');
+        const compareBtns = document.getElementById('compare-buttons');
+        const input = document.getElementById('q-input');
 
-  <script>
-    function checkAnswer(q, correct) {
-      let input = document.getElementById("q"+q).value;
-      let feedback = document.getElementById("f"+q);
-      if (parseInt(input) === correct) {
-        feedback.innerHTML = "✅ Correct!";
-        feedback.style.color = "green";
-      } else {
-        feedback.innerHTML = "❌ Try Again!";
-        feedback.style.color = "red";
-      }
+        viz.innerHTML = ''; // Clear board
+        input.value = '';
+        inputArea.style.display = 'block';
+        compareBtns.style.display = 'none';
+
+        // --- LEVEL 2: BLOCK PARTY (Counting Visuals) ---
+        if (step === 2) {
+            const h = Math.floor(Math.random() * 3) + 1; // 100-300
+            const t = Math.floor(Math.random() * 5);     // 0-40
+            const o = Math.floor(Math.random() * 9);     // 0-9
+            
+            prompt.textContent = "What number is shown below?";
+            drawBlocks(h, t, o);
+            currentAnswer = (h*100) + (t*10) + o;
+        } 
+        
+        // --- LEVEL 3: EXPANDED FORM ---
+        else if (step === 3) {
+            const h = Math.floor(Math.random() * 8) + 1; // 1-9
+            const t = Math.floor(Math.random() * 9) + 1; // 1-9
+            const o = Math.floor(Math.random() * 9) + 1; // 1-9
+            const total = (h*100) + (t*10) + o;
+
+            // Randomly hide one part
+            const mode = Math.random();
+            if(mode < 0.33) {
+                // Hide Hundreds
+                prompt.innerHTML = `? + ${t*10} + ${o} = ${total}`;
+                currentAnswer = h*100;
+            } else if (mode < 0.66) {
+                // Hide Tens
+                prompt.innerHTML = `${h*100} + ? + ${o} = ${total}`;
+                currentAnswer = t*10;
+            } else {
+                // Hide Ones
+                prompt.innerHTML = `${h*100} + ${t*10} + ? = ${total}`;
+                currentAnswer = o;
+            }
+            viz.innerHTML = `<div style="font-size:60px; color:#ccc;">${total}</div>`;
+        }
+
+        // --- LEVEL 4: COMPARISON ---
+        else if (step === 4) {
+            const n1 = Math.floor(Math.random() * 900) + 100;
+            let n2 = n1 + (Math.floor(Math.random() * 40) - 20); // Close number
+            if (n2 === n1) n2 = n1 + 10; 
+
+            prompt.textContent = `Is ${n1} Greater, Less, or Equal to ${n2}?`;
+            viz.innerHTML = `<div style="display:flex; gap:50px; align-items:center; font-size:50px; font-weight:bold;">
+                <div>${n1}</div>
+                <div style="width:60px; height:60px; border:3px dashed #ccc; border-radius:8px;"></div>
+                <div>${n2}</div>
+            </div>`;
+            
+            inputArea.style.display = 'none';
+            compareBtns.style.display = 'flex';
+            
+            if (n1 > n2) currentAnswer = 1;
+            else if (n1 < n2) currentAnswer = 2;
+            else currentAnswer = 3;
+        }
+
+        // --- LEVEL 5: WHAT'S IT WORTH (Place Value) ---
+        else if (step === 5) {
+            const h = Math.floor(Math.random() * 9) + 1;
+            const t = Math.floor(Math.random() * 9) + 1;
+            const o = Math.floor(Math.random() * 9) + 1;
+            const number = "" + h + t + o;
+            
+            // Pick a random digit index (0, 1, or 2)
+            const index = Math.floor(Math.random() * 3);
+            const digits = [h, t, o];
+            const places = ["Hundreds", "Tens", "Ones"];
+            const values = [h*100, t*10, o];
+            
+            prompt.innerHTML = `In the number <span style="color:var(--math-blue); font-size:1.2em;">${number}</span>, what is the value of the <b>${digits[index]}</b>?`;
+            
+            // Draw simple representation
+            viz.innerHTML = `<div style="font-size:20px; color:#777;">Hint: It's in the ${places[index]} place.</div>`;
+            currentAnswer = values[index];
+        }
     }
 
-    // Generate number chart (1–1000)
-    const canvas = document.getElementById("numberCwhart");
-    const ctx = canvas.getContext("2d");
-    ctx.font = "12px Arial";
-    let cols = 20; // 20 numbers per row
-    let size = 35;
-    let num = 1;
+    function drawBlocks(h, t, o) {
+        const container = document.getElementById('viz-area');
+        
+        let html = '';
+        
+        // Hundreds Group
+        if(h > 0) {
+            html += '<div class="group">';
+            for(let i=0; i<h; i++) html += '<div class="b-100"></div>';
+            html += '<div class="label-tag">Hundreds</div></div>';
+        }
+        
+        // Tens Group
+        if(t > 0) {
+            html += '<div class="group">';
+            for(let i=0; i<t; i++) html += '<div class="b-10"></div>';
+            html += '<div class="label-tag">Tens</div></div>';
+        }
 
-    for (let row = 0; row < 50; row++) { // 50 rows = 1000 numbers
-      for (let col = 0; col < cols; col++) {
-        let x = col * size + 5;
-        let y = row * size + 15;
-        ctx.fillText(num, x, y);
-        num++;
-        if (num > 1000) break;
-      }
-      if (num > 1000) break;
+        // Ones Group
+        if(o > 0) {
+            html += '<div class="group" style="align-content:flex-end;">';
+            for(let i=0; i<o; i++) html += '<div class="b-1"></div>';
+            html += '<div class="label-tag">Ones</div></div>';
+        }
+
+        container.innerHTML = html;
     }
+
+    function checkAnswer() {
+        const val = parseInt(document.getElementById('q-input').value);
+        validate(val);
+    }
+
+    function checkComparison(val) {
+        validate(val);
+    }
+
+    function validate(userVal) {
+        const fb = document.getElementById('feedback');
+        
+        if (userVal === currentAnswer) {
+            fb.style.color = "var(--success)";
+            fb.innerHTML = "Correct! 🎉";
+            practiceCount++;
+            
+            const pct = (practiceCount / QUESTIONS_TO_PASS) * 100;
+            document.getElementById('pb-fill').style.width = pct + '%';
+
+            if (practiceCount >= QUESTIONS_TO_PASS) {
+                setTimeout(() => {
+                    saveStepProgress(currentStep, currentStep + 1);
+                }, 1000);
+            } else {
+                setTimeout(() => { 
+                    fb.textContent = ""; 
+                    generateQuestion(currentStep); 
+                }, 1000);
+            }
+        } else {
+            fb.style.color = "#e74c3c";
+            fb.textContent = "Not quite. Try again!";
+            shakeContent();
+        }
+    }
+
+    function shakeContent() {
+        const c = document.getElementById('p-practice');
+        c.style.transform = "translateX(5px)";
+        setTimeout(() => c.style.transform = "translateX(-5px)", 50);
+        setTimeout(() => c.style.transform = "translateX(5px)", 100);
+        setTimeout(() => c.style.transform = "translateX(0)", 150);
+    }
+
   </script>
 </body>
 </html>
