@@ -1,194 +1,254 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Measurement (cm and in)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Measuring Mountain (cm/in)</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fdf6e3;
-      color: #333;
-      padding: 20px;
-      line-height: 1.6;
+    :root {
+      --math-blue: #34495e;
+      --ruler-yellow: #f1c40f;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    h1 {
-      color: #2e6da4;
-    }
-    .lesson-section {
-      margin-bottom: 30px;
-      padding: 20px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-    }
-    button {
-      background: #2e6da4;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      margin: 5px 0;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #245580;
-    }
-    input[type="number"] {
-      padding: 5px;
-      margin: 5px 0;
-      width: 100px;
-    }
-    #canvasContainer {
-      text-align: center;
-      margin-top: 20px;
-    }
-    canvas {
-      border: 1px solid #333;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #ebedef; color: var(--math-blue); font-weight: bold; border-left: 5px solid var(--math-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #eee; border: 2px dashed #ccc; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Ruler Visualizer */
+    .measurement-stage { background: #fff; padding: 40px; border-radius: 10px; margin: 20px 0; display: flex; flex-direction: column; align-items: flex-start; position: relative; min-height: 200px; }
+    .object-to-measure { height: 40px; background: #e74c3c; border-radius: 5px; margin-bottom: 20px; transition: 0.3s; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    .virtual-ruler { width: 100%; height: 60px; background: var(--ruler-yellow); border: 2px solid #d4ac0d; position: relative; display: flex; align-items: flex-start; }
+    .tick { position: absolute; bottom: 0; width: 2px; background: #333; }
+    .tick-label { position: absolute; top: 5px; font-size: 12px; font-weight: bold; transform: translateX(-50%); }
+
+    .unit-badge { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+    .in-badge { background: #d5f5e3; color: #1d8348; }
+    .cm-badge { background: #ebf5fb; color: #2874a6; }
   </style>
 </head>
 <body>
-  <h1>📏 Measurement (cm and in)</h1>
 
-  <div class="lesson-section">
-    <h2>Introduction</h2>
-    <p>
-      Measurement is how we find out the size or length of something. Two common units are:
-    </p>
-    <ul>
-      <li><b>Centimeters (cm)</b>: used in the metric system. 1 meter = 100 cm.</li>
-      <li><b>Inches (in)</b>: used in the US customary system. 1 foot = 12 inches.</li>
-    </ul>
-    <p>
-      The key relationship is: <b>1 inch ≈ 2.54 cm</b>.  
-      That means every inch is about 2 and a half centimeters.
-    </p>
-  </div>
-
-  <div class="lesson-section">
-    <h2>Examples</h2>
-    <p>
-      Let’s look at some real-world measurements:
-    </p>
-    <ul>
-      <li>A crayon might be <b>10 cm</b> long, which is about <b>4 in</b>.</li>
-      <li>A sheet of paper is about <b>28 cm</b> tall, or <b>11 in</b>.</li>
-      <li>A smartphone is around <b>15 cm</b>, or <b>6 in</b>.</li>
-    </ul>
-  </div>
-
-  <div class="lesson-section">
-    <h2>Conversion Practice</h2>
-    <p>Convert between centimeters and inches:</p>
-
-    <label>Centimeters ➡ Inches: </label><br>
-    <input type="number" id="cmInput" placeholder="cm">
-    <button onclick="convertToInches()">Convert</button>
-    <p id="inchResult"></p>
-
-    <label>Inches ➡ Centimeters: </label><br>
-    <input type="number" id="inInput" placeholder="in">
-    <button onclick="convertToCm()">Convert</button>
-    <p id="cmResult"></p>
-  </div>
-
-  <div class="lesson-section">
-    <h2>Interactive Measurement Tool</h2>
-    <p>
-      Use the canvas below to <b>measure objects</b>. Click the buttons to switch between a
-      centimeter ruler and an inch ruler.
-    </p>
-    <div id="canvasContainer">
-      <button onclick="drawCmRuler()">📏 Show cm Ruler</button>
-      <button onclick="drawInchRuler()">📐 Show in Ruler</button>
-      <canvas id="rulerCanvas" width="600" height="120"></canvas>
+  <nav>
+    <div class="nav-header">
+      <strong>Measuring Mountain</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
     </div>
-  </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Inches & Centimeters</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Start at Zero!</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Measure in Inches</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: Measure in Centimeters</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Which is Longer?</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Tool Choice</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Master of Length</div>
+    </div>
+  </nav>
 
-  <div class="lesson-section">
-    <h2>Practice Problems</h2>
-    <ol>
-      <li>Your pencil is 12 cm long. About how many inches is it?</li>
-      <li>A notebook is 8 inches wide. How many centimeters is that?</li>
-      <li>If a toy car is 20 cm long, is that longer or shorter than 10 inches?</li>
-    </ol>
-    <p><b>Think:</b> Use the fact that 1 in = 2.54 cm to solve these!</p>
-  </div>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>How Long is It?</h1>
+        <p>We use rulers to find the length of objects. Today, we'll use <b>Inches</b> and <b>Centimeters</b>.</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Learn the Rules!</button>
+    </div>
 
-  <div class="lesson-section">
-    <h2>Summary</h2>
-    <p>
-      - Measurement tells us how long something is.<br>
-      - We use <b>cm</b> in the metric system and <b>in</b> in the US system.<br>
-      - 1 in ≈ 2.54 cm.<br>
-      - You can convert back and forth using this relationship.<br>
-      - Practice helps you get familiar with both units!
-    </p>
-  </div>
+    <div id="p1" class="content-card">
+      <h1>The Golden Rule: Start at Zero</h1>
+      <p>Always line up the edge of your object with the <b>0</b> mark on your ruler.</p>
+      
+      
+
+      <div style="background: #fdfefe; border: 1px solid var(--border); padding: 20px; border-radius: 10px; margin: 20px 0;">
+          <p><b>📏 Inches (in):</b> Bigger units. About the length of a paperclip.</p>
+          <p><b>📏 Centimeters (cm):</b> Smaller units. About the width of your pinky finger.</p>
+          <p><i>Hint: There are about 2 and a half centimeters in 1 inch!</i></p>
+      </div>
+
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Measuring!</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 22px; text-align: center; font-weight: bold;">How many inches long is this block?</div>
+      
+      <div class="measurement-stage">
+          <div id="unit-label" class="unit-badge in-badge">INCHES</div>
+          <div id="object" class="object-to-measure" style="width: 150px; background: #3498db;"></div>
+          <div class="virtual-ruler" id="ruler">
+              </div>
+      </div>
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" style="width:100px; font-size:32px; text-align:center; padding:10px; border:2px solid var(--math-blue); border-radius:8px;">
+        <br><br>
+        <button class="btn" onclick="checkPractice()">Check Length</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 60px;">📐</h1>
+        <h1>Master of Length!</h1>
+        <p>You can accurately measure in both inches and centimeters. You're ready to build something great!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Course</button>
+    </div>
+  </main>
 
   <script>
-    function convertToInches() {
-      let cm = parseFloat(document.getElementById("cmInput").value);
-      if (!isNaN(cm)) {
-        let inches = (cm / 2.54).toFixed(2);
-        document.getElementById("inchResult").innerText = cm + " cm ≈ " + inches + " in";
-      }
+    const lessonID = "2nd_grade_measurement_intro";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    function convertToCm() {
-      let inches = parseFloat(document.getElementById("inInput").value);
-      if (!isNaN(inches)) {
-        let cm = (inches * 2.54).toFixed(2);
-        document.getElementById("cmResult").innerText = inches + " in ≈ " + cm + " cm";
-      }
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
     }
 
-    function drawCmRuler() {
-      let c = document.getElementById("rulerCanvas");
-      let ctx = c.getContext("2d");
-      ctx.clearRect(0, 0, c.width, c.height);
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
 
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, c.width, c.height);
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
 
-      ctx.strokeStyle = "#000";
-      ctx.beginPath();
-      for (let i = 0; i <= 600; i += 10) { // every cm = 10px
-        let height = (i % 50 === 0) ? 40 : (i % 10 === 0) ? 25 : 15;
-        ctx.moveTo(i, 100);
-        ctx.lineTo(i, 100 - height);
-        if (i % 50 === 0) {
-          ctx.fillText(i/10 + " cm", i + 2, 110);
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genMeasureQ(step);
+    }
+
+    function genMeasureQ(step) {
+        const ruler = document.getElementById('ruler');
+        const obj = document.getElementById('object');
+        const badge = document.getElementById('unit-label');
+        const prompt = document.getElementById('q-prompt');
+        ruler.innerHTML = "";
+        
+        let unit = (step === 3) ? 'cm' : 'in';
+        if (step === 4 || step === 5) unit = Math.random() > 0.5 ? 'cm' : 'in';
+
+        badge.textContent = unit === 'in' ? 'INCHES' : 'CENTIMETERS';
+        badge.className = unit === 'in' ? 'unit-badge in-badge' : 'unit-badge cm-badge';
+        prompt.textContent = `How many ${unit === 'in' ? 'inches' : 'centimeters'} long is the block?`;
+
+        let pixelsPerUnit = unit === 'in' ? 50 : 20;
+        let maxUnits = unit === 'in' ? 10 : 25;
+        let targetLength = Math.floor(Math.random() * (maxUnits - 2)) + 2;
+        
+        obj.style.width = (targetLength * pixelsPerUnit) + "px";
+        obj.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        currentQ.a = targetLength;
+
+        // Draw Ticks
+        for(let i=0; i <= maxUnits; i++) {
+            const t = document.createElement('div');
+            t.className = 'tick';
+            t.style.height = (i % 5 === 0) ? '30px' : '15px';
+            t.style.left = (i * pixelsPerUnit) + "px";
+            
+            const l = document.createElement('div');
+            l.className = 'tick-label';
+            l.style.left = (i * pixelsPerUnit) + "px";
+            l.textContent = i;
+            
+            ruler.appendChild(t);
+            ruler.appendChild(l);
         }
-      }
-      ctx.stroke();
+
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
     }
 
-    function drawInchRuler() {
-      let c = document.getElementById("rulerCanvas");
-      let ctx = c.getContext("2d");
-      ctx.clearRect(0, 0, c.width, c.height);
-
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, c.width, c.height);
-
-      ctx.strokeStyle = "#000";
-      ctx.beginPath();
-      for (let i = 0; i <= 600; i += 25.4) { // 1 inch ≈ 25.4px
-        let height = (Math.round(i) % Math.round(25.4*5) === 0) ? 40 : 25;
-        ctx.moveTo(i, 100);
-        ctx.lineTo(i, 100 - height);
-        if (Math.round(i) % Math.round(25.4*1) === 0) {
-          ctx.fillText((i/25.4).toFixed(0) + " in", i + 2, 110);
-        }
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Perfect measurement! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genMeasureQ(currentStep), 1000);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Look closely at the numbers!";
       }
-      ctx.stroke();
     }
-
-    // draw default cm ruler
-    drawCmRuler();
   </script>
 </body>
 </html>
