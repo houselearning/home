@@ -3,175 +3,132 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>2nd Grade Math: Subtract within 100</title>
-  
+  <title>2nd Grade Math: 2-Digit Subtraction</title>
+    
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <style>
     :root {
-      --math-red: #e74c3c;
+      --math-orange: #e67e22;
       --bg-gray: #f6f7f9;
       --border: #d6d8db;
       --success: #27ae60;
       --locked: #bdc3c7;
-      --accent-orange: #ff9800;
+      --borrow-color: #c0392b;
     }
 
     body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
-
-    /* Sidebar */
+    
     nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-    .nav-header { padding: 25px; background: var(--math-red); color: white; }
-    
-    .nav-item {
-      padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9;
-      display: flex; align-items: center; color: #555; font-size: 14px; position: relative;
-      transition: 0.2s;
-    }
-    
+    .nav-header { padding: 25px; background: var(--math-orange); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
     .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
-    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; font-size: 12px; }
-    .nav-item.active { background: #fdf2f2; color: var(--math-red); font-weight: bold; border-left: 5px solid var(--math-red); }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #fff5e6; color: var(--math-orange); font-weight: bold; border-left: 5px solid var(--math-orange); }
     .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
 
-    /* Content Area */
     main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
-    .content-card { background: white; width: 100%; max-width: 900px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .content-card.active { display: block; }
     
-    .btn { background: var(--math-red); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; margin: 5px; }
-    .btn:hover:not(:disabled) { background: #c0392b; }
-    .btn.secondary { background: var(--accent-orange); }
+    .btn { background: var(--math-orange); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
     .btn:disabled { background: var(--locked); cursor: not-allowed; }
 
-    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #eee; border: 2px dashed #ccc; }
     .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
-    /* Subtraction Specifics */
-    .math-eqn { font-size: 48px; font-weight: bold; color: #333; margin: 20px 0; display: flex; align-items: center; gap: 15px; justify-content: center; }
-    pre.math { background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #eee; display: inline-block; }
-    .canvas-wrap { border: 2px solid #eee; border-radius: 12px; background: #fff; padding: 10px; margin-top: 15px; width: 100%; }
-    canvas { display: block; width: 100%; height: auto; background: #fff; border-radius: 8px; }
+    /* Vertical Math Problem */
+    .math-problem { font-family: 'Courier New', monospace; font-size: 54px; text-align: right; width: 160px; margin: 30px auto; line-height: 1.1; position: relative; letter-spacing: 5px; }
+    .math-line { border-bottom: 4px solid #333; margin-top: 5px; margin-bottom: 10px; }
+    .minus-sign { position: absolute; left: -45px; bottom: 65px; }
     
-    .vprob { display: inline-grid; grid-template-columns: auto auto; gap: 6px; align-items: center; padding: 20px; background: #fff; border: 2px solid #eee; border-radius: 10px; font-size: 2rem; }
-    .vprob .col { display: flex; flex-direction: column; align-items: flex-end; }
-    .line { height: 3px; background: #333; width: 100%; margin-top: 4px; }
-    .carry { font-size: 1rem; color: #e74c3c; height: 1.2rem; font-weight: bold; }
+    /* Regrouping Visuals */
+    .regroup-marks { position: absolute; top: -35px; width: 100%; display: flex; justify-content: flex-end; gap: 15px; font-size: 22px; color: var(--borrow-color); font-weight: bold; }
+    .strike { text-decoration: line-through; color: #999; }
+
+    .hint-box { background: #fff4e5; border-left: 5px solid var(--math-orange); padding: 15px; margin: 20px 0; border-radius: 5px; }
   </style>
 </head>
 <body>
 
   <nav>
     <div class="nav-header">
-      <strong>Subtraction within 100</strong>
-      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Checking Progress...</div>
+      <strong>Subtraction Station</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
     </div>
     <div id="nav-list">
-      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Subtraction Video</div>
-      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 The Regrouping Rule</div>
-      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🧪 Regrouping Lab</div>
-      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 📉 Number Line Tool</div>
-      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: No Regrouping</div>
-      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Regrouping!</div>
-      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Mastery Quiz</div>
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 Taking Away Video</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 Borrowing from Tens</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Basic Subtract</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: The Big Borrow</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Subtraction Pro</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Word Riddles</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Subtraction Master</div>
     </div>
   </nav>
 
   <main>
     <div id="p0" class="content-card active">
-        <h1>Subtraction Video</h1>
+        <h1>Subtracting 2-Digit Numbers</h1>
+        <p>Subtraction is just taking things away! Today we'll learn how to subtract big numbers.</p>
         <div class="video-container">
           <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
         </div>
-        <p>Watch how we "borrow" a ten to help the ones place!</p>
-        <br><button class="btn" onclick="saveStepProgress(0, 1)">Finish Video</button>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">I'm Ready to Subtract!</button>
     </div>
 
     <div id="p1" class="content-card">
-      <h1>The Regrouping Rule</h1>
-      <p>When the bottom number in the ones place is <b>bigger</b> than the top number, we must regroup.</p>
+      <h1>The Borrowing Rule</h1>
+      <p>If the number on the bottom is <b>BIGGER</b> than the number on top in the Ones column, you must borrow!</p>
       
-      <div style="display:flex; gap:20px; justify-content:center;">
-        <div style="text-align:center">
-            <span style="color:var(--success)">Easy (No Regrouping)</span><br>
-            <pre class="math">  5 8<br>- 2 3<br>-----<br>  3 5</pre>
-        </div>
-        <div style="text-align:center">
-            <span style="color:var(--math-red)">Regrouping Needed</span><br>
-            <pre class="math">  6 3<br>- 2 7<br>-----<br>  ??</pre>
-        </div>
+      <div class="hint-box">
+          <p><b>Step 1:</b> Look at the Ones column. Is Top < Bottom?</p>
+          <p><b>Step 2:</b> Go to your neighbor (the Tens column) and take 1 Ten.</p>
+          <p><b>Step 3:</b> Now you have 10 more ones! Subtract normally.</p>
       </div>
-      <p><i>"More on the floor? Go next door and get 10 more!"</i></p>
-      <button class="btn" onclick="saveStepProgress(1, 2)">Try the Lab</button>
-    </div>
 
-    <div id="p2" class="content-card">
-      <h1>🧪 Regrouping Lab</h1>
-      <p>Watch a "Ten Rod" break into 10 "Ones" to help you subtract.</p>
-      <div style="margin-bottom:10px;">
-        Top: <input id="labTop" type="number" value="63" style="width:60px"> 
-        Bottom: <input id="labBot" type="number" value="27" style="width:60px">
-        <button class="btn" onclick="drawLab()">Set</button>
-        <button class="btn secondary" onclick="animateBorrow()">Borrow Step</button>
+      <div style="text-align: center; font-family: monospace; font-size: 24px;">
+          <span style="color:var(--borrow-color)">3</span> 12<br>
+          <span class="strike">4</span> 2<br>
+          - 1 8<br>
+          -------<br>
+          2 4
       </div>
-      <div class="canvas-wrap">
-        <canvas id="labCanvas" width="800" height="260"></canvas>
-      </div>
-      <p id="labMsg" style="font-weight:bold; color:var(--math-red)"></p>
-      <button class="btn" onclick="saveStepProgress(2, 3)">Next: Number Line</button>
-    </div>
-
-    <div id="p3" class="content-card">
-        <h1>📉 Number Line Jumps</h1>
-        <p>Subtracting is like jumping backwards on a number line.</p>
-        <div class="canvas-wrap">
-          <canvas id="lineCanvas" width="800" height="200"></canvas>
-        </div>
-        <div style="text-align:center; margin-top:15px;">
-            <button class="btn" onclick="demoNumberLine(58, 23)">Jump 58 - 23</button>
-            <button class="btn secondary" onclick="demoNumberLine(72, 48)">Jump 72 - 48</button>
-        </div>
-        <br><button class="btn" onclick="saveStepProgress(3, 4)">Start Practice</button>
+      <br>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
     </div>
 
     <div id="p-practice" class="content-card">
-      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%;"></div></div>
-      <h2 id="practice-title" style="text-align: center;">Practice</h2>
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 20px; text-align: center; margin-bottom: 10px;">Find the difference:</div>
       
-      <div style="display:flex; justify-content:center; margin: 30px 0;">
-          <div class="vprob">
-            <div class="col">
-                <span class="carry" id="vCarry"></span>
-                <span id="vTop">00</span>
-                <div class="line"></div>
-                <span id="vBot">00</span>
-            </div>
-            <div style="display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:5px;">
-                <span>−</span>
-            </div>
-          </div>
+      <div class="math-problem">
+          <div id="regroup-ui" class="regroup-marks"></div>
+          <div id="num1">55</div>
+          <div id="num2">21<span class="minus-sign">-</span></div>
+          <div class="math-line"></div>
       </div>
-
-      <div style="text-align:center">
-        <input type="number" id="q-input" style="font-size:32px; width:120px; text-align:center; padding:10px;">
+      
+      <div style="text-align:center;">
+        <input type="number" id="q-input" placeholder="?" style="width:140px; font-size:32px; text-align:center; padding:10px; border:2px solid var(--math-orange); border-radius:8px;">
         <br><br>
         <button class="btn" onclick="checkPractice()">Check Answer</button>
-        <p id="p-feedback" style="font-weight:bold; height:20px;"></p>
       </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
     </div>
 
-    <div id="p6" class="content-card">
-        <h1>🏆 Unit Mastery</h1>
-        <p>You can subtract any two-digit numbers, even with regrouping!</p>
-        <div id="final-stats"></div>
-        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Unit</button>
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 60px;">🏆</h1>
+        <h1>Subtraction Master!</h1>
+        <p>You can subtract 2-digit numbers even when you need to borrow. You're ready for 3-digits!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Finish Course</button>
     </div>
   </main>
 
   <script>
-    const lessonID = "2nd_grade_sub_100_regroup";
+    const lessonID = "2nd_grade_subtraction_2digit";
     const firebaseConfig = {
       apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
       authDomain: "contract-center-llc-10.firebaseapp.com",
@@ -186,15 +143,13 @@
     const db = firebase.firestore();
 
     let currentUser = null;
-    let stepsCompleted = {}; 
+    let stepsCompleted = {};
     let currentStep = 0;
     let practiceCount = 0;
     let currentQ = {};
 
-    /* --- Firebase Sync --- */
     auth.onAuthStateChanged(user => {
       if (user) { currentUser = user; syncProgress(); }
-      else { window.location.href = "/auth"; }
     });
 
     async function syncProgress() {
@@ -212,136 +167,93 @@
       if(stepIdx !== nextIdx) showPage(nextIdx);
     }
 
-    /* --- Navigation --- */
     function updateSidebar() {
       let completedCount = 0;
       for(let i=0; i<7; i++) {
         const item = document.getElementById(`nav-${i}`);
         const isDone = stepsCompleted[`step_${i}`];
         const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
-        item.classList.remove('completed', 'locked');
+        item.className = 'nav-item';
         if (isDone) { item.classList.add('completed'); completedCount++; }
         if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
-      const allPrevDone = stepsCompleted.step_0 && stepsCompleted.step_1 && stepsCompleted.step_2 && stepsCompleted.step_3 && stepsCompleted.step_4 && stepsCompleted.step_5;
-      document.getElementById('mastery-btn').disabled = !allPrevDone;
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
       document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    window.showPage = function(index) {
+    function showPage(index) {
       if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
       document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       currentStep = index;
-      const id = (index >= 4 && index <= 5) ? 'p-practice' : 'p' + index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
       document.getElementById(id).classList.add('active');
-      document.getElementById(`nav-${index}`).classList.add('active');
-      
-      if(index === 2) drawLab();
-      if(index === 3) demoNumberLine(63, 27);
-      if(index >= 4 && index <= 5) setupPractice(index);
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
     }
 
-    /* --- Lab Canvas Logic --- */
-    const L = document.getElementById('labCanvas').getContext('2d');
-    let labState = { top: 63, bot: 27, borrowed: false };
-
-    function drawLab() {
-      labState.top = parseInt(document.getElementById('labTop').value);
-      labState.bot = parseInt(document.getElementById('labBot').value);
-      labState.borrowed = false;
-      renderLab();
-    }
-
-    function renderLab() {
-      L.clearRect(0,0,800,260);
-      const A = { t: Math.floor(labState.top/10), o: labState.top%10 };
-      const B = { t: Math.floor(labState.bot/10), o: labState.bot%10 };
-      
-      let tens = labState.borrowed ? A.t - 1 : A.t;
-      let ones = labState.borrowed ? A.o + 10 : A.o;
-
-      // Draw Top Blocks
-      L.fillStyle = "#42a5f5";
-      for(let i=0; i<tens; i++) L.fillRect(40 + (i*20), 50, 15, 80);
-      L.fillStyle = "#66bb6a";
-      for(let i=0; i<ones; i++) L.fillRect(40 + (i%10 * 20), 150 + (Math.floor(i/10)*20), 15, 15);
-
-      document.getElementById('labMsg').textContent = (A.o < B.o && !labState.borrowed) ? "Need more ones! Click Borrow Step." : "";
-    }
-
-    function animateBorrow() {
-        if(labState.top%10 < labState.bot%10) {
-            labState.borrowed = true;
-            renderLab();
-        }
-    }
-
-    /* --- Number Line Logic --- */
-    function demoNumberLine(top, minus) {
-        const ctx = document.getElementById('lineCanvas').getContext('2d');
-        ctx.clearRect(0,0,800,200);
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(50,120); ctx.lineTo(750,120); ctx.stroke();
-        
-        const scale = 700 / 100;
-        ctx.fillStyle = "#e74c3c";
-        ctx.beginPath(); ctx.arc(50 + top*scale, 120, 5, 0, Math.PI*2); ctx.fill();
-        ctx.fillText(top, 50 + top*scale - 5, 140);
-        
-        // Jumps
-        ctx.strokeStyle = "#ff9800";
-        let cur = top;
-        for(let i=0; i<Math.floor(minus/10); i++) {
-            ctx.beginPath(); ctx.bezierCurveTo(50+cur*scale, 120, 50+(cur-5)*scale, 60, 50+(cur-10)*scale, 120); ctx.stroke();
-            cur -= 10;
-        }
-    }
-
-    /* --- Practice Logic --- */
     function setupPractice(step) {
       practiceCount = 0;
       document.getElementById('pb-fill').style.width = '0%';
-      document.getElementById('p-feedback').textContent = "";
-      genQ(step);
+      genSubtractionQ(step);
     }
 
-    function genQ(step) {
-      let t, b;
-      if(step === 4) { // No Regrouping
-        t = Math.floor(Math.random() * 50) + 40;
-        b = Math.floor(Math.random() * 30) + 10;
-        if(t%10 < b%10) t += 5; // Force no regroup
-      } else { // Regrouping
-        t = Math.floor(Math.random() * 50) + 40;
-        b = Math.floor(Math.random() * 20) + 15;
-        if(t%10 >= b%10) t -= 5; // Force regroup
-      }
-      
-      currentQ = { t, b, a: t - b };
-      document.getElementById('vTop').textContent = t;
-      document.getElementById('vBot').textContent = b;
-      document.getElementById('vCarry').textContent = (t%10 < b%10) ? " \u2116" : ""; // Mini indicator
-      document.getElementById('q-input').value = '';
+    function genSubtractionQ(step) {
+        let n1, n2;
+        const prompt = document.getElementById('q-prompt');
+        const regroupUI = document.getElementById('regroup-ui');
+        regroupUI.innerHTML = "";
+        
+        if (step === 2) { // No Borrowing
+            n1 = Math.floor(Math.random() * 60) + 30;
+            let o1 = n1 % 10;
+            let o2 = Math.floor(Math.random() * (o1 + 1));
+            n2 = Math.floor(Math.random() * 2 + 1) * 10 + o2;
+            prompt.textContent = "Find the difference (No borrowing needed):";
+        } else if (step === 3) { // Force Borrowing
+            n1 = Math.floor(Math.random() * 50) + 20; // 20-70
+            let o1 = n1 % 10;
+            if (o1 > 5) n1 -= 5; // make ones small to force borrow
+            o1 = n1 % 10;
+            let o2 = Math.floor(Math.random() * 3) + (o1 + 1);
+            n2 = 10 + o2;
+            prompt.textContent = "Borrow from the Tens to solve!";
+            regroupUI.innerHTML = "<span>?</span><span>?</span>"; // Hint spots
+        } else if (step === 5) { // Word Problems
+            const names = ["Leo", "Mia", "Sam", "Ava"];
+            const items = ["apples", "stickers", "toy cars", "erasers"];
+            n1 = Math.floor(Math.random() * 30) + 40;
+            n2 = Math.floor(Math.random() * 20) + 10;
+            prompt.innerHTML = `${names[Math.floor(Math.random()*4)]} had ${n1} ${items[Math.floor(Math.random()*4)]}. <br>They gave ${n2} away. How many are left?`;
+        } else { // Mixed Pro
+            n1 = Math.floor(Math.random() * 70) + 25;
+            n2 = Math.floor(Math.random() * (n1 - 5)) + 5;
+            prompt.textContent = "Solve the problem:";
+        }
+
+        document.getElementById('num1').textContent = n1;
+        document.getElementById('num2').innerHTML = n2 + '<span class="minus-sign">-</span>';
+        currentQ.a = n1 - n2;
+        
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
     }
 
-    window.checkPractice = function() {
-      const input = parseInt(document.getElementById('q-input').value);
-      const fb = document.getElementById('p-feedback');
-      if(input === currentQ.a) {
-        fb.style.color = "var(--success)"; fb.textContent = "Correct! ✨";
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great job! 🌟";
         practiceCount++;
-        document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
-        if(practiceCount >= 5) saveStepProgress(currentStep, currentStep + 1);
-        else setTimeout(() => { fb.textContent = ""; genQ(currentStep); }, 800);
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genSubtractionQ(currentStep), 1000);
       } else {
-        fb.style.color = "var(--math-red)"; fb.textContent = "Check your ones place!";
+        fb.style.color = "red";
+        fb.textContent = "Check the Ones column again!";
       }
     }
-
-    // Init first page
-    window.onload = () => { if(!currentUser) syncProgress(); };
   </script>
 </body>
 </html>
