@@ -1,168 +1,264 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Intro to Multiplication</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2nd Grade Math: Intro to Multiplication (0-3)</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
+    :root {
+      --math-green: #2ecc71;
+      --bg-gray: #f6f7f9;
+      --border: #d6d8db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
+      --group-bg: #e8f8f5;
     }
-    header {
-      background: #007acc;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    section {
-      padding: 20px;
-    }
-    .example, .practice, .activity {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px 0;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    h2 {
-      color: #007acc;
-    }
-    button {
-      background: #007acc;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      margin-top: 10px;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #005f99;
-    }
-    .question {
-      margin: 10px 0;
-    }
-    input {
-      padding: 5px;
-      font-size: 16px;
-      border: 2px solid #007acc;
-      border-radius: 6px;
-    }
-    canvas {
-      border: 2px solid #007acc;
-      display: block;
-      margin: 20px auto;
-      background: white;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-gray); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--math-green); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; color: #555; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #aaa; cursor: not-allowed; background: #fafafa; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #eafaf1; color: var(--math-green); font-weight: bold; border-left: 5px solid var(--math-green); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid var(--border); display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--math-green); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #eee; border: 2px dashed #ccc; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Visual Groups Engine */
+    .meadow { display: flex; justify-content: center; gap: 20px; margin: 30px 0; min-height: 120px; flex-wrap: wrap; }
+    .group-circle { width: 100px; height: 100px; background: var(--group-bg); border: 3px solid #1abc9c; border-radius: 50%; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; padding: 10px; gap: 5px; }
+    .dot { width: 15px; height: 15px; background: #e67e22; border-radius: 50%; box-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+
+    .math-sentence { font-size: 36px; font-weight: bold; margin: 20px 0; color: #2c3e50; }
+    .rule-card { background: #fffde7; border-left: 5px solid #f1c40f; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Intro to Multiplication</h1>
-    <p>Learn how multiplication is just repeated addition!</p>
-  </header>
 
-  <section>
-    <div class="example">
-      <h2>🔎 What is Multiplication?</h2>
-      <p>Multiplication is a quick way of adding the same number again and again.</p>
-      <p>Example: <b>2 × 3</b> means <b>2 + 2 + 2</b>. The answer is <b>6</b>.</p>
+  <nav>
+    <div class="nav-header">
+      <strong>Multiplication Meadow</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px; opacity:0.9;">Loading...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎥 What is Multiplication?</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📝 The Rules of 0, 1, 2, 3</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. ⭐️ Practice: Groups of...</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⭐️ Practice: The "Double" (x2)</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⭐️ Practice: Thinking in 3s</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. ⭐️ Practice: Zero & One Hero</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Multiplication Pro</div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Groups of Equal Numbers</h1>
+        <p>Multiplication is just a fast way to add the same number over and over again!</p>
+        <div class="video-container">
+          <iframe id="lesson-video" src="https://www.youtube.com/embed/" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Let's See the Rules!</button>
     </div>
 
-    <div class="example">
-      <h2>📊 Arrays and Groups</h2>
-      <p>We can use groups or arrays to show multiplication:</p>
-      <ul>
-        <li><b>3 × 4</b> = 3 groups of 4 = 12</li>
-        <li><b>5 × 2</b> = 5 groups of 2 = 10</li>
-      </ul>
-      <canvas id="arrayCanvas" width="300" height="200"></canvas>
-      <button onclick="drawArray()">Show 3 × 4 Array</button>
-    </div>
+    <div id="p1" class="content-card">
+      <h1>The Easy Rules</h1>
+      
+      
 
-    <div class="practice">
-      <h2>✏️ Practice Problems</h2>
-      <div class="question">
-        1) 2 × 5 = 
-        <input id="q1" type="number">
-        <button onclick="checkAnswer('q1',10)">Check</button>
+      <div class="rule-card">
+          <b>The Zero Rule:</b> Any number times 0 is <u>ALWAYS</u> 0. <br>
+          <i>Example: 3 x 0 = 0 (Three groups of nothing)</i>
       </div>
-      <div class="question">
-        2) 4 × 3 = 
-        <input id="q2" type="number">
-        <button onclick="checkAnswer('q2',12)">Check</button>
+      <div class="rule-card">
+          <b>The One Rule:</b> Any number times 1 stays the <u>SAME</u>. <br>
+          <i>Example: 3 x 1 = 3 (Three groups of one)</i>
       </div>
-      <div class="question">
-        3) 6 × 2 = 
-        <input id="q3" type="number">
-        <button onclick="checkAnswer('q3',12)">Check</button>
+      <div class="rule-card">
+          <b>The Two Rule:</b> Multiplication by 2 is just <u>DOUBLING</u>. <br>
+          <i>Example: 3 x 2 = 6 (3 + 3)</i>
       </div>
+      <div class="rule-card">
+          <b>The Three Rule:</b> Think of it as <u>tripling</u> or 3 groups. <br>
+          <i>Example: 3 x 3 = 9 (3 + 3 + 3)</i>
+      </div>
+      
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Practice!</button>
     </div>
 
-    <div class="activity">
-      <h2>🎮 Multiplication Game</h2>
-      <p>Click to get a random multiplication question (1–10). Type your answer and check!</p>
-      <p id="gameQuestion"></p>
-      <input id="gameAnswer" type="number">
-      <button onclick="checkGame()">Check</button>
-      <p id="gameResult"></p>
-      <button onclick="newGame()">New Question</button>
+    <div id="p-practice" class="content-card">
+      <div id="practice-progress" style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <div id="q-prompt" style="font-size: 22px; text-align: center; font-weight: bold;">How many dots in all?</div>
+      
+      <div class="meadow" id="visual-meadow"></div>
+      
+      <div class="math-sentence" style="text-align: center;">
+          <span id="fact-display">2 x 3 = </span> 
+          <input type="number" id="q-input" style="width:100px; font-size:32px; text-align:center; padding:5px; border:2px solid var(--math-green); border-radius:8px;">
+      </div>
+      
+      <div style="text-align:center;">
+        <button class="btn" onclick="checkPractice()">Check Answer</button>
+      </div>
+      <div id="feedback" style="text-align:center; margin-top:15px; font-weight:bold; height:24px;"></div>
     </div>
-  </section>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 60px;">🌱</h1>
+        <h1>Multiplication Pro!</h1>
+        <p>You've mastered the basics of multiplication. You're ready for the big tables!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Course</button>
+    </div>
+  </main>
 
   <script>
-    // Canvas for arrays
-    function drawArray() {
-      const c = document.getElementById("arrayCanvas");
-      const ctx = c.getContext("2d");
-      ctx.clearRect(0, 0, c.width, c.height);
+    const lessonID = "2nd_grade_multi_intro";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-      let rows = 3, cols = 4;
-      for (let r = 0; r < rows; r++) {
-        for (let col = 0; col < cols; col++) {
-          ctx.beginPath();
-          ctx.arc(30 + col * 50, 30 + r * 50, 15, 0, 2 * Math.PI);
-          ctx.fillStyle = "#007acc";
-          ctx.fill();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = {};
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+    }
+
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genMultiQ(step);
+    }
+
+    function genMultiQ(step) {
+        let groups, perGroup;
+        const meadow = document.getElementById('visual-meadow');
+        meadow.innerHTML = "";
+
+        if (step === 2) { // Visual Groups of 1-3
+            groups = Math.floor(Math.random() * 3) + 1;
+            perGroup = Math.floor(Math.random() * 3) + 1;
+        } else if (step === 3) { // Force x2 (Doubling)
+            groups = 2;
+            perGroup = Math.floor(Math.random() * 10);
+        } else if (step === 4) { // Force x3 (Tripling)
+            groups = 3;
+            perGroup = Math.floor(Math.random() * 5) + 1;
+        } else { // Zero & One
+            groups = Math.random() > 0.5 ? 0 : 1;
+            perGroup = Math.floor(Math.random() * 12);
+            // Flip logic for variety
+            if(Math.random() > 0.5) {
+                let temp = groups; groups = perGroup; perGroup = temp;
+            }
         }
-      }
+
+        // Draw the groups
+        if (groups > 0 && groups < 10) { // Limit visual drawing
+            for(let i=0; i<groups; i++) {
+                const g = document.createElement('div');
+                g.className = 'group-circle';
+                for(let j=0; j<perGroup; j++) {
+                    const d = document.createElement('div');
+                    d.className = 'dot';
+                    g.appendChild(d);
+                }
+                meadow.appendChild(g);
+            }
+        } else if (groups === 0) {
+            meadow.innerHTML = "<p><i>(No groups means nothing to see!)</i></p>";
+        } else {
+            meadow.innerHTML = "<p style='font-size:40px'>❓</p>";
+        }
+
+        document.getElementById('fact-display').textContent = `${groups} x ${perGroup} = `;
+        currentQ.a = groups * perGroup;
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
     }
 
-    // Practice check
-    function checkAnswer(id, correct) {
-      let user = document.getElementById(id).value;
-      if (parseInt(user) === correct) {
-        alert("✅ Correct!");
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Awesome! You're multiplying! 🌟";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genMultiQ(currentStep), 1000);
       } else {
-        alert("❌ Try again!");
+        fb.style.color = "red";
+        fb.textContent = "Try counting the dots again!";
       }
     }
-
-    // Game logic
-    let num1, num2, answer;
-    function newGame() {
-      num1 = Math.floor(Math.random() * 10) + 1;
-      num2 = Math.floor(Math.random() * 10) + 1;
-      answer = num1 * num2;
-      document.getElementById("gameQuestion").innerText = `${num1} × ${num2} = ?`;
-      document.getElementById("gameResult").innerText = "";
-      document.getElementById("gameAnswer").value = "";
-    }
-    function checkGame() {
-      let user = document.getElementById("gameAnswer").value;
-      if (parseInt(user) === answer) {
-        document.getElementById("gameResult").innerText = "✅ Correct!";
-      } else {
-        document.getElementById("gameResult").innerText = "❌ Nope, try again!";
-      }
-    }
-
-    // Start with a question
-    newGame();
   </script>
 </body>
 </html>
