@@ -271,6 +271,36 @@ function removeTranslationTab() {
   const tab = document.getElementById("also-translation-tab");
   if (tab) tab.remove();
 }
+/* ==============================
+   🌐 SINGLE LOG PER PAGE FOREVER
+   ============================== */
+function logPageOnce() {
+  try {
+    const pageURL = window.location.href;
+    // create a key-safe ID for this page
+    const pageKey = "log-" + btoa(pageURL).replace(/=/g, ""); // base64 encode + remove =
+
+    const pageRef = ref(db, "AlsoJsPageLogs/" + pageKey);
+
+    // Check if it already exists
+    pageRef.get
+      ? pageRef.get().then((snapshot) => {
+          if (!snapshot.exists()) {
+            // Page not logged yet → log it
+            push(ref(db, "AlsoJsPageLogs/" + pageKey), {
+              pageURL: pageURL,
+              dateLogged: new Date().toISOString()
+            });
+          }
+        })
+      : console.warn("[ALSO] Your Firebase SDK might not support get() in this way");
+  } catch (e) {
+    console.warn("[ALSO] Failed to log page once", e);
+  }
+}
+
+// Call immediately
+logPageOnce();
 
 /* ==============================
    🔁 AUTO-APPLY SAVED LANGUAGE
