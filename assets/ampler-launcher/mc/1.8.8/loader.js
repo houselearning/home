@@ -19,7 +19,7 @@
 
 	function makePatternB(domain) {
 		const domainStr = domain;
-		return (cid, path) => { return "https://" + cid + ".ipfs." + domain + "/" + path; };
+		return (cid, path) => { return "https://" + cid + ".ipfs." + domainStr + "/" + path; };
 	}
 
 	const IPFS_GATEWAYS = [
