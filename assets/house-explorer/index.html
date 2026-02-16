@@ -235,7 +235,6 @@
         const wallThickness = 0.1;
         const doorWidth = 3.0; // Adjusted for the new door size
         const doorHeight = 2.75;
-        const doorThickness = 0.05; // Thickness of the door panel
         const windowWidth = 3; // Width of the window
         const windowHeight = 1.5; // Height of the window
         const furniturePadding = 0.3; // Padding from walls for furniture
@@ -246,7 +245,7 @@
 
         // Cannon.js Materials
         let groundMaterial, furnitureMaterial, doorMaterial; // Keep doorMaterial for backward compatibility in comments, but it's unused
-        let groundFurnitureContactMaterial;
+        let groundMaterial, furnitureMaterial;
 
         // Three.js Raycaster for interaction
         const raycaster = new THREE.Raycaster();
@@ -735,37 +734,22 @@
         }
 
         // Function to create a door (no longer used for interactive doors, but kept for reference)
-        function createDoor(x, z, width, height, thickness, rotationY, pivotSide = 'left') {
-            // This function is no longer used for interactive doors.
-            // It was previously used to create an actual swinging door.
-            // Now, doorways are created using createSegmentedWall directly.
-        }
 
-        // Function to open a door (no longer used)
-        function openDoor(doorGroup) {
-            // This function is no longer used.
-        }
-
-        // Function to close a door (no longer used)
-        function closeDoor(doorGroup) {
-            // This function is no longer used.
-        }
-
-        // Function to create the entire house structure
-        function createHouse() {
-            // Clear existing meshes and physics bodies to rebuild
-            wallMeshes.forEach(mesh => {
-                scene.remove(mesh);
-                if (mesh.userData.physicsBody) {
-                    world.removeBody(mesh.userData.physicsBody);
-                }
-            });
             wallMeshes = [];
-            furnitureMeshes.forEach(mesh => {
-                scene.remove(mesh);
-                if (mesh.userData.physicsBody) {
-                    world.removeBody(mesh.userData.physicsBody);
                 }
+
+
+
+
+
+
+
+
+
+
+
+
+
             });
             furnitureMeshes = [];
             mockHouseMeshes.forEach(mesh => { // Clear mock house meshes
@@ -2091,7 +2075,7 @@
                         config.type, config.color,
                         config.width, config.height, config.depth,
                         absoluteX, -playerHeight / 2, absoluteZ, // Y position adjusted for floor
-                        config.rotationY // Use config.rotationY
+                            absoluteY, // Y position for frames, usually higher
                     );
                     const furnitureGroup = furnitureResult.group;
                     const furnitureBbox = furnitureResult.bbox; // Get the computed bbox
