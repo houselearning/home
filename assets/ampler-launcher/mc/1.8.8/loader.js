@@ -61,7 +61,6 @@
 	function tryDownloadURL(ipfsURL) {
 		const theIpfsURL = ipfsURL;
 		return new Promise((resolve) => {
-			var percentDone = -1.0;
 			const xhr = currentXHR = new XMLHttpRequest();
 			cancelButton.disabled = false;
 			cancelButton.style.display = "inline";
