@@ -19,7 +19,7 @@
 
 	function makePatternB(domain) {
 		const domainStr = domain;
-		return (cid, path) => { return "https://" + cid + ".ipfs." + domain + "/" + path; };
+		return (cid, path) => { return "https://" + cid + ".ipfs." + domainStr + "/" + path; };
 	}
 
 	const IPFS_GATEWAYS = [
@@ -61,7 +61,6 @@
 	function tryDownloadURL(ipfsURL) {
 		const theIpfsURL = ipfsURL;
 		return new Promise((resolve) => {
-			var percentDone = -1.0;
 			const xhr = currentXHR = new XMLHttpRequest();
 			cancelButton.disabled = false;
 			cancelButton.style.display = "inline";
@@ -277,7 +276,6 @@
 				const transaction = db.transaction(["file_cache"], "readonly");
 				const readRequest = transaction.objectStore("file_cache").get(reqFileName);
 				var readResult = null;
-				readRequest.addEventListener("success", (evt) => {
 					resolve(readRequest.result);
 				});
 				transaction.addEventListener("success", (evt) => {

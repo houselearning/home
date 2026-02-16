@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { Game } from 'game';
 
 // Get the render target
