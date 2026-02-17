@@ -398,7 +398,9 @@
                         saveData.grid.forEach(row => {
                             cityGrid.push([...row]); // Deep copy
                         });
-                        buildings = saveData.buildings; // Load the buildings object
+                        // Update the existing buildings object without reassigning the const binding
+                        Object.keys(buildings).forEach(key => delete buildings[key]); // Clear current buildings
+                        Object.assign(buildings, saveData.buildings); // Load the buildings data
                         gameStarted = saveData.gameStarted;
                         if (gameStarted) {
                              playButton.style.display = 'block';
