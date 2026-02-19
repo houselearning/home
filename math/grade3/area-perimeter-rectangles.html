@@ -1,203 +1,258 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Area & Perimeter of Rectangles</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3rd Grade Math: Architect Lab</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9ff;
-      margin: 0;
-      padding: 0;
+    :root {
+      --blueprint-blue: #004c99;
+      --pencil-gray: #576574;
+      --construction-yellow: #f1c40f;
+      --bg-blueprint: #f0f4f8;
+      --border: #bdc3c7;
+      --success: #27ae60;
+      --locked: #d1d8e0;
     }
-    header {
-      background: #4cafef;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    .lesson {
-      padding: 20px;
-      max-width: 1000px;
-      margin: auto;
-    }
-    h2 {
-      color: #4cafef;
-    }
-    .example, .practice, .quiz, .canvas-area {
-      background: white;
-      margin: 15px 0;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    button {
-      background: #4cafef;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      margin-top: 10px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #3b9add;
-    }
-    input {
-      padding: 6px;
-      margin: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    canvas {
-      border: 2px solid #4cafef;
-      display: block;
-      margin: 15px auto;
-      background: #fff;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-blueprint); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 320px; background: white; border-right: 2px solid var(--blueprint-blue); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--blueprint-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; color: #4b6584; font-size: 14px; position: relative; transition: 0.2s; }
+    .nav-item.locked { color: #a5b1c2; cursor: not-allowed; background: #fdfdfd; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #e3f2fd; color: var(--blueprint-blue); font-weight: bold; border-left: 6px solid var(--construction-yellow); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 8px; border: 1px solid var(--border); display: none; box-shadow: 5px 5px 0px rgba(0,76,153,0.1); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--blueprint-blue); color: white; border: none; padding: 14px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .btn:hover { background: #003366; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; margin: 20px 0; border: 4px solid var(--pencil-gray); }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Architect Drawing Board */
+    .drawing-board { display: flex; flex-direction: column; align-items: center; margin: 30px 0; }
+    .rectangle-visual { border: 4px solid var(--pencil-gray); background: rgba(0, 76, 153, 0.05); display: flex; align-items: center; justify-content: center; position: relative; transition: 0.3s; margin: 20px; }
+    .label-length { position: absolute; top: -30px; font-weight: bold; color: var(--blueprint-blue); }
+    .label-width { position: absolute; right: -60px; font-weight: bold; color: var(--blueprint-blue); }
+
+    .answer-zone { background: #f8f9fa; padding: 25px; border-radius: 8px; border-left: 10px solid var(--construction-yellow); width: 100%; box-sizing: border-box; }
+    .math-input { width: 120px; font-size: 30px; padding: 8px; border: 2px solid var(--blueprint-blue); text-align: center; }
+    
+    .formula-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 25px 0; }
+    .formula-card { padding: 20px; border: 2px dashed var(--border); border-radius: 8px; }
+    .formula-card h3 { margin-top: 0; color: var(--blueprint-blue); }
+
+    #pb-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
   </style>
 </head>
 <body>
-  <header>Grade 3 Math: Area & Perimeter of Rectangles</header>
-  <div class="lesson">
 
-    <div class="intro">
-      <h2>📖 Introduction</h2>
-      <p>
-        Today we’ll learn about <b>Area</b> and <b>Perimeter</b> of rectangles.  
-        - The <b>Perimeter</b> is the distance around the rectangle. Formula: <b>P = 2 × (Length + Width)</b>  
-        - The <b>Area</b> is the amount of space inside the rectangle. Formula: <b>A = Length × Width</b>  
-      </p>
+  <nav>
+    <div class="nav-header">
+      <strong>📐 Architect Studio</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px;">Drafting...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Intro: The Fence & The Floor</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 Blueprint Formulas</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🚧 Level 1: Perimeter (The Fence)</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🏗️ Level 2: Area (The Floor)</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🔍 Level 3: Mixed Inspection</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 💎 Level 4: The Square Challenge</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Master Architect</div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Welcome to the Studio</h1>
+        <p>Architects use <strong>Perimeter</strong> to know how much fencing or trim they need, and <strong>Area</strong> to know how much carpet or tile they need. Watch the blueprint guide below!</p>
+        <div class="video-container">
+          <iframe src="https://www.youtube.com/embed/rSVhpM6S-u0" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Open the Blueprints</button>
     </div>
 
-    <div class="example">
-      <h2>📝 Example</h2>
-      <p>A rectangle has length = 8 units and width = 5 units.</p>
-      <ul>
-        <li>Perimeter = 2 × (8 + 5) = 26 units</li>
-        <li>Area = 8 × 5 = 40 square units</li>
-      </ul>
-      <canvas id="exampleCanvas" width="200" height="140"></canvas>
+    <div id="p1" class="content-card">
+      <h1>Measurement Rules</h1>
+      <p>Before we build, we must know the rules of the rectangle:</p>
+      
+      <div class="formula-grid">
+          <div class="formula-card">
+              <h3>📏 Perimeter</h3>
+              <p>The distance <strong>around</strong> the outside.</p>
+              <code>P = Side + Side + Side + Side</code>
+          </div>
+          <div class="formula-card">
+              <h3>🔲 Area</h3>
+              <p>The space <strong>inside</strong> (square units).</p>
+              <code>A = Length × Width</code>
+          </div>
+      </div>
+
+      <div style="background: #fff3cd; padding: 15px; border-radius: 5px;">
+          <strong>Pro Tip:</strong> In a rectangle, opposite sides are always equal!
+      </div>
+
+      <br><button class="btn" onclick="saveStepProgress(1, 2)">Start Level 1</button>
     </div>
 
-    <div class="practice">
-      <h2>🎮 Interactive Practice</h2>
-      <p>Enter Length and Width:</p>
-      <input type="number" id="len" placeholder="Length">
-      <input type="number" id="wid" placeholder="Width">
-      <button onclick="calc()">Calculate</button>
-      <p id="result"></p>
-      <canvas id="pracCanvas" width="300" height="200"></canvas>
+    <div id="p-practice" class="content-card">
+      <div style="height:10px; background:#eee; margin-bottom:20px; border-radius:5px;"><div id="pb-fill"></div></div>
+      <h2 id="practice-title">Level</h2>
+      <p id="practice-instr">Find the Perimeter of this room:</p>
+      
+      <div class="drawing-board">
+          <div id="rect-shape" class="rectangle-visual">
+              <div id="lab-len" class="label-length">10 ft</div>
+              <div id="lab-wid" class="label-width">5 ft</div>
+              <div style="color: #ccc; font-size: 12px;">RECTANGLE</div>
+          </div>
+      </div>
+      
+      <div class="answer-zone">
+          <label id="input-label" style="font-weight:bold;">Your Answer:</label><br><br>
+          <input type="number" id="q-input" class="math-input">
+          <span id="unit-type" style="font-size:24px; font-weight:bold; margin-left:10px;">ft</span>
+          <button class="btn" style="float:right;" onclick="checkPractice()">Inspect</button>
+      </div>
+      <div id="feedback" style="margin-top:20px; font-weight:bold; text-align:center;"></div>
     </div>
 
-    <div class="canvas-area">
-      <h2>🖼 Draw Your Own Rectangle</h2>
-      <p>Use the buttons to grow/shrink the rectangle!</p>
-      <canvas id="drawCanvas" width="400" height="300"></canvas><br>
-      <button onclick="changeSize(10,0)">Increase Length</button>
-      <button onclick="changeSize(-10,0)">Decrease Length</button>
-      <button onclick="changeSize(0,10)">Increase Width</button>
-      <button onclick="changeSize(0,-10)">Decrease Width</button>
-      <p id="drawResult"></p>
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 70px;">🏛️</h1>
+        <h1>Master Architect</h1>
+        <p>You have successfully measured every room in the lab. Your blueprints are perfect!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Workshop</button>
     </div>
-
-    <div class="quiz">
-      <h2>🧠 Quiz</h2>
-      <p id="quizQ">Click below to start!</p>
-      <input type="number" id="quizA" placeholder="Your Answer">
-      <button onclick="checkQuiz()">Submit</button>
-      <p id="quizFeedback"></p>
-      <button onclick="nextQuiz()">Next Question</button><br><br>
-      <button onclick="downloadCSV()">📥 Download Practice Problems (CSV)</button>
-    </div>
-
-  </div>
+  </main>
 
   <script>
-    // Example Canvas
-    let ex = document.getElementById("exampleCanvas").getContext("2d");
-    ex.fillStyle = "#4cafef";
-    ex.fillRect(20,20,160,100);
+    const lessonID = "3rd_grade_area_perim_v1";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    // Practice calculation
-    function calc() {
-      let l = +document.getElementById("len").value;
-      let w = +document.getElementById("wid").value;
-      let per = 2*(l+w);
-      let area = l*w;
-      document.getElementById("result").innerText =
-        `Perimeter = ${per}, Area = ${area}`;
-      let ctx = document.getElementById("pracCanvas").getContext("2d");
-      ctx.clearRect(0,0,300,200);
-      ctx.fillStyle = "#4cafef";
-      ctx.fillRect(20,20,l*10,w*10);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = { a: 0, mode: 'P' };
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    // Draw Canvas controls
-    let length = 50, width = 40;
-    function drawRect() {
-      let c = document.getElementById("drawCanvas").getContext("2d");
-      c.clearRect(0,0,400,300);
-      c.fillStyle = "#ff9e4a";
-      c.fillRect(50,50,length,width);
-      document.getElementById("drawResult").innerText =
-        `Length = ${length}, Width = ${width}, P = ${2*(length+width)}, A = ${length*width}`;
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
     }
-    function changeSize(dl,dw) {
-      length = Math.max(10, length+dl);
-      width = Math.max(10, width+dw);
-      drawRect();
-    }
-    drawRect();
 
-    // Quiz system
-    let qIndex = 0;
-    let quizData = [
-      {l: 6, w: 4, type:"area"},
-      {l: 10, w: 2, type:"perimeter"},
-      {l: 7, w: 5, type:"area"},
-      {l: 9, w: 3, type:"perimeter"}
-    ];
-    function loadQuiz() {
-      let q = quizData[qIndex];
-      document.getElementById("quizQ").innerText =
-        (q.type==="area")
-        ? `What is the AREA of a rectangle with L=${q.l}, W=${q.w}?`
-        : `What is the PERIMETER of a rectangle with L=${q.l}, W=${q.w}?`;
-    }
-    function checkQuiz() {
-      let ans = +document.getElementById("quizA").value;
-      let q = quizData[qIndex];
-      let correct = (q.type==="area") ? q.l*q.w : 2*(q.l+q.w);
-      document.getElementById("quizFeedback").innerText =
-        (ans===correct) ? "✅ Correct!" : `❌ Wrong. Correct = ${correct}`;
-    }
-    function nextQuiz() {
-      qIndex = (qIndex+1) % quizData.length;
-      loadQuiz();
-      document.getElementById("quizA").value="";
-      document.getElementById("quizFeedback").innerText="";
-    }
-    loadQuiz();
-
-    // CSV Download
-    function downloadCSV() {
-      let rows = [["Length","Width","Perimeter","Area"]];
-      for (let i=1;i<=12;i++){
-        let l = Math.floor(Math.random()*12)+1;
-        let w = Math.floor(Math.random()*12)+1;
-        rows.push([l,w,2*(l+w),l*w]);
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
-      let csv = rows.map(r=>r.join(",")).join("\n");
-      let blob = new Blob([csv],{type:"text/csv"});
-      let url = URL.createObjectURL(blob);
-      let a = document.createElement("a");
-      a.href = url;
-      a.download = "area_perimeter_practice.csv";
-      a.click();
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Build Progress: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genProblem(step);
+    }
+
+    function genProblem(step) {
+        let L = Math.floor(Math.random() * 9) + 3;
+        let W = Math.floor(Math.random() * 5) + 2;
+        let mode = 'P';
+
+        if(step === 2) mode = 'P';
+        else if(step === 3) mode = 'A';
+        else if(step === 4) mode = (Math.random() > 0.5) ? 'P' : 'A';
+        else { L = W = Math.floor(Math.random() * 8) + 2; mode = (Math.random() > 0.5) ? 'P' : 'A'; }
+
+        currentQ.mode = mode;
+        currentQ.a = (mode === 'P') ? (2 * L + 2 * W) : (L * W);
+        
+        // Update Visuals
+        const rect = document.getElementById('rect-shape');
+        rect.style.width = (L * 25) + 'px';
+        rect.style.height = (W * 25) + 'px';
+        document.getElementById('lab-len').textContent = L + ' ft';
+        document.getElementById('lab-wid').textContent = W + ' ft';
+        
+        document.getElementById('practice-title').textContent = (mode === 'P') ? "Task: Perimeter Check" : "Task: Area Check";
+        document.getElementById('practice-instr').textContent = (mode === 'P') ? "Find the distance around the outside (Perimeter):" : "Find the total space inside (Area):";
+        document.getElementById('unit-type').innerHTML = (mode === 'P') ? "ft" : "ft<sup>2</sup>";
+
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Blueprint Verified! Perfect measurement. 🛠️";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+        else setTimeout(() => genProblem(currentStep), 1000);
+      } else {
+        fb.style.color = "#e74c3c";
+        fb.textContent = (currentQ.mode === 'P') ? "Recall: Perimeter = add ALL 4 sides!" : "Recall: Area = Length × Width!";
+      }
     }
   </script>
 </body>
