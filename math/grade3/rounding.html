@@ -1,172 +1,223 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Rounding to 10s and 100s Lesson</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3rd Grade Math: Rounding Lab</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$']] } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f7fa;
+    :root {
+      --mountain-green: #2ecc71;
+      --peak-blue: #3498db;
+      --bg-light: #f4f7f6;
+      --text-dark: #2c3e50;
+      --success: #27ae60;
     }
-    h1, h2 {
-      color: #2a6592;
-    }
-    .section {
-      background: white;
-      padding: 20px;
-      margin: 15px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    input[type="number"] {
-      padding: 5px;
-      width: 80px;
-    }
-    button {
-      margin: 5px;
-      padding: 6px 10px;
-      background: #2a6592;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1d4666;
-    }
-    .result {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    .practice-box {
-      margin: 10px 0;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-light); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 320px; background: white; border-right: 2px solid var(--mountain-green); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--mountain-green); color: white; }
+    .nav-item { padding: 15px 20px; border-bottom: 1px solid #eee; color: #7f8c8d; font-size: 14px; cursor: pointer; position: relative; }
+    .nav-item.locked { color: #bdc3c7; cursor: not-allowed; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #e8f8f0; color: var(--mountain-green); font-weight: bold; border-left: 6px solid var(--mountain-green); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: none; }
+    .content-card.active { display: block; animation: slideIn 0.3s ease-out; }
+
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .btn { background: var(--mountain-green); color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .math-display { font-size: 48px; text-align: center; margin: 30px 0; color: var(--peak-blue); font-weight: bold; }
+    .input-zone { text-align: center; margin-top: 20px; }
+    .round-input { width: 150px; font-size: 32px; text-align: center; border: 3px solid var(--peak-blue); border-radius: 8px; padding: 10px; }
+
+    .progress-bar { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+    #pb-fill { height: 100%; background: var(--success); width: 0%; transition: 0.3s; }
   </style>
 </head>
 <body>
-  <h1>Grade 3 Math Lesson: Rounding to the Nearest 10s and 100s</h1>
 
-  <div class="section">
-    <h2>📘 Introduction</h2>
-    <p>Rounding is a way to make numbers simpler while keeping their value close to what it really is.  
-    You’ll often round numbers when estimating, solving problems quickly, or checking if your answer makes sense.</p>
-    <p>We’ll practice rounding numbers to the nearest <b>10</b> and to the nearest <b>100</b>.</p>
-  </div>
-
-  <div class="section">
-    <h2>🔢 Rounding to the Nearest 10</h2>
-    <p>Look at the <b>ones place</b> digit:</p>
-    <ul>
-      <li>If it’s <b>0–4</b>, round down (keep the tens the same).</li>
-      <li>If it’s <b>5–9</b>, round up (add one more to the tens place).</li>
-    </ul>
-    <p><b>Example:</b> Round 47 to the nearest 10 → Ones digit is 7 → Round up → 50.</p>
-
-    <div class="practice-box">
-      <label>Try it: Round 86 → </label>
-      <input type="number" id="round10input">
-      <button onclick="checkRound10()">Check</button>
-      <div id="round10result" class="result"></div>
+  <nav>
+    <div class="nav-header">
+      <strong>⛰️ Rounding Hill</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px;">Hiking...</div>
     </div>
-  </div>
-
-  <div class="section">
-    <h2>💯 Rounding to the Nearest 100</h2>
-    <p>Look at the <b>tens place</b> digit:</p>
-    <ul>
-      <li>If it’s <b>0–4</b>, round down (keep the hundreds the same).</li>
-      <li>If it’s <b>5–9</b>, round up (add one more to the hundreds place).</li>
-    </ul>
-    <p><b>Example:</b> Round 364 to the nearest 100 → Tens digit is 6 → Round up → 400.</p>
-
-    <div class="practice-box">
-      <label>Try it: Round 528 → </label>
-      <input type="number" id="round100input">
-      <button onclick="checkRound100()">Check</button>
-      <div id="round100result" class="result"></div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Climbing the Hill</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 Nearest 10 Secrets</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Tens Training</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Hundred Heights</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🟠 Level 3: Mixed Mountain</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🔴 Level 4: The Peak Expert</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Mountain Guide Status</div>
     </div>
-  </div>
+  </nav>
 
-  <div class="section">
-    <h2>📝 Practice Problems</h2>
-    <p>Round these numbers to the nearest 10 and 100:</p>
-    <ol>
-      <li>243</li>
-      <li>678</li>
-      <li>951</li>
-      <li>127</li>
-      <li>845</li>
-    </ol>
-    <div class="practice-box">
-      <label>Type your answers here for checking: </label><br>
-      243 → <input type="number" id="p1"> 
-      678 → <input type="number" id="p2"> 
-      951 → <input type="number" id="p3"> 
-      127 → <input type="number" id="p4"> 
-      845 → <input type="number" id="p5"> 
-      <br><button onclick="checkPractice()">Check Answers</button>
-      <div id="practiceResult" class="result"></div>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Welcome to Rounding Hill</h1>
+        <p>Rounding helps us estimate. If you have 38 marbles, it's easier to say you have "about 40." In this lab, we learn which "tens" and "hundreds" are the closest neighbors!</p>
+        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;background:#000;">
+          <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/pNfz-7uO3l0" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <button class="btn" onclick="saveStepProgress(0, 1)">Check the Map</button>
     </div>
-  </div>
 
-  <div class="section">
-    <h2>📊 Generate & Download Practice Problems</h2>
-    <p>Click below to generate random rounding problems and download them as a CSV file for practice!</p>
-    <button onclick="downloadCSV()">Download CSV</button>
-  </div>
+    <div id="p1" class="content-card">
+      <h1>The Rounding Rules</h1>
+      <p>Look at the digit to the <strong>RIGHT</strong> of your target place:</p>
+      <ul style="line-height: 1.8;">
+          <li><strong>0, 1, 2, 3, 4:</strong> Round Down (The number stays the same, neighbor becomes zero).</li>
+          <li><strong>5, 6, 7, 8, 9:</strong> Round Up (Add 1 to your target, neighbor becomes zero).</li>
+      </ul>
+      <div style="background: #e1f5fe; padding: 15px; border-radius: 8px; border-left: 5px solid var(--peak-blue);">
+          Example: Round <strong>164</strong> to the nearest 100.<br>
+          We look at the 6. Since 6 is "5 or more," we round 1 up to 2. <br>
+          <strong>Result: 200</strong>
+      </div>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Level 1</button>
+    </div>
+
+    <div id="p-practice" class="content-card">
+      <div class="progress-bar"><div id="pb-fill"></div></div>
+      <h2 id="q-title" style="text-align:center;">Nearest 10</h2>
+      <p id="q-instr" style="text-align:center;">Round this number:</p>
+      
+      <div id="math-target" class="math-display">---</div>
+
+      <div class="input-zone">
+          <input type="number" id="q-input" class="round-input" placeholder="?">
+          <br><br>
+          <button class="btn" onclick="checkPractice()">Check Elevation</button>
+          <div id="feedback" style="margin-top:20px; font-weight:bold; height:24px;"></div>
+      </div>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 80px;">🚩</h1>
+        <h1>You Reached the Top!</h1>
+        <p>You are now a Rounding Expert. You can find the nearest tens and hundreds in your sleep!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Finish Hike</button>
+    </div>
+  </main>
 
   <script>
-    function checkRound10() {
-      const input = document.getElementById("round10input").value;
-      const result = document.getElementById("round10result");
-      if (input == 90) {
-        result.textContent = "✅ Correct! 86 rounds to 90.";
-      } else {
-        result.textContent = "❌ Try again. Remember to look at the ones place.";
-      }
+    const lessonID = "3rd_grade_rounding_v1";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = { val: 0, a: 0, mode: 10 };
+
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
+
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    function checkRound100() {
-      const input = document.getElementById("round100input").value;
-      const result = document.getElementById("round100result");
-      if (input == 500) {
-        result.textContent = "✅ Correct! 528 rounds to 500.";
-      } else {
-        result.textContent = "❌ Not quite. Look at the tens place.";
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Elevation: ${Math.round((completedCount/7)*100)}%`;
+    }
+
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genProblem(step);
+    }
+
+    function genProblem(step) {
+        let num, mode;
+        if(step === 2) { num = Math.floor(Math.random() * 89) + 11; mode = 10; }
+        else if(step === 3) { num = Math.floor(Math.random() * 899) + 101; mode = 100; }
+        else { num = Math.floor(Math.random() * 899) + 101; mode = (Math.random() > 0.5) ? 10 : 100; }
+
+        currentQ.val = num;
+        currentQ.mode = mode;
+        currentQ.a = Math.round(num / mode) * mode;
+
+        document.getElementById('q-title').textContent = "Round to the Nearest " + mode;
+        document.getElementById('math-target').textContent = num;
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('q-input').focus();
     }
 
     function checkPractice() {
-      const answers = [240, 680, 950, 130, 850]; 
-      let inputs = [];
-      for (let i = 1; i <= 5; i++) {
-        inputs.push(Number(document.getElementById("p"+i).value));
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Great climb! That's correct. 🧗";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+        else setTimeout(() => genProblem(currentStep), 1000);
+      } else {
+        fb.style.color = "#e74c3c";
+        fb.textContent = "Oops, wrong trail! Check your neighbor.";
       }
-      let correct = 0;
-      for (let i = 0; i < 5; i++) {
-        if (inputs[i] === answers[i]) correct++;
-      }
-      document.getElementById("practiceResult").textContent =
-        `You got ${correct}/5 correct.`;
-    }
-
-    function downloadCSV() {
-      let rows = [["Number", "Round to Nearest 10", "Round to Nearest 100"]];
-      for (let i = 0; i < 10; i++) {
-        let num = Math.floor(Math.random() * 999) + 1;
-        let round10 = Math.round(num / 10) * 10;
-        let round100 = Math.round(num / 100) * 100;
-        rows.push([num, round10, round100]);
-      }
-      let csvContent = "data:text/csv;charset=utf-8," 
-        + rows.map(e => e.join(",")).join("\n");
-      let link = document.createElement("a");
-      link.setAttribute("href", csvContent);
-      link.setAttribute("download", "rounding_practice.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     }
   </script>
 </body>
