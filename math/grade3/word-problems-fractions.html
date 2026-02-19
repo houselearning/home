@@ -1,187 +1,191 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 3 — Fractions 1/2, 1/3, 1/4 (Advanced Word Problems)</title>
-<style>
-  :root{
-    --bg:#f7fbff; --panel:#fff; --accent:#f472b6; --accent2:#ec4899; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-  header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-  header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-  main{max-width:1100px;margin:20px auto;padding:14px}
-  section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-  h2{color:var(--accent2);margin:0 0 10px 0}
-  p{margin:8px 0}
-  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-  button.secondary{background:#f9a8d4}
-  button.ghost{background:#ffe6f0;color:var(--accent2);border:1px solid #ffd6eb}
-  button.warn{background:#f97316}
-  input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fbcfe8;font-size:1rem}
-  canvas{width:100%;height:auto;border-radius:8px;background:linear-gradient(180deg,#fff,#fff5fb);display:block;border:1px solid #ffd6eb}
-  .grid{display:grid;gap:10px}
-  .grid.cols-4{grid-template-columns:repeat(4,1fr)}
-  .tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #ffe6f0;cursor:pointer;font-weight:700}
-  .status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-  .muted{color:var(--muted)}
-  footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-  .answer{font-weight:800;margin-top:8px}
-  .ok{color:var(--ok)}
-  .bad{color:var(--bad)}
-  .hidden{display:none}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3rd Grade Math: Fraction Word Problems</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$']] } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bakery-orange: #f39c12;
+      --dough-white: #ffffff;
+      --success-green: #27ae60;
+      --nav-bg: #3e2723;
+    }
+
+    body { margin: 0; font-family: "Trebuchet MS", sans-serif; background: #fff3e0; display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 300px; background: var(--nav-bg); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; border-bottom: 2px solid var(--bakery-orange); text-align: center; }
+    .nav-item { padding: 15px 20px; border-bottom: 1px solid #5d4037; color: #d7ccc8; cursor: pointer; font-size: 14px; position: relative; }
+    .nav-item.active { background: #5d4037; color: white; border-left: 5px solid var(--bakery-orange); }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.completed::after { content: '🧁'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .case-card { background: white; width: 100%; max-width: 700px; padding: 40px; border-radius: 15px; box-shadow: 0 8px 0px #e0e0e0; display: none; }
+    .case-card.active { display: block; animation: popIn 0.3s ease-out; }
+
+    @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .problem-text { font-size: 20px; line-height: 1.6; color: #4e342e; background: #fffde7; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px dashed var(--bakery-orange); }
+    
+    .btn { background: var(--bakery-orange); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:hover { transform: scale(1.05); }
+
+    .fraction-input-container { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 20px; }
+    .frac-input { width: 60px; font-size: 24px; text-align: center; padding: 5px; border: 3px solid var(--nav-bg); border-radius: 8px; }
+    .frac-line { width: 70px; height: 4px; background: var(--nav-bg); }
+  </style>
 </head>
 <body>
-<header>
-  <h1>Grade 3 — Fractions 1/2, 1/3, 1/4 (Advanced)</h1>
-  <p style="margin:6px 0 0 0;opacity:.95">Interactive word problems • practice • speed quiz • export CSV — build fraction mastery!</p>
-</header>
 
-<main>
-  <!-- Intro -->
-  <section aria-labelledby="introTitle">
-    <h2 id="introTitle">Intro & Concept</h2>
-    <p>Fractions represent parts of a whole. <strong>1/2</strong> is half, <strong>1/3</strong> is a third, <strong>1/4</strong> is a quarter. Word problems help apply fractions to real life!</p>
-    <div class="status" style="margin-top:8px">
-      <div class="pill" id="score">Score: 0</div>
-      <div class="muted" id="streak">Streak: 0</div>
+  <nav>
+    <div class="nav-header"><strong>🥖 BAKERY ORDERS</strong></div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Kitchen Briefing</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 🟢 Level 1: Name the Slice</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟡 Level 2: Shared Trays</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟠 Level 3: Fractional Sets</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🏆 Head Pastry Chef</div>
     </div>
-  </section>
+  </nav>
 
-  <!-- Word Problems -->
-  <section aria-labelledby="wordTitle">
-    <h2 id="wordTitle">Fraction Word Problems</h2>
-    <div style="margin-top:8px" class="grid cols-4">
-      <div class="tile">
-        <div style="font-weight:700">1) Sarah ate 1/2 of 8 cookies. How many cookies did she eat?</div>
-        <input id="w1" type="number"><button style="margin-top:6px" onclick="check('w1',4)">Check</button>
-        <div id="wr1" class="answer"></div>
+  <main>
+    <div id="p0" class="case-card active">
+      <h1>The Secret Ingredient: Reading</h1>
+      <p>In fraction word problems, we need to find two numbers:</p>
+      <ul>
+        <li><strong>The Bottom (Denominator):</strong> How many total pieces make the whole?</li>
+        <li><strong>The Top (Numerator):</strong> How many pieces are we talking about?</li>
+      </ul>
+      <div style="text-align:center; background:#eee; padding: 20px; border-radius: 10px;">
+        "Maya cut a cake into 6 pieces. She gave away 2." <br>
+        <strong>Answer: $\frac{2}{6}$</strong>
       </div>
-      <div class="tile">
-        <div style="font-weight:700">2) John drank 1/3 of 12 liters of juice. How many liters?</div>
-        <input id="w2" type="number"><button style="margin-top:6px" onclick="check('w2',4)">Check</button>
-        <div id="wr2" class="answer"></div>
+      <br><button class="btn" onclick="saveStepProgress(0, 1)">Start the Shift</button>
+    </div>
+
+    <div id="p-practice" class="case-card">
+      <h2 id="q-title" style="color: var(--bakery-orange);">New Order!</h2>
+      <div class="problem-text" id="q-text">Loading order...</div>
+      
+      <div class="fraction-input-container">
+        <input type="number" id="q-num" class="frac-input" placeholder="Top">
+        <div class="frac-line"></div>
+        <input type="number" id="q-den" class="frac-input" placeholder="Bottom">
       </div>
-      <div class="tile">
-        <div style="font-weight:700">3) A pizza was cut into 4 pieces. Emma ate 1/4. How many slices?</div>
-        <input id="w3" type="number"><button style="margin-top:6px" onclick="check('w3',1)">Check</button>
-        <div id="wr3" class="answer"></div>
-      </div>
-      <div class="tile">
-        <div style="font-weight:700">4) 1/2 of 10 pencils are sharpened. How many?</div>
-        <input id="w4" type="number"><button style="margin-top:6px" onclick="check('w4',5)">Check</button>
-        <div id="wr4" class="answer"></div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <button class="btn" onclick="checkPractice()">Fill Order</button>
+        <div id="feedback" style="margin-top:20px; font-weight:bold; height: 24px;"></div>
       </div>
     </div>
-  </section>
 
-  <!-- Interactive Challenge -->
-  <section aria-labelledby="challengeTitle">
-    <h2 id="challengeTitle">Interactive Fraction Challenge</h2>
-    <p>Randomized fraction word problems — press New Question to start.</p>
-    <div class="controls" style="margin-top:10px;align-items:center">
-      <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-      <input id="challengeInput" type="number" placeholder="answer" style="width:110px">
-      <button id="challengeCheck">Check</button>
-      <button id="challengeNew" class="secondary">New Question</button>
-      <div id="challengeResult" class="answer"></div>
+    <div id="p4" class="case-card" style="text-align:center;">
+      <h1 style="font-size: 60px;">👨‍🍳</h1>
+      <h1>Promotion Earned!</h1>
+      <p>You can handle any fractional order that comes through this bakery. You've mastered the word problems!</p>
     </div>
-  </section>
+  </main>
 
-  <!-- CSV Export -->
-  <section aria-labelledby="csvTitle">
-    <h2 id="csvTitle">Download CSV Log</h2>
-    <button id="downloadCSVBtn" class="secondary">⬇️ Download Your Answers</button>
-    <p class="muted">Track your practice results!</p>
-  </section>
+  <script>
+    const lessonID = "3rd_grade_frac_word_probs_v1";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-  <footer>Tip: Apply fractions to real-life items like food, toys, and time. Practice daily for mastery!</footer>
-</main>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-<script>
-/* ===== Utilities ===== */
-const tone = (f=880,d=0.06)=>{ try{ const A=new (window.AudioContext||window.webkitAudioContext)(); const o=A.createOscillator(); const g=A.createGain(); o.type='sine'; o.frequency.value=f; g.gain.value=0.0001; o.connect(g); g.connect(A.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d); setTimeout(()=>{ o.stop(); A.close().catch(()=>{}); }, d*1000+50);}catch(e){} };
-let totalScore=0, streak=0;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = { n: 0, d: 0 };
 
-/* ===== Quick check for small tiles ===== */
-function check(inputId, correct){
-  const val = parseFloat(document.getElementById(inputId).value);
-  const resId = 'wr' + inputId.replace(/[^\d]/g,'');
-  const target = document.getElementById(resId);
-  if(!isNaN(val) && val === correct){
-    target.textContent = '✅ Correct!';
-    target.className = 'answer ok';
-    tone(880,0.06); updateScore(1);
-  } else {
-    target.textContent = `❌ Try again (Answer: ${correct})`;
-    target.className = 'answer bad';
-    tone(220,0.06); updateScore(0);
-  }
-}
+    auth.onAuthStateChanged(user => { if (user) syncProgress(user); });
 
-/* ===== Interactive Challenge ===== */
-let challengeList = [
-  {q:"1/2 of 8 cookies", a:4},
-  {q:"1/3 of 12 liters", a:4},
-  {q:"1/4 of 4 pizza slices", a:1},
-  {q:"1/2 of 10 pencils", a:5},
-  {q:"1/3 of 9 candies", a:3},
-  {q:"1/4 of 20 apples", a:5},
-  {q:"1/2 of 14 pages", a:7},
-  {q:"1/3 of 15 toys", a:5},
-  {q:"1/4 of 8 cupcakes", a:2},
-];
-let currentCorrect=null;
+    async function syncProgress(user) {
+      const doc = await db.collection('UserLessonProgress').doc(user.uid).collection('lessons').doc(lessonID).get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0:false, step_1:false, step_2:false, step_3:false };
+      updateSidebar();
+    }
 
-function newChallenge(){
-  const idx = Math.floor(Math.random()*challengeList.length);
-  const problem = challengeList[idx];
-  document.getElementById('challengeQ').textContent = problem.q + " = ?";
-  currentCorrect = problem.a;
-  document.getElementById('challengeInput').value='';
-  document.getElementById('challengeResult').textContent='';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', ()=>{
-  const val = parseFloat(document.getElementById('challengeInput').value);
-  const res = document.getElementById('challengeResult');
-  if(val === currentCorrect){
-    res.textContent = '✅ Correct!';
-    res.className='answer ok';
-    tone(880,0.06); updateScore(1);
-  } else {
-    res.textContent = `❌ Wrong — Answer: ${currentCorrect}`;
-    res.className='answer bad';
-    tone(220,0.06); updateScore(0);
-  }
-});
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      await db.collection('UserLessonProgress').doc(auth.currentUser.uid).collection('lessons').doc(lessonID).set({ steps: stepsCompleted }, { merge: true });
+      updateSidebar();
+      showPage(nextIdx);
+    }
 
-/* ===== CSV Logging ===== */
-let csvData=[['Question','Answer']];
-function updateScore(points){
-  if(points>0){ totalScore+=points; streak++; } else { streak=0; }
-  document.getElementById('score').textContent=`Score: ${totalScore}`;
-  document.getElementById('streak').textContent=`Streak: ${streak}`;
-  if(currentCorrect!==null){
-    csvData.push([document.getElementById('challengeQ').textContent, currentCorrect]);
-  }
-}
-document.getElementById('downloadCSVBtn').addEventListener('click', ()=>{
-  const csvContent = csvData.map(e=>e.join(',')).join('\n');
-  const blob = new Blob([csvContent],{type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='fraction_word_problems.csv'; a.click();
-  URL.revokeObjectURL(url);
-});
+    function updateSidebar() {
+      for(let i=0; i<5; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        if(item) {
+          item.className = 'nav-item' + (currentStep === i ? ' active' : '') + (stepsCompleted[`step_${i}`] ? ' completed' : '') + (i > 0 && !stepsCompleted[`step_${i-1}`] ? ' locked' : '');
+        }
+      }
+    }
 
-/* ===== Init ===== */
-newChallenge();
-</script>
+    function showPage(index) {
+      document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 1 && index <= 3) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 1 && index <= 3) genProblem(index);
+    }
+
+    function genProblem(level) {
+      const names = ["Leo", "Sarah", "Chef Andre", "Penny"];
+      const food = ["pizza", "pie", "tray of brownies", "loaf of bread"];
+      let den = Math.floor(Math.random() * 6) + 3; // Denominator 3-8
+      let num = Math.floor(Math.random() * (den - 1)) + 1; // Numerator < Denominator
+      
+      let n = names[Math.floor(Math.random()*names.length)];
+      let f = food[Math.floor(Math.random()*food.length)];
+
+      if(level === 1) {
+        document.getElementById('q-text').textContent = `${n} cut a ${f} into ${den} equal slices. ${n} ate ${num} slices. What fraction of the ${f} did they eat?`;
+      } else if (level === 2) {
+        document.getElementById('q-text').textContent = `There were ${den} cookies on a tray. ${num} cookies were chocolate chip. What fraction of the cookies were chocolate chip?`;
+      } else {
+        document.getElementById('q-text').textContent = `A garden has ${den} flowers. ${num} of them are red. What fraction of the garden is NOT red?`;
+        num = den - num; // Sneaky "not" question for Level 3
+      }
+
+      currentQ = { n: num, d: den };
+      document.getElementById('q-num').value = '';
+      document.getElementById('q-den').value = '';
+      document.getElementById('feedback').textContent = '';
+    }
+
+    function checkPractice() {
+      const n = parseInt(document.getElementById('q-num').value);
+      const d = parseInt(document.getElementById('q-den').value);
+      
+      if(n === currentQ.n && d === currentQ.d) {
+        practiceCount++;
+        if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
+        else genProblem(currentStep);
+      } else {
+        document.getElementById('feedback').textContent = "That order isn't quite right. Check your counts!";
+      }
+    }
+  </script>
 </body>
 </html>
