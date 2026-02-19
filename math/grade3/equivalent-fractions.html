@@ -1,208 +1,235 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Grade 3 Math - Equivalent Fractions</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3rd Grade Math: Fraction Bakery (MathJax)</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
+    :root {
+      --bakery-orange: #f39c12;
+      --crust-brown: #d35400;
+      --icing-blue: #3498db;
+      --success: #27ae60;
+      --locked: #bdc3c7;
     }
-    header {
-      background: #4682b4;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-    }
-    section {
-      padding: 20px;
-    }
-    h2 {
-      color: #333;
-    }
-    .example, .practice, .challenge {
-      background: #fff;
-      border: 2px solid #4682b4;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 20px 0;
-    }
-    canvas {
-      border: 2px solid #333;
-      margin-top: 10px;
-    }
-    .input-area {
-      margin: 10px 0;
-    }
-    button {
-      background: #4682b4;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      margin-top: 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #315f7d;
-    }
-    .feedback {
-      margin-top: 10px;
-      font-weight: bold;
-    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #fafafa; display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 320px; background: white; border-right: 2px solid var(--bakery-orange); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--bakery-orange); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; color: #7f8c8d; font-size: 14px; position: relative; }
+    .nav-item.locked { color: #bdc3c7; cursor: not-allowed; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #fff5e6; color: var(--crust-brown); font-weight: bold; border-left: 6px solid var(--crust-brown); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 12px; border: 1px solid #ddd; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; }
+    
+    .btn { background: var(--crust-brown); color: white; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+    .btn:hover { background: #e67e22; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 8px; overflow: hidden; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .math-display-area { font-size: 32px; text-align: center; margin: 30px 0; padding: 20px; background: #fdfaf6; border-radius: 10px; border: 1px dashed var(--bakery-orange); }
+    
+    .input-zone { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 20px; }
+    .math-input { width: 90px; font-size: 30px; text-align: center; border: 3px solid var(--icing-blue); border-radius: 8px; padding: 5px; }
   </style>
 </head>
 <body>
-  <header>Grade 3 Math Lesson: Equivalent Fractions</header>
-  <section>
-    <h2>📘 Introduction</h2>
-    <p>
-      Fractions can look different but still mean the same amount.  
-      These are called <b>Equivalent Fractions</b>.  
-      For example: <b>1/2</b> is the same as <b>2/4</b>, because both mean half of a whole.  
-    </p>
 
-    <div class="example">
-      <h3>🔎 Example</h3>
-      <p>
-        If you cut a pizza into 2 equal slices and eat 1 slice, you’ve eaten <b>1/2</b>.  
-        If you cut the same pizza into 4 slices and eat 2, that’s <b>2/4</b>.  
-        Both fractions represent the same amount of pizza!
-      </p>
-      <canvas id="pizzaCanvas" width="200" height="200"></canvas>
+  <nav>
+    <div class="nav-header">
+      <strong>🥐 Fraction Bakery</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px;">Preheating oven...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Slicing the Cake</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 The Baker's Rule</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Doubling Slices</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Tripling the Batch</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🟠 Level 3: Mixed Orders</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🔴 Level 4: Master Pastry Chef</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Golden Whisk</div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Same Amount, Different Slices</h1>
+        <p>In the bakery, we can cut a pie into 2 big pieces or 4 smaller pieces. Even though the numbers change, the amount of pie stays the same!</p>
+        <div class="video-container">
+          <iframe src="https://www.youtube.com/embed/vKXqzpz-G2g" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Check the Oven</button>
     </div>
 
-    <h2>⚙️ How to Find Equivalent Fractions</h2>
-    <ul>
-      <li>Multiply or divide both the numerator (top number) and denominator (bottom number) by the same number.</li>
-      <li>Example: <b>3/5 = 6/10</b> (multiply top and bottom by 2).</li>
-      <li>Example: <b>4/8 = 2/4 = 1/2</b> (divide top and bottom by 2).</li>
-    </ul>
-
-    <div class="practice">
-      <h3>📝 Practice: Check if Two Fractions Are Equivalent</h3>
-      <div class="input-area">
-        <label>Fraction 1: <input type="number" id="num1" placeholder="Numerator"> / <input type="number" id="den1" placeholder="Denominator"></label><br>
-        <label>Fraction 2: <input type="number" id="num2" placeholder="Numerator"> / <input type="number" id="den2" placeholder="Denominator"></label><br>
-        <button onclick="checkEquivalent()">Check</button>
-        <div id="fractionFeedback" class="feedback"></div>
+    <div id="p1" class="content-card">
+      <h1>The Baker's Rule</h1>
+      <p>Whatever you do to the top (Numerator), you MUST do to the bottom (Denominator). MathJax renders this rule perfectly:</p>
+      
+      <div class="math-display-area">
+          \[ \frac{1}{2} \times \frac{3}{3} = \frac{3}{6} \]
+          <p style="font-size: 16px; color: #666;">"We multiplied both top and bottom by 3 to get an equivalent fraction!"</p>
       </div>
+
+      <button class="btn" onclick="saveStepProgress(1, 2)">Start Baking</button>
     </div>
 
-    <div class="challenge">
-      <h3>🎯 Challenge Game: Fill in the Missing Number</h3>
-      <p id="challengeText"></p>
-      <input type="number" id="challengeInput" placeholder="?">
-      <button onclick="checkChallenge()">Submit</button>
-      <div id="challengeFeedback" class="feedback"></div>
+    <div id="p-practice" class="content-card">
+      <div style="height:8px; background:#eee; border-radius:4px; margin-bottom:25px;"><div id="pb-fill" style="height:100%; background:var(--success); width:0%; transition:0.3s;"></div></div>
+      <h2 id="q-title" style="text-align:center; color: var(--crust-brown);">Level</h2>
+      
+      <div id="math-target" class="math-display-area">
+          Loading equation...
+      </div>
+
+      <div class="input-zone">
+          <span style="font-weight: bold;">Numerator (?) = </span>
+          <input type="number" id="q-input" class="math-input">
+          <button class="btn" onclick="checkPractice()">Verify</button>
+      </div>
+      <div id="feedback" style="margin-top:20px; font-weight:bold; height:24px; text-align:center;"></div>
     </div>
-  </section>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 80px;">🥧</h1>
+        <h1>Master Pastry Chef!</h1>
+        <p>The math adds up and the cake is delicious. Case closed!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete Course</button>
+    </div>
+  </main>
 
   <script>
-    // --- Pizza Example Drawing ---
-    const pizza = document.getElementById("pizzaCanvas");
-    const ctx = pizza.getContext("2d");
+    const lessonID = "3rd_grade_equiv_mathjax_v1";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    // Draw pizza circle
-    ctx.beginPath();
-    ctx.arc(100, 100, 90, 0, 2 * Math.PI);
-    ctx.fillStyle = "#ffcc66";
-    ctx.fill();
-    ctx.stroke();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // Draw 4 slices
-    ctx.moveTo(100, 100);
-    ctx.lineTo(100, 10);
-    ctx.moveTo(100, 100);
-    ctx.lineTo(190, 100);
-    ctx.moveTo(100, 100);
-    ctx.lineTo(100, 190);
-    ctx.moveTo(100, 100);
-    ctx.lineTo(10, 100);
-    ctx.stroke();
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = { a: 0 };
 
-    // Color 2/4 slices (equivalent to 1/2)
-    ctx.beginPath();
-    ctx.moveTo(100, 100);
-    ctx.arc(100, 100, 90, 0, Math.PI / 2);
-    ctx.lineTo(100, 100);
-    ctx.fillStyle = "#ff6666";
-    ctx.fill();
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
 
-    ctx.beginPath();
-    ctx.moveTo(100, 100);
-    ctx.arc(100, 100, 90, Math.PI, 1.5 * Math.PI);
-    ctx.lineTo(100, 100);
-    ctx.fillStyle = "#ff6666";
-    ctx.fill();
-
-    // --- Check Equivalent Fractions ---
-    function checkEquivalent() {
-      const n1 = parseInt(document.getElementById("num1").value);
-      const d1 = parseInt(document.getElementById("den1").value);
-      const n2 = parseInt(document.getElementById("num2").value);
-      const d2 = parseInt(document.getElementById("den2").value);
-      const feedback = document.getElementById("fractionFeedback");
-
-      if (!n1 || !d1 || !n2 || !d2) {
-        feedback.innerHTML = "⚠️ Please enter all values!";
-        feedback.style.color = "red";
-        return;
-      }
-
-      if (n1 * d2 === n2 * d1) {
-        feedback.innerHTML = `✅ Yes! ${n1}/${d1} = ${n2}/${d2}`;
-        feedback.style.color = "green";
-      } else {
-        feedback.innerHTML = `❌ Nope! ${n1}/${d1} ≠ ${n2}/${d2}`;
-        feedback.style.color = "red";
-      }
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
     }
 
-    // --- Challenge Generator ---
-    const challengeText = document.getElementById("challengeText");
-    let missingNum, answer;
-
-    function generateChallenge() {
-      const baseNum = Math.floor(Math.random() * 5) + 1; // 1-5
-      const baseDen = Math.floor(Math.random() * 5) + 2; // 2-6
-      const multiplier = Math.floor(Math.random() * 5) + 2; // 2-6
-
-      if (Math.random() > 0.5) {
-        // Missing numerator
-        missingNum = "num";
-        answer = baseNum * multiplier;
-        challengeText.innerHTML = `Fill in the blank: ${baseNum}/${baseDen} = ?/${baseDen * multiplier}`;
-      } else {
-        // Missing denominator
-        missingNum = "den";
-        answer = baseDen * multiplier;
-        challengeText.innerHTML = `Fill in the blank: ${baseNum}/${baseDen} = ${baseNum * multiplier}/?`;
-      }
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
     }
 
-    function checkChallenge() {
-      const input = parseInt(document.getElementById("challengeInput").value);
-      const feedback = document.getElementById("challengeFeedback");
-
-      if (input === answer) {
-        feedback.innerHTML = "🎉 Correct!";
-        feedback.style.color = "green";
-        generateChallenge(); // New problem
-        document.getElementById("challengeInput").value = "";
-      } else {
-        feedback.innerHTML = "😢 Try again!";
-        feedback.style.color = "red";
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Baking: ${Math.round((completedCount/7)*100)}%`;
     }
 
-    // Start first challenge
-    generateChallenge();
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genProblem(step);
+    }
+
+    function genProblem(step) {
+        const bases = [[1,2], [1,3], [2,3], [1,4], [3,4], [1,5], [2,5]];
+        let pair = bases[Math.floor(Math.random() * bases.length)];
+        let multiplier = (step === 2) ? 2 : (step === 3) ? 3 : Math.floor(Math.random() * 4) + 2;
+
+        const n1 = pair[0];
+        const d1 = pair[1];
+        const d2 = d1 * multiplier;
+        const n2 = n1 * multiplier;
+
+        // Set MathJax content
+        const target = document.getElementById('math-target');
+        target.innerHTML = `\\[ \\frac{${n1}}{${d1}} = \\frac{?}{${d2}} \\]`;
+        
+        // Trigger MathJax re-render
+        MathJax.typesetPromise([target]);
+
+        document.getElementById('q-title').textContent = "Baking Level " + (step - 1);
+        currentQ.a = n2;
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('q-input').focus();
+    }
+
+    function checkPractice() {
+      const val = parseInt(document.getElementById('q-input').value);
+      const fb = document.getElementById('feedback');
+      if(val === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Chef's Kiss! Perfectly equivalent. 🍰";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) saveStepProgress(currentStep, currentStep + 1);
+        else setTimeout(() => genProblem(currentStep), 1000);
+      } else {
+        fb.style.color = "red";
+        fb.textContent = "Burnt batch! Try that math again.";
+      }
+    }
   </script>
 </body>
 </html>

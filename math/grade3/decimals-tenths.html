@@ -1,153 +1,252 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Decimals (Tenths) Lesson</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3rd Grade Math: Decimal Lab (Tenths)</title>
+    
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f9ff; }
-    h1, h2 { color: #2c3e50; }
-    .card {
-      background: white;
-      padding: 20px;
-      margin: 15px 0;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    :root {
+      --decimal-pink: #ef5350;
+      --lab-dark: #263238;
+      --glass-blue: #e1f5fe;
+      --success: #66bb6a;
+      --locked: #b0bec5;
     }
-    button {
-      background: #3498db;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover { background: #2980b9; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(10, 30px);
-      gap: 2px;
-      margin-top: 10px;
-    }
-    .cell {
-      width: 30px; height: 30px;
-      background: #ecf0f1;
-      border: 1px solid #ccc;
-    }
-    .cell.filled { background: #2ecc71; }
-    .question { margin: 10px 0; }
-    #chartCanvas { border: 1px solid #333; margin-top: 20px; }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #eceff1; display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 320px; background: white; border-right: 2px solid var(--decimal-pink); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--decimal-pink); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; color: #546e7a; font-size: 14px; position: relative; transition: 0.2s; }
+    .nav-item.locked { color: #cfd8dc; cursor: not-allowed; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #ffebee; color: var(--decimal-pink); font-weight: bold; border-left: 6px solid var(--decimal-pink); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 800px; padding: 40px; border-radius: 15px; border: 1px solid #cfd8dc; display: none; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    
+    .btn { background: var(--decimal-pink); color: white; border: none; padding: 14px 30px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #c62828; }
+    .btn:active { transform: translateY(2px); box-shadow: none; }
+    .btn:disabled { background: var(--locked); cursor: not-allowed; box-shadow: none; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 12px; overflow: hidden; margin: 20px 0; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .math-display { font-size: 42px; text-align: center; margin: 25px 0; padding: 30px; background: var(--glass-blue); border-radius: 12px; min-height: 100px; display: flex; align-items: center; justify-content: center; }
+    
+    .decimal-input { width: 140px; font-size: 40px; text-align: center; border: 4px solid var(--decimal-pink); border-radius: 10px; color: var(--lab-dark); outline: none; }
+
+    .tenths-grid { display: flex; width: 100%; height: 70px; border: 3px solid #333; margin: 25px 0; border-radius: 8px; overflow: hidden; background: white; }
+    .cell { flex: 1; border-right: 1px solid #ddd; transition: 0.3s; }
+    .cell:last-child { border-right: none; }
+    .cell.active { background: var(--decimal-pink); }
+
+    .progress-bar { height: 10px; background: #eee; border-radius: 5px; margin-bottom: 25px; overflow: hidden; }
+    #pb-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
   </style>
 </head>
 <body>
 
-  <h1>Decimals (Tenths)</h1>
+  <nav>
+    <div class="nav-header">
+      <strong>🔬 Decimal Lab</strong>
+      <div id="percent-display" style="font-size: 12px; margin-top:5px;">Syncing lab data...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Intro: The Power of the Dot</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 Translation Secrets</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Visual Tenths</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Fraction Scan</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🟠 Level 3: Reverse Engineering</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🔴 Level 4: Master Scientist</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Lab Report Filed</div>
+    </div>
+  </nav>
 
-  <div class="card">
-    <h2>📘 Introduction</h2>
-    <p>Decimals are a way to show numbers that are <b>between whole numbers</b>.  
-    The first decimal place is called the <b>tenths place</b>.</p>
-    <p>For example:  
-      - 0.1 = one tenth  
-      - 0.5 = five tenths  
-      - 0.7 = seven tenths  
-    </p>
-    <p>Think of tenths as dividing something into 10 equal parts!</p>
-  </div>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>The Decimal Point</h1>
+        <p>In the lab, we often need to measure things smaller than 1 whole. The <strong>decimal point</strong> is our most important tool. It separates the whole numbers from the "bits and pieces" called Tenths.</p>
+        <div class="video-container">
+          <iframe src="https://www.youtube.com/embed/j_L-h7MIsi8" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Analyze Theory</button>
+    </div>
 
-  <div class="card">
-    <h2>🔢 Place Value Chart (Ones & Tenths)</h2>
-    <canvas id="chartCanvas" width="400" height="150"></canvas>
-  </div>
+    <div id="p1" class="content-card">
+      <h1>The Tenths Place</h1>
+      <p>When you divide a whole into <strong>10 equal parts</strong>, each part is a tenth. In decimals, we write this as one spot to the right of the dot.</p>
+      
+      <div class="math-display" id="static-math">
+          1/10
+      </div>
+      <p style="text-align: center;"><em>"One-tenth is the same as zero point one."</em></p>
 
-  <div class="card">
-    <h2>🎨 Tenths Grid</h2>
-    <p>Click cells to fill in tenths:</p>
-    <div class="grid" id="tenthsGrid"></div>
-    <p><b>Value:</b> <span id="tenthsValue">0.0</span></p>
-  </div>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Enter Practice Zone</button>
+    </div>
 
-  <div class="card">
-    <h2>📝 Practice Questions</h2>
-    <div id="questions"></div>
-    <button onclick="generateQuestions()">New Questions</button>
-    <button onclick="downloadCSV()">Download as CSV</button>
-  </div>
+    <div id="p-practice" class="content-card">
+      <div class="progress-bar"><div id="pb-fill"></div></div>
+      <h2 id="q-title" style="text-align:center;">Analyzing Sample...</h2>
+      <p id="q-instr" style="text-align:center; font-weight: 500;">What is the decimal value?</p>
+
+      <div id="visual-grid-container"></div>
+      
+      <div id="math-target" class="math-display">
+          </div>
+
+      <div style="text-align: center;">
+          <input type="text" id="q-input" class="decimal-input" placeholder="0.0">
+          <br><br>
+          <button class="btn" onclick="checkPractice()">Confirm Result</button>
+          <div id="feedback" style="margin-top:20px; font-weight:bold; height:24px;"></div>
+      </div>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 80px; margin-bottom: 10px;">🔬</h1>
+        <h1 style="color: var(--decimal-pink);">Master Scientist</h1>
+        <p>Your measurements are precise. You have successfully mapped the Tenths place on the number line.</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Save Final Report</button>
+    </div>
+  </main>
 
   <script>
-    // === Place Value Chart ===
-    const chart = document.getElementById("chartCanvas");
-    const ctx = chart.getContext("2d");
+    const lessonID = "3rd_grade_decimals_v2_fixed";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-    function drawChart() {
-      ctx.clearRect(0,0,chart.width,chart.height);
-      ctx.font = "18px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Ones", 100, 40);
-      ctx.fillText("Tenths", 300, 40);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-      ctx.strokeRect(50,60,100,60);
-      ctx.strokeRect(250,60,100,60);
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let currentQ = { a: "" };
 
-      ctx.font = "24px Arial";
-      ctx.fillText("3", 100, 100); // Example number: 3.7
-      ctx.fillText("7", 300, 100);
-      ctx.fillText("= 3.7", 200, 140);
-    }
-    drawChart();
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
 
-    // === Tenths Grid ===
-    const grid = document.getElementById("tenthsGrid");
-    let filled = 0;
-    for(let i=0;i<10;i++){
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.addEventListener("click", () => {
-        if(cell.classList.contains("filled")){
-          cell.classList.remove("filled");
-          filled--;
-        } else {
-          cell.classList.add("filled");
-          filled++;
-        }
-        document.getElementById("tenthsValue").textContent = (filled/10).toFixed(1);
-      });
-      grid.appendChild(cell);
+    async function syncProgress() {
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      const doc = await docRef.get();
+      stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+      updateSidebar();
+      if(window.MathJax) MathJax.typeset();
     }
 
-    // === Practice Questions ===
-    const qs = document.getElementById("questions");
-    function generateQuestions(){
-      qs.innerHTML = "";
-      let problems = [];
-      for(let i=0;i<5;i++){
-        let num = (Math.floor(Math.random()*9)+1)/10;
-        let type = Math.random()<0.5 ? "write" : "grid";
-        if(type === "write"){
-          qs.innerHTML += `<div class="question">Write ${num} in words: 
-          <input type="text" placeholder="Answer"></div>`;
-          problems.push([`Write ${num} in words`, ""]);
-        } else {
-          qs.innerHTML += `<div class="question">Shade ${num*10} tenths on the grid (conceptual question).</div>`;
-          problems.push([`Shade ${num*10} tenths`, ""]);
-        }
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+      await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
+
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
       }
-      window.generatedProblems = problems;
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Precision: ${Math.round((completedCount/7)*100)}%`;
     }
-    generateQuestions();
 
-    // === Download as CSV ===
-    function downloadCSV(){
-      let rows = [["Question","Answer"]];
-      rows.push(...(window.generatedProblems || []));
-      let csv = rows.map(r=>r.join(",")).join("\n");
-      let blob = new Blob([csv], {type:"text/csv"});
-      let a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "decimals_tenths_practice.csv";
-      a.click();
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 5) setupPractice(index);
+    }
+
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genProblem(step);
+    }
+
+    function genProblem(step) {
+        let val = Math.floor(Math.random() * 9) + 1;
+        const target = document.getElementById('math-target');
+        const gridContainer = document.getElementById('visual-grid-container');
+        gridContainer.innerHTML = '';
+        
+        if (step === 2) {
+            document.getElementById('q-title').textContent = "Visual Observation";
+            document.getElementById('q-instr').textContent = "Count the shaded tenths. Write as a decimal:";
+            let gridHtml = '<div class="tenths-grid">';
+            for(let i=0; i<10; i++) gridHtml += `<div class="cell ${i < val ? 'active' : ''}"></div>`;
+            gridHtml += '</div>';
+            gridContainer.innerHTML = gridHtml;
+            target.style.display = 'none';
+        } else {
+            target.style.display = 'flex';
+            document.getElementById('q-title').textContent = "Data Conversion";
+            document.getElementById('q-instr').textContent = "Translate the fraction to a decimal:";
+            target.innerHTML = `\\[ \\frac{${val}}{10} = ? \\]`;
+            if (window.MathJax && MathJax.typesetPromise) {
+              MathJax.typesetPromise([target]);
+            }
+        }
+
+        currentQ.a = "0." + val;
+        document.getElementById('q-input').value = '';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('q-input').focus();
+    }
+
+    function checkPractice() {
+      const val = document.getElementById('q-input').value.trim();
+      const fb = document.getElementById('feedback');
+      let normalized = val.startsWith('.') ? "0" + val : val;
+
+      if(normalized === currentQ.a) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Precision confirmed! 🧪";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/4 * 100) + '%';
+        if(practiceCount >= 4) setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+        else setTimeout(() => genProblem(currentStep), 1000);
+      } else {
+        fb.style.color = "var(--decimal-pink)";
+        fb.textContent = "Calibration error. Try again!";
+      }
     }
   </script>
-
 </body>
 </html>
