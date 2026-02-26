@@ -4,11 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>3rd Grade Math: Word Problem Agency</title>
-    
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
   <style>
     :root {
       --agency-navy: #2c3e50;
@@ -17,26 +15,28 @@
       --success-green: #27ae60;
       --error-red: #e74c3c;
     }
-
     body { margin: 0; font-family: "Courier New", Courier, monospace; background: #dcdde1; display: flex; height: 100vh; overflow: hidden; }
-    
-    nav { width: 320px; background: var(--agency-navy); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
-    .nav-header { padding: 25px; border-bottom: 2px solid var(--detective-gold); }
-    .nav-item { padding: 15px 20px; border-bottom: 1px solid #34495e; color: #bdc3c7; cursor: pointer; font-size: 13px; position: relative; }
-    .nav-item.active { color: white; background: #34495e; border-left: 5px solid var(--detective-gold); }
-    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
-    .nav-item.completed::after { content: '📁'; position: absolute; right: 15px; }
+    nav { width: 320px; background: var(--agency-navy); color: white; display: flex; flex-direction: column; flex-shrink: 0; border-right: 4px solid #1a252f; }
+    .nav-header { padding: 25px; border-bottom: 2px solid var(--detective-gold); background: #1a252f; text-align: center; }
+    .nav-item { padding: 15px 20px; border-bottom: 1px solid #34495e; color: #bdc3c7; cursor: pointer; font-size: 12px; position: relative; transition: 0.2s; }
+    .nav-item.active { color: white; background: #34495e; border-left: 6px solid var(--detective-gold); }
+    .nav-item.locked { opacity: 0.5; cursor: not-allowed; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 10px; }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 10px; }
 
     main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
-    .case-file { background: var(--paper-white); width: 100%; max-width: 750px; padding: 50px; border: 1px solid #ccc; box-shadow: 10px 10px 0px rgba(0,0,0,0.1); position: relative; display: none; }
+    .case-file { background: var(--paper-white); width: 100%; max-width: 800px; padding: 40px; border: 1px solid #ccc; box-shadow: 10px 10px 0px rgba(0,0,0,0.1); position: relative; display: none; }
     .case-file.active { display: block; }
-    .stamp { position: absolute; top: 20px; right: 20px; border: 4px solid var(--error-red); color: var(--error-red); padding: 5px 10px; transform: rotate(15deg); font-weight: bold; font-size: 20px; }
-
-    .btn { background: var(--agency-navy); color: white; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; font-family: inherit; }
+    .stamp { position: absolute; top: 20px; right: 20px; border: 3px solid var(--error-red); color: var(--error-red); padding: 5px; transform: rotate(10deg); font-weight: bold; }
+    
+    .cheat-sheet { background: #fdf9e1; border: 2px solid #f1c40f; padding: 20px; margin: 20px 0; }
+    .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    
+    .btn { background: var(--agency-navy); color: white; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; font-family: inherit; margin-top: 15px; }
     .btn:hover { background: var(--detective-gold); }
-
-    .problem-box { background: #f9f9f9; padding: 30px; border-left: 5px solid var(--detective-gold); margin: 20px 0; font-size: 18px; line-height: 1.6; }
-    .answer-input { font-size: 24px; padding: 10px; width: 100px; border: 2px solid var(--agency-navy); text-align: center; }
+    
+    .problem-box { background: #f9f9f9; padding: 25px; border-left: 8px solid var(--detective-gold); margin: 20px 0; font-size: 19px; line-height: 1.5; }
+    .answer-input { font-size: 24px; padding: 10px; width: 120px; border: 2px solid var(--agency-navy); text-align: center; }
   </style>
 </head>
 <body>
@@ -44,121 +44,169 @@
   <nav>
     <div class="nav-header"><strong>🕵️ CASE LOG</strong></div>
     <div id="nav-list">
-      <div id="nav-0" class="nav-item active" onclick="showPage(0)">CASE #01: Briefing</div>
-      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">CASE #02: Multiplication Ops</div>
-      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">CASE #03: Division Ops</div>
-      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">CASE #04: The Mixed File</div>
-      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">CASE #05: Final Inquiry</div>
+      <div id="nav-0" class="nav-item active" onclick="jumpTo(0)">#01: Briefing & Cheat Sheet</div>
+      <div id="nav-1" class="nav-item locked" onclick="jumpTo(1)">#02: Multiplication Ops</div>
+      <div id="nav-2" class="nav-item locked" onclick="jumpTo(2)">#03: Array Surveillance</div>
+      <div id="nav-3" class="nav-item locked" onclick="jumpTo(3)">#04: Division Ops</div>
+      <div id="nav-4" class="nav-item locked" onclick="jumpTo(4)">#05: The Mixed File</div>
+      <div id="nav-5" class="nav-item locked" onclick="jumpTo(5)">#06: Two-Step Clues</div>
+      <div id="nav-6" class="nav-item locked" onclick="jumpTo(6)">#07: Final Inquiry</div>
     </div>
   </nav>
 
   <main>
     <div id="p0" class="case-file active">
-      <div class="stamp">TOP SECRET</div>
-      <h1>Agency Briefing</h1>
-      <p>Agents, we use math to solve crimes of logic. To solve a case, you must identify if you are <strong>combining equal groups</strong> (Multiplication) or <strong>splitting a total</strong> (Division).</p>
-      <div style="background:#eee; padding:15px; margin: 15px 0;">
-        <strong>Key Words to Watch:</strong><br>
-        * Multiplication: "Each," "Total," "In all," "Twice"<br>
-        * Division: "Shared equally," "Split," "Each person gets," "Per"
+      <div class="stamp">FIELD MANUAL</div>
+      <h1>Agency Cheat Sheet</h1>
+      <p>Before you head into the field, memorize these multiplication decoding patterns.</p>
+      
+      <div class="cheat-sheet">
+        <h3>🔍 Strategy: The "Groups" Method</h3>
+        <p>Multiplication is just <strong>Repeated Addition</strong>. If you see these keywords, use multiplication:</p>
+        <div class="cheat-grid">
+          <div>
+            <strong>Action Words:</strong>
+            <ul>
+              <li>"Each" / "Every"</li>
+              <li>"Total in all"</li>
+              <li>"Times as many"</li>
+              <li>"Per"</li>
+            </ul>
+          </div>
+          <div>
+            <strong>Visual Clues:</strong>
+            <ul>
+              <li>Rows and Columns</li>
+              <li>Sets of items</li>
+              <li>Equal stacks</li>
+            </ul>
+          </div>
+        </div>
       </div>
-      <button class="btn" onclick="saveStepProgress(0, 1)">Accept Mission</button>
+      
+      <div class="problem-box">
+        <strong>The Detective Formula:</strong><br>
+        $$ (Number\ of\ Groups) \times (Size\ of\ each\ Group) = Total $$
+      </div>
+      <button class="btn" onclick="saveStepProgress(0, 1)">START MISSION</button>
     </div>
 
     <div id="p-practice" class="case-file">
-      <h2 id="q-case-num">Case File</h2>
+      <h2 id="level-title">Active Case</h2>
+      <p id="level-desc"></p>
+      <div id="q-progress" style="color: var(--detective-gold); font-weight: bold;">Cases Solved: 0/3</div>
+      
       <div class="problem-box" id="q-text">Loading evidence...</div>
       
       <div style="text-align: center;">
-        <input type="number" id="q-input" class="answer-input">
+        <input type="number" id="q-input" class="answer-input" placeholder="?">
         <br><br>
-        <button class="btn" onclick="checkPractice()">Submit Evidence</button>
+        <button class="btn" onclick="checkPractice()">SUBMIT EVIDENCE</button>
         <div id="feedback" style="margin-top:20px; font-weight:bold;"></div>
       </div>
     </div>
 
-    <div id="p4" class="case-file" style="text-align:center;">
-      <h1 style="font-size: 50px;">🕵️‍♂️</h1>
-      <h1>Case Closed</h1>
-      <p>The Agency thanks you. You've proven that no word problem is too tough for a master of operations.</p>
+    <div id="p6" class="case-file" style="text-align:center;">
+      <h1 style="font-size: 60px;">🏆</h1>
+      <h1>Special Agent Status</h1>
+      <p>You've cleared all files. You are now a Master of Operations!</p>
+      <button class="btn" onclick="location.reload()">RESTART TRAINING</button>
     </div>
   </main>
 
   <script>
-    const lessonID = "3rd_grade_word_probs_v1";
-    // Using your Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
-      authDomain: "contract-center-llc-10.firebaseapp.com",
-      projectId: "contract-center-llc-10",
-      storageBucket: "contract-center-llc-10.firebasestorage.app",
-      messagingSenderId: "323221512767",
-      appId: "1:323221512767:web:6421260f875997dbf64e8a"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    let stepsCompleted = {};
+    // Configuration & State
+    const lessonID = "3rd_grade_agency_v2";
+    let stepsCompleted = { step_0:false, step_1:false, step_2:false, step_3:false, step_4:false, step_5:false, step_6:false };
     let currentStep = 0;
     let practiceCount = 0;
     let currentQ = { a: 0 };
 
-    auth.onAuthStateChanged(user => { if (user) syncProgress(user); });
+    // Placeholder for Firebase - Replace with your config
+    const firebaseConfig = { /* Your Config Here */ };
+    // firebase.initializeApp(firebaseConfig);
+    // const auth = firebase.auth();
+    // const db = firebase.firestore();
 
-    async function syncProgress(user) {
-      const doc = await db.collection('UserLessonProgress').doc(user.uid).collection('lessons').doc(lessonID).get();
-      stepsCompleted = doc.exists ? doc.data().steps : { step_0:false, step_1:false, step_2:false, step_3:false, step_4:false };
-      updateSidebar();
-    }
-
-    async function saveStepProgress(stepIdx, nextIdx) {
-      stepsCompleted[`step_${stepIdx}`] = true;
-      await db.collection('UserLessonProgress').doc(auth.currentUser.uid).collection('lessons').doc(lessonID).set({ steps: stepsCompleted }, { merge: true });
-      updateSidebar();
-      showPage(nextIdx);
-    }
-
-    function updateSidebar() {
-      for(let i=0; i<5; i++) {
-        const item = document.getElementById(`nav-${i}`);
-        item.className = 'nav-item' + (currentStep === i ? ' active' : '') + (stepsCompleted[`step_${i}`] ? ' completed' : '') + (i > 0 && !stepsCompleted[`step_${i-1}`] ? ' locked' : '');
-      }
+    function jumpTo(idx) {
+        if (idx === 0 || stepsCompleted[`step_${idx-1}`]) {
+            showPage(idx);
+        } else {
+            alert("This case is locked! Complete the previous files first.");
+        }
     }
 
     function showPage(index) {
       document.querySelectorAll('.case-file').forEach(c => c.classList.remove('active'));
       currentStep = index;
-      const id = (index >= 1 && index <= 3) ? 'p-practice' : 'p' + index;
+      
+      // Map steps to either practice page or static pages
+      const id = (index >= 1 && index <= 5) ? 'p-practice' : 'p' + index;
       document.getElementById(id).classList.add('active');
+      
+      if(index >= 1 && index <= 5) setupLevel(index);
       updateSidebar();
-      if(index >= 1 && index <= 3) setupLevel(index);
+    }
+
+    function updateSidebar() {
+      for(let i=0; i<7; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        if(!item) continue;
+        item.className = 'nav-item';
+        if (currentStep === i) item.classList.add('active');
+        if (stepsCompleted[`step_${i}`]) item.classList.add('completed');
+        if (i > 0 && !stepsCompleted[`step_${i-1}`]) item.classList.add('locked');
+      }
     }
 
     function setupLevel(level) {
       practiceCount = 0;
+      const titles = ["", "Multiplication Ops", "Array Surveillance", "Division Ops", "The Mixed File", "Two-Step Clues"];
+      const descs = ["", "Find the total by combining equal groups.", "Solve cases using rows and columns.", "Split the total into equal groups.", "Determine if you need to multiply or divide.", "Solve the first part, then use the answer for the second!"];
+      
+      document.getElementById('level-title').textContent = titles[level];
+      document.getElementById('level-desc').textContent = descs[level];
+      document.getElementById('q-progress').textContent = `Cases Solved: 0/3`;
       genProblem(level);
     }
 
     function genProblem(level) {
-      const names = ["Agent Smith", "Detective Miller", "Officer Jones"];
-      const items = ["magnifying glasses", "secret notebooks", "evidence bags"];
-      let n1 = Math.floor(Math.random() * 7) + 2;
+      const items = ["gadgets", "clues", "suspects", "files"];
+      let n1 = Math.floor(Math.random() * 5) + 2;
       let n2 = Math.floor(Math.random() * 5) + 2;
-      let name = names[Math.floor(Math.random()*names.length)];
       let item = items[Math.floor(Math.random()*items.length)];
-      
-      let type = (level === 1) ? 'mult' : (level === 2) ? 'div' : (Math.random() > 0.5 ? 'mult' : 'div');
-      
-      if(type === 'mult') {
-        document.getElementById('q-text').textContent = `${name} has ${n1} boxes. Each box has ${n2} ${item}. How many ${item} are there in all?`;
-        currentQ.a = n1 * n2;
-      } else {
-        let total = n1 * n2;
-        document.getElementById('q-text').textContent = `${name} has ${total} ${item}. If they split them equally into ${n1} groups, how many ${item} will be in each group?`;
-        currentQ.a = n2;
+      let text = "";
+
+      if(level === 1) { // Basic Mult
+          text = `Agent, there are ${n1} safes. Each safe contains ${n2} ${item}. How many ${item} are there in total?`;
+          currentQ.a = n1 * n2;
+      } 
+      else if(level === 2) { // Arrays
+          text = `The suspect's hideout has ${item} arranged in ${n1} rows and ${n2} columns. How many ${item} are in the array?`;
+          currentQ.a = n1 * n2;
       }
+      else if(level === 3) { // Division
+          let total = n1 * n2;
+          text = `We have ${total} ${item}. If we put them into ${n1} evidence boxes equally, how many ${item} go in each box?`;
+          currentQ.a = n2;
+      }
+      else if(level === 4) { // Mixed
+          if(Math.random() > 0.5) {
+              text = `A team of ${n1} agents each found ${n2} ${item}. What is the total?`;
+              currentQ.a = n1 * n2;
+          } else {
+              let total = n1 * n2;
+              text = `An agent has ${total} ${item} and shares them with ${n1} partners. How many does each get?`;
+              currentQ.a = n2;
+          }
+      }
+      else if(level === 5) { // Two-Step
+          let n3 = Math.floor(Math.random() * 5) + 1;
+          text = `Agent X found ${n1} boxes with ${n2} ${item} in each. Then, they found ${n3} more ${item} on the floor. How many ${item} do they have now?`;
+          currentQ.a = (n1 * n2) + n3;
+      }
+
+      document.getElementById('q-text').textContent = text;
       document.getElementById('q-input').value = '';
       document.getElementById('feedback').textContent = '';
     }
@@ -167,11 +215,23 @@
       const val = parseInt(document.getElementById('q-input').value);
       if(val === currentQ.a) {
         practiceCount++;
-        if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
-        else genProblem(currentStep);
+        document.getElementById('q-progress').textContent = `Cases Solved: ${practiceCount}/3`;
+        if(practiceCount >= 3) {
+            saveStepProgress(currentStep, currentStep + 1);
+        } else {
+            genProblem(currentStep);
+        }
       } else {
-        document.getElementById('feedback').textContent = "Evidence mismatch. Re-read the case file!";
+        document.getElementById('feedback').textContent = "Logic Error! Try recalculating.";
+        document.getElementById('feedback').style.color = "var(--error-red)";
       }
+    }
+
+    function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      updateSidebar();
+      showPage(nextIdx);
+      // In production, add: db.collection(...).set({steps: stepsCompleted})
     }
   </script>
 </body>
