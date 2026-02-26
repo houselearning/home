@@ -4,15 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>3rd Grade Math: Fraction Word Problems</title>
-    
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script>
-    window.MathJax = { tex: { inlineMath: [['$', '$']] } };
-  </script>
+  <script>window.MathJax = { tex: { inlineMath: [['$', '$']] } };</script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
   <style>
     :root {
       --bakery-orange: #f39c12;
@@ -20,30 +16,33 @@
       --success-green: #27ae60;
       --nav-bg: #3e2723;
     }
-
     body { margin: 0; font-family: "Trebuchet MS", sans-serif; background: #fff3e0; display: flex; height: 100vh; overflow: hidden; }
-    
-    nav { width: 300px; background: var(--nav-bg); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+    nav { width: 300px; background: var(--nav-bg); color: white; display: flex; flex-direction: column; flex-shrink: 0; border-right: 4px solid var(--bakery-orange); }
     .nav-header { padding: 25px; border-bottom: 2px solid var(--bakery-orange); text-align: center; }
-    .nav-item { padding: 15px 20px; border-bottom: 1px solid #5d4037; color: #d7ccc8; cursor: pointer; font-size: 14px; position: relative; }
-    .nav-item.active { background: #5d4037; color: white; border-left: 5px solid var(--bakery-orange); }
+    .nav-item { padding: 15px 20px; border-bottom: 1px solid #5d4037; color: #d7ccc8; cursor: pointer; font-size: 13px; position: relative; transition: 0.3s; }
+    .nav-item.active { background: #5d4037; color: white; border-left: 6px solid var(--bakery-orange); }
+    .nav-item.locked { opacity: 0.5; cursor: not-allowed; }
     .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
-    .nav-item.completed::after { content: '🧁'; position: absolute; right: 15px; }
+    .nav-item.completed::after { content: '🧁'; position: absolute; right: 15px; color: var(--bakery-orange); }
 
     main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
-    .case-card { background: white; width: 100%; max-width: 700px; padding: 40px; border-radius: 15px; box-shadow: 0 8px 0px #e0e0e0; display: none; }
+    .case-card { background: white; width: 100%; max-width: 700px; padding: 40px; border-radius: 15px; box-shadow: 0 8px 0px #e0e0e0; display: none; position: relative; }
     .case-card.active { display: block; animation: popIn 0.3s ease-out; }
-
     @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    .problem-text { font-size: 20px; line-height: 1.6; color: #4e342e; background: #fffde7; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px dashed var(--bakery-orange); }
-    
-    .btn { background: var(--bakery-orange); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
-    .btn:hover { transform: scale(1.05); }
+    /* Cheat Sheet & Info Styles */
+    .chef-manual { background: #fffde7; border: 2px solid var(--bakery-orange); padding: 20px; border-radius: 10px; margin: 20px 0; }
+    .vocab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+    .vocab-box { background: white; padding: 10px; border-radius: 8px; border-left: 4px solid var(--nav-bg); font-size: 14px; }
 
-    .fraction-input-container { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 20px; }
-    .frac-input { width: 60px; font-size: 24px; text-align: center; padding: 5px; border: 3px solid var(--nav-bg); border-radius: 8px; }
-    .frac-line { width: 70px; height: 4px; background: var(--nav-bg); }
+    .problem-text { font-size: 20px; line-height: 1.6; color: #4e342e; background: #fffde7; padding: 25px; border-radius: 10px; margin: 20px 0; border: 2px dashed var(--bakery-orange); }
+    .btn { background: var(--bakery-orange); color: white; border: none; padding: 15px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #d35400; }
+    .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #d35400; }
+    
+    .fraction-input-container { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 20px; }
+    .frac-input { width: 70px; font-size: 28px; text-align: center; padding: 8px; border: 3px solid var(--nav-bg); border-radius: 10px; outline: none; }
+    .frac-line { width: 85px; height: 5px; background: var(--nav-bg); border-radius: 2px; }
+    .progress-dots { color: var(--bakery-orange); font-weight: bold; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -51,54 +50,89 @@
   <nav>
     <div class="nav-header"><strong>🥖 BAKERY ORDERS</strong></div>
     <div id="nav-list">
-      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Kitchen Briefing</div>
-      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 🟢 Level 1: Name the Slice</div>
-      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟡 Level 2: Shared Trays</div>
-      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟠 Level 3: Fractional Sets</div>
-      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🏆 Head Pastry Chef</div>
+      <div id="nav-0" class="nav-item active" onclick="handleNav(0)">1. 📜 Chef's Handbook</div>
+      <div id="nav-1" class="nav-item locked" onclick="handleNav(1)">2. 🎬 The Kitchen Briefing</div>
+      <div id="nav-2" class="nav-item locked" onclick="handleNav(2)">3. 🥧 Slice Logic (The "Not" Rule)</div>
+      <div id="nav-3" class="nav-item locked" onclick="handleNav(3)">4. 🟢 Level 1: Basic Slices</div>
+      <div id="nav-4" class="nav-item locked" onclick="handleNav(4)">5. 🟡 Level 2: Shared Trays</div>
+      <div id="nav-5" class="nav-item locked" onclick="handleNav(5)">6. 🟠 Level 3: Secret Ingredient</div>
+      <div id="nav-6" class="nav-item locked" onclick="handleNav(6)">7. 🏆 Head Pastry Chef</div>
     </div>
   </nav>
 
   <main>
     <div id="p0" class="case-card active">
-      <h1>The Secret Ingredient: Reading</h1>
-      <p>In fraction word problems, we need to find two numbers:</p>
-      <ul>
-        <li><strong>The Bottom (Denominator):</strong> How many total pieces make the whole?</li>
-        <li><strong>The Top (Numerator):</strong> How many pieces are we talking about?</li>
-      </ul>
-      <div style="text-align:center; background:#eee; padding: 20px; border-radius: 10px;">
-        "Maya cut a cake into 6 pieces. She gave away 2." <br>
-        <strong>Answer: $\frac{2}{6}$</strong>
+      <h1>The Chef's Handbook</h1>
+      <p>Before you bake, you must know your measurements. Use this cheat sheet to decode any order!</p>
+      
+      <div class="chef-manual">
+        <strong>The Numerator (Top Number)</strong>
+        <p>This is <em>how many pieces</em> we are serving, eating, or taking away.</p>
+        <hr>
+        <strong>The Denominator (Bottom Number)</strong>
+        <p>This is the <em>Total number of pieces</em> in the whole tray or pie.</p>
       </div>
-      <br><button class="btn" onclick="saveStepProgress(0, 1)">Start the Shift</button>
+
+      <div class="vocab-grid">
+        <div class="vocab-box"><strong>Halves:</strong> Cut into 2</div>
+        <div class="vocab-box"><strong>Fourths:</strong> Cut into 4</div>
+        <div class="vocab-box"><strong>Thirds:</strong> Cut into 3</div>
+        <div class="vocab-box"><strong>Eighths:</strong> Cut into 8</div>
+      </div>
+      
+      <button class="btn" onclick="saveStepProgress(0, 1)">Unlock the Kitchen</button>
+    </div>
+
+    <div id="p1" class="case-card">
+      <h1>Kitchen Briefing</h1>
+      <p>Watch how the Head Chef handles equal parts. In this kitchen, every slice must be the same size!</p>
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px; background:#000;">
+        <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/7GSWn6VUQ2Q" frameborder="0" allowfullscreen></iframe>
+      </div>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Ready to Slice</button>
+    </div>
+
+    <div id="p2" class="case-card">
+      <h1>The "Not" Rule</h1>
+      <p>Sometimes, customers ask for what is <strong>left over</strong>. You have to subtract to find the Numerator!</p>
+      
+      <div class="chef-manual" style="background: #e3f2fd; border-color: #2196f3;">
+        <p><em>Example:</em> "Chef cut a pie into 8 slices. We sold 3. What fraction is <strong>NOT</strong> sold?"</p>
+        <p>1. Total pieces = 8 (Denominator)<br>
+           2. 8 minus 3 = <strong>5</strong> (Numerator)<br>
+           3. Answer = $\frac{5}{8}$</p>
+      </div>
+      
+      <button class="btn" onclick="saveStepProgress(2, 3)">Start Level 1</button>
     </div>
 
     <div id="p-practice" class="case-card">
-      <h2 id="q-title" style="color: var(--bakery-orange);">New Order!</h2>
+      <div class="progress-dots" id="q-progress">Orders Filled: 0/3</div>
+      <h2 id="q-title" style="color: var(--bakery-orange); margin-top: 0;">Incoming Order...</h2>
       <div class="problem-text" id="q-text">Loading order...</div>
       
       <div class="fraction-input-container">
         <input type="number" id="q-num" class="frac-input" placeholder="Top">
         <div class="frac-line"></div>
-        <input type="number" id="q-den" class="frac-input" placeholder="Bottom">
+        <input type="number" id="q-den" class="frac-input" placeholder="Bot">
       </div>
       
-      <div style="text-align: center; margin-top: 30px;">
+      <div style="text-align: center; margin-top: 20px;">
         <button class="btn" onclick="checkPractice()">Fill Order</button>
-        <div id="feedback" style="margin-top:20px; font-weight:bold; height: 24px;"></div>
+        <div id="feedback" style="margin-top:15px; font-weight:bold; height: 24px;"></div>
       </div>
     </div>
 
-    <div id="p4" class="case-card" style="text-align:center;">
-      <h1 style="font-size: 60px;">👨‍🍳</h1>
+    <div id="p6" class="case-card" style="text-align:center;">
+      <h1 style="font-size: 80px;">👨‍🍳</h1>
       <h1>Promotion Earned!</h1>
-      <p>You can handle any fractional order that comes through this bakery. You've mastered the word problems!</p>
+      <p>The Bakery is running perfectly. You've mastered the art of fractional word problems!</p>
+      <button class="btn" onclick="location.reload()">Start New Shift</button>
     </div>
   </main>
 
   <script>
-    const lessonID = "3rd_grade_frac_word_probs_v1";
+    const lessonID = "3rd_grade_frac_bakery_v2";
     const firebaseConfig = {
       apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
       authDomain: "contract-center-llc-10.firebaseapp.com",
@@ -112,7 +146,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let stepsCompleted = {};
+    let stepsCompleted = { step_0:false, step_1:false, step_2:false, step_3:false, step_4:false, step_5:false, step_6:false };
     let currentStep = 0;
     let practiceCount = 0;
     let currentQ = { n: 0, d: 0 };
@@ -121,22 +155,37 @@
 
     async function syncProgress(user) {
       const doc = await db.collection('UserLessonProgress').doc(user.uid).collection('lessons').doc(lessonID).get();
-      stepsCompleted = doc.exists ? doc.data().steps : { step_0:false, step_1:false, step_2:false, step_3:false };
+      if(doc.exists) stepsCompleted = doc.data().steps;
       updateSidebar();
+    }
+
+    function handleNav(index) {
+      if(index === 0 || stepsCompleted[`step_${index-1}`]) {
+        showPage(index);
+      } else {
+        const fb = document.getElementById('feedback');
+        fb.textContent = "Order Locked! Complete the previous task.";
+        fb.style.color = "red";
+      }
     }
 
     async function saveStepProgress(stepIdx, nextIdx) {
       stepsCompleted[`step_${stepIdx}`] = true;
-      await db.collection('UserLessonProgress').doc(auth.currentUser.uid).collection('lessons').doc(lessonID).set({ steps: stepsCompleted }, { merge: true });
+      if(auth.currentUser) {
+        await db.collection('UserLessonProgress').doc(auth.currentUser.uid).collection('lessons').doc(lessonID).set({ steps: stepsCompleted }, { merge: true });
+      }
       updateSidebar();
       showPage(nextIdx);
     }
 
     function updateSidebar() {
-      for(let i=0; i<5; i++) {
+      for(let i=0; i<7; i++) {
         const item = document.getElementById(`nav-${i}`);
         if(item) {
-          item.className = 'nav-item' + (currentStep === i ? ' active' : '') + (stepsCompleted[`step_${i}`] ? ' completed' : '') + (i > 0 && !stepsCompleted[`step_${i-1}`] ? ' locked' : '');
+          item.className = 'nav-item';
+          if(currentStep === i) item.classList.add('active');
+          if(stepsCompleted[`step_${i}`]) item.classList.add('completed');
+          if(i > 0 && !stepsCompleted[`step_${i-1}`]) item.classList.add('locked');
         }
       }
     }
@@ -144,46 +193,59 @@
     function showPage(index) {
       document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
       currentStep = index;
-      const id = (index >= 1 && index <= 3) ? 'p-practice' : 'p' + index;
+      const id = (index >= 3 && index <= 5) ? 'p-practice' : 'p' + index;
       document.getElementById(id).classList.add('active');
       updateSidebar();
-      if(index >= 1 && index <= 3) genProblem(index);
+      if(index >= 3 && index <= 5) {
+        practiceCount = 0;
+        document.getElementById('q-progress').textContent = `Orders Filled: 0/3`;
+        genProblem(index);
+      }
     }
 
     function genProblem(level) {
-      const names = ["Leo", "Sarah", "Chef Andre", "Penny"];
-      const food = ["pizza", "pie", "tray of brownies", "loaf of bread"];
-      let den = Math.floor(Math.random() * 6) + 3; // Denominator 3-8
-      let num = Math.floor(Math.random() * (den - 1)) + 1; // Numerator < Denominator
+      const foods = ["pizza", "cake", "tray of brownies", "loaf of bread", "apple pie"];
+      const people = ["Chef Leo", "Sarah", "Agent Penny", "Officer Jones"];
       
-      let n = names[Math.floor(Math.random()*names.length)];
-      let f = food[Math.floor(Math.random()*food.length)];
+      let den = Math.floor(Math.random() * 5) + 4; // 4-8
+      let num = Math.floor(Math.random() * (den - 1)) + 1;
+      let f = foods[Math.floor(Math.random()*foods.length)];
+      let p = people[PersonIndex = Math.floor(Math.random()*people.length)];
 
-      if(level === 1) {
-        document.getElementById('q-text').textContent = `${n} cut a ${f} into ${den} equal slices. ${n} ate ${num} slices. What fraction of the ${f} did they eat?`;
-      } else if (level === 2) {
-        document.getElementById('q-text').textContent = `There were ${den} cookies on a tray. ${num} cookies were chocolate chip. What fraction of the cookies were chocolate chip?`;
-      } else {
-        document.getElementById('q-text').textContent = `A garden has ${den} flowers. ${num} of them are red. What fraction of the garden is NOT red?`;
-        num = den - num; // Sneaky "not" question for Level 3
+      if(level === 3) { // Level 1 Practice
+        document.getElementById('q-text').textContent = `${p} cut a ${f} into ${den} equal slices. They shared ${num} slices with friends. What fraction of the ${f} was shared?`;
+      } else if (level === 4) { // Level 2 Practice
+        document.getElementById('q-text').textContent = `There are ${den} cupcakes on a tray. ${num} have chocolate frosting and the rest have vanilla. What fraction have chocolate frosting?`;
+      } else { // Level 3 Practice (The "Not" / "Left" level)
+        document.getElementById('q-text').textContent = `${p} baked ${den} rolls. They sold ${num} rolls. What fraction of the rolls are LEFT?`;
+        num = den - num; 
       }
 
       currentQ = { n: num, d: den };
       document.getElementById('q-num').value = '';
       document.getElementById('q-den').value = '';
       document.getElementById('feedback').textContent = '';
+      document.getElementById('q-num').focus();
     }
 
     function checkPractice() {
       const n = parseInt(document.getElementById('q-num').value);
       const d = parseInt(document.getElementById('q-den').value);
-      
+      const fb = document.getElementById('feedback');
+
       if(n === currentQ.n && d === currentQ.d) {
         practiceCount++;
-        if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
-        else genProblem(currentStep);
+        fb.style.color = "var(--success-green)";
+        fb.textContent = "Perfect Bake!";
+        document.getElementById('q-progress').textContent = `Orders Filled: ${practiceCount}/3`;
+        
+        setTimeout(() => {
+          if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
+          else genProblem(currentStep);
+        }, 1000);
       } else {
-        document.getElementById('feedback').textContent = "That order isn't quite right. Check your counts!";
+        fb.style.color = "red";
+        fb.textContent = "Wrong proportions! Check your counts.";
       }
     }
   </script>
