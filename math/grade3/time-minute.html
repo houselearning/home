@@ -4,41 +4,46 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>3rd Grade Math: Clock Tower</title>
-    
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
   <style>
     :root {
       --clock-gold: #f1c40f;
       --tower-stone: #7f8c8d;
       --sky-blue: #3498db;
+      --navy: #2c3e50;
       --success: #27ae60;
     }
-
     body { margin: 0; font-family: "Georgia", serif; background: #dfe6e9; display: flex; height: 100vh; overflow: hidden; }
-    
-    nav { width: 300px; background: #2c3e50; color: white; display: flex; flex-direction: column; flex-shrink: 0; border-right: 4px solid var(--clock-gold); }
-    .nav-header { padding: 25px; border-bottom: 1px solid #34495e; text-align: center; }
-    .nav-item { padding: 15px 20px; border-bottom: 1px solid #34495e; color: #bdc3c7; cursor: pointer; font-size: 14px; position: relative; }
+    nav { width: 300px; background: var(--navy); color: white; display: flex; flex-direction: column; flex-shrink: 0; border-right: 4px solid var(--clock-gold); }
+    .nav-header { padding: 25px; border-bottom: 1px solid #34495e; text-align: center; font-size: 1.2em; letter-spacing: 1px; }
+    .nav-item { padding: 15px 20px; border-bottom: 1px solid #34495e; color: #bdc3c7; cursor: pointer; font-size: 14px; position: relative; transition: 0.3s; }
     .nav-item.active { color: white; background: #34495e; border-left: 5px solid var(--clock-gold); }
+    .nav-item.locked { opacity: 0.5; cursor: not-allowed; }
     .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
-    .nav-item.completed::after { content: '🔔'; position: absolute; right: 15px; }
+    .nav-item.completed::after { content: '🔔'; position: absolute; right: 15px; color: var(--clock-gold); }
 
     main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
-    .content-card { background: white; width: 100%; max-width: 700px; padding: 40px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; border-top: 10px solid var(--clock-gold); }
-    .content-card.active { display: block; }
+    .content-card { background: white; width: 100%; max-width: 700px; padding: 40px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; border-top: 10px solid var(--clock-gold); position: relative; }
+    .content-card.active { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Analog Clock Visual */
-    .clock-face { width: 200px; height: 200px; border: 8px solid #2c3e50; border-radius: 50%; position: relative; margin: 20px auto; background: white; }
-    .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; border-radius: 4px; background: #2c3e50; }
-    .hour-hand { width: 6px; height: 50px; z-index: 3; }
-    .min-hand { width: 4px; height: 80px; z-index: 2; }
-    .center-pin { position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; background: var(--clock-gold); border-radius: 50%; transform: translate(-50%, -50%); z-index: 4; }
+    /* Cheat Sheet Styling */
+    .cheat-sheet { background: #fff9e6; border: 2px dashed var(--clock-gold); padding: 20px; margin: 20px 0; border-radius: 8px; }
+    .cheat-row { display: flex; justify-content: space-around; text-align: center; margin-top: 15px; }
+    .cheat-item { background: white; padding: 10px; border-radius: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
 
-    .btn { background: var(--sky-blue); color: white; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 4px; margin-top: 20px; }
-    .time-input { font-size: 32px; padding: 10px; width: 140px; text-align: center; border: 2px solid var(--tower-stone); border-radius: 4px; }
+    .clock-face { width: 220px; height: 220px; border: 10px solid var(--navy); border-radius: 50%; position: relative; margin: 30px auto; background: white; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+    .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; border-radius: 10px; background: var(--navy); }
+    .hour-hand { width: 8px; height: 60px; z-index: 3; }
+    .min-hand { width: 5px; height: 95px; z-index: 2; }
+    .center-pin { position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; background: var(--clock-gold); border-radius: 50%; transform: translate(-50%, -50%); z-index: 4; }
+    
+    .number { position: absolute; width: 100%; height: 100%; text-align: center; font-weight: bold; font-size: 1.2em; padding: 5px; box-sizing: border-box; }
+    .btn { background: var(--sky-blue); color: white; border: none; padding: 15px 30px; cursor: pointer; font-weight: bold; border-radius: 4px; margin-top: 20px; font-family: inherit; font-size: 16px; transition: 0.2s; }
+    .btn:hover { background: #2980b9; transform: scale(1.05); }
+    .time-input { font-size: 32px; padding: 10px; width: 160px; text-align: center; border: 3px solid var(--navy); border-radius: 8px; outline: none; }
   </style>
 </head>
 <body>
@@ -46,52 +51,87 @@
   <nav>
     <div class="nav-header"><strong>🕰️ CLOCK TOWER</strong></div>
     <div id="nav-list">
-      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Setting the Watch</div>
-      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 The 5-Minute Rule</div>
-      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Hour Hunt</div>
-      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Five Minute Jumps</div>
-      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🟠 Level 3: To the Minute</div>
-      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🔴 Level 4: Time Master</div>
-      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Keeper of Time</div>
+      <div id="nav-0" class="nav-item active" onclick="handleNav(0)">1. 📜 Chronometer Cheat Sheet</div>
+      <div id="nav-1" class="nav-item locked" onclick="handleNav(1)">2. 🎬 The Gears of Time</div>
+      <div id="nav-2" class="nav-item locked" onclick="handleNav(2)">3. 📜 The 5-Minute Rule</div>
+      <div id="nav-3" class="nav-item locked" onclick="handleNav(3)">4. 🟢 Level 1: Hour Hunt</div>
+      <div id="nav-4" class="nav-item locked" onclick="handleNav(4)">5. 🟡 Level 2: Five Minute Jumps</div>
+      <div id="nav-5" class="nav-item locked" onclick="handleNav(5)">6. 🟠 Level 3: To the Minute</div>
+      <div id="nav-6" class="nav-item locked" onclick="handleNav(6)">7. 🏆 Keeper of Time</div>
     </div>
   </nav>
 
   <main>
     <div id="p0" class="content-card active">
+      <h1>The Keeper's Cheat Sheet</h1>
+      <p>Mastering time starts with knowing which hand does the heavy lifting!</p>
+      
+      <div class="cheat-sheet">
+        <h3>🔍 Quick Guide</h3>
+        <ul>
+          <li><strong>Short Hand:</strong> Points to the <strong>Hour</strong>. (Read the big numbers)</li>
+          <li><strong>Long Hand:</strong> Points to the <strong>Minutes</strong>. (Count by 5s)</li>
+        </ul>
+        <div class="cheat-row">
+          <div class="cheat-item"><strong>1</strong> = :05</div>
+          <div class="cheat-item"><strong>3</strong> = :15</div>
+          <div class="cheat-item"><strong>6</strong> = :30</div>
+          <div class="cheat-item"><strong>9</strong> = :45</div>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="saveStepProgress(0, 1)">Unlock Gears</button>
+    </div>
+
+    <div id="p1" class="content-card">
       <h1>The Gears of Time</h1>
-      <p>An analog clock is a circle that counts to 60. Before we can tell the exact minute, we have to understand how the Hour hand moves slowly while the Minute hand races around!</p>
-      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;">
+      <p>Watch how the hands work together. Notice that when the minute hand moves, the hour hand moves a tiny bit too!</p>
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px; background: #000;">
         <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/HrxZWNu72WI" frameborder="0" allowfullscreen></iframe>
       </div>
-      <button class="btn" onclick="saveStepProgress(0, 1)">Wind the Clock</button>
+      <button class="btn" onclick="saveStepProgress(1, 2)">I See the Pattern</button>
+    </div>
+
+    <div id="p2" class="content-card">
+      <h1>The 5-Minute Rule</h1>
+      <p>The numbers on the clock (1-12) are secret codes for minutes. To crack the code, multiply the number by 5!</p>
+      <div class="cheat-sheet" style="text-align:center;">
+        <h2 style="color:var(--navy)">$3 \times 5 = 15$ minutes</h2>
+        <p>If the long hand points at the 4, it's 20 minutes ($4 \times 5 = 20$).</p>
+      </div>
+      
+      <button class="btn" onclick="saveStepProgress(2, 3)">Let's Practice</button>
     </div>
 
     <div id="p-practice" class="content-card">
-      <h2 id="q-title" style="text-align:center;">What Time is it?</h2>
+      <h2 id="q-title" style="text-align:center;">Sync the Tower</h2>
+      <div id="q-count" style="text-align:center; color:var(--success); font-weight:bold;">Progress: 0/3</div>
       
-      <div class="clock-face">
+      <div class="clock-face" id="clock">
         <div id="h-hand" class="hand hour-hand"></div>
         <div id="m-hand" class="hand min-hand"></div>
         <div class="center-pin"></div>
-      </div>
+        </div>
 
-      <div style="text-align: center; margin-top: 30px;">
-        <input type="text" id="q-input" class="time-input" placeholder="HH:MM">
-        <p style="font-size: 14px; color: #666;">Example: 03:15 or 12:04</p>
-        <button class="btn" onclick="checkPractice()">Sync Watch</button>
-        <div id="feedback" style="margin-top:20px; font-weight:bold;"></div>
+      <div style="text-align: center;">
+        <input type="text" id="q-input" class="time-input" placeholder="00:00">
+        <p style="font-size: 14px; color: #666; margin-top:10px;">Format: HH:MM (e.g., 04:05)</p>
+        <button class="btn" onclick="checkPractice()">Verify Time</button>
+        <div id="feedback" style="margin-top:20px; font-weight:bold; height: 20px;"></div>
       </div>
     </div>
 
     <div id="p6" class="content-card" style="text-align:center;">
-      <h1 style="font-size: 60px;">🥇</h1>
+      <h1 style="font-size: 80px;">🔔</h1>
       <h1>Master of the Tower</h1>
-      <p>You can read any clock in the world. You never have to worry about being late for the Bakery or the Lab ever again!</p>
+      <p>The gears are perfectly aligned. You've proven you can read the language of time!</p>
+      <button class="btn" onclick="location.reload()">Reset the Tower</button>
     </div>
   </main>
 
   <script>
-    const lessonID = "3rd_grade_time_v1";
+    const lessonID = "3rd_grade_time_v2";
+    // Using provided Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
       authDomain: "contract-center-llc-10.firebaseapp.com",
@@ -105,22 +145,42 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let stepsCompleted = {};
+    let stepsCompleted = { step_0:false, step_1:false, step_2:false, step_3:false, step_4:false, step_5:false, step_6:false };
     let currentStep = 0;
     let practiceCount = 0;
     let currentH = 0, currentM = 0;
+
+    // Inject clock numbers
+    const clock = document.getElementById('clock');
+    for(let i=1; i<=12; i++) {
+        const num = document.createElement('div');
+        num.className = 'number';
+        num.style.transform = `rotate(${i * 30}deg)`;
+        num.innerHTML = `<span style="display:inline-block; transform:rotate(-${i * 30}deg)">${i}</span>`;
+        clock.appendChild(num);
+    }
 
     auth.onAuthStateChanged(user => { if (user) syncProgress(user); });
 
     async function syncProgress(user) {
       const doc = await db.collection('UserLessonProgress').doc(user.uid).collection('lessons').doc(lessonID).get();
-      stepsCompleted = doc.exists ? doc.data().steps : { step_0:false, step_1:false, step_2:false, step_3:false, step_4:false, step_5:false, step_6:false };
+      if(doc.exists) stepsCompleted = doc.data().steps;
       updateSidebar();
+    }
+
+    function handleNav(index) {
+        if(index === 0 || stepsCompleted[`step_${index-1}`]) {
+            showPage(index);
+        } else {
+            alert("This gear is locked! Complete the previous steps to unlock it.");
+        }
     }
 
     async function saveStepProgress(stepIdx, nextIdx) {
       stepsCompleted[`step_${stepIdx}`] = true;
-      await db.collection('UserLessonProgress').doc(auth.currentUser.uid).collection('lessons').doc(lessonID).set({ steps: stepsCompleted }, { merge: true });
+      if(auth.currentUser) {
+        await db.collection('UserLessonProgress').doc(auth.currentUser.uid).collection('lessons').doc(lessonID).set({ steps: stepsCompleted }, { merge: true });
+      }
       updateSidebar();
       showPage(nextIdx);
     }
@@ -129,7 +189,10 @@
       for(let i=0; i<7; i++) {
         const item = document.getElementById(`nav-${i}`);
         if(item) {
-          item.className = 'nav-item' + (currentStep === i ? ' active' : '') + (stepsCompleted[`step_${i}`] ? ' completed' : '') + (i > 0 && !stepsCompleted[`step_${i-1}`] ? ' locked' : '');
+          item.className = 'nav-item';
+          if(currentStep === i) item.classList.add('active');
+          if(stepsCompleted[`step_${i}`]) item.classList.add('completed');
+          if(i > 0 && !stepsCompleted[`step_${i-1}`]) item.classList.add('locked');
         }
       }
     }
@@ -137,20 +200,25 @@
     function showPage(index) {
       document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
       currentStep = index;
-      const id = (index >= 2 && index <= 5) ? 'p-practice' : 'p' + index;
+      
+      const id = (index >= 3 && index <= 5) ? 'p-practice' : 'p' + index;
       document.getElementById(id).classList.add('active');
+      
       updateSidebar();
-      if(index >= 2 && index <= 5) genTime(index);
+      if(index >= 3 && index <= 5) {
+          practiceCount = 0;
+          document.getElementById('q-count').textContent = `Progress: 0/3`;
+          genTime(index);
+      }
     }
 
     function genTime(level) {
       currentH = Math.floor(Math.random() * 12) + 1;
       
-      if(level === 2) currentM = 0; // Top of the hour
-      else if(level === 3) currentM = Math.floor(Math.random() * 12) * 5; // 5-min increments
-      else currentM = Math.floor(Math.random() * 60); // Any minute
+      if(level === 3) currentM = 0; // Hour Hunt (Top of the hour)
+      else if(level === 4) currentM = Math.floor(Math.random() * 12) * 5; // 5-Minute Jumps
+      else currentM = Math.floor(Math.random() * 60); // To the Minute
       
-      // Calculate rotation
       const mDeg = currentM * 6;
       const hDeg = (currentH * 30) + (currentM * 0.5);
       
@@ -163,14 +231,26 @@
 
     function checkPractice() {
       const input = document.getElementById('q-input').value.trim();
-      const [h, m] = input.split(':').map(Number);
+      if(!input.includes(':')) {
+          document.getElementById('feedback').textContent = "Use HH:MM format!";
+          return;
+      }
+      
+      let [h, m] = input.split(':').map(Number);
       
       if(h === currentH && m === currentM) {
         practiceCount++;
-        if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
-        else genTime(currentStep);
+        document.getElementById('q-count').textContent = `Progress: ${practiceCount}/3`;
+        document.getElementById('feedback').style.color = "var(--success)";
+        document.getElementById('feedback').textContent = "Time Sync Complete!";
+        
+        setTimeout(() => {
+            if(practiceCount >= 3) saveStepProgress(currentStep, currentStep + 1);
+            else genTime(currentStep);
+        }, 1000);
       } else {
-        document.getElementById('feedback').textContent = "Clock is out of sync! Look closer.";
+        document.getElementById('feedback').style.color = "#e74c3c";
+        document.getElementById('feedback').textContent = "Tower out of sync. Try again!";
       }
     }
   </script>
