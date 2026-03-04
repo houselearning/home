@@ -1,4 +1,4 @@
-"use strict";
+  "use strict";
 (function(){
 	const opts = {};
 	var progressPanel = null;
@@ -276,6 +276,7 @@
 				const transaction = db.transaction(["file_cache"], "readonly");
 				const readRequest = transaction.objectStore("file_cache").get(reqFileName);
 				var readResult = null;
+				readRequest.addEventListener("success", (evt) => {
 					resolve(readRequest.result);
 				});
 				transaction.addEventListener("success", (evt) => {
