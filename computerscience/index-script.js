@@ -1942,7 +1942,7 @@ outputCanvas.appendChild(playButton);`
                 <div class="browser-body">
                   <h4>File Error Dialog, what to do</h4>
                   <hr>
-                  <p>This is just a simmulation, so this error is just here</p>
+                  <p>This is just a simulation, so this error is just here</p>
                 </div>
               </div>
             `;
