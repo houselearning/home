@@ -2288,19 +2288,58 @@ outputCanvas.appendChild(playButton);`
         consoleOutput += `<span class="console-error">Error: ${errorMessage}</span>\n`;
       };
 
+      // Run arbitrary snippet code inside a sandboxed iframe instead of the main window
+      const runSnippetInSandbox = (mode, code) => {
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('sandbox', 'allow-scripts');
+        iframe.style.display = 'none';
+        // The sandboxed document will listen for a message containing the snippet code
+        iframe.srcdoc = `
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<script>
+  window.addEventListener('message', function(event) {
+    var payload = event.data;
+    if (!payload || typeof payload.code !== 'string') {
+      return;
+    }
+    try {
+      // Provide a minimal console to the snippet
+      var sandboxConsole = {
+        log: function() { try { parent.console && parent.console.log.apply(parent.console, arguments); } catch (e) {} },
+        error: function() { try { parent.console && parent.console.error.apply(parent.console, arguments); } catch (e) {} }
+      };
+      // Execute the snippet code in the sandbox
+      var fn = new Function('console', 'document', payload.code);
+      fn(sandboxConsole, document);
+    } catch (e) {
+      try {
+        parent.console && parent.console.error('Sandbox execution error:', e);
+      } catch (_) {}
+    }
+  });
+</script>
+</body>
+</html>`;
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+          iframe.contentWindow.postMessage({ mode, code }, '*');
+        };
+      };
+
       try {
         if (langKey === 'three.js') {
           if (typeof THREE === 'undefined') {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
             script.onload = () => {
-              const threeCode = new Function('THREE', 'document', 'outputCanvas', snippetCode);
-              threeCode(window.THREE, document, outputCanvas);
+              runSnippetInSandbox('three', snippetCode);
             };
             document.head.appendChild(script);
           } else {
-            const threeCode = new Function('THREE', 'document', 'outputCanvas', snippetCode);
-            threeCode(window.THREE, document, outputCanvas);
+            runSnippetInSandbox('three', snippetCode);
           }
           hasCanvasOutput = true;
           outputText.textContent = 'Previewing 3D scene in the canvas.';
@@ -2309,20 +2348,18 @@ outputCanvas.appendChild(playButton);`
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.52/Tone.js';
             script.onload = () => {
-              const toneCode = new Function('Tone', 'document', 'outputCanvas', snippetCode);
-              toneCode(window.Tone, document, outputCanvas);
+              runSnippetInSandbox('tone', snippetCode);
             };
             document.head.appendChild(script);
           } else {
-            const toneCode = new Function('Tone', 'document', 'outputCanvas', snippetCode);
-            toneCode(window.Tone, document, outputCanvas);
+            runSnippetInSandbox('tone', snippetCode);
           }
           hasCanvasOutput = true;
           outputText.textContent = 'Interactive audio component preview in the canvas.';
         } else {
-          const codeFunction = new Function('console', 'document', 'outputCanvas', 'outputText', currentSnippet.code); // Pass outputText
-          codeFunction(console, document, outputCanvas, outputText); // Pass outputText
-          // Check if the runnable code has appended anything to the canvas
+          // Generic runnable snippet: execute in sandbox with access to a minimal document and console
+          runSnippetInSandbox('generic', currentSnippet.code);
+          // We can still detect whether the main outputCanvas has been updated by other code paths
           if (outputCanvas.innerHTML.trim() !== '') {
             hasCanvasOutput = true;
             // outputText will be set by the snippet itself now
