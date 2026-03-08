@@ -392,7 +392,7 @@
 		
 		var dl = await tryDownloadClient(opts.cid, opts.path);
 		if(dl) {
-			updateProgressBar("Cacheing...", "Last fetched: now", -1);
+			updateProgressBar("Caching...", "Last fetched: now", -1);
 			await saveClientToIndexedDB({
 				fileName: opts.file,
 				clientVersionUID: clientCIDPath,
