@@ -78,7 +78,7 @@
     'vbnet': ['vb-intro.html', 'vb-syntax.html', 'vb-variables.html', 'vb-conditions.html', 'vb-loops.html', 'vb-arrays.html', 'vb-functions.html', 'vb-oop.html', 'vb-exceptions.html', 'vb-fileio.html', 'vb-database.html', 'vb-winforms.html', 'vb-threads.html', 'vb-async.html', 'vb-projects.html'],
     'csharp': ['csharp-intro.html', 'csharp-syntax.html', 'csharp-variables.html', 'csharp-conditions.html', 'csharp-loops.html', 'csharp-arrays.html', 'csharp-functions.html', 'csharp-oop.html', 'csharp-exceptions.html', 'csharp-fileio.html', 'csharp-database.html', 'csharp-wpf.html', 'csharp-threads.html', 'csharp-async.html', 'csharp-projects.html', 'csharp-inheritance.html'],
     'python': ['py-intro.html', 'py-syntax.html', 'py-variables.html', 'py-loops.html', 'py-functions.html', 'py-async.html', 'py-conditions.html', 'py-dictionaries.html', 'py-exceptions.html', 'py-fileio.html', 'py-gui.html', 'py-lists.html', 'py-oop.html', 'py-projects.html'],
-    'java': ['java-intro.html', 'java-variables.html', 'java-conditions.html', 'java-arrays.html', 'java-collections.html', 'java-concurrency.html', 'java-exceptions.html', 'java-fileio.htm', 'java-generics.html', 'java-gui.html', 'java-loops.html', 'java-methods.html', 'java-networking.html', 'java-oop.html', 'java-projects.html', 'java-streams.html', 'java-syntax.html'],
+    'java': ['java-intro.html', 'java-variables.html', 'java-conditions.html', 'java-arrays.html', 'java-collections.html', 'java-concurrency.html', 'java-exceptions.html', 'java-fileio.html', 'java-generics.html', 'java-gui.html', 'java-loops.html', 'java-methods.html', 'java-networking.html', 'java-oop.html', 'java-projects.html', 'java-streams.html', 'java-syntax.html'],
     'ruby': ['ruby-intro.html', 'ruby-syntax.html', 'ruby-variables.html', 'ruby-arrays.html', 'ruby-conditions.html', 'ruby-exceptions.html', 'ruby-fileio.html', 'ruby-gems.html', 'ruby-hashes.html', 'ruby-loops.html', 'ruby-methods.html', 'ruby-modules.html', 'ruby-oop.html', 'ruby-projects.html'],
     'swift': ['swift-intro.html', 'swift-variables.html', 'swift-conditions.html', 'swift-arrays.html', 'swift-concurrency.html', 'swift-dictionaries.html', 'swift-errors.html', 'swift-fileio.html', 'swift-functions.html', 'swift-loops.html', 'swift-oop.html', 'swift-projects.html', 'swift-protocols.html', 'swift-syntax.html'],
     'kotlin': ['kotlin-intro.html', 'kotlin-variables.html', 'kotlin-conditions.html', 'kotlin-arrays.html', 'kotlin-collections.html', 'kotlin-coroutines.html', 'kotlin-exceptions.html', 'kotlin-fileio.html', 'kotlin-functions.html', 'kotlin-loops.html', 'kotlin-oop.html', 'kotlin-projects.html', 'kotlin-syntax.html'],
@@ -1942,7 +1942,7 @@ outputCanvas.appendChild(playButton);`
                 <div class="browser-body">
                   <h4>File Error Dialog, what to do</h4>
                   <hr>
-                  <p>This is just a simmulation, so this error is just here</p>
+                  <p>This is just a simulation, so this error is just here</p>
                 </div>
               </div>
             `;
@@ -2250,7 +2250,7 @@ outputCanvas.appendChild(playButton);`
               <div class="browser-body">
                 <h4>File Error Dialog, what to do</h4>
                 <hr>
-                <p>This is just a simmulation, so this error is just here</p>
+                <p>This is just a simulation, so this error is just here</p>
               </div>
             </div>
           `;
@@ -2288,19 +2288,58 @@ outputCanvas.appendChild(playButton);`
         consoleOutput += `<span class="console-error">Error: ${errorMessage}</span>\n`;
       };
 
+      // Run arbitrary snippet code inside a sandboxed iframe instead of the main window
+      const runSnippetInSandbox = (mode, code) => {
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('sandbox', 'allow-scripts');
+        iframe.style.display = 'none';
+        // The sandboxed document will listen for a message containing the snippet code
+        iframe.srcdoc = `
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<script>
+  window.addEventListener('message', function(event) {
+    var payload = event.data;
+    if (!payload || typeof payload.code !== 'string') {
+      return;
+    }
+    try {
+      // Provide a minimal console to the snippet
+      var sandboxConsole = {
+        log: function() { try { parent.console && parent.console.log.apply(parent.console, arguments); } catch (e) {} },
+        error: function() { try { parent.console && parent.console.error.apply(parent.console, arguments); } catch (e) {} }
+      };
+      // Execute the snippet code in the sandbox
+      var fn = new Function('console', 'document', payload.code);
+      fn(sandboxConsole, document);
+    } catch (e) {
+      try {
+        parent.console && parent.console.error('Sandbox execution error:', e);
+      } catch (_) {}
+    }
+  });
+</script>
+</body>
+</html>`;
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+          iframe.contentWindow.postMessage({ mode, code }, '*');
+        };
+      };
+
       try {
         if (langKey === 'three.js') {
           if (typeof THREE === 'undefined') {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
             script.onload = () => {
-              const threeCode = new Function('THREE', 'document', 'outputCanvas', snippetCode);
-              threeCode(window.THREE, document, outputCanvas);
+              runSnippetInSandbox('three', snippetCode);
             };
             document.head.appendChild(script);
           } else {
-            const threeCode = new Function('THREE', 'document', 'outputCanvas', snippetCode);
-            threeCode(window.THREE, document, outputCanvas);
+            runSnippetInSandbox('three', snippetCode);
           }
           hasCanvasOutput = true;
           outputText.textContent = 'Previewing 3D scene in the canvas.';
@@ -2309,20 +2348,18 @@ outputCanvas.appendChild(playButton);`
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.52/Tone.js';
             script.onload = () => {
-              const toneCode = new Function('Tone', 'document', 'outputCanvas', snippetCode);
-              toneCode(window.Tone, document, outputCanvas);
+              runSnippetInSandbox('tone', snippetCode);
             };
             document.head.appendChild(script);
           } else {
-            const toneCode = new Function('Tone', 'document', 'outputCanvas', snippetCode);
-            toneCode(window.Tone, document, outputCanvas);
+            runSnippetInSandbox('tone', snippetCode);
           }
           hasCanvasOutput = true;
           outputText.textContent = 'Interactive audio component preview in the canvas.';
         } else {
-          const codeFunction = new Function('console', 'document', 'outputCanvas', 'outputText', currentSnippet.code); // Pass outputText
-          codeFunction(console, document, outputCanvas, outputText); // Pass outputText
-          // Check if the runnable code has appended anything to the canvas
+          // Generic runnable snippet: execute in sandbox with access to a minimal document and console
+          runSnippetInSandbox('generic', currentSnippet.code);
+          // We can still detect whether the main outputCanvas has been updated by other code paths
           if (outputCanvas.innerHTML.trim() !== '') {
             hasCanvasOutput = true;
             // outputText will be set by the snippet itself now
