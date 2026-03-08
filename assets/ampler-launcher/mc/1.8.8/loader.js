@@ -74,7 +74,6 @@
 					updateProgressBar("Update: " + Math.round(opts.dlSize * 0.001) + " / " + Math.round(opts.dlSize * 0.001) + " kB", theIpfsURL, Math.min(evt.loaded / opts.dlSize, 1.0));
 					if(cancelButton !== null) {
 						cancelButton.disabled = true;
-						currentXHR = null;
 					}
 					currentXHR = null;
 					if(xhr.status === 200) {
