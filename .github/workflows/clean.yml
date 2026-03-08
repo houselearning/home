@@ -1,0 +1,48 @@
+name: Use Clean Automation
+
+on:
+	issues:
+		types: [opened, edited]
+	pull_request:
+		types: [opened, synchronize, reopened]
+
+jobs:
+	create-clean-pr:
+		if: >-
+			contains(github.event.issue.body, '--HouseLearningCleanPlease') &&
+			!contains(github.event.issue.body, 'Fixes PR:')
+		runs-on: ubuntu-latest
+		steps:
+			- name: Run Clean (create PR)
+				uses: houselearning/Clean@main
+				with:
+					mode: create-pr
+					issue-body: ${{ github.event.issue.body }}
+					issue-number: ${{ github.event.issue.number }}
+					repo: ${{ github.repository }}
+					token: ${{ secrets.APP_TOKEN }}
+
+	apply-clean-fixes:
+		if: >-
+			contains(github.event.issue.body, '--HouseLearningCleanPlease') &&
+			contains(github.event.issue.body, 'Fixes PR:')
+		runs-on: ubuntu-latest
+		steps:
+			- name: Run Clean (apply fixes)
+				uses: houselearning/Clean@main
+				with:
+					mode: apply-fixes
+					issue-body: ${{ github.event.issue.body }}
+					repo: ${{ github.repository }}
+					token: ${{ secrets.APP_TOKEN }}
+
+	typo-check:
+		if: github.event_name == 'pull_request'
+		runs-on: ubuntu-latest
+		steps:
+			- name: Run Clean (typo check)
+				uses: houselearning/Clean@main
+				with:
+					mode: typo-check
+					repo: ${{ github.repository }}
+					token: ${{ secrets.APP_TOKEN }}
