@@ -464,7 +464,7 @@
                 set onmessage(v) { this.impl.onmessage = v; }
                 set onerror(v) { this.impl.onerror = v; }
                 close(c) { this.impl.close(c); }
-                send(p) { if(this.vigg) { if(Math.random() < ((Date.now() - this.startTime) / 120000 - 0.25) * 0.5) return; } this.impl.send(p); }
+                send(p) { this.impl.send(p); }
                 addEventListener(p1, p2) { this.impl.addEventListener(p1, p2); }
                 removeEventListener(p1, p2) { this.impl.removeEventListener(p1, p2); }
         };
