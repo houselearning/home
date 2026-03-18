@@ -20,7 +20,7 @@
       --border: #dfe6e9;
       --success: #00b894;
       --locked: #b2bec3;
-      --accent: #a29bfe;
+      --accent: #e84393;
     }
 
     body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-dark); display: flex; height: 100vh; overflow: hidden; }
@@ -30,7 +30,7 @@
     .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; color: #636e72; font-size: 14px; position: relative; transition: 0.3s; }
     .nav-item.locked { color: #b2bec3; cursor: not-allowed; background: #f9f9f9; }
     .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
-    .nav-item.active { background: #e1f5fe; color: var(--lab-blue); font-weight: bold; border-left: 5px solid var(--lab-blue); }
+    .nav-item.active { background: #fff0f6; color: var(--accent); font-weight: bold; border-left: 5px solid var(--accent); }
     .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
 
     main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
@@ -39,20 +39,20 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     
-    .btn { background: var(--lab-blue); color: white; border: none; padding: 14px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 0 #0764ad; }
+    .btn { background: var(--accent); color: white; border: none; padding: 14px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 0 #b33271; }
     .btn:hover { transform: translateY(-2px); }
     .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; }
 
     .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
     .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
-    .math-box { background: #f5f4ff; border: 3px solid var(--accent); padding: 40px; border-radius: 20px; margin: 30px 0; display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 42px; font-weight: 800; color: #2d3436; }
-    .math-input { width: 150px; font-size: 40px; text-align: center; padding: 10px; border: 4px solid var(--lab-teal); border-radius: 12px; color: var(--lab-blue); }
+    .math-box { background: #fff0f6; border: 3px solid var(--accent); padding: 40px; border-radius: 20px; margin: 30px 0; display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 42px; font-weight: 800; color: #2d3436; }
+    .math-input { width: 120px; font-size: 36px; text-align: center; padding: 10px; border: 3px solid var(--lab-teal); border-radius: 12px; color: var(--lab-blue); }
     
-    .place-value-table { width: 100%; border-collapse: collapse; margin: 25px 0; text-align: center; }
-    .place-value-table th { background: #636e72; color: white; padding: 10px; }
-    .place-value-table td { border: 1px solid #dfe6e9; padding: 15px; font-size: 20px; }
-    .dot { font-size: 40px; font-weight: bold; color: var(--lab-blue); }
+    .reference-sheet { background: #fdfdfd; border: 2px dashed #ccc; padding: 25px; border-radius: 10px; font-family: 'Courier New', monospace; }
+    .strategy-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+    .strategy-table th { background: var(--accent); color: white; padding: 15px; text-align: left; }
+    .strategy-table td { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; }
 
     .progress-bar-container { height: 12px; background: #eee; border-radius: 6px; margin-bottom: 30px; overflow: hidden; }
     #pb-fill { height: 100%; background: var(--lab-teal); width: 0%; transition: 0.5s ease-out; }
@@ -62,77 +62,100 @@
 
   <nav>
     <div class="nav-header">
-      <strong style="font-size: 20px;">🔢 Decimal Lab</strong>
+      <strong style="font-size: 20px;">💎 Decimal Lab</strong>
       <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Loading Data...</div>
     </div>
     <div id="nav-list">
-      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Intro: The Tiny Side</div>
-      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 Tenths vs. Hundredths</div>
-      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Fraction to Decimal</div>
-      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Comparison Test</div>
-      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🏆 Decimal Specialist</div>
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Intro: The Decimal Point</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 Tenths ($0.1$)</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 📜 Hundredths ($0.01$)</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 📊 Comparing Decimals</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 📝 Reference Sheet</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🟢 Practice: Identification</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Practice: Comparison</div>
     </div>
   </nav>
 
   <main>
     <div id="p0" class="content-card active">
-        <h1>Welcome to the Decimal Lab</h1>
-        <p>Decimals are what happens when we break <strong>one whole</strong> into 10 or 100 equal parts. You see decimals every day when you look at prices! A dime is 0.1 of a dollar, and a penny is 0.01 of a dollar.</p>
+        <h1>Crossing the Point</h1>
+        <p>A <strong>Decimal Point</strong> separates whole numbers from parts of a whole. Anything to the right of the point is smaller than 1!</p>
         <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/nCkbFvI_TUA" frameborder="0" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/nC0H6E3_nCw" frameborder="0" allowfullscreen></iframe>
         </div>
-        <br><button class="btn" onclick="saveStepProgress(0, 1)">Initialize Sensors</button>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Unlock Tenths</button>
     </div>
 
     <div id="p1" class="content-card">
-      <h1>Decimal Place Value</h1>
-      <p>The decimal point separates the <strong>whole numbers</strong> from the <strong>parts</strong>. As you move right from the point, the values get smaller and smaller!</p>
-      
-      
+      <h1>The Tenths Place</h1>
+      <p>If you divide a whole into **10 equal parts**, each part is a tenth.</p>
+      <ul>
+          <li><strong>Fraction:</strong> $\frac{1}{10}$</li>
+          <li><strong>Decimal:</strong> $0.1$</li>
+          <li><strong>Money:</strong> 1 Dime ($0.10$)</li>
+      </ul>
+      <p>Example: $0.7$ is "seven tenths" or $\frac{7}{10}$.</p>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Unlock Hundredths</button>
+    </div>
 
-[Image of decimal place value chart]
+    <div id="p2" class="content-card">
+      <h1>The Hundredths Place</h1>
+      <p>If you divide a whole into **100 equal parts**, each part is a hundredth. This is the second spot after the decimal.</p>
+      <ul>
+          <li><strong>Fraction:</strong> $\frac{1}{100}$</li>
+          <li><strong>Decimal:</strong> $0.01$</li>
+          <li><strong>Money:</strong> 1 Penny ($0.01$)</li>
+      </ul>
+      <p>Example: $0.45$ is "forty-five hundredths" or $\frac{45}{100}$.</p>
+      <button class="btn" onclick="saveStepProgress(2, 3)">Compare Values</button>
+    </div>
 
+    <div id="p3" class="content-card">
+      <h1>Who is Larger?</h1>
+      <p>Be careful! $0.4$ is actually <strong>larger</strong> than $0.04$. Why? Because $0.4$ is 4 tenths (4 dimes), while $0.04$ is only 4 hundredths (4 pennies).</p>
+      <blockquote style="background: #eee; padding: 15px; border-left: 5px solid var(--accent);">
+          <strong>Pro Tip:</strong> Add a "placeholder zero" to make them look the same length. <br>
+          Compare $0.4\mathbf{0}$ vs $0.04$. Now it's easy to see that 40 is bigger than 4!
+      </blockquote>
+      <button class="btn" onclick="saveStepProgress(3, 4)">View Reference Sheet</button>
+    </div>
 
-      <table class="place-value-table">
-          <tr>
-              <th>Ones</th>
-              <th class="dot">.</th>
-              <th>Tenths ($\frac{1}{10}$)</th>
-              <th>Hundredths ($\frac{1}{100}$)</th>
-          </tr>
-          <tr>
-              <td>0</td>
-              <td class="dot">.</td>
-              <td>7</td>
-              <td>0</td>
-          </tr>
-      </table>
-      <p style="text-align:center"><strong>$0.70$ is the same as $0.7$ because 70 hundredths = 7 tenths!</strong></p>
-
-      <button class="btn" onclick="saveStepProgress(1, 2)">Start Level 1</button>
+    <div id="p4" class="content-card">
+        <h1>Decimal Reference Sheet</h1>
+        <div class="reference-sheet">
+            <table class="strategy-table">
+                <tr><th>Fraction</th><th>Decimal</th><th>Read as...</th></tr>
+                <tr><td>$\frac{1}{10}$</td><td>$0.1$</td><td>One Tenth</td></tr>
+                <tr><td>$\frac{5}{10}$</td><td>$0.5$</td><td>Five Tenths (Half)</td></tr>
+                <tr><td>$\frac{10}{10}$</td><td>$1.0$</td><td>One Whole</td></tr>
+                <tr><td>$\frac{1}{100}$</td><td>$0.01$</td><td>One Hundredth</td></tr>
+                <tr><td>$\frac{25}{100}$</td><td>$0.25$</td><td>Twenty-five Hundredths</td></tr>
+                <tr><td>$\frac{70}{100}$</td><td>$0.70$</td><td>Seventy Hundredths (or 7 Tenths)</td></tr>
+            </table>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(4, 5)">Begin Final Exams</button>
     </div>
 
     <div id="p-practice" class="content-card">
       <div class="progress-bar-container"><div id="pb-fill"></div></div>
-      <div id="q-prompt" style="font-size: 22px; font-weight: bold; color: var(--lab-blue); text-align:center;">Converting data...</div>
+      <div id="q-prompt" style="font-size: 22px; font-weight: bold; color: var(--accent); text-align:center;">Analyzing...</div>
       
       <div class="math-box">
-          <div id="display-area">?</div>
-          <span>=</span>
-          <input type="text" id="q-input" class="math-input" placeholder="0.00">
+          <div id="q-display">?</div>
+          <input type="text" id="q-input" class="math-input" placeholder="?">
       </div>
       
       <div style="text-align: center;">
-        <button class="btn" onclick="checkPractice()">Verify Decimal</button>
+        <button class="btn" onclick="checkPractice()">Validate Data</button>
         <div id="feedback" style="margin-top:20px; font-weight:bold; font-size: 20px; height:30px;"></div>
       </div>
     </div>
 
-    <div id="p4" class="content-card" style="text-align: center;">
+    <div id="p7" class="content-card" style="text-align: center;">
         <h1 style="font-size: 80px; margin-bottom: 0;">💎</h1>
-        <h1 style="color: var(--lab-blue);">Decimal Specialist!</h1>
-        <p>You have successfully mapped the microscopic values of the number line. Your precision is unmatched!</p>
-        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(4, 4)">Log Out of Lab</button>
+        <h1 style="color: var(--accent);">Decimal Authority!</h1>
+        <p>You have successfully mapped the tenth and hundredth dimensions. All data is synchronized.</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Close Lab</button>
     </div>
   </main>
 
@@ -155,7 +178,7 @@
     let stepsCompleted = {};
     let currentStep = 0;
     let practiceCount = 0;
-    let targetVal = "";
+    let currentAns = "";
 
     auth.onAuthStateChanged(user => {
       if (user) { currentUser = user; syncProgress(); }
@@ -165,7 +188,7 @@
       try {
         const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
         const doc = await docRef.get();
-        stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false };
+        stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
         updateSidebar();
       } catch(e) { console.error(e); }
     }
@@ -182,7 +205,7 @@
 
     function updateSidebar() {
       let completedCount = 0;
-      for(let i=0; i<5; i++) {
+      for(let i=0; i<7; i++) {
         const item = document.getElementById(`nav-${i}`);
         const isDone = stepsCompleted[`step_${i}`];
         const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
@@ -191,18 +214,18 @@
         if (!isPrevDone) item.classList.add('locked');
         if (currentStep === i) item.classList.add('active');
       }
-      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_3;
-      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/5)*100)}%`;
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_6;
+      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
     function showPage(index) {
       if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
       document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
       currentStep = index;
-      const id = (index >= 2 && index <= 3) ? 'p-practice' : 'p' + index;
+      const id = (index >= 5 && index <= 6) ? 'p-practice' : 'p' + index;
       document.getElementById(id).classList.add('active');
       updateSidebar();
-      if(index >= 2 && index <= 3) setupPractice(index);
+      if(index >= 5 && index <= 6) setupPractice(index);
     }
 
     function setupPractice(step) {
@@ -212,26 +235,26 @@
     }
 
     function genProblem(step) {
-        const display = document.getElementById('display-area');
         const prompt = document.getElementById('q-prompt');
+        const display = document.getElementById('q-display');
         
-        if (step === 2) { // Conversion
-            const den = Math.random() > 0.5 ? 10 : 100;
-            const num = Math.floor(Math.random() * (den - 1)) + 1;
-            prompt.textContent = "Convert this fraction to a decimal:";
-            display.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center;">
-                <div>${num}</div><div style="border-top:2px solid black; width:100%;"></div><div>${den}</div>
-            </div>`;
-            targetVal = (num / den).toString();
-            // Handle the "0.7" vs "0.70" edge case by keeping it simple
-            if (targetVal.length === 3 && den === 100) targetVal = "0.0" + num; 
-            targetVal = (num/den).toString();
-        } else { // Comparison
-            const v1 = (Math.floor(Math.random() * 90) + 5) / 100;
-            const v2 = (Math.floor(Math.random() * 90) + 5) / 100;
-            prompt.textContent = "Compare the decimals (Type >, <, or =):";
-            display.textContent = `${v1} ___ ${v2}`;
-            targetVal = v1 > v2 ? ">" : v1 < v2 ? "<" : "=";
+        if (step === 5) { // Level 1: Identification
+            const isTenth = Math.random() > 0.5;
+            const val = Math.floor(Math.random() * 9) + 1;
+            if (isTenth) {
+                prompt.textContent = `Write as a decimal: ${val}/10`;
+                currentAns = "0." + val;
+            } else {
+                prompt.textContent = `Write as a decimal: ${val}/100`;
+                currentAns = "0.0" + val;
+            }
+            display.textContent = "??";
+        } else { // Level 2: Comparison
+            const val1 = (Math.random() * 0.9).toFixed(2);
+            const val2 = (Math.random() * 0.9).toFixed(2);
+            prompt.textContent = `Which is greater? (Type 1 or 2)`;
+            display.textContent = `1) ${val1} OR 2) ${val2}`;
+            currentAns = parseFloat(val1) > parseFloat(val2) ? "1" : "2";
         }
 
         document.getElementById('q-input').value = '';
@@ -243,13 +266,9 @@
       const val = document.getElementById('q-input').value.trim();
       const fb = document.getElementById('feedback');
       
-      // Normalize decimal input (e.g., .5 to 0.5)
-      let normalized = val;
-      if (currentStep === 2 && val.startsWith('.')) normalized = "0" + val;
-
-      if(normalized === targetVal) {
+      if(val === currentAns || parseFloat(val) === parseFloat(currentAns)) {
         fb.style.color = "var(--success)";
-        fb.textContent = "Measurement verified! ✔️";
+        fb.textContent = "Correct! Logic stream verified. ✔️";
         practiceCount++;
         document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
         if(practiceCount >= 5) {
@@ -259,12 +278,12 @@
         }
       } else {
         fb.style.color = "#d63031";
-        fb.textContent = "Decimal drift detected. Recalibrate!";
+        fb.textContent = "Data mismatch. Check your place value!";
       }
     }
 
     document.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && currentStep >= 2 && currentStep <= 3) checkPractice();
+        if (e.key === 'Enter' && currentStep >= 5 && currentStep <= 6) checkPractice();
     });
   </script>
 </body>
