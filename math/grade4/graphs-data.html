@@ -1,284 +1,243 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 4 — Graphs & Data Tables (Advanced)</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#3b82f6; --accent2:#1e40af; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#3b82f6;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-table{border-collapse:collapse;width:100%;margin-top:10px}
-th,td{border:1px solid #93c5fd;padding:6px;text-align:center}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>4th Grade Math: Data & Graphing Lab</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root { --lab-teal: #00cec9; --lab-deep: #2d3436; --bg: #f5f6fa; --success: #2ecc71; --locked: #b2bec3; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+    nav { width: 320px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-teal); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #636e72; font-size: 14px; position: relative; transition: 0.3s; }
+    .nav-item.active { background: #e0fbfa; color: var(--lab-teal); font-weight: bold; border-left: 5px solid var(--lab-teal); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .chart-container { width: 100%; height: 350px; margin: 20px 0; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .data-table th, .data-table td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+    .data-table th { background: #f8f9fa; }
+    
+    .btn { background: var(--lab-teal); color: white; border: none; padding: 14px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #009d99; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; }
+    .math-input { width: 80px; padding: 10px; text-align: center; border: 2px solid var(--lab-teal); border-radius: 8px; font-size: 18px; }
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 4 — Graphs & Data Tables (Advanced)</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive charts • dynamic tables • practice challenges • tutorial video • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 20px;">📊 Data Visualizer Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Analyzing Data...</div>
+  </div>
+  <div id="nav-list">
+    <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Lab Intro: Reading Graphs</div>
+    <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 Graphing Cheat Sheet</div>
+    <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 📈 Level 1: The X & Y Axis</div>
+    <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🍎 Level 2: Fruit Survey</div>
+    <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🌡️ Level 3: Data Entry</div>
+    <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 📝 Final Lab Quiz</div>
+    <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Lab Graduate</div>
+  </div>
+</nav>
 
 <main>
+  <div id="p0" class="content-card active">
+    <h1>Lab Briefing: Reading Data</h1>
+    <p>Welcome, Scientist! Watch this guide on Bar Graphs and Frequency Tables before we start our data entry.</p>
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/oZ_a_6XvXvU" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <br><button class="btn" onclick="saveStepProgress(0, 1)">Understood!</button>
+  </div>
 
-<!-- Intro -->
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p>Graphs help us visualize data. Line charts show trends, bar charts compare quantities, and pie charts show parts of a whole. Data tables help organize numbers clearly.</p>
-</section>
+  <div id="p1" class="content-card">
+    <h1>Graphing Cheat Sheet</h1>
+    <table class="data-table">
+      <thead><tr><th>Part</th><th>Definition</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Title</strong></td><td>What the graph is showing.</td></tr>
+        <tr><td><strong>X-Axis</strong></td><td>The horizontal line (Categories).</td></tr>
+        <tr><td><strong>Y-Axis</strong></td><td>The vertical line (Numbers/Scale).</td></tr>
+        <tr><td><strong>Interval</strong></td><td>What we count by (1s, 2s, 5s, 10s).</td></tr>
+      </tbody>
+    </table>
+    <button class="btn" onclick="saveStepProgress(1, 2)">Next: The Axis Lab</button>
+  </div>
 
-<!-- Tutorial Video -->
-<section aria-labelledby="videoTitle">
-<h2 id="videoTitle">Animated Tutorial Video</h2>
-<p>Click Play to watch a step-by-step tutorial. Captions appear on the canvas, with synchronized audio.</p>
-<canvas id="tutorialCanvas" width="700" height="300"></canvas>
-<div class="controls">
-  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
-</div>
-<div class="controls" style="margin-top:6px">
-  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
-</div>
-</section>
+  <div id="p2" class="content-card">
+    <h1>Level 1: Identify the Axis</h1>
+    <p>In a standard bar graph, which axis usually shows the <strong>categories</strong> (like "Apples", "Oranges")?</p>
+    <button class="btn" onclick="checkQuickTask('X')">X-Axis</button>
+    <button class="btn" style="background:#e17055" onclick="checkQuickTask('Y')">Y-Axis</button>
+    <div id="p2-fb" style="margin-top:20px; font-weight:bold;"></div>
+  </div>
 
-<!-- Dynamic Table -->
-<section aria-labelledby="tableTitle">
-<h2 id="tableTitle">Interactive Data Table</h2>
-<p>Edit numbers in the table and watch the charts update instantly.</p>
-<table id="dataTable">
-  <tr><th>Fruit</th><th>Quantity</th></tr>
-  <tr><td>Apples</td><td contenteditable="true">10</td></tr>
-  <tr><td>Bananas</td><td contenteditable="true">5</td></tr>
-  <tr><td>Cherries</td><td contenteditable="true">8</td></tr>
-  <tr><td>Grapes</td><td contenteditable="true">12</td></tr>
-</table>
-</section>
+  <div id="p3" class="content-card">
+    <h1>Level 2: Fruit Survey Data</h1>
+    <p>Enter the data from the table into the lab computer to generate the bar graph!</p>
+    <table class="data-table">
+      <tr><th>Fruit</th><th>Frequency</th></tr>
+      <tr><td>Apples</td><td>8</td></tr>
+      <tr><td>Bananas</td><td>12</td></tr>
+      <tr><td>Cherries</td><td>5</td></tr>
+    </table>
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+      <input type="number" id="val1" class="math-input" placeholder="8?">
+      <input type="number" id="val2" class="math-input" placeholder="12?">
+      <input type="number" id="val3" class="math-input" placeholder="5?">
+      <button class="btn" onclick="updateChart()">Generate Graph</button>
+    </div>
+    <div class="chart-container"><canvas id="fruitChart"></canvas></div>
+    <div id="p3-fb" style="text-align: center; font-weight: bold; margin-bottom: 10px;"></div>
+    <button class="btn" id="p3-next" style="display:none;" onclick="saveStepProgress(3, 4)">Continue Lab</button>
+  </div>
 
-<!-- Charts -->
-<section aria-labelledby="chartsTitle">
-<h2 id="chartsTitle">Charts</h2>
-<p>All charts update automatically from the data table.</p>
-<canvas id="barChart" width="700" height="300"></canvas>
-<canvas id="lineChart" width="700" height="300"></canvas>
-<canvas id="pieChart" width="700" height="300"></canvas>
-</section>
+  <div id="p4" class="content-card">
+     <h1>Level 3: Temperature Check</h1>
+     <p>Data visualization complete! You have verified the sensors. Ready for the final quiz?</p>
+     <button class="btn" onclick="saveStepProgress(4, 5)">Unlock Final Quiz</button>
+  </div>
 
-<!-- Practice Challenge -->
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Practice Challenge</h2>
-<p>Read the table or chart, then answer the question.</p>
-<div class="controls">
-  <div id="question" style="font-weight:800;font-size:1.2rem">—</div>
-  <input id="answerInput" type="text" placeholder="Your answer">
-  <button id="checkAnswer" class="secondary">Check</button>
-  <div id="answerResult" class="answer"></div>
-</div>
-</section>
+  <div id="p5" class="content-card">
+    <h1>Final Lab Quiz</h1>
+    <p>1. If a graph counts 0, 10, 20, 30... what is the interval?</p>
+    <input type="number" id="q1" class="math-input">
+    <p>2. Does the Title go at the top or bottom?</p>
+    <input type="text" id="q2" class="math-input" placeholder="top/bottom">
+    <br><br><button class="btn" onclick="checkFinalQuiz()">Submit Report</button>
+  </div>
 
-<!-- CSV Download -->
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV</h2>
-<p>Save the current table as a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
-
+  <div id="p6" class="content-card" style="text-align: center;">
+    <h1 style="font-size: 80px; margin-bottom: 0;">🎓</h1>
+    <h1>Lab Graduate!</h1>
+    <p>You are officially a Data Scientist.</p>
+    <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Save & Exit</button>
+  </div>
 </main>
 
 <script>
-/* ===== Chart.js Setup ===== */
-const ctxBar = document.getElementById('barChart').getContext('2d');
-const ctxLine = document.getElementById('lineChart').getContext('2d');
-const ctxPie = document.getElementById('pieChart').getContext('2d');
+  const lessonID = "4th_grade_data_v2";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
 
-function getTableData(){
-  const table = document.getElementById('dataTable');
-  const labels=[], data=[];
-  for(let i=1;i<table.rows.length;i++){
-    labels.push(table.rows[i].cells[0].textContent);
-    data.push(parseInt(table.rows[i].cells[1].textContent)||0);
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
+  let myChart = null;
+
+  auth.onAuthStateChanged(user => { if (user) { currentUser = user; syncProgress(); } });
+
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+    updateSidebar();
   }
-  return {labels,data};
-}
 
-let barChart = new Chart(ctxBar,{
-  type:'bar',
-  data:{labels:[], datasets:[{label:'Quantity', data:[], backgroundColor:'#3b82f6'}]},
-  options:{responsive:true, plugins:{legend:{display:false}}}
-});
-let lineChart = new Chart(ctxLine,{
-  type:'line',
-  data:{labels:[], datasets:[{label:'Quantity', data:[], borderColor:'#1e40af', fill:false, tension:0.3}]},
-  options:{responsive:true}
-});
-let pieChart = new Chart(ctxPie,{
-  type:'pie',
-  data:{labels:[], datasets:[{label:'Quantity', data:[], backgroundColor:['#3b82f6','#60a5fa','#93c5fd','#bfdbfe']}]},
-  options:{responsive:true}
-});
-
-function updateCharts(){
-  const {labels,data} = getTableData();
-  [barChart,lineChart,pieChart].forEach(chart=>{
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = data;
-    chart.update();
-  });
-}
-updateCharts();
-
-/* ===== Editable Table Listener ===== */
-document.querySelectorAll('#dataTable td[contenteditable]').forEach(td=>{
-  td.addEventListener('input',updateCharts);
-});
-
-/* ===== Practice Challenge ===== */
-const questions=[
-  {q:"Which fruit has the highest quantity?",a:"Grapes"},
-  {q:"How many Apples and Bananas together?",a:"15"},
-  {q:"What is the difference between Cherries and Bananas?",a:"3"},
-  {q:"Which fruit is least in quantity?",a:"Bananas"}
-];
-let currentQuestion = null;
-function newQuestion(){
-  currentQuestion = questions[Math.floor(Math.random()*questions.length)];
-  document.getElementById('question').textContent = currentQuestion.q;
-  document.getElementById('answerInput').value = '';
-  document.getElementById('answerResult').textContent = '';
-}
-document.getElementById('checkAnswer').addEventListener('click',()=>{
-  const val = document.getElementById('answerInput').value.trim();
-  const res = document.getElementById('answerResult');
-  if(val.toLowerCase()===currentQuestion.a.toLowerCase()){ res.textContent='✅ Correct!'; res.className='answer ok'; }
-  else{ res.textContent=`❌ Wrong (Answer: ${currentQuestion.a})`; res.className='answer bad'; }
-});
-newQuestion();
-
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click',()=>{
-  const {labels,data} = getTableData();
-  let csvContent = "Fruit,Quantity\n";
-  labels.forEach((l,i)=> csvContent += `${l},${data[i]}\n`);
-  const blob = new Blob([csvContent],{type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='graphs_data.csv'; a.click();
-  URL.revokeObjectURL(url);
-});
-
-/* ===== Tutorial Video (Canvas + Audio) ===== */
-const tutorialCanvas = document.getElementById('tutorialCanvas');
-const tCtx = tutorialCanvas.getContext('2d');
-tCtx.font="20px Arial"; tCtx.textAlign="center"; tCtx.textBaseline="middle";
-
-const tutorialSteps = [
-  {
-    caption: "Step 1: Look at the table",
-    draw: () => {
-      tCtx.clearRect(0,0,700,300);
-      // Draw a simple table icon
-      tCtx.fillStyle = "#3b82f6";
-      for(let i=0;i<4;i++){
-        tCtx.fillRect(150+i*100, 80, 80, 30); // header
-        tCtx.fillRect(150+i*100, 120, 80, 30); // row 1
-      }
-      tCtx.fillStyle = "#000";
-      tCtx.fillText("Table: Fruit Quantities", 350, 50);
-    },
-    audio: "We start by looking at the data table."
-  },
-  {
-    caption: "Step 2: Observe Bar Chart",
-    draw: () => {
-      tCtx.clearRect(0,0,700,300);
-      tCtx.fillText("Bar chart shows quantity per fruit",350,50);
-      const heights = [100,50,80,120];
-      const labels = ["Apples","Bananas","Cherries","Grapes"];
-      for(let i=0;i<4;i++){
-        tCtx.fillStyle = "#3b82f6";
-        tCtx.fillRect(100+i*150, 250-heights[i], 50, heights[i]);
-        tCtx.fillStyle = "#000";
-        tCtx.fillText(labels[i], 125+i*150, 265);
-      }
-    },
-    audio: "Next, the bar chart shows each fruit's quantity."
-  },
-  {
-    caption: "Step 3: Observe Line Chart",
-    draw: () => {
-      tCtx.clearRect(0,0,700,300);
-      tCtx.fillText("Line chart shows trends",350,50);
-      const points = [100,50,80,120];
-      tCtx.beginPath();
-      tCtx.moveTo(100,250-points[0]);
-      for(let i=1;i<points.length;i++){
-        tCtx.lineTo(100+i*150,250-points[i]);
-      }
-      tCtx.strokeStyle = "#1e40af";
-      tCtx.lineWidth = 3;
-      tCtx.stroke();
-      // Draw points
-      for(let i=0;i<points.length;i++){
-        tCtx.beginPath();
-        tCtx.arc(100+i*150,250-points[i],6,0,Math.PI*2);
-        tCtx.fillStyle="#1e40af";
-        tCtx.fill();
-      }
-    },
-    audio: "Line chart highlights trends in the data."
-  },
-  {
-    caption: "Step 4: Observe Pie Chart",
-    draw: () => {
-      tCtx.clearRect(0,0,700,300);
-      tCtx.fillText("Pie chart shows proportion",350,50);
-      const data = [10,5,8,12];
-      const colors = ["#3b82f6","#60a5fa","#93c5fd","#bfdbfe"];
-      let startAngle = -Math.PI/2;
-      const total = data.reduce((a,b)=>a+b,0);
-      for(let i=0;i<data.length;i++){
-        let sliceAngle = (data[i]/total)*2*Math.PI;
-        tCtx.beginPath();
-        tCtx.moveTo(350,150);
-        tCtx.arc(350,150,80,startAngle,startAngle+sliceAngle);
-        tCtx.closePath();
-        tCtx.fillStyle = colors[i];
-        tCtx.fill();
-        startAngle += sliceAngle;
-      }
-    },
-    audio: "Pie chart shows how each fruit contributes to the total."
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx) showPage(nextIdx);
   }
-];
 
+  function updateSidebar() {
+    let completedCount = 0;
+    for(let i=0; i<7; i++) {
+      const item = document.getElementById(`nav-${i}`);
+      if(!item) continue;
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      item.className = 'nav-item';
+      if (isDone) { item.classList.add('completed'); completedCount++; }
+      if (!isPrevDone) item.classList.add('locked');
+      if (currentStep === i) item.classList.add('active');
+    }
+    const mBtn = document.getElementById('mastery-btn');
+    if(mBtn) mBtn.disabled = !stepsCompleted.step_5;
+    document.getElementById('percent-display').textContent = `Progress: ${Math.round((completedCount/7)*100)}%`;
+  }
 
-async function playTutorialVideo(){
-  const speed = parseFloat(document.getElementById('videoSpeed').value)||1;
-  for(const step of tutorialSteps){
-    step.draw();
-    await new Promise(resolve=>{
-      const utter = new SpeechSynthesisUtterance(step.audio);
-      utter.rate = speed;
-      utter.onend = resolve;
-      speechSynthesis.speak(utter);
+  function showPage(index) {
+    if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+    currentStep = index;
+    const target = document.getElementById('p' + index);
+    if(target) target.classList.add('active');
+    if(index === 3) initChart();
+    updateSidebar();
+  }
+
+  function checkQuickTask(ans) {
+    const fb = document.getElementById('p2-fb');
+    if(ans === 'X') {
+      fb.innerHTML = "✅ Correct! The X-Axis goes across.";
+      setTimeout(() => saveStepProgress(2, 3), 1000);
+    } else {
+      fb.innerHTML = "❌ Not quite! The Y-Axis usually shows the numbers.";
+    }
+  }
+
+  function initChart() {
+    const ctx = document.getElementById('fruitChart').getContext('2d');
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Apples', 'Bananas', 'Cherries'],
+        datasets: [{ label: 'Votes', data: [0, 0, 0], backgroundColor: ['#ff7675', '#ffeaa7', '#d63031'] }]
+      },
+      options: { scales: { y: { beginAtZero: true, max: 15 } } }
     });
-    await new Promise(r=>setTimeout(r,500/speed));
   }
-}
-document.getElementById('playTutorial').addEventListener('click',()=>playTutorialVideo());
 
+  function updateChart() {
+    const v1 = document.getElementById('val1').value;
+    const v2 = document.getElementById('val2').value;
+    const v3 = document.getElementById('val3').value;
+    myChart.data.datasets[0].data = [v1, v2, v3];
+    myChart.update();
+    if(v1 == 8 && v2 == 12 && v3 == 5) {
+      document.getElementById('p3-fb').innerHTML = "✅ Data Match!";
+      document.getElementById('p3-next').style.display = "inline-block";
+    }
+  }
+
+  function checkFinalQuiz() {
+    const q1 = document.getElementById('q1').value;
+    const q2 = document.getElementById('q2').value.toLowerCase();
+    if(q1 == 10 && q2 == 'top') {
+      saveStepProgress(5, 6);
+    } else {
+      alert("Check your lab data again!");
+    }
+  }
 </script>
 </body>
 </html>
