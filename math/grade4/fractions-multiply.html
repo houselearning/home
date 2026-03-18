@@ -1,323 +1,271 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 4 — Multiply Fractions (Advanced)</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#f87171; --accent2:#b91c1c; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#f87171;color:#fff}
-button.ghost{background:#fee2e2;color:var(--accent2);border:1px solid #fecaca}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #fecaca;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #fecaca;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #fecaca;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>4th Grade Math: Fraction Multiplication Lab</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --lab-teal: #00cec9;
+      --lab-blue: #0984e3;
+      --bg-dark: #f1f2f6;
+      --border: #dfe6e9;
+      --success: #00b894;
+      --locked: #b2bec3;
+      --accent: #6c5ce7;
+    }
+
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg-dark); display: flex; height: 100vh; overflow: hidden; }
+    
+    nav { width: 320px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; color: #636e72; font-size: 14px; position: relative; transition: 0.3s; }
+    .nav-item.locked { color: #b2bec3; cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.active { background: #e1f5fe; color: var(--lab-blue); font-weight: bold; border-left: 5px solid var(--lab-blue); }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid var(--border); display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .btn { background: var(--lab-blue); color: white; border: none; padding: 14px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 0 #0764ad; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; }
+
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    .math-box { background: #f8f1ff; border: 3px solid var(--accent); padding: 40px; border-radius: 20px; margin: 30px 0; display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 42px; font-weight: 800; color: #2d3436; }
+    .frac-container { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+    .frac-line { border-top: 4px solid #2d3436; width: 100%; margin: 5px 0; }
+    .math-input { width: 90px; font-size: 32px; text-align: center; padding: 8px; border: 3px solid var(--lab-teal); border-radius: 8px; color: var(--lab-blue); }
+    
+    .strategy-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+    .strategy-table th { background: var(--lab-blue); color: white; padding: 15px; text-align: left; }
+    .strategy-table td { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; }
+
+    .progress-bar-container { height: 12px; background: #eee; border-radius: 6px; margin-bottom: 30px; overflow: hidden; }
+    #pb-fill { height: 100%; background: var(--lab-teal); width: 0%; transition: 0.5s ease-out; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 4 — Multiply Fractions (Advanced)</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
-</header>
 
-<main>
-<!-- Intro -->
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p>Multiplying fractions: multiply the numerators and denominators. Example: <strong>1/2 × 3/4 = 3/8</strong>.</p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
+  <nav>
+    <div class="nav-header">
+      <strong style="font-size: 20px;">✖️ Fraction Scaling</strong>
+      <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Lab...</div>
+    </div>
+    <div id="nav-list">
+      <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Intro: Repeated Pieces</div>
+      <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 The Whole Number Rule</div>
+      <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Whole × Unit Fraction</div>
+      <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Whole × Non-Unit Fraction</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🏆 Multiplication Master</div>
+    </div>
+  </nav>
 
-<!-- Tutorial Video -->
-<section aria-labelledby="videoTitle">
-<h2 id="videoTitle">Animated Tutorial Video</h2>
-<p>Click Play to watch an animated example of fraction multiplication. Captions appear on the canvas and will be included in the downloaded video.</p>
-<div class="canvas-wrapper">
-  <canvas id="tutorialCanvas" width="600" height="300"></canvas>
-</div>
-<div class="controls">
-  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
-  <button id="downloadVideo" class="ghost">💾 Download Video</button>
-</div>
-<div class="settings">
-  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
-</div>
-</section>
+  <main>
+    <div id="p0" class="content-card active">
+        <h1>Scaling Up Fractions</h1>
+        <p>Multiplying a fraction by a whole number is just like skip-counting by fractions. If you run $\frac{1}{2}$ mile every day for 5 days, you are essentially calculating $5 \times \frac{1}{2}$.</p>
+        <div class="video-container">
+          <iframe src="https://www.youtube.com/embed/Gn2pdkvdbGQ" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <br><button class="btn" onclick="saveStepProgress(0, 1)">Calibrate Instruments</button>
+    </div>
 
-<!-- Interactive Practice -->
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) 1/2 × 3/4 = ?</div>
-    <input id="q1" type="text" placeholder="Answer e.g. 3/8">
-    <div style="margin-top:6px"><button onclick="check('q1','3/8')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) 2/3 × 3/5 = ?</div>
-    <input id="q2" type="text" placeholder="Answer e.g. 6/15">
-    <div style="margin-top:6px"><button onclick="check('q2','6/15')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) 3/4 × 2/3 = ?</div>
-    <input id="q3" type="text" placeholder="Answer e.g. 6/12">
-    <div style="margin-top:6px"><button onclick="check('q3','6/12')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) 5/6 × 1/2 = ?</div>
-    <input id="q4" type="text" placeholder="Answer e.g. 5/12">
-    <div style="margin-top:6px"><button onclick="check('q4','5/12')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
+    <div id="p1" class="content-card">
+      <h1>The Secret Shortcut</h1>
+      <p>When you multiply a whole number by a fraction, you only multiply the <strong>top</strong> (the numerator). The bottom (the denominator) stays the same because the size of the pieces hasn't changed!</p>
+      
+      <table class="strategy-table">
+          <thead>
+            <tr><th>Method</th><th>Explanation</th><th>Example (LaTeX)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Repeated Addition</strong></td>
+              <td>Add the fraction as many times as the whole number says.</td>
+              <td>$3 \times \frac{1}{5} = \frac{1}{5} + \frac{1}{5} + \frac{1}{5} = \frac{3}{5}$</td>
+            </tr>
+            <tr>
+              <td><strong>The "Top Only" Rule</strong></td>
+              <td>Multiply the whole number by the numerator. Keep the denominator.</td>
+              <td>$4 \times \frac{2}{9} = \frac{4 \times 2}{9} = \frac{8}{9}$</td>
+            </tr>
+          </tbody>
+      </table>
 
-<!-- Random Challenge -->
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
+      <button class="btn" onclick="saveStepProgress(1, 2)">Try Level 1</button>
+    </div>
 
-<!-- Speed Quiz -->
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
+    <div id="p-practice" class="content-card">
+      <div class="progress-bar-container"><div id="pb-fill"></div></div>
+      <div id="q-prompt" style="font-size: 20px; font-weight: bold; color: var(--lab-blue); text-align:center;">Solve the multiplication:</div>
+      
+      <div class="math-box">
+          <span id="whole-num">5</span>
+          <span>×</span>
+          <div class="frac-container">
+              <div id="n1">1</div><div class="frac-line"></div><div id="d1">4</div>
+          </div>
+          <span>=</span>
+          <div class="frac-container">
+              <input type="number" id="ans-n" class="math-input" placeholder="N">
+              <div class="frac-line"></div>
+              <input type="number" id="ans-d" class="math-input" placeholder="D">
+          </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <button class="btn" onclick="checkPractice()">Verify Product</button>
+        <div id="feedback" style="margin-top:20px; font-weight:bold; font-size: 20px; height:30px;"></div>
+      </div>
+    </div>
 
-<!-- CSV Download -->
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
+    <div id="p4" class="content-card" style="text-align: center;">
+        <h1 style="font-size: 80px; margin-bottom: 0;">🧪</h1>
+        <h1 style="color: var(--lab-blue);">Lab Complete!</h1>
+        <p>You can now scale any fraction up to any size. Your mathematical accuracy is 100%!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(4, 4)">Finish Session</button>
+    </div>
+  </main>
 
-<footer>Tip: Multiply numerators, then denominators. Simplify if possible!</footer>
-</main>
+  <script>
+    const lessonID = "4th_grade_multiply_fractions_v1";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+      authDomain: "contract-center-llc-10.firebaseapp.com",
+      projectId: "contract-center-llc-10",
+      storageBucket: "contract-center-llc-10.firebasestorage.app",
+      messagingSenderId: "323221512767",
+      appId: "1:323221512767:web:6421260f875997dbf64e8a"
+    };
 
-<script>
-// ===== utilities =====
-const tone=(f=880,d=0.06)=>{
-  try{
-    const A=new (window.AudioContext||window.webkitAudioContext)();
-    const o=A.createOscillator();
-    const g=A.createGain();
-    o.type='sine';
-    o.frequency.value=f;
-    g.gain.value=0.0001;
-    o.connect(g); g.connect(A.destination); o.start();
-    g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);
-    setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);
-  }catch(e){}
-};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-// ===== Score & CSV =====
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){
-  if(points>0){ totalScore+=points; streak++; } else { streak=0; }
-  document.getElementById('score').textContent=`Score: ${totalScore}`;
-  document.getElementById('streak').textContent=`Streak: ${streak}`;
-  if(q && a) csvData.push([q,a]);
-}
-function check(inputId,correct){
-  const val=document.getElementById(inputId).value.trim().replace(/\s+/g,'');
-  const res=document.getElementById('r'+inputId.replace(/[^\d]/g,''));
-  if(val===correct.replace(/\s+/g,'')){
-    res.textContent='✅ Correct!';
-    res.className='answer ok';
-    tone(880,0.06);
-    updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);
-  } else {
-    res.textContent=`❌ Wrong (Answer: ${correct})`;
-    res.className='answer bad';
-    tone(220,0.06);
-    updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);
-  }
-}
+    let currentUser = null;
+    let stepsCompleted = {};
+    let currentStep = 0;
+    let practiceCount = 0;
+    let targetN = 0;
+    let targetD = 0;
 
-// ===== Tutorial Video =====
-const canvas=document.getElementById('tutorialCanvas');
-const ctx=canvas.getContext('2d');
-ctx.font="24px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
-const speedInput=document.getElementById('videoSpeed');
+    auth.onAuthStateChanged(user => {
+      if (user) { currentUser = user; syncProgress(); }
+    });
 
-const tutorialSteps=[
-  {caption:"Step 1: Multiply numerators", draw:()=>{ctx.clearRect(0,0,600,300); ctx.fillText("1×3",300,120);}, audio:"Multiply the numerators."},
-  {caption:"Step 2: Multiply denominators", draw:()=>{ctx.clearRect(0,0,600,300); ctx.fillText("2×4",300,180);}, audio:"Multiply the denominators."},
-  {caption:"Step 3: Simplify fraction", draw:()=>{ctx.clearRect(0,0,600,300); ctx.fillText("1/2 × 3/4 = 3/8",300,150);}, audio:"Simplify the fraction if possible."}
-];
-
-let tutorialIndex=0;
-
-function playTutorialVideo(callback){
-  tutorialIndex=0;
-  const speed=parseFloat(speedInput.value)||1;
-  function nextStep(){
-    if(tutorialIndex>=tutorialSteps.length){
-      if(callback) callback();
-      return;
+    async function syncProgress() {
+      try {
+        const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+        const doc = await docRef.get();
+        stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false };
+        updateSidebar();
+      } catch(e) { console.error(e); }
     }
-    const step=tutorialSteps[tutorialIndex];
-    step.draw();
-    const utter=new SpeechSynthesisUtterance(step.audio);
-    utter.rate=speed;
-    speechSynthesis.speak(utter);
-    tutorialIndex++;
-    setTimeout(nextStep,3000/speed);
-  }
-  nextStep();
-}
-document.getElementById('playTutorial').addEventListener('click',()=>playTutorialVideo());
 
-// ===== Video download =====
-document.getElementById('downloadVideo').addEventListener('click',()=>{
-  const speed=parseFloat(speedInput.value)||1;
-  const stream=canvas.captureStream(30);
-  const recorder=new MediaRecorder(stream);
-  const chunks=[];
-  recorder.ondataavailable=e=>chunks.push(e.data);
-  recorder.onstop=e=>{
-    const blob=new Blob(chunks,{type:'video/webm'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='multiply_fractions_tutorial.webm'; a.click();
-    URL.revokeObjectURL(url);
-  };
-  recorder.start();
-  playTutorialVideo(()=>{setTimeout(()=>recorder.stop(),500);});
-});
+    async function saveStepProgress(stepIdx, nextIdx) {
+      stepsCompleted[`step_${stepIdx}`] = true;
+      if (currentUser) {
+        const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+        await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+      }
+      updateSidebar();
+      if(stepIdx !== nextIdx) showPage(nextIdx);
+    }
 
-// ===== Random Challenge =====
-let challengeList=[];
-for(let i=0;i<50;i++){
-  const n1=Math.floor(Math.random()*5)+1, d1=Math.floor(Math.random()*6)+2;
-  const n2=Math.floor(Math.random()*5)+1, d2=Math.floor(Math.random()*6)+2;
-  challengeList.push({q:`${n1}/${d1} × ${n2}/${d2}`, a:`${n1*n2}/${d1*d2}`});
-}
-let currentCorrect=null;
-function newChallenge(){
-  const idx=Math.floor(Math.random()*challengeList.length);
-  currentCorrect=challengeList[idx].a;
-  document.getElementById('challengeQ').textContent=challengeList[idx].q+' = ?';
-  document.getElementById('challengeInput').value='';
-  document.getElementById('challengeResult').textContent='';
-}
-document.getElementById('challengeNew').addEventListener('click',newChallenge);
-document.getElementById('challengeCheck').addEventListener('click',()=>{
-  const val=document.getElementById('challengeInput').value.trim().replace(/\s+/g,'');
-  const res=document.getElementById('challengeResult');
-  if(val===currentCorrect.replace(/\s+/g,'')){
-    res.textContent='✅ Correct!';
-    res.className='answer ok';
-    tone(880,0.06);
-    updateScore(1,document.getElementById('challengeQ').textContent,currentCorrect);
-  } else {
-    res.textContent=`❌ Wrong (Answer: ${currentCorrect})`;
-    res.className='answer bad';
-    tone(220,0.06);
-    updateScore(0,document.getElementById('challengeQ').textContent,currentCorrect);
-  }
-});
-newChallenge();
+    function updateSidebar() {
+      let completedCount = 0;
+      for(let i=0; i<5; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        const isDone = stepsCompleted[`step_${i}`];
+        const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+        item.className = 'nav-item';
+        if (isDone) { item.classList.add('completed'); completedCount++; }
+        if (!isPrevDone) item.classList.add('locked');
+        if (currentStep === i) item.classList.add('active');
+      }
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_3;
+      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/5)*100)}%`;
+    }
 
-// ===== Speed Quiz =====
-let quizTimerInt=null, quizTime=0, quizScore=0, currentQuiz=null;
-function newQuizQuestion(){
-  const idx=Math.floor(Math.random()*challengeList.length);
-  currentQuiz=challengeList[idx];
-  document.getElementById('quizQ').textContent=currentQuiz.q+' = ?';
-  document.getElementById('quizInput').value='';
-  document.getElementById('quizFeedback').textContent='';
-}
-document.getElementById('startQuiz').addEventListener('click',()=>{
-  quizTime=parseInt(document.getElementById('quizDuration').value,10);
-  quizScore=0; document.getElementById('quizScore').textContent=`Correct: ${quizScore}`;
-  newQuizQuestion();
-  clearInterval(quizTimerInt);
-  quizTimerInt=setInterval(()=>{
-    quizTime--; document.getElementById('quizTimer').textContent=`Time: ${quizTime}s`;
-    if(quizTime<=0){ clearInterval(quizTimerInt); document.getElementById('quizQ').textContent='Time Up!'; }
-  },1000);
-});
-document.getElementById('stopQuiz').addEventListener('click',()=>{ clearInterval(quizTimerInt); });
-document.getElementById('quizCheck').addEventListener('click',()=>{
-  const val=document.getElementById('quizInput').value.trim().replace(/\s+/g,'');
-  const f=document.getElementById('quizFeedback');
-  if(val===currentQuiz.a.replace(/\s+/g,'')){
-    f.textContent='✅ Correct!';
-    f.className='answer ok';
-    quizScore++; document.getElementById('quizScore').textContent=`Correct: ${quizScore}`;
-    tone(880,0.06);
-    csvData.push([currentQuiz.q,currentQuiz.a]);
-  } else {
-    f.textContent=`❌ Wrong (Answer: ${currentQuiz.a})`;
-    f.className='answer bad';
-    tone(220,0.06);
-    csvData.push([currentQuiz.q,currentQuiz.a]);
-  }
-  newQuizQuestion();
-});
+    function showPage(index) {
+      if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+      document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+      currentStep = index;
+      const id = (index >= 2 && index <= 3) ? 'p-practice' : 'p' + index;
+      document.getElementById(id).classList.add('active');
+      updateSidebar();
+      if(index >= 2 && index <= 3) setupPractice(index);
+    }
 
-// ===== CSV Download =====
-document.getElementById('downloadCSVBtn').addEventListener('click',()=>{
-  const csvContent=csvData.map(e=>e.join(',')).join('\n');
-  const blob=new Blob([csvContent],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='multiply_fractions.csv'; a.click();
-  URL.revokeObjectURL(url);
-});
-</script>
+    function setupPractice(step) {
+      practiceCount = 0;
+      document.getElementById('pb-fill').style.width = '0%';
+      genProblem(step);
+    }
+
+    function genProblem(step) {
+        const whole = Math.floor(Math.random() * 5) + 2;
+        const den = [3, 4, 5, 6, 8, 10, 12][Math.floor(Math.random() * 7)];
+        let num;
+
+        if (step === 2) { // Unit Fractions (Numerator is always 1)
+            num = 1;
+        } else { // Non-Unit Fractions
+            num = Math.floor(Math.random() * (Math.floor(den/2))) + 2;
+        }
+        
+        targetN = whole * num;
+        targetD = den;
+
+        document.getElementById('whole-num').textContent = whole;
+        document.getElementById('n1').textContent = num;
+        document.getElementById('d1').textContent = den;
+
+        document.getElementById('ans-n').value = '';
+        document.getElementById('ans-d').value = '';
+        document.getElementById('ans-n').focus();
+        document.getElementById('feedback').textContent = '';
+    }
+
+    function checkPractice() {
+      const uN = parseInt(document.getElementById('ans-n').value);
+      const uD = parseInt(document.getElementById('ans-d').value);
+      const fb = document.getElementById('feedback');
+      
+      if(uN === targetN && uD === targetD) {
+        fb.style.color = "var(--success)";
+        fb.textContent = "Product verified! The scale is correct. ✔️";
+        practiceCount++;
+        document.getElementById('pb-fill').style.width = (practiceCount/5 * 100) + '%';
+        if(practiceCount >= 5) {
+            setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+        } else {
+            setTimeout(() => genProblem(currentStep), 1000);
+        }
+      } else {
+        fb.style.color = "#d63031";
+        fb.textContent = "Scaling error. Remember: Whole × Top!";
+      }
+    }
+
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && currentStep >= 2 && currentStep <= 3) checkPractice();
+    });
+  </script>
 </body>
 </html>
