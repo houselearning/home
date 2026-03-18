@@ -184,6 +184,8 @@
       if (user) { currentUser = user; syncProgress(); }
     });
 
+    const TOTAL_STEPS = 7;
+
     async function syncProgress() {
       try {
         const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
@@ -205,7 +207,7 @@
 
     function updateSidebar() {
       let completedCount = 0;
-      for(let i=0; i<7; i++) {
+      for(let i=0; i<TOTAL_STEPS; i++) {
         const item = document.getElementById(`nav-${i}`);
         const isDone = stepsCompleted[`step_${i}`];
         const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
@@ -215,7 +217,7 @@
         if (currentStep === i) item.classList.add('active');
       }
       document.getElementById('mastery-btn').disabled = !stepsCompleted.step_6;
-      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/7)*100)}%`;
+      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/TOTAL_STEPS)*100)}%`;
     }
 
     function showPage(index) {
