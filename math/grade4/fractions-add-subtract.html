@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -71,7 +72,9 @@
       <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 The "Keep the Bottom" Rule</div>
       <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🟢 Level 1: Fraction Addition</div>
       <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🟡 Level 2: Fraction Subtraction</div>
-      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🏆 Lab Mastery</div>
+      <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🎥 Simplifying Fractions Video</div>
+      <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🔵 Level 3: Simplifying Fractions</div>
+      <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Lab Mastery</div>
     </div>
   </nav>
 
@@ -141,11 +144,33 @@
       </div>
     </div>
 
-    <div id="p4" class="content-card" style="text-align: center;">
+    <div id="p4" class="content-card">
+      <h1>Simplifying Fractions Video</h1>
+      <p>Watch one more quick explanation to reinforce how the GCF makes simplification fast.</p>
+      <div class="video-container" style="margin-bottom: 16px;">
+        <iframe src="https://www.youtube.com/embed/ZQk21FgpoGk" frameborder="0" allowfullscreen></iframe>
+      </div>
+      <br>
+      <button class="btn" onclick="saveStepProgress(4, 5)">Next: Try Simplifying Practice</button>
+    </div>
+
+    <div id="p5" class="content-card">
+      <h1>Simplifying Fractions</h1>
+      <p>Shortcut: divide numerator and denominator by the greatest common factor (GCF) to write fractions in simplest form.</p>
+      <ul>
+        <li>Example: $
+          \frac{8}{12} = \frac{8 \div 4}{12 \div 4} = \frac{2}{3}$</li>
+        <li>Try to reduce each fraction until no common factors remain.</li>
+      </ul>
+      <br>
+      <button class="btn" onclick="showPage(5);">Start Simplify Practice</button>
+    </div>
+
+    <div id="p6" class="content-card" style="text-align: center;">
         <h1 style="font-size: 80px; margin-bottom: 0;">🍰</h1>
         <h1 style="color: var(--lab-blue);">Fraction Scientist!</h1>
-        <p>You’ve mastered the art of combining and separating parts of a whole. Excellent lab work!</p>
-        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(4, 4)">Finalize Lab</button>
+        <p>You’ve mastered the art of combining, separating, and simplifying parts of a whole. Excellent lab work!</p>
+        <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Finalize Lab</button>
     </div>
   </main>
 
@@ -179,7 +204,15 @@
       try {
         const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
         const doc = await docRef.get();
-        stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false };
+        stepsCompleted = doc.exists ? doc.data().steps : {
+          step_0: false,
+          step_1: false,
+          step_2: false,
+          step_3: false,
+          step_4: false,
+          step_5: false,
+          step_6: false
+        };
         updateSidebar();
       } catch(e) { console.error(e); }
     }
@@ -196,7 +229,7 @@
 
     function updateSidebar() {
       let completedCount = 0;
-      for(let i=0; i<5; i++) {
+      for(let i=0; i<7; i++) {
         const item = document.getElementById(`nav-${i}`);
         const isDone = stepsCompleted[`step_${i}`];
         const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
@@ -205,24 +238,35 @@
         if (!isPrevDone) item.classList.add('locked');
         if (currentStep === i) item.classList.add('active');
       }
-      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_3;
-      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/5)*100)}%`;
+      document.getElementById('mastery-btn').disabled = !stepsCompleted.step_5;
+      document.getElementById('percent-display').textContent = `Lab Progress: ${Math.round((completedCount/7)*100)}%`;
     }
 
     function showPage(index) {
       if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
       document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
       currentStep = index;
-      const id = (index >= 2 && index <= 3) ? 'p-practice' : 'p' + index;
-      document.getElementById(id).classList.add('active');
+
+      if (index === 2 || index === 3 || index === 5) {
+        document.getElementById('p-practice').classList.add('active');
+        setupPractice(index);
+      } else if (index === 4) {
+        document.getElementById('p4').classList.add('active');
+      } else {
+        document.getElementById('p' + index).classList.add('active');
+      }
+
       updateSidebar();
-      if(index >= 2 && index <= 3) setupPractice(index);
     }
 
     function setupPractice(step) {
       practiceCount = 0;
       document.getElementById('pb-fill').style.width = '0%';
       genProblem(step);
+    }
+
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
     }
 
     function genProblem(step) {
@@ -234,20 +278,40 @@
             n2 = Math.floor(Math.random() * (den - 1)) + 1;
             op = "+";
             targetN = n1 + n2;
-        } else { // Subtraction
+            targetD = den;
+            document.getElementById('q-prompt').textContent = "Add the fractions:";
+            document.getElementById('n1').textContent = n1;
+            document.getElementById('n2').textContent = n2;
+            document.getElementById('d1').textContent = den;
+            document.getElementById('d2').textContent = den;
+            document.getElementById('op-sign').textContent = op;
+        } else if (step === 3) { // Subtraction
             n1 = Math.floor(Math.random() * (den - 2)) + 2;
             n2 = Math.floor(Math.random() * (n1 - 1)) + 1;
             op = "-";
             targetN = n1 - n2;
-        }
-        targetD = den;
+            targetD = den;
+            document.getElementById('q-prompt').textContent = "Subtract the fractions:";
+            document.getElementById('n1').textContent = n1;
+            document.getElementById('n2').textContent = n2;
+            document.getElementById('d1').textContent = den;
+            document.getElementById('d2').textContent = den;
+            document.getElementById('op-sign').textContent = op;
+        } else { // Simplifying
+            do {
+                n1 = Math.floor(Math.random() * (den - 1)) + 1;
+            } while (gcd(n1, den) === 1);
+            const g = gcd(n1, den);
+            targetN = n1 / g;
+            targetD = den / g;
 
-        document.getElementById('n1').textContent = n1;
-        document.getElementById('n2').textContent = n2;
-        document.getElementById('d1').textContent = den;
-        document.getElementById('d2').textContent = den;
-        document.getElementById('op-sign').textContent = op;
-        document.getElementById('q-prompt').textContent = step === 2 ? "Add the fractions:" : "Subtract the fractions:";
+            document.getElementById('q-prompt').textContent = "Simplify the fraction:";
+            document.getElementById('n1').textContent = n1;
+            document.getElementById('d1').textContent = den;
+            document.getElementById('n2').textContent = '';
+            document.getElementById('d2').textContent = '';
+            document.getElementById('op-sign').textContent = "→";
+        }
 
         document.getElementById('ans-n').value = '';
         document.getElementById('ans-d').value = '';
