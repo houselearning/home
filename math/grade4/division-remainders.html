@@ -161,7 +161,21 @@
     let currentQ = { q: 0, r: 0 };
 
     auth.onAuthStateChanged(user => {
-      if (user) { currentUser = user; syncProgress(); }
+      if (user) {
+        currentUser = user;
+        syncProgress();
+      } else {
+        currentUser = null;
+        stepsCompleted = {
+          step_0: false,
+          step_1: false,
+          step_2: false,
+          step_3: false,
+          step_4: false,
+          step_5: false
+        };
+        updateSidebar();
+      }
     });
 
     async function syncProgress() {
