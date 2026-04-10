@@ -161,7 +161,21 @@
     let currentQ = { q: 0, r: 0 };
 
     auth.onAuthStateChanged(user => {
-      if (user) { currentUser = user; syncProgress(); }
+      if (user) {
+        currentUser = user;
+        syncProgress();
+      } else {
+        currentUser = null;
+        stepsCompleted = {
+          step_0: false,
+          step_1: false,
+          step_2: false,
+          step_3: false,
+          step_4: false,
+          step_5: false
+        };
+        updateSidebar();
+      }
     });
 
     async function syncProgress() {
@@ -243,6 +257,12 @@
       const userQ = parseInt(document.getElementById('q-input').value);
       const userR = parseInt(document.getElementById('r-input').value);
       const fb = document.getElementById('feedback');
+      
+      if (Number.isNaN(userQ) || Number.isNaN(userR)) {
+        fb.style.color = "#d63031";
+        fb.textContent = "Please enter numbers for both quotient and remainder.";
+        return;
+      }
       
       if(userQ === currentQ.q && userR === currentQ.r) {
         fb.style.color = "var(--success)";
