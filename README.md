@@ -29,10 +29,3 @@ Welcome to **HouseLearning Lessons Page** — a fun and interactive learning web
 Here’s a preview of the HouseLearning Home website (*subject to change*):
 ![HouseLearning Home Screenshot](https://houselearning.github.io/home/readme/screenshot.png)
 
-## 🚀 Getting Started
-
-To get a local copy up and running, follow these steps:
-
-### 1️⃣ Clone the repository
-```bash
-git clone https://github.com/houselearning/home.git
