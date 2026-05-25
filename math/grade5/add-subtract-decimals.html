@@ -1,374 +1,576 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — Adding and Subtracting Decimals</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Decimal Operations Lab</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root { 
+      --lab-crimson: #e74c3c; 
+      --lab-deep: #2d3436; 
+      --bg: #f5f6fa; 
+      --success: #2ecc71; 
+      --locked: #b2bec3; 
+      --accent-cyan: #00cec9;
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+    nav { width: 340px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-crimson); color: white; }
+    .nav-container { flex: 1; overflow-y: auto; }
+    .nav-section-title { padding: 12px 20px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #f1f2f6; color: #a4b0be; }
+    .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #636e72; font-size: 13px; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+    .nav-item.active { background: #fde8e7; color: var(--lab-crimson); font-weight: bold; border-left: 5px solid var(--lab-crimson); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; font-size: 12px; }
+    .nav-item.completed::after { content: '✅'; font-size: 12px; }
+    
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .data-table th, .data-table td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+    .data-table th { background: #f8f9fa; color: var(--lab-deep); }
+    
+    .btn { background: var(--lab-crimson); color: white; border: none; padding: 14px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #c0392b; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; }
+    
+    .math-input { width: 80px; padding: 10px; text-align: center; border: 2px solid var(--lab-crimson); border-radius: 8px; font-size: 18px; font-weight: bold; }
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    /* Decimals Alignment Visual Grid */
+    .decimal-grid { font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: bold; line-height: 1.6; margin: 20px auto; width: max-content; padding: 25px; background: #2d3436; color: #fff; border-radius: 12px; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); border: 3px solid var(--lab-crimson); letter-spacing: 8px; }
+    .decimal-point { color: #55efc4; text-shadow: 0 0 8px #55efc4; }
+    .grid-line { border-bottom: 3px dashed #636e72; margin: 10px 0; width: 100%; }
+    .grid-input { background: #1e272e; border: 2px solid var(--accent-cyan); color: #fff; width: 45px; text-align: center; font-size: 26px; font-family: inherit; border-radius: 6px; font-weight: bold; outline: none; }
+    .grid-input:focus { border-color: var(--success); }
+    .feedback-text { font-size: 18px; font-weight: bold; text-align: center; margin-top: 15px; min-height: 25px; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — Adding and Subtracting Decimals</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 18px;">🛑 Decimal Alignment Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Place Values...</div>
+  </div>
+  <div class="nav-container">
+    <div class="nav-section-title">Core Protocols</div>
+    <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Briefing: Decimal Matrix</div>
+    <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 The Alignment Directive</div>
+    
+    <div class="nav-section-title">Level 1: Addition Algorithms</div>
+    <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🔬 L1-1: Line Up Logic</div>
+    <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. 🔬 L1-2: Tenths Grid Synch</div>
+    <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. 🔬 L1-3: Hundredths Vector</div>
+    <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 🔬 L1-4: Annexing Zeros</div>
+    <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🔬 L1-5: Regrouping Buffers</div>
+    <div id="nav-7" class="nav-item locked" onclick="showPage(7)">8. 🔬 L1-6: Carrying Variables</div>
+    <div id="nav-8" class="nav-item locked" onclick="showPage(8)">9. 🔬 L1-7: Sum Synthesis</div>
+    
+    <div class="nav-section-title">Level 2: Subtraction Engines</div>
+    <div id="nav-9" class="nav-item locked" onclick="showPage(9)">10. ⚙️ L2-1: Difference Mechanics</div>
+    <div id="nav-10" class="nav-item locked" onclick="showPage(10)">11. ⚙️ L2-2: Phantom Zeros Setup</div>
+    <div id="nav-11" class="nav-item locked" onclick="showPage(11)">12. ⚙️ L2-3: The Borrowing Circuit</div>
+    <div id="nav-12" class="nav-item locked" onclick="showPage(12)">13. ⚙️ L2-4: Multi-Stage Ungrouping</div>
+    <div id="nav-13" class="nav-item locked" onclick="showPage(13)">14. ⚙️ L2-5: Sub-Whole Reductions</div>
+    <div id="nav-14" class="nav-item locked" onclick="showPage(14)">15. ⚙️ L2-6: Array Variable Check</div>
+    <div id="nav-15" class="nav-item locked" onclick="showPage(15)">16. ⚙️ L2-7: Total Delta Verification</div>
+    
+    <div class="nav-section-title">System Finalization</div>
+    <div id="nav-16" class="nav-item locked" onclick="showPage(16)">17. 📝 Terminal Output Test</div>
+    <div id="nav-17" class="nav-item locked" onclick="showPage(17)">18. 🏆 Vector Architect</div>
+  </div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p>To add and subtract decimals, you must **line up the decimal points**! This is the most important step. Once the decimal points are lined up, you can add or subtract just like you would with whole numbers. Don't forget to add zeros to make the numbers the same length! 📏</p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
+  <div id="p0" class="content-card active">
+    <h1>Lab Briefing: Place Value Domain</h1>
+    <p>Welcome, Architect! When scaling decimals, place values must strictly lock coordinates. Misaligning a decimal point causes mathematical engine collapses. Watch this matrix foundation briefing before initializing grid arrays.</p>
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/nO7mZpSg6os" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <br><button class="btn" onclick="saveStepProgress(0, 1)">System Core Online!</button>
+  </div>
 
-<section aria-labelledby="videoTitle">
-<h2 id="videoTitle">Animated Tutorial Video</h2>
-<p>Click Play to watch a detailed animated example of adding and subtracting decimals.</p>
-<div class="canvas-wrapper">
-  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
-</div>
-<div class="controls">
-  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
-  <button id="downloadVideo" class="ghost">💾 Download Video</button>
-</div>
-<div class="settings">
-  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
-</div>
-</section>
+  <div id="p1" class="content-card">
+    <h1>The Alignment Directive</h1>
+    <p>The cardinal rule of adding and subtracting decimal matrices: <strong>Always line up the decimal points directly above each other.</strong> This ensures tenths combine with tenths, hundredths with hundredths, and units with units.</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Place Value Grid Zone</th>
+          <th>Relative Coordinate Position</th>
+          <th>Mathematical Value Unit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Ones Layer</strong></td><td>First column left of the dot</td><td>1.0</td></tr>
+        <tr><td><strong>Tenths Layer</strong></td><td>First column right of the dot</td><td>0.1</td></tr>
+        <tr><td><strong>Hundredths Layer</strong></td><td>Second column right of the dot</td><td>0.01</td></tr>
+        <tr><td><strong>Thousandths Layer</strong></td><td>Third column right of the dot</td><td>0.001</td></tr>
+      </tbody>
+    </table>
+    <blockquote style="background: #f1f2f6; border-left: 5px solid var(--lab-crimson); padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <strong>System Directive:</strong> If vector sizes mismatch (e.g., 4.5 + 2.18), annex a trailing <strong>phantom zero</strong> onto the shorter digit string to preserve spatial alignment: 4.50 + 2.18.
+    </blockquote>
+    <button class="btn" onclick="saveStepProgress(1, 2)">Initialize Level 1 Array</button>
+  </div>
 
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>Solve these problems and type your answer. Be sure to include the decimal point.</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) 2.5 + 3.4</div>
-    <input id="q1" type="text" placeholder="Answer e.g. 5.9">
-    <div style="margin-top:6px"><button onclick="check('q1','5.9')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) 7.8 - 4.1</div>
-    <input id="q2" type="text" placeholder="Answer e.g. 3.7">
-    <div style="margin-top:6px"><button onclick="check('q2','3.7')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) 6.2 + 1.55</div>
-    <input id="q3" type="text" placeholder="Answer e.g. 7.75">
-    <div style="margin-top:6px"><button onclick="check('q3','7.75')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) 10.5 - 3.75</div>
-    <input id="q4" type="text" placeholder="Answer e.g. 6.75">
-    <div style="margin-top:6px"><button onclick="check('q4','6.75')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
+  <div id="p2" class="content-card">
+    <h1>L1-1: Line Up Logic</h1>
+    <p>Look at this addition problem setup: <code>12.4 + 3.52</code>. Which calculation framework shows proper alignment?</p>
+    <div style="display:flex; gap:30px; justify-content:center; margin:20px 0;">
+      <div style="background:#f8f9fa; padding:15px; border-radius:8px; font-family:monospace; font-size:20px;">
+        &nbsp;12.4<br>+&nbsp;3.52<br>------
+      </div>
+      <div style="background:#f8f9fa; padding:15px; border-radius:8px; font-family:monospace; font-size:20px; border:2px solid var(--success);">
+        12.4<br>+3.52<br>-----
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn" onclick="checkL1L1('right')">Framework B (Aligned Dots)</button>
+      <button class="btn" style="background:#dfe6e9; color:#000; box-shadow:0 4px 0 #b2bec3;" onclick="checkL1L1('wrong')">Framework A (Right-Justified)</button>
+    </div>
+    <div id="p2-fb" class="feedback-text"></div>
+  </div>
 
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
+  <div id="p3" class="content-card">
+    <h1>L1-2: Tenths Grid Synch</h1>
+    <p>Process the basic matrix synch. Calculate the total value down the tenths column vector for: <strong>0.4 + 0.3</strong>.</p>
+    <div class="decimal-grid">
+      &nbsp;0<span class="decimal-point">.</span>4<br>
+      +0<span class="decimal-point">.</span>3<br>
+      <div class="grid-line"></div>
+      &nbsp;0<span class="decimal-point">.</span><input type="number" id="l1l2-ans" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL1L2()">Verify Columns</button></div>
+    <div id="p3-fb" class="feedback-text"></div>
+  </div>
 
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
+  <div id="p4" class="content-card">
+    <h1>L1-3: Hundredths Vector</h1>
+    <p>Compute values for the next precision index tier: <strong>1.23 + 4.51</strong>. Combine columns straight down without regrouping triggers.</p>
+    <div class="decimal-grid">
+      &nbsp;1<span class="decimal-point">.</span>23<br>
+      +4<span class="decimal-point">.</span>51<br>
+      <div class="grid-line"></div>
+      &nbsp;<input type="number" id="l1l3-1" class="grid-input" placeholder="?"><span class="decimal-point">.</span><input type="number" id="l1l3-2" class="grid-input" placeholder="?"><input type="number" id="l1l3-3" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL1L3()">Analyze Vectors</button></div>
+    <div id="p4-fb" class="feedback-text"></div>
+  </div>
 
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
+  <div id="p5" class="content-card">
+    <h1>L1-4: Annexing Zeros</h1>
+    <p>When computing <strong>6.7 + 2.15</strong>, fill in the empty value placeholder (phantom zero) to stabilize row dimension scales before totaling.</p>
+    <div class="decimal-grid">
+      &nbsp;6<span class="decimal-point">.</span>7<input type="number" id="l1l4-zero" class="grid-input" placeholder="?"><br>
+      +2<span class="decimal-point">.</span>15<br>
+      <div class="grid-line"></div>
+      &nbsp;8<span class="decimal-point">.</span>85
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL1L4()">Engage Zero Annex</button></div>
+    <div id="p5-fb" class="feedback-text"></div>
+  </div>
 
-<footer>Tip: Imagine adding or subtracting money to help you line up the decimal points!</footer>
+  <div id="p6" class="content-card">
+    <h1>L1-5: Regrouping Buffers</h1>
+    <p>When column balances exceed 9, buffer limits overflow. Calculate <strong>0.07 + 0.05</strong>. Since 7 + 5 = 12, the value regroup vector carries up into the tenths column position.</p>
+    <div class="decimal-grid">
+      &nbsp;0<span class="decimal-point">.</span>07<br>
+      +0<span class="decimal-point">.</span>05<br>
+      <div class="grid-line"></div>
+      &nbsp;0<span class="decimal-point">.</span><input type="number" id="l1l5-1" class="grid-input" placeholder="?"><input type="number" id="l1l5-2" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL1L5()">Run Buffer Balance</button></div>
+    <div id="p6-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p7" class="content-card">
+    <h1>L1-6: Carrying Variables</h1>
+    <p>Perform an architecture task with multi-stage regrouping arrays: <strong>3.86 + 1.45</strong>.</p>
+    <div class="decimal-grid">
+      &nbsp;3<span class="decimal-point">.</span>86<br>
+      +1<span class="decimal-point">.</span>45<br>
+      <div class="grid-line"></div>
+      &nbsp;<input type="number" id="l1l6-1" class="grid-input" placeholder="?"><span class="decimal-point">.</span><input type="number" id="l1l6-2" class="grid-input" placeholder="?"><input type="number" id="l1l6-3" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL1L6()">Execute Total Routine</button></div>
+    <div id="p7-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p8" class="content-card">
+    <h1>L1-7: Sum Synthesis</h1>
+    <p>Conclude Level 1 optimization. Compute the total sum for a mixed-width array: <strong>14.2 + 3.68</strong>. Pad empty nodes mentally or physically.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin:25px 0;">
+      <input type="number" step="0.01" id="l1l7-ans" class="math-input" style="width:160px;" placeholder="Total Sum">
+      <button class="btn" onclick="checkL1L7()">Verify Synthesis</button>
+    </div>
+    <div id="p8-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p9" class="content-card">
+    <h1>L2-1: Difference Mechanics</h1>
+    <p>Initialize subtraction system parameters. Process column matrices straight down without borrowing constraints: <strong>9.58 - 4.25</strong>.</p>
+    <div class="decimal-grid">
+      &nbsp;9<span class="decimal-point">.</span>58<br>
+      -4<span class="decimal-point">.</span>25<br>
+      <div class="grid-line"></div>
+      &nbsp;<input type="number" id="l2l1-1" class="grid-input" placeholder="?"><span class="decimal-point">.</span><input type="number" id="l2l1-2" class="grid-input" placeholder="?"><input type="number" id="l2l1-3" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL2L1()">Run Difference Compute</button></div>
+    <div id="p9-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p10" class="content-card">
+    <h1>L2-2: Phantom Zeros Setup</h1>
+    <p>Critical configuration danger area: <strong>7.4 - 2.16</strong>. You cannot subtract 6 from nothing! You must map out the missing precision unit value.</p>
+    <p>What digit value must fill the empty hundredths index node space above the 6?</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin:25px 0;">
+      <input type="number" id="l2l2-ans" class="math-input" placeholder="?">
+      <button class="btn" onclick="checkL2L2()">Validate Node Digit</button>
+    </div>
+    <div id="p10-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p11" class="content-card">
+    <h1>L2-3: The Borrowing Circuit</h1>
+    <p>Now complete the operation from the previous module: <strong>7.40 - 2.16</strong>. Regroup 1 tenth from the 4 column, transforming the hundredths zero node into a 10.</p>
+    <div class="decimal-grid">
+      &nbsp;7<span class="decimal-point">.</span>40<br>
+      -2<span class="decimal-point">.</span>16<br>
+      <div class="grid-line"></div>
+      &nbsp;<input type="number" id="l2l3-1" class="grid-input" placeholder="?"><span class="decimal-point">.</span><input type="number" id="l2l3-2" class="grid-input" placeholder="?"><input type="number" id="l2l3-3" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL2L3()">Compute Borrow Sequence</button></div>
+    <div id="p11-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p12" class="content-card">
+    <h1>L2-4: Multi-Stage Ungrouping</h1>
+    <p>When running subtraction across zero-bound vectors, the borrowing circuit cascades leftward. Calculate: <strong>4.02 - 1.35</strong>.</p>
+    <div class="decimal-grid">
+      &nbsp;4<span class="decimal-point">.</span>02<br>
+      -1<span class="decimal-point">.</span>35<br>
+      <div class="grid-line"></div>
+      &nbsp;<input type="number" id="l2l24-1" class="grid-input" placeholder="?"><span class="decimal-point">.</span><input type="number" id="l2l24-2" class="grid-input" placeholder="?"><input type="number" id="l2l24-3" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL2L4()">Trace Cascade Vector</button></div>
+    <div id="p12-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p13" class="content-card">
+    <h1>L2-5: Sub-Whole Reductions</h1>
+    <p>Process operations that reduce down past the whole unit line boundary index entirely: <strong>1.25 - 0.82</strong>.</p>
+    <div class="decimal-grid">
+      &nbsp;1<span class="decimal-point">.</span>25<br>
+      -0<span class="decimal-point">.</span>82<br>
+      <div class="grid-line"></div>
+      &nbsp;<input type="number" id="l2l5-1" class="grid-input" placeholder="?"><span class="decimal-point">.</span><input type="number" id="l2l5-2" class="grid-input" placeholder="?"><input type="number" id="l2l5-3" class="grid-input" placeholder="?">
+    </div>
+    <div style="text-align:center;"><button class="btn" onclick="checkL2L5()">Test Matrix Delta</button></div>
+    <div id="p13-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p14" class="content-card">
+    <h1>L2-6: Array Variable Check</h1>
+    <p>Isolate and debug errors inside raw execution code. A system programmer typed out this equation tracking check: <code>15.82 - 6.4 = 9.78</code>. Is this mathematical execution statement true or false?</p>
+    <div style="display:flex; gap:15px; justify-content:center; margin:25px 0;">
+      <button class="btn" style="background:var(--success); box-shadow:0 4px 0 #27ae60;" onclick="checkL2L6(false)">Statement is FALSE</button>
+      <button class="btn" onclick="checkL2L6(true)">Statement is TRUE</button>
+    </div>
+    <div id="p14-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p15" class="content-card">
+    <h1>L2-7: Total Delta Verification</h1>
+    <p>Conclude the final module segment for Level 2 engines. Calculate the difference output value for this raw setup parameter: <strong>25 - 4.18</strong>.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin:25px 0;">
+      <input type="number" step="0.01" id="l2l7-ans" class="math-input" style="width:160px;" placeholder="Delta Output">
+      <button class="btn" onclick="checkL2L7()">Log Delta Value</button>
+    </div>
+    <div id="p15-fb" class="feedback-text"></div>
+  </div>
+
+  <div id="p16" class="content-card">
+    <h1>Terminal Output Test</h1>
+    <p>Verify data path optimization parameters across all 14 instructional layers before outputting final certificates.</p>
+    
+    <p><strong>1. Execute compilation sum for: 8.3 + 2.94</strong></p>
+    <input type="number" step="0.01" id="q1" class="math-input" style="width:140px;" placeholder="Result">
+    
+    <p><strong>2. Compute matrix difference value for: 12.5 - 3.12</strong></p>
+    <input type="number" step="0.01" id="q2" class="math-input" style="width:140px;" placeholder="Result">
+    
+    <br><br>
+    <button class="btn" style="background:var(--accent-cyan); box-shadow:0 4px 0 #00aea8;" onclick="checkFinalQuiz()">Submit System Verification Report</button>
+  </div>
+
+  <div id="p16-graduate" class="content-card" style="text-align: center;">
+    <h1 style="font-size: 80px; margin-bottom: 0;">🏆</h1>
+    <h1>Vector Operations Architect!</h1>
+    <p>Your place value tracking arrays are fully synchronized. Decimal points have achieved structural locking configurations. System status is pristine.</p>
+    <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(16, 16)">Complete & Lock Session Logs</button>
+  </div>
 </main>
 
 <script>
-/* ===== Utilities ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
-function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  const lessonID = "5th_grade_decimal_ops_v1";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
 
-/* ===== Score & CSV ===== */
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-function check(inputId,correct){const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val.toLowerCase()===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-/* ===== Canvas Tutorial ===== */
-const canvas=document.getElementById('tutorialCanvas');
-const ctx=canvas.getContext('2d');
-ctx.font="30px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
-const speedInput=document.getElementById('videoSpeed');
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
+  const TOTAL_STEPS = 17;
 
-function drawDecimalProblem(num1, num2, operator, step) {
-    ctx.clearRect(0, 0, 800, 400);
-    ctx.font = "40px Arial";
+  auth.onAuthStateChanged(user => { if (user) { currentUser = user; syncProgress(); } });
 
-    const startX = 300, startY = 150;
-    const padding = 100;
-    const decimalSymbol = '.';
-
-    const n1 = num1.toString();
-    const n2 = num2.toString();
-
-    // Find the position of the decimal point
-    const decPos1 = n1.indexOf(decimalSymbol);
-    const decPos2 = n2.indexOf(decimalSymbol);
-
-    // Calculate maximum digits after decimal for alignment
-    const maxDecimals = Math.max(
-        decPos1 !== -1 ? n1.length - 1 - decPos1 : 0,
-        decPos2 !== -1 ? n2.length - 1 - decPos2 : 0
-    );
-
-    // Format numbers for drawing
-    const formattedNum1 = n1 + (decPos1 === -1 ? '.' : '') + '0'.repeat(maxDecimals - (decPos1 !== -1 ? n1.length - 1 - decPos1 : 0));
-    const formattedNum2 = n2 + (decPos2 === -1 ? '.' : '') + '0'.repeat(maxDecimals - (decPos2 !== -1 ? n2.length - 1 - decPos2 : 0));
-
-    // Draw numbers with aligned decimal points
-    const decimalX = startX + (formattedNum1.indexOf(decimalSymbol) - formattedNum1.length) * 20;
-
-    // Drawing Logic
-    ctx.fillStyle = "#000";
-    ctx.font = "40px Arial";
-    ctx.fillText(formattedNum1, decimalX, startY - 20);
-    ctx.fillText(operator, decimalX - 60, startY + 20);
-    ctx.fillText(formattedNum2, decimalX, startY + 20);
-    ctx.fillRect(decimalX - 100, startY + 40, 200, 2);
-
-    // Animate steps
-    ctx.font = "20px Arial";
-    if (step === 1) {
-        ctx.fillStyle = "#16a34a";
-        ctx.fillText("Step 1: The most important rule!", 400, 350);
-        ctx.fillText("Line up the decimal points! ✨", 400, 380);
-        ctx.fillStyle = "#f97316";
-        ctx.fillText('.', decimalX, startY - 20);
-        ctx.fillText('.', decimalX, startY + 20);
-    } else if (step === 2) {
-        ctx.fillStyle = "#1d4ed8";
-        ctx.fillText("Step 2: Add zeros to fill in the empty spaces.", 400, 350);
-        ctx.fillText(formattedNum1.includes('.') ? formattedNum1 : formattedNum1 + '.0', decimalX, startY - 20);
-        ctx.fillText(formattedNum2.includes('.') ? formattedNum2 : formattedNum2 + '.0', decimalX, startY + 20);
-    } else if (step === 3) {
-        ctx.fillStyle = "#000";
-        const result = operator === '+' ? num1 + num2 : num1 - num2;
-        ctx.font = "40px Arial";
-        ctx.fillText(result.toFixed(maxDecimals), decimalX, startY + 80);
-        ctx.font = "20px Arial";
-        ctx.fillText("Step 3: Solve just like a normal addition or subtraction problem!", 400, 350);
-    }
-}
-
-const tutorialSteps = [
-    { audio: "Let's solve the problem 6.2 plus 1.55.", draw: () => drawDecimalProblem(6.2, 1.55, '+', 0) },
-    { audio: "The first step is to line up the decimal points. This ensures you're adding the right place values.", draw: () => drawDecimalProblem(6.2, 1.55, '+', 1) },
-    { audio: "Add a zero to the end of the first number so both have the same number of decimal places. 6.2 becomes 6.20.", draw: () => drawDecimalProblem(6.2, 1.55, '+', 2) },
-    { audio: "Now, simply add the numbers together, just as you would with whole numbers, and bring down the decimal point into your answer. The sum is 7.75.", draw: () => drawDecimalProblem(6.2, 1.55, '+', 3) },
-    { audio: "Let's try a subtraction problem: 10.5 minus 3.75.", draw: () => drawDecimalProblem(10.5, 3.75, '-', 0) },
-    { audio: "Again, we line up the decimal points. We can add a zero to the end of 10.5 to make it 10.50.", draw: () => drawDecimalProblem(10.5, 3.75, '-', 2) },
-    { audio: "Subtract the numbers, borrowing when needed. The difference is 6.75.", draw: () => drawDecimalProblem(10.5, 3.75, '-', 3) }
-];
-
-let tutorialIndex = 0;
-function playTutorialVideo(callback) {
-  tutorialIndex = 0;
-  const speed = parseFloat(speedInput.value) || 1;
-  function nextStep() {
-    if (tutorialIndex >= tutorialSteps.length) {
-      if (callback) callback();
-      return;
-    }
-    const step = tutorialSteps[tutorialIndex];
-    step.draw();
-    const utter = new SpeechSynthesisUtterance(step.audio);
-    utter.rate = speed;
-    utter.onend = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    utter.onerror = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    speechSynthesis.speak(utter);
-  }
-  nextStep();
-}
-document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
-
-/* ===== Video Download ===== */
-document.getElementById('downloadVideo').addEventListener('click', () => {
-  const stream = canvas.captureStream(30);
-  const recorder = new MediaRecorder(stream);
-  const chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = e => {
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'decimal_tutorial.webm'; a.click();
-    URL.revokeObjectURL(url);
-  };
-  recorder.start();
-  playTutorialVideo(() => { setTimeout(() => recorder.stop(), 500); });
-});
-
-/* ===== Random Challenge ===== */
-function generateProblem() {
-    const isAddition = Math.random() < 0.5;
-    let num1 = parseFloat((Math.random() * 100).toFixed(Math.floor(Math.random() * 2) + 1));
-    let num2 = parseFloat((Math.random() * 100).toFixed(Math.floor(Math.random() * 2) + 1));
-
-    if (isAddition) {
-        const result = (num1 + num2).toFixed(Math.max(num1.toString().split('.')[1]?.length || 0, num2.toString().split('.')[1]?.length || 0));
-        return { q: `${num1} + ${num2}`, a: parseFloat(result).toString() };
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    if(!doc.exists) {
+      stepsCompleted = {};
+      for(let i=0; i<TOTAL_STEPS; i++) { stepsCompleted[`step_${i}`] = false; }
     } else {
-        if (num1 < num2) { [num1, num2] = [num2, num1]; }
-        const result = (num1 - num2).toFixed(Math.max(num1.toString().split('.')[1]?.length || 0, num2.toString().split('.')[1]?.length || 0));
-        return { q: `${num1} - ${num2}`, a: parseFloat(result).toString() };
+      stepsCompleted = doc.data().steps;
     }
-}
-let currentCorrect = null;
+    updateSidebar();
+  }
 
-function newChallenge() {
-  const problem = generateProblem();
-  currentCorrect = problem.a;
-  document.getElementById('challengeQ').textContent = problem.q + ' = ?';
-  document.getElementById('challengeInput').value = '';
-  document.getElementById('challengeResult').textContent = '';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-  const val = document.getElementById('challengeInput').value.trim();
-  const res = document.getElementById('challengeResult');
-  if (val === currentCorrect) {
-    res.textContent = '✅ Correct!';
-    res.className = 'answer ok';
-    tone(880, 0.06);
-    updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-  } else {
-    res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-    res.className = 'answer bad';
-    tone(220, 0.06);
-    updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
-  }
-});
-newChallenge();
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx) showPage(nextIdx);
+  }
 
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+  function updateSidebar() {
+    let completedCount = 0;
+    for(let i=0; i<TOTAL_STEPS; i++) {
+      const item = document.getElementById(`nav-${i}`);
+      if(!item) continue;
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      item.className = 'nav-item';
+      if (isDone) { item.classList.add('completed'); completedCount++; }
+      if (!isPrevDone) item.classList.add('locked');
+      if (currentStep === i) item.classList.add('active');
+    }
+    const mBtn = document.getElementById('mastery-btn');
+    if(mBtn) mBtn.disabled = !stepsCompleted.step_15;
+    document.getElementById('percent-display').textContent = `Array Optimization: ${Math.round((completedCount/TOTAL_STEPS)*100)}%`;
+  }
 
-function newQuizQuestion() {
-  const problem = generateProblem();
-  currentQuiz = problem;
-  document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
-  document.getElementById('quizInput').value = '';
-  document.getElementById('quizFeedback').textContent = '';
-}
+  function showPage(index) {
+    if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+    currentStep = index;
+    
+    let targetId = 'p' + index;
+    if(index === 16 && stepsCompleted.step_16) targetId = 'p16-graduate';
+    
+    const target = document.getElementById(targetId);
+    if(target) target.classList.add('active');
+    updateSidebar();
+  }
 
-document.getElementById('startQuiz').addEventListener('click', () => {
-  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-  quizScore = 0;
-  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-  newQuizQuestion();
-  clearInterval(quizTimerInt);
-  quizTimerInt = setInterval(() => {
-    quizTime--;
-    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-    if (quizTime <= 0) {
-      clearInterval(quizTimerInt);
-      document.getElementById('quizQ').textContent = 'Time Up!';
-    }
-  }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-  clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-  const val = document.getElementById('quizInput').value.trim();
-  const f = document.getElementById('quizFeedback');
-  if (val === currentQuiz.a) {
-    f.textContent = '✅ Correct!';
-    f.className = 'answer ok';
-    quizScore++;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    tone(880, 0.06);
-    csvData.push([currentQuiz.q, currentQuiz.a]);
-  } else {
-    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-    f.className = 'answer bad';
-    tone(220, 0.06);
-    csvData.push([currentQuiz.q, currentQuiz.a]);
-  }
-  newQuizQuestion();
-});
+  // Verification Logic Functions
+  function checkL1L1(ans) {
+    const fb = document.getElementById('p2-fb');
+    if(ans === 'right') {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Pass! Lining up the decimals matches respective place values.</span>";
+      setTimeout(() => saveStepProgress(2, 3), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Array Fault. Right-justifying shifts tenths into hundredths zones!</span>";
+    }
+  }
 
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-  const csvContent = csvData.map(e => e.join(',')).join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'decimal_practice.csv'; a.click();
-  URL.revokeObjectURL(url);
-});
+  function checkL1L2() {
+    const a = document.getElementById('l1l2-ans').value;
+    const fb = document.getElementById('p3-fb');
+    if(a == 7) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Tenths Column Stable. 4 tenths + 3 tenths = 7 tenths.</span>";
+      setTimeout(() => saveStepProgress(3, 4), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Sum Mismatch down the designated column parameter.</span>";
+    }
+  }
+
+  function checkL1L3() {
+    const v1 = document.getElementById('l1l3-1').value;
+    const v2 = document.getElementById('l1l3-2').value;
+    const v3 = document.getElementById('l1l3-3').value;
+    const fb = document.getElementById('p4-fb');
+    if(v1 == 5 && v2 == 7 && v3 == 4) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Matrix Map Verified! Output value states exactly 5.74.</span>";
+      setTimeout(() => saveStepProgress(4, 5), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Node data configuration values do not match matrix sum requirements.</span>";
+    }
+  }
+
+  function checkL1L4() {
+    const z = document.getElementById('l1l4-zero').value;
+    const fb = document.getElementById('p5-fb');
+    if(z == 0) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Zero Padding Confirmed. 6.70 safely balances array dimensional widths.</span>";
+      setTimeout(() => saveStepProgress(5, 6), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Invalid structural padding index. Use neutral zeros.</span>";
+    }
+  }
+
+  function checkL1L5() {
+    const v1 = document.getElementById('l1l5-1').value;
+    const v2 = document.getElementById('l1l5-2').value;
+    const fb = document.getElementById('p6-fb');
+    if(v1 == 1 && v2 == 2) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Overflow Buffer Routed! Value calculated: 0.12.</span>";
+      setTimeout(() => saveStepProgress(6, 7), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Regroup logic error. Track values carrying past boundary marks.</span>";
+    }
+  }
+
+  function checkL1L6() {
+    const v1 = document.getElementById('l1l6-1').value;
+    const v2 = document.getElementById('l1l6-2').value;
+    const v3 = document.getElementById('l1l6-3').value;
+    const fb = document.getElementById('p7-fb');
+    if(v1 == 5 && v2 == 3 && v3 == 1) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Compound Carrying Route Complete! Final total metrics: 5.31.</span>";
+      setTimeout(() => saveStepProgress(7, 8), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Total summation error. Re-calculate carried register flags.</span>";
+    }
+  }
+
+  function checkL1L7() {
+    const ans = document.getElementById('l1l7-ans').value;
+    const fb = document.getElementById('p8-fb');
+    if(ans == 17.88) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Synthesis Complete. 14.20 + 3.68 correctly clocks 17.88.</span>";
+      setTimeout(() => saveStepProgress(8, 9), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Synthesis verification failed. Monitor tracking registers.</span>";
+    }
+  }
+
+  function checkL2L1() {
+    const v1 = document.getElementById('l2l1-1').value;
+    const v2 = document.getElementById('l2l1-2').value;
+    const v3 = document.getElementById('l2l1-3').value;
+    const fb = document.getElementById('p9-fb');
+    if(v1 == 5 && v2 == 3 && v3 == 3) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Linear Reduction Authenticated! Result maps to exactly 5.33.</span>";
+      setTimeout(() => saveStepProgress(9, 10), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Base reduction subtraction processing errors found.</span>";
+    }
+  }
+
+  function checkL2L2() {
+    const ans = document.getElementById('l2l2-ans').value;
+    const fb = document.getElementById('p10-fb');
+    if(ans == 0) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Node Defined! 7.4 becomes 7.40, creating a valid base subtraction row target.</span>";
+      setTimeout(() => saveStepProgress(10, 11), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Empty structural array paths require an active placeholder zero.</span>";
+    }
+  }
+
+  function checkL2L3() {
+    const v1 = document.getElementById('l2l3-1').value;
+    const v2 = document.getElementById('l2l3-2').value;
+    const v3 = document.getElementById('l2l3-3').value;
+    const fb = document.getElementById('p11-fb');
+    if(v1 == 5 && v2 == 2 && v3 == 4) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ System Borrow Route Verified! System output balances at 5.24.</span>";
+      setTimeout(() => saveStepProgress(11, 12), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Regroup trace failure. Ensure 4 reduced down to 3 during extraction loops.</span>";
+    }
+  }
+
+  function checkL2L4() {
+    const v1 = document.getElementById('l2l24-1').value;
+    const v2 = document.getElementById('l2l24-2').value;
+    const v3 = document.getElementById('l2l24-3').value;
+    const fb = document.getElementById('p12-fb');
+    if(v1 == 2 && v2 == 6 && v3 == 7) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Cascade Circuit Success! Subtraction registers output 2.67.</span>";
+      setTimeout(() => saveStepProgress(12, 13), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Value tracking mismatch through deep zero borrow structures.</span>";
+    }
+  }
+
+  function checkL2L5() {
+    const v1 = document.getElementById('l2l5-1').value;
+    const v2 = document.getElementById('l2l5-2').value;
+    const v3 = document.getElementById('l2l5-3').value;
+    const fb = document.getElementById('p13-fb');
+    if(v1 == 0 && v2 == 4 && v3 == 3) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Fraction Matrix Cleared! Sub-whole boundary calculation balances at 0.43.</span>";
+      setTimeout(() => saveStepProgress(13, 14), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Target tracking error inside place value coordinates.</span>";
+    }
+  }
+
+  function checkL2L6(ans) {
+    const fb = document.getElementById('p14-fb');
+    if(ans === false) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Code Debugged! 15.82 - 6.40 actually equals 9.42, not 9.78. Great catch!</span>";
+      setTimeout(() => saveStepProgress(14, 15), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Loop Check Fault. Look closely at how 6.4 behaves if aligned without place locks.</span>";
+    }
+  }
+
+  function checkL2L7() {
+    const ans = document.getElementById('l2l7-ans').value;
+    const fb = document.getElementById('p15-fb');
+    if(ans == 20.82) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Delta Stream Locked! Formatting whole integer 25 as 25.00 outputs exactly 20.82.</span>";
+      setTimeout(() => saveStepProgress(15, 16), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:var(--lab-crimson)'>❌ Delta confirmation failed. Ensure subtraction registers pulled from 25 structure.</span>";
+    }
+  }
+
+  function checkFinalQuiz() {
+    const q1 = document.getElementById('q1').value; // 8.30 + 2.94 = 11.24
+    const q2 = document.getElementById('q2').value; // 12.50 - 3.12 = 9.38
+    if(q1 == 11.24 && q2 == 9.38) {
+      stepsCompleted.step_16 = true;
+      document.getElementById('p16').classList.remove('active');
+      document.getElementById('p16-graduate').classList.add('active');
+      saveStepProgress(16, 16);
+    } else {
+      alert("System error. Sum or difference logs contain invalid verification parameters.");
+    }
+  }
 </script>
 </body>
 </html>
