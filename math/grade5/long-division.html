@@ -1,363 +1,335 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — Long Division (3-Digit Dividends)</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Long Division Mechanics Lab</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root { 
+      --lab-blue: #0984e3; 
+      --lab-deep: #2d3436; 
+      --bg: #f5f6fa; 
+      --success: #2ecc71; 
+      --locked: #b2bec3; 
+      --accent-purple: #6c5ce7;
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+    nav { width: 320px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-blue); color: white; }
+    .nav-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #636e72; font-size: 14px; position: relative; transition: 0.3s; }
+    .nav-item.active { background: #e0f2fe; color: var(--lab-blue); font-weight: bold; border-left: 5px solid var(--lab-blue); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; position: absolute; right: 15px; }
+    .nav-item.completed::after { content: '✅'; position: absolute; right: 15px; }
+    
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .chart-container { width: 100%; height: 320px; margin: 20px 0; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .data-table th, .data-table td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+    .data-table th { background: #f8f9fa; color: var(--lab-deep); }
+    
+    .btn { background: var(--lab-blue); color: white; border: none; padding: 14px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #076bba; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; }
+    
+    .math-input { width: 80px; padding: 10px; text-align: center; border: 2px solid var(--lab-blue); border-radius: 8px; font-size: 18px; font-weight: bold; }
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    /* Division House CSS Component */
+    .division-house { font-family: 'Courier New', Courier, monospace; font-size: 28px; line-height: 1.5; margin: 20px auto; width: max-content; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px dashed var(--locked); }
+    .quotient-row { padding-left: 75px; color: var(--accent-purple); letter-spacing: 12px; font-weight: bold; }
+    .bracket-row { display: flex; align-items: center; }
+    .divisor { padding-right: 10px; color: #e17055; font-weight: bold; text-align: right; width: 65px; }
+    .dividend-box { border-top: 4px solid var(--lab-deep); border-left: 4px solid var(--lab-deep); border-top-left-radius: 8px; padding-left: 15px; letter-spacing: 12px; font-weight: bold; }
+    .work-row { padding-left: 75px; letter-spacing: 12px; white-space: pre; font-weight: bold; }
+    .sub-line { border-bottom: 2px solid var(--lab-deep); width: 120px; margin-left: 75px; margin-top: 2px; margin-bottom: 2px; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — Long Division (3-Digit Dividends)</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 20px;">⚙️ Division Mechanics Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Calibrating Algorithms...</div>
+  </div>
+  <div id="nav-list">
+    <div id="nav-0" class="nav-item active" onclick="showPage(0)">1. 🎬 Lab Briefing: Large Dividends</div>
+    <div id="nav-1" class="nav-item locked" onclick="showPage(1)">2. 📜 The DMSR Protocol</div>
+    <div id="nav-2" class="nav-item locked" onclick="showPage(2)">3. 🔍 Level 1: Component Breakdown</div>
+    <div id="nav-3" class="nav-item locked" onclick="showPage(3)">4. ⚙️ Level 2: Core Calibration</div>
+    <div id="nav-4" class="nav-item locked" onclick="showPage(4)">5. ⚡ Level 3: Remainder Override</div>
+    <div id="nav-5" class="nav-item locked" onclick="showPage(5)">6. 📝 System Efficiency Test</div>
+    <div id="nav-6" class="nav-item locked" onclick="showPage(6)">7. 🏆 Master Mathematician</div>
+  </div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p><strong>Long division</strong> is a method used for dividing large numbers. It breaks down a big division problem into smaller, easier steps. We use a helpful acronym to remember the steps: <strong>DMSB</strong> - Divide, Multiply, Subtract, Bring down.</p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
+  <div id="p0" class="content-card active">
+    <h1>Lab Briefing: 2-Digit Divisors</h1>
+    <p>Welcome, Engineer! Today we upscale our division processors to handle double-digit divisors. Watch this architectural overview before interacting with the system hardware.</p>
+    <div class="video-container">
+      <iframe src="https://www.youtube.com/embed/HdU_rf7eMTg" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <br><button class="btn" onclick="saveStepProgress(0, 1)">System Check Complete!</button>
+  </div>
 
-<section aria-labelledby="videoTitle">
-<h2 id="videoTitle">Animated Tutorial Video</h2>
-<p>Click Play to watch a detailed animated example of long division with captions and audio.</p>
-<div class="canvas-wrapper">
-  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
-</div>
-<div class="controls">
-  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
-  <button id="downloadVideo" class="ghost">💾 Download Video</button>
-</div>
-<div class="settings">
-  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
-</div>
-</section>
+  <div id="p1" class="content-card">
+    <h1>The DMSR Protocol</h1>
+    <p>Long division is a cyclical processing algorithm. We run these four mechanics in order until the calculation stabilizes.</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Step Letter</th>
+          <th>Operation Command</th>
+          <th>Action Definition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>D</strong></td><td><span style="color:var(--lab-blue)">Divide</span></td><td>See how many times the divisor fits into the target digits.</td></tr>
+        <tr><td><strong>M</strong></td><td><span style="color:var(--accent-purple)">Multiply</span></td><td>Multiply your new quotient digit by the total divisor.</td></tr>
+        <tr><td><strong>S</strong></td><td><span style="color:#e17055)">Subtract</span></td><td>Subtract that product from your target digits to find the variance.</td></tr>
+        <tr><td><strong>R</strong></td><td><span style="color:var(--success)">Bring Down / Repeat</span></td><td>Drop down the next digit from the dividend, or declare the Remainder.</td></tr>
+      </tbody>
+    </table>
+    <blockquote style="background: #f1f2f6; border-left: 5px solid var(--accent-purple); padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <strong>Engineer's Tip:</strong> Memory hook phrase: <em>"Does McDonald's Serve Burgers?"</em> or <em>"Divide, Multiply, Subtract, Bring down!"</em>
+    </blockquote>
+    <button class="btn" onclick="saveStepProgress(1, 2)">Next: Component Check</button>
+  </div>
 
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>Solve these problems using the DMSB method. Remember to include the remainder, if any (e.g., 23 R 2).</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) 456 ÷ 3</div>
-    <input id="q1" type="text" placeholder="Answer e.g. 152">
-    <div style="margin-top:6px"><button onclick="check('q1','152')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) 789 ÷ 5</div>
-    <input id="q2" type="text" placeholder="Answer e.g. 157 R 4">
-    <div style="margin-top:6px"><button onclick="check('q2','157 R 4')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) 932 ÷ 4</div>
-    <input id="q3" type="text" placeholder="Answer e.g. 233">
-    <div style="margin-top:6px"><button onclick="check('q3','233')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) 615 ÷ 6</div>
-    <input id="q4" type="text" placeholder="Answer e.g. 102 R 3">
-    <div style="margin-top:6px"><button onclick="check('q4','102 R 3')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
+  <div id="p2" class="content-card">
+    <h1>Level 1: Component Breakdown</h1>
+    <p>Before launching calculations, ensure standard variable positions are verified.</p>
+    <div style="background:#f8f9fa; padding:20px; text-align:center; font-size:24px; border-radius:10px; margin-bottom:25px; font-weight:bold;">
+      432 ÷ 12 = 36
+    </div>
+    <p>In the math operation architecture setup listed above, what identity role does the value <strong>12</strong> play?</p>
+    <div style="display:flex; gap:15px; justify-content:center;">
+      <button class="btn" style="background:#6c5ce7; box-shadow:0 4px 0 #574b90;" onclick="checkQuickTask('dividend')">Dividend</button>
+      <button class="btn" style="background:var(--lab-blue);" onclick="checkQuickTask('divisor')">Divisor</button>
+      <button class="btn" style="background:#e17055; box-shadow:0 4px 0 #c0392b;" onclick="checkQuickTask('quotient')">Quotient</button>
+    </div>
+    <div id="p2-fb" style="margin-top:25px; text-align:center; font-weight:bold; font-size:18px;"></div>
+  </div>
 
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
+  <div id="p3" class="content-card">
+    <h1>Level 2: Core Calibration</h1>
+    <p>Fill out the highlighted engine milestone nodes inside the division apparatus framework for <strong>168 ÷ 12</strong>. Watch the diagnostic alignment graph drop to zero errors as you calculate accurately!</p>
+    
+    <div class="division-house">
+      <div class="quotient-row">1<input type="number" id="val1" class="math-input" style="width:40px; font-size:20px; padding:2px;" placeholder="?"></div>
+      <div class="bracket-row">
+        <div class="divisor">12</div>
+        <div class="dividend-box">168</div>
+      </div>
+      <div class="work-row">-12</div>
+      <div class="sub-line"></div>
+      <div class="work-row" style="color:#e17055"><input type="number" id="val2" class="math-input" style="width:40px; font-size:20px; padding:2px;" placeholder="?">8</div>
+      <div class="work-row">-48</div>
+      <div class="sub-line"></div>
+      <div class="work-row" style="color:var(--success)">  <input type="number" id="val3" class="math-input" style="width:40px; font-size:20px; padding:2px;" placeholder="?"></div>
+    </div>
 
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
+    <div style="text-align:center; margin-bottom:15px;">
+      <button class="btn" onclick="updateEngineChart()">Run Diagnostic Check</button>
+    </div>
 
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
+    <div class="chart-container">
+      <canvas id="mechanicsChart"></canvas>
+    </div>
+    
+    <div id="p3-fb" style="text-align: center; font-weight: bold; margin-bottom: 15px; font-size:18px;"></div>
+    <div style="text-align:center;">
+      <button class="btn" id="p3-next" style="display:none; background:var(--success); box-shadow:0 4px 0 #27ae60;" onclick="saveStepProgress(3, 4)">Advance to Level 3</button>
+    </div>
+  </div>
 
-<footer>Tip: Practice makes perfect! Don't be afraid to use scratch paper.</footer>
+  <div id="p4" class="content-card">
+     <h1>Level 3: Remainder Override</h1>
+     <p>Excellent calibration sequence. Not all inputs split completely evenly. Systems must calculate architectural remainders.</p>
+     <p>Run calculations for the following system task: <strong>245 ÷ 11</strong></p>
+     <p>What is the numeric value of the final <strong>Remainder (Leftovers)</strong> once calculations completely halt?</p>
+     <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin: 25px 0;">
+       <input type="number" id="remainder-input" class="math-input" placeholder="R=?">
+       <button class="btn" onclick="checkRemainder()">Verify Remainder</button>
+     </div>
+     <div id="p4-fb" style="text-align:center; font-weight:bold; font-size:18px;"></div>
+     <br>
+     <div style="text-align:center;">
+       <button class="btn" id="p4-next" style="display:none;" onclick="saveStepProgress(4, 5)">Unlock System Efficiency Test</button>
+     </div>
+  </div>
+
+  <div id="p5" class="content-card">
+    <h1>System Efficiency Test</h1>
+    <p>Verify your algorithm processes are completely integrated before receiving master mechanic permissions.</p>
+    
+    <p><strong>1. Execute processing for 750 ÷ 25. What is the precise quotient output?</strong></p>
+    <input type="number" id="q1" class="math-input" style="width:120px;">
+    
+    <p><strong>2. What is the initial operational command of the long division cycle protocol? (divide, multiply, subtract, bring down)</strong></p>
+    <input type="text" id="q2" class="math-input" style="width:200px;" placeholder="type action...">
+    
+    <br><br>
+    <button class="btn" style="background:var(--accent-purple); box-shadow:0 4px 0 #574b90;" onclick="checkFinalQuiz()">Submit Diagnostics Report</button>
+  </div>
+
+  <div id="p6" class="content-card" style="text-align: center;">
+    <h1 style="font-size: 80px; margin-bottom: 0;">🏆</h1>
+    <h1>Master Mathematician!</h1>
+    <p>Your mathematical engines have processed numerical vectors without throwing fault limits. Long division loops are fully operational.</p>
+    <button id="mastery-btn" class="btn" disabled onclick="saveStepProgress(6, 6)">Complete & Save Profile Logs</button>
+  </div>
 </main>
 
 <script>
-/* ===== Utilities ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
+  const lessonID = "5th_grade_long_division_v1";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
 
-/* ===== Score & CSV ===== */
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-function check(inputId,correct){const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val.toLowerCase()===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-/* ===== Canvas Tutorial ===== */
-const canvas=document.getElementById('tutorialCanvas');
-const ctx=canvas.getContext('2d');
-ctx.font="22px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
-const speedInput=document.getElementById('videoSpeed');
-let currentCaption="";
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
+  let myChart = null;
 
-function drawLongDivision(dividend, divisor, step) {
-    ctx.clearRect(0, 0, 800, 400);
-    ctx.font = "24px Arial";
-    ctx.fillStyle = "#000";
+  auth.onAuthStateChanged(user => { if (user) { currentUser = user; syncProgress(); } });
 
-    const boxWidth = 30;
-    const startX = 250;
-    const startY = 150;
-    const digits = dividend.toString().split('').map(Number);
-    const divisorStr = divisor.toString();
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    stepsCompleted = doc.exists ? doc.data().steps : { step_0: false, step_1: false, step_2: false, step_3: false, step_4: false, step_5: false, step_6: false };
+    updateSidebar();
+  }
 
-    ctx.fillText(divisorStr, startX - 50, startY + 20);
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx) showPage(nextIdx);
+  }
 
-    ctx.beginPath();
-    ctx.moveTo(startX - 10, startY);
-    ctx.lineTo(startX - 10, startY + 40);
-    ctx.lineTo(startX + digits.length * boxWidth + 10, startY + 40);
-    ctx.stroke();
-
-    for (let i = 0; i < digits.length; i++) {
-        ctx.fillText(digits[i], startX + i * boxWidth, startY + 20);
+  function updateSidebar() {
+    let completedCount = 0;
+    for(let i=0; i<7; i++) {
+      const item = document.getElementById(`nav-${i}`);
+      if(!item) continue;
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      item.className = 'nav-item';
+      if (isDone) { item.classList.add('completed'); completedCount++; }
+      if (!isPrevDone) item.classList.add('locked');
+      if (currentStep === i) item.classList.add('active');
     }
+    const mBtn = document.getElementById('mastery-btn');
+    if(mBtn) mBtn.disabled = !stepsCompleted.step_5;
+    document.getElementById('percent-display').textContent = `System Optimization: ${Math.round((completedCount/7)*100)}%`;
+  }
+
+  function showPage(index) {
+    if (index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+    currentStep = index;
+    const target = document.getElementById('p' + index);
+    if(target) target.classList.add('active');
+    if(index === 3) initChart();
+    updateSidebar();
+  }
+
+  function checkQuickTask(ans) {
+    const fb = document.getElementById('p2-fb');
+    if(ans === 'divisor') {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Excellent Validation! The divisor does the slicing/chopping.</span>";
+      setTimeout(() => saveStepProgress(2, 3), 1200);
+    } else {
+      fb.innerHTML = "<span style='color:#e17055'>❌ Calculation Fault! The dividend lives inside; the quotient lives up top. Try again!</span>";
+    }
+  }
+
+  function initChart() {
+    const ctx = document.getElementById('mechanicsChart').getContext('2d');
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Quotient Digit Node Deviation', 'Substituted Variance', 'Terminal Remainder Variance'],
+        datasets: [{ 
+          label: 'System Error Magnitude', 
+          data: [4, 6, 5], 
+          backgroundColor: ['#e17055', '#6c5ce7', '#0984e3'],
+          borderRadius: 6
+        }]
+      },
+      options: { 
+        scales: { y: { beginAtZero: true, max: 10, title: { display: true, text: 'Error Level (Aim for 0)' } } },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  }
+
+  function updateEngineChart() {
+    const v1 = document.getElementById('val1').value;
+    const v2 = document.getElementById('val2').value;
+    const v3 = document.getElementById('val3').value;
     
-    // Draw step-specific text
-    ctx.font = "20px Arial";
-    ctx.fillStyle = "#000";
-    if (step === 1) { ctx.fillText("Step 1: Divide (4 ÷ 3)", 400, 350); }
-    else if (step === 2) { ctx.fillText("Step 2: Multiply (1 × 3 = 3)", 400, 350); }
-    else if (step === 3) { ctx.fillText("Step 3: Subtract (4 - 3 = 1)", 400, 350); }
-    else if (step === 4) { ctx.fillText("Step 4: Bring down (bring down the 5)", 400, 350); }
-    else if (step === 5) { ctx.fillText("Step 5: Divide again (15 ÷ 3 = 5)", 400, 350); }
-    else if (step === 6) { ctx.fillText("Step 6: Multiply & Subtract (15 - 15 = 0)", 400, 350); }
-    else if (step === 7) { ctx.fillText("Step 7: Bring down (bring down the 6)", 400, 350); }
-    else if (step === 8) { ctx.fillText("Step 8: Final division (6 ÷ 3 = 2)", 400, 350); }
-    else if (step === 9) {
-        ctx.fillText("Final Solution: 152", 400, 350);
-        ctx.font = "24px Arial";
-        ctx.fillStyle = "#1d4ed8";
-        ctx.fillText("152", startX + 50, startY - 20);
+    // Correct Answers for 168 / 12: val1=4 (14 total), val2=4 (16-12=4), val3=0 (48-48=0)
+    const err1 = Math.min(Math.abs(v1 - 4), 10);
+    const err2 = Math.min(Math.abs(v2 - 4), 10);
+    const err3 = Math.min(Math.abs(v3 - 0), 10);
+    
+    myChart.data.datasets[0].data = [err1, err2, err3];
+    myChart.update();
+    
+    const fb = document.getElementById('p3-fb');
+    if(v1 == 4 && v2 == 4 && v3 == 0) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Core Matrix Calibrated! Mechanics are perfectly aligned.</span>";
+      document.getElementById('p3-next').style.display = "inline-block";
+    } else {
+      fb.innerHTML = "<span style='color:#e17055'>⚠️ Diagnostic Faults Detected! Check mathematical subtraction and step placement counters.</span>";
     }
-}
+  }
 
-const tutorialSteps = [
-    { audio: "Let's solve the problem 456 divided by 3 using the DMSB method.", draw: () => drawLongDivision(456, 3, 0) },
-    { audio: "First, we divide. How many times does 3 go into 4? Once. We write 1 above the 4.", draw: () => drawLongDivision(456, 3, 1) },
-    { audio: "Next, we multiply. We multiply the quotient digit, 1, by the divisor, 3. 1 times 3 is 3.", draw: () => drawLongDivision(456, 3, 2) },
-    { audio: "Then, we subtract. We subtract 3 from 4 to get 1.", draw: () => drawLongDivision(456, 3, 3) },
-    { audio: "Now, we bring down. Bring down the next digit, which is 5, to make the new number 15.", draw: () => drawLongDivision(456, 3, 4) },
-    { audio: "We repeat the steps. How many times does 3 go into 15? Five times. We write 5 next to the 1.", draw: () => drawLongDivision(456, 3, 5) },
-    { audio: "Multiply 5 by 3 to get 15, and subtract 15 from 15 to get 0.", draw: () => drawLongDivision(456, 3, 6) },
-    { audio: "Bring down the last digit, 6. How many times does 3 go into 6? Two times. We write 2.", draw: () => drawLongDivision(456, 3, 7) },
-    { audio: "Multiply 2 by 3 to get 6. Subtract 6 from 6 to get 0. Since there's no remainder, the final answer is 152.", draw: () => drawLongDivision(456, 3, 9) },
-];
+  function checkRemainder() {
+    const rVal = document.getElementById('remainder-input').value;
+    const fb = document.getElementById('p4-fb');
+    // 245 / 11 -> 11 * 22 = 242. Remainder = 3
+    if (rVal == 3) {
+      fb.innerHTML = "<span style='color:var(--success)'>✅ Remainder Override Accepted! 245 = (11 × 22) + 3.</span>";
+      document.getElementById('p4-next').style.display = "inline-block";
+    } else {
+      fb.innerHTML = "<span style='color:#e17055'>❌ Incorrect Remainder Metric. Recalculate subtraction after 245 - 220.</span>";
+    }
+  }
 
-let tutorialIndex = 0;
-function playTutorialVideo(callback) {
-  tutorialIndex = 0;
-  const speed = parseFloat(speedInput.value) || 1;
-  function nextStep() {
-    if (tutorialIndex >= tutorialSteps.length) {
-      if (callback) callback();
-      return;
-    }
-    const step = tutorialSteps[tutorialIndex];
-    step.draw();
-    const utter = new SpeechSynthesisUtterance(step.audio);
-    utter.rate = speed;
-    utter.onend = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    utter.onerror = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    speechSynthesis.speak(utter);
-  }
-  nextStep();
-}
-document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
-
-/* ===== Video Download ===== */
-document.getElementById('downloadVideo').addEventListener('click', () => {
-  const speed = parseFloat(speedInput.value) || 1;
-  const stream = canvas.captureStream(30);
-  const recorder = new MediaRecorder(stream);
-  const chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = e => {
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'long_division_tutorial.webm'; a.click();
-    URL.revokeObjectURL(url);
-  };
-  recorder.start();
-  playTutorialVideo(() => { setTimeout(() => recorder.stop(), 500); });
-});
-
-/* ===== Random Challenge ===== */
-function generateProblem() {
-  let divisor = Math.floor(Math.random() * 8) + 2; // 2 to 9
-  let quotient = Math.floor(Math.random() * 80) + 120; // 120 to 199
-  let remainder = Math.floor(Math.random() * divisor);
-  let dividend = (quotient * divisor) + remainder;
-
-  let question = `${dividend} ÷ ${divisor}`;
-  let answer = `${quotient}`;
-  if (remainder > 0) {
-    answer += ` R ${remainder}`;
-  }
-  return { q: question, a: answer };
-}
-
-let challengeList = [];
-for (let i = 0; i < 50; i++) {
-  challengeList.push(generateProblem());
-}
-let currentCorrect = null;
-
-function newChallenge() {
-  const problem = generateProblem();
-  currentCorrect = problem.a;
-  document.getElementById('challengeQ').textContent = problem.q + ' = ?';
-  document.getElementById('challengeInput').value = '';
-  document.getElementById('challengeResult').textContent = '';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-  const val = document.getElementById('challengeInput').value.trim();
-  const res = document.getElementById('challengeResult');
-  if (val.toLowerCase() === currentCorrect.toLowerCase()) {
-    res.textContent = '✅ Correct!';
-    res.className = 'answer ok';
-    tone(880, 0.06);
-    updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-  } else {
-    res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-    res.className = 'answer bad';
-    tone(220, 0.06);
-    updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
-  }
-});
-newChallenge();
-
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
-
-function newQuizQuestion() {
-  const problem = generateProblem();
-  currentQuiz = problem;
-  document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
-  document.getElementById('quizInput').value = '';
-  document.getElementById('quizFeedback').textContent = '';
-}
-
-document.getElementById('startQuiz').addEventListener('click', () => {
-  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-  quizScore = 0;
-  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-  newQuizQuestion();
-  clearInterval(quizTimerInt);
-  quizTimerInt = setInterval(() => {
-    quizTime--;
-    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-    if (quizTime <= 0) {
-      clearInterval(quizTimerInt);
-      document.getElementById('quizQ').textContent = 'Time Up!';
-    }
-  }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-  clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-  const val = document.getElementById('quizInput').value.trim();
-  const f = document.getElementById('quizFeedback');
-  if (val.toLowerCase() === currentQuiz.a.toLowerCase()) {
-    f.textContent = '✅ Correct!';
-    f.className = 'answer ok';
-    quizScore++;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    tone(880, 0.06);
-    csvData.push([currentQuiz.q, currentQuiz.a]);
-  } else {
-    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-    f.className = 'answer bad';
-    tone(220, 0.06);
-    csvData.push([currentQuiz.q, currentQuiz.a]);
-  }
-  newQuizQuestion();
-});
-
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-  const csvContent = csvData.map(e => e.join(',')).join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'long_division.csv'; a.click();
-  URL.revokeObjectURL(url);
-});
+  function checkFinalQuiz() {
+    const q1 = document.getElementById('q1').value;
+    const q2 = document.getElementById('q2').value.toLowerCase().trim();
+    if(q1 == 30 && q2 == 'divide') {
+      saveStepProgress(5, 6);
+    } else {
+      alert("System processing failed. Verify calculations and instruction keywords before re-submitting data logs.");
+    }
+  }
 </script>
 </body>
 </html>
