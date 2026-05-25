@@ -1,405 +1,403 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — Multiplying and Dividing Decimals</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Multiply & Divide Decimals Lab</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root { 
+      --lab-teal: #00cec9; 
+      --lab-dark: #2d3436; 
+      --bg: #f5f6fa; 
+      --success: #00b894; 
+      --error: #d63031;
+      --locked: #b2bec3; 
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--lab-dark); }
+    
+    /* Navigation Sidebar */
+    nav { width: 340px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-teal); color: white; }
+    .nav-container { flex: 1; overflow-y: auto; }
+    .nav-section-title { padding: 12px 20px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #f1f2f6; color: #a4b0be; }
+    .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #636e72; font-size: 13px; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+    .nav-item.active { background: #e0f9f8; color: var(--lab-teal); font-weight: bold; border-left: 5px solid var(--lab-teal); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; font-size: 12px; }
+    .nav-item.completed::after { content: '✅'; font-size: 12px; }
+    
+    /* Main Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; opacity: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Reusable UI Elements */
+    .btn { background: var(--lab-teal); color: white; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #00b3a6; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn.ans-btn { background: #dfe6e9; color: var(--lab-dark); margin: 0 10px; box-shadow: 0 4px 0 #b2bec3; }
+    .btn.ans-btn:hover { background: #b2bec3; }
+    
+    .math-box { font-size: 28px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px dashed #b2bec3; margin: 25px 0; }
+    .math-input { width: 120px; padding: 10px; text-align: center; border: 2px solid var(--lab-teal); border-radius: 8px; font-size: 24px; font-weight: bold; color: var(--lab-dark); outline: none; }
+    .math-input:focus { border-color: var(--success); box-shadow: 0 0 8px rgba(0,206,201,0.3); }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    .feedback-text { font-size: 18px; font-weight: bold; text-align: center; margin-top: 15px; height: 30px; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — Multiplying and Dividing Decimals</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 18px;">💠 Decimal Velocity Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Arrays...</div>
+  </div>
+  <div class="nav-container" id="nav-list">
+    </div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p>For **multiplication**, count the total decimal places in the numbers you are multiplying. The final answer will have that many decimal places. For **division**, move the decimal point in the divisor to make it a whole number, and move the decimal point in the dividend the same number of places. Then divide! 🧠</p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
-
-<section aria-labelledby="videoTitle">
-<h2 id="videoTitle">Animated Tutorial Video</h2>
-<p>Click Play to watch a detailed animated example of multiplying and dividing decimals.</p>
-<div class="canvas-wrapper">
-  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
-</div>
-<div class="controls">
-  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
-  <button id="downloadVideo" class="ghost">💾 Download Video</button>
-</div>
-<div class="settings">
-  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
-</div>
-</section>
-
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>Solve these problems and type your answer. Round to two decimal places if needed.</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) 2.5 × 1.2</div>
-    <input id="q1" type="text" placeholder="Answer e.g. 3.0">
-    <div style="margin-top:6px"><button onclick="check('q1','3')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) 8.4 ÷ 0.2</div>
-    <input id="q2" type="text" placeholder="Answer e.g. 42">
-    <div style="margin-top:6px"><button onclick="check('q2','42')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) 0.5 × 0.5</div>
-    <input id="q3" type="text" placeholder="Answer e.g. 0.25">
-    <div style="margin-top:6px"><button onclick="check('q3','0.25')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) 9.6 ÷ 1.2</div>
-    <input id="q4" type="text" placeholder="Answer e.g. 8">
-    <div style="margin-top:6px"><button onclick="check('q4','8')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
-
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
-
-<footer>Tip: A quick check for multiplication: if both decimals are less than 1, the product will also be less than 1.</footer>
+  <div id="dynamic-content" class="content-card">
+    </div>
 </main>
 
 <script>
-/* ===== Utilities ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
-function getDecimalPlaces(num) {
-    const s = num.toString();
-    const decimalIndex = s.indexOf('.');
-    return decimalIndex === -1 ? 0 : s.length - decimalIndex - 1;
-}
+  // ---------------------------------------------------------
+  // 1. DATA CONFIGURATION & LESSON GENERATORS
+  // ---------------------------------------------------------
+  function makeInfo(title, text, btnText = "Acknowledge Directive") {
+    return `<h1>${title}</h1><p style="font-size:18px; line-height:1.6;">${text}</p><br><div style="text-align:center;"><button class="btn" onclick="submitSimple()">${btnText}</button></div>`;
+  }
 
-/* ===== Score & CSV ===== */
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-function check(inputId,correct){const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val.toLowerCase()===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+  function makeInput(title, concept, q, ans) {
+    return `<h1>${title}</h1><p style="font-size:16px; color:#636e72;">${concept}</p>
+            <div class="math-box"><span>${q} = &nbsp;</span>
+            <input type="number" step="any" id="ans-input" class="math-input" placeholder="?">
+            <button class="btn" style="margin-left:20px;" onclick="submitInput(${ans})">Verify</button></div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-/* ===== Canvas Tutorial ===== */
-const canvas=document.getElementById('tutorialCanvas');
-const ctx=canvas.getContext('2d');
-ctx.font="30px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
-const speedInput=document.getElementById('videoSpeed');
+  function makeMCQ(title, concept, q, trueTxt, falseTxt, isTrueFirst) {
+    const correctMsg = "Correct! Vector array stabilized.";
+    const errorMsg = "Matrix failure. Reassess the structural grid.";
+    const btn1 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${trueTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${trueTxt}</button>`;
+    const btn2 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${falseTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${falseTxt}</button>`;
+    return `<h1>${title}</h1><p style="font-size:16px; color:#636e72;">${concept}</p>
+            <div class="math-box">${q}</div>
+            <div style="text-align:center;">${btn1}${btn2}</div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-function drawMultiplyDivideDecimals(num1, num2, operator, step) {
-    ctx.clearRect(0, 0, 800, 400);
-    ctx.font = "40px Arial";
-    const startX = 300, startY = 150;
-    
-    // Draw initial problem
-    ctx.fillStyle = "#000";
-    ctx.fillText(num1, startX, startY);
-    ctx.fillText(operator, startX + 100, startY);
-    ctx.fillText(num2, startX + 200, startY);
-
-    if (operator === '×') {
-        if (step === 1) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#16a34a";
-            ctx.fillText("Step 1: Ignore the decimal points.", 400, 350);
-            ctx.font = "40px Arial";
-            ctx.fillText(num1.toString().replace('.', ''), startX, startY + 50);
-            ctx.fillText('×', startX + 100, startY + 50);
-            ctx.fillText(num2.toString().replace('.', ''), startX + 200, startY + 50);
-        } else if (step === 2) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#1d4ed8";
-            ctx.fillText("Step 2: Multiply the whole numbers.", 400, 350);
-            ctx.font = "40px Arial";
-            const product = num1 * num2;
-            ctx.fillText('=', startX + 300, startY);
-            ctx.fillText(product.toString().replace('.', ''), startX + 400, startY + 50);
-            ctx.fillText(`(Product: ${num1.toString().replace('.', '')} × ${num2.toString().replace('.', '')})`, 400, 380);
-        } else if (step === 3) {
-            const decPlaces = getDecimalPlaces(num1) + getDecimalPlaces(num2);
-            const product = num1 * num2;
-            const finalAnswer = product.toFixed(decPlaces);
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#000";
-            ctx.fillText("Step 3: Count decimal places and place the decimal in the answer.", 400, 350);
-            ctx.fillText(`Total decimal places: ${getDecimalPlaces(num1)} + ${getDecimalPlaces(num2)} = ${decPlaces}`, 400, 380);
-            ctx.font = "40px Arial";
-            ctx.fillStyle = "#ef4444";
-            ctx.fillText('=', startX + 300, startY);
-            ctx.fillText(finalAnswer, startX + 400, startY);
-        }
-    } else if (operator === '÷') {
-        if (step === 1) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#16a34a";
-            ctx.fillText("Step 1: Make the divisor a whole number by moving its decimal.", 400, 350);
-            ctx.font = "40px Arial";
-            const decPlaces2 = getDecimalPlaces(num2);
-            ctx.fillText(num2.toString().replace('.', ''), startX + 200, startY);
-            ctx.fillText('→', startX + 200 - 40, startY + 20);
-        } else if (step === 2) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#1d4ed8";
-            ctx.fillText("Step 2: Move the dividend's decimal the same number of places.", 400, 350);
-            ctx.font = "40px Arial";
-            const decPlaces2 = getDecimalPlaces(num2);
-            const shiftedNum1 = num1 * Math.pow(10, decPlaces2);
-            const shiftedNum2 = num2 * Math.pow(10, decPlaces2);
-            ctx.fillText(shiftedNum1, startX, startY);
-            ctx.fillText('÷', startX + 100, startY);
-            ctx.fillText(shiftedNum2, startX + 200, startY);
-            ctx.fillText('→', startX - 40, startY + 20);
-        } else if (step === 3) {
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "#000";
-            ctx.fillText("Step 3: Divide the new whole numbers.", 400, 350);
-            ctx.font = "40px Arial";
-            const decPlaces2 = getDecimalPlaces(num2);
-            const shiftedNum1 = num1 * Math.pow(10, decPlaces2);
-            const shiftedNum2 = num2 * Math.pow(10, decPlaces2);
-            const result = shiftedNum1 / shiftedNum2;
-            ctx.fillText('=', startX + 300, startY);
-            ctx.fillText(result, startX + 400, startY);
-        }
+  const lessonData = [
+    // --- CORE PROTOCOLS (1) ---
+    {
+      title: "1. 🎬 Lab Briefing", section: "Core Protocols",
+      html: `<h1>Lab Briefing: Decimal Velocity</h1>
+             <p>Welcome back, Architect! Decimal vectors operate similarly to whole numbers, but require exact coordinate tracking for the decimal point. Scan this engineering transmission.</p>
+             <div class="video-container"><iframe src="https://www.youtube.com/embed/nO7mZpSg6os" frameborder="0" allowfullscreen></iframe></div>
+             <div style="text-align:center;"><button class="btn" onclick="submitSimple()">System Core Online!</button></div>`
+    },
+    // --- LEVEL 1: Multiply by Whole (6) ---
+    {
+      title: "2. 📜 L1-1: The Drop Protocol", section: "Level 1: Multiply by Whole",
+      html: makeInfo("The Drop Protocol", "When multiplying a decimal by a whole number, temporarily <strong>ignore the decimal</strong>. Multiply normally. Then, count the decimal places in your original factor and drop that exact number of places into your answer.")
+    },
+    {
+      title: "3. 🔍 L1-2: Vector Count", section: "Level 1: Multiply by Whole",
+      html: makeMCQ("Vector Count", "Analyze the target: <strong>1.2 &times; 3</strong>", "How many total decimal places are in the factors?", "1 Place", "2 Places", true)
+    },
+    {
+      title: "4. ⚡ L1-3: Simple Scaler", section: "Level 1: Multiply by Whole",
+      html: makeInput("Simple Scaler", "Multiply 25 by 4, then insert 1 decimal place.", "2.5 &times; 4", 10)
+    },
+    {
+      title: "5. ⚡ L1-4: Mid Scaler", section: "Level 1: Multiply by Whole",
+      html: makeInput("Mid Scaler", "Multiply 8 by 7, then shift the decimal 1 place.", "0.8 &times; 7", 5.6)
+    },
+    {
+      title: "6. ⚡ L1-5: Heavy Scaler", section: "Level 1: Multiply by Whole",
+      html: makeInput("Heavy Scaler", "Process multi-digit grids.", "12.1 &times; 5", 60.5)
+    },
+    {
+      title: "7. ⚡ L1-6: Padding Zeroes", section: "Level 1: Multiply by Whole",
+      html: makeInput("Padding Zeroes", "Count carefully! Two decimal places are required in the output.", "0.04 &times; 6", 0.24)
+    },
+    // --- LEVEL 2: Multiply by Decimals (6) ---
+    {
+      title: "8. 📜 L2-1: Dual Vector Protocol", section: "Level 2: Multiply by Decimals",
+      html: makeInfo("Dual Vector Protocol", "When both factors are decimals, you must count the decimal places in <strong>both</strong> numbers. Add them together. That total is how many decimal places your final product needs.")
+    },
+    {
+      title: "9. 🔍 L2-2: Matrix Sizing", section: "Level 2: Multiply by Decimals",
+      html: makeMCQ("Matrix Sizing", "Look closely: <strong>0.3 &times; 0.4</strong>", "What is the total number of decimal places needed?", "1 Place", "2 Places", false)
+    },
+    {
+      title: "10. ⚡ L2-3: Micro Impact", section: "Level 2: Multiply by Decimals",
+      html: makeInput("Micro Impact", "Multiply 3 by 4, then apply 2 decimal places.", "0.3 &times; 0.4", 0.12)
+    },
+    {
+      title: "11. ⚡ L2-4: Standard Array", section: "Level 2: Multiply by Decimals",
+      html: makeInput("Standard Array", "15 &times; 2 is 30. How many total decimal places?", "1.5 &times; 0.2", 0.3)
+    },
+    {
+      title: "12. ⚡ L2-5: Zero Shift", section: "Level 2: Multiply by Decimals",
+      html: makeInput("Zero Shift", "Track the three total decimal shifts required here.", "0.05 &times; 0.8", 0.04)
+    },
+    {
+      title: "13. ⚡ L2-6: Double Expansion", section: "Level 2: Multiply by Decimals",
+      html: makeInput("Double Expansion", "Run 21 &times; 13, then insert the decimal.", "2.1 &times; 1.3", 2.73)
+    },
+    // --- LEVEL 3: Divide by Whole Numbers (6) ---
+    {
+      title: "14. 📜 L3-1: Upward Alignment", section: "Level 3: Divide by Whole",
+      html: makeInfo("Upward Alignment", "When dividing a decimal by a whole number, the decimal point floats <strong>straight up</strong> into the quotient (answer). Once locked in place, divide normally as if the decimal isn't there.")
+    },
+    {
+      title: "15. 🔍 L3-2: Float Trajectory", section: "Level 3: Divide by Whole",
+      html: makeMCQ("Float Trajectory", "For the problem <strong>4.8 &divide; 2</strong>, where does the decimal go?", "Straight Up", "Shifted Right", true)
+    },
+    {
+      title: "16. ⚡ L3-3: Base Split", section: "Level 3: Divide by Whole",
+      html: makeInput("Base Split", "Divide 48 by 2, floating the decimal straight up.", "4.8 &divide; 2", 2.4)
+    },
+    {
+      title: "17. ⚡ L3-4: Offset Split", section: "Level 3: Divide by Whole",
+      html: makeInput("Offset Split", "Process the whole array.", "7.5 &divide; 5", 1.5)
+    },
+    {
+      title: "18. ⚡ L3-5: Micro Split", section: "Level 3: Divide by Whole",
+      html: makeInput("Micro Split", "Track small values. Ensure zeroes are placed properly.", "0.36 &divide; 3", 0.12)
+    },
+    {
+      title: "19. ⚡ L3-6: Phantom Extension", section: "Level 3: Divide by Whole",
+      html: makeInput("Phantom Extension", "If a remainder exists, add a 0 to the dividend and keep going!", "3.2 &divide; 5", 0.64)
+    },
+    // --- LEVEL 4: Divide by Decimals (6) ---
+    {
+      title: "20. 📜 L4-1: The Shift Override", section: "Level 4: Divide by Decimals",
+      html: makeInfo("The Shift Override", "Never divide by a decimal! <strong>Shift</strong> the decimal point in the divisor to the right until it is a whole number. You MUST shift the decimal in the dividend the exact same amount.")
+    },
+    {
+      title: "21. 🔍 L4-2: Divisor Conversion", section: "Level 4: Divide by Decimals",
+      html: makeMCQ("Divisor Conversion", "If we shift <strong>2.4 &divide; 0.6</strong> to make 0.6 a whole number...", "What does the new equation become?", "24 &divide; 6", "24 &divide; 60", true)
+    },
+    {
+      title: "22. ⚡ L4-3: Base Shift", section: "Level 4: Divide by Decimals",
+      html: makeInput("Base Shift", "Calculate the shifted equivalent.", "2.4 &divide; 0.6", 4)
+    },
+    {
+      title: "23. ⚡ L4-4: Equal Shift", section: "Level 4: Divide by Decimals",
+      html: makeInput("Equal Shift", "Shift both variables 1 space to the right.", "0.75 &divide; 0.5", 1.5)
+    },
+    {
+      title: "24. ⚡ L4-5: Multi-Shift", section: "Level 4: Divide by Decimals",
+      html: makeInput("Multi-Shift", "Shift both variables. This becomes 14.4 &divide; 12.", "1.44 &divide; 1.2", 1.2)
+    },
+    {
+      title: "25. ⚡ L4-6: Whole Target Shift", section: "Level 4: Divide by Decimals",
+      html: makeInput("Whole Target Shift", "If shifting a whole number (3), you must add a zero! (30 &divide; 6)", "3 &divide; 0.6", 5)
+    },
+    // --- LEVEL 5: Master Operations (6) ---
+    {
+      title: "26. 📜 L5-1: Terminal Calibration", section: "Level 5: Master Operations",
+      html: makeInfo("Terminal Calibration", "Warning: Mixed arrays detected. In this final sector, you must switch rapidly between multiplication and division protocols.")
+    },
+    {
+      title: "27. ⚡ L5-2: Mix Ops Alpha", section: "Level 5: Master Operations",
+      html: makeInput("Mix Ops Alpha", "Identify the protocol and execute.", "0.9 &times; 0.9", 0.81)
+    },
+    {
+      title: "28. ⚡ L5-3: Mix Ops Beta", section: "Level 5: Master Operations",
+      html: makeInput("Mix Ops Beta", "Identify the protocol and execute.", "5.6 &divide; 0.7", 8)
+    },
+    {
+      title: "29. ⚡ L5-4: Mix Ops Gamma", section: "Level 5: Master Operations",
+      html: makeInput("Mix Ops Gamma", "Identify the protocol and execute.", "1.25 &times; 4", 5)
+    },
+    {
+      title: "30. 📝 L5-5: Final Diagnostics", section: "Level 5: Master Operations",
+      html: `<h1>Final Diagnostics Output</h1>
+             <p>Verify both operational parameters to unlock the Mastery Badge.</p>
+             <div style="background:#f8f9fa; padding:20px; border-radius:10px; border:2px dashed #b2bec3; margin:20px 0;">
+               <p style="margin:0 0 10px 0; font-size:20px;"><strong>1. Multiply: 3.4 &times; 1.2</strong></p>
+               <input type="number" step="any" id="final-q1" class="math-input" placeholder="Result">
+               
+               <p style="margin:20px 0 10px 0; font-size:20px;"><strong>2. Divide: 8.4 &divide; 0.4</strong></p>
+               <input type="number" step="any" id="final-q2" class="math-input" placeholder="Result">
+             </div>
+             <div style="text-align:center;"><button class="btn" onclick="submitFinal(4.08, 21)">Submit Log</button></div>
+             <div id="fb-box" class="feedback-text"></div>`
+    },
+    {
+      title: "31. 🏆 Graduation", section: "Level 5: Master Operations",
+      html: `<div style="text-align: center; padding-top:40px;">
+               <h1 style="font-size: 80px; margin-bottom: 0;">🏆</h1>
+               <h1>Vector Architect Verified!</h1>
+               <p style="font-size:18px; max-width:500px; margin: 0 auto 30px auto;">Your decimal placement matrices are flawless. Both multiplication and division array engines are performing at peak calibration.</p>
+               <button id="mastery-btn" class="btn" onclick="markMastery()">Lock & Save Session Logs</button>
+             </div>`
     }
-}
+  ];
 
-const tutorialSteps = [
-    { audio: "Let's first multiply 2.5 by 1.4.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 0) },
-    { audio: "Step 1: Ignore the decimal points and multiply 25 by 14.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 1) },
-    { audio: "The product of 25 and 14 is 350.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 2) },
-    { audio: "Count the total decimal places: one in 2.5 and one in 1.4, for a total of two. Move the decimal in 350 two places to the left to get 3.50, or 3.5.", draw: () => drawMultiplyDivideDecimals(2.5, 1.4, '×', 3) },
-    { audio: "Now, let's divide 4.2 by 0.3.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 0) },
-    { audio: "Step 1: Make the divisor, 0.3, a whole number by moving its decimal one place to the right to get 3.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 1) },
-    { audio: "Step 2: Move the decimal in the dividend, 4.2, the same number of places to the right to get 42. Our new problem is 42 divided by 3.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 2) },
-    { audio: "Step 3: Solve the new problem. 42 divided by 3 is 14. Place the decimal point in the answer directly above its new position in the dividend.", draw: () => drawMultiplyDivideDecimals(4.2, 0.3, '÷', 3) }
-];
+  // ---------------------------------------------------------
+  // 2. FIREBASE & STATE MANAGEMENT
+  // ---------------------------------------------------------
+  const lessonID = "5th_grade_mult_div_decimals_v1";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
 
-let tutorialIndex = 0;
-function playTutorialVideo(callback) {
-  tutorialIndex = 0;
-  const speed = parseFloat(speedInput.value) || 1;
-  function nextStep() {
-    if (tutorialIndex >= tutorialSteps.length) {
-      if (callback) callback();
-      return;
-    }
-    const step = tutorialSteps[tutorialIndex];
-    step.draw();
-    const utter = new SpeechSynthesisUtterance(step.audio);
-    utter.rate = speed;
-    utter.onend = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    utter.onerror = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    speechSynthesis.speak(utter);
-  }
-  nextStep();
-}
-document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-/* ===== Video Download ===== */
-document.getElementById('downloadVideo').addEventListener('click', () => {
-  const stream = canvas.captureStream(30);
-  const recorder = new MediaRecorder(stream);
-  const chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = e => {
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'decimal_ops_tutorial.webm'; a.click();
-    URL.revokeObjectURL(url);
-  };
-  recorder.start();
-  playTutorialVideo(() => { setTimeout(() => recorder.stop(), 500); });
-});
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
 
-/* ===== Random Challenge ===== */
-function generateProblem() {
-    const isMultiplication = Math.random() < 0.5;
-    let num1, num2, question, answer;
+  auth.onAuthStateChanged(user => { 
+    if (user) { currentUser = user; syncProgress(); } 
+  });
 
-    if (isMultiplication) {
-        num1 = parseFloat((Math.random() * 9 + 0.1).toFixed(Math.floor(Math.random() * 2)));
-        num2 = parseFloat((Math.random() * 9 + 0.1).toFixed(Math.floor(Math.random() * 2)));
-        question = `${num1} × ${num2}`;
-        const result = num1 * num2;
-        const totalDecimals = getDecimalPlaces(num1) + getDecimalPlaces(num2);
-        answer = result.toFixed(totalDecimals);
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    if(!doc.exists) {
+      stepsCompleted = {};
+      for(let i=0; i<lessonData.length; i++) stepsCompleted[`step_${i}`] = false;
     } else {
-        const quotient = parseFloat((Math.random() * 10 + 1).toFixed(Math.floor(Math.random() * 1)));
-        const divisor = parseFloat((Math.random() * 9 + 0.1).toFixed(Math.floor(Math.random() * 2)));
-        num1 = quotient * divisor;
-        num2 = divisor;
-        question = `${num1.toFixed(getDecimalPlaces(num1))} ÷ ${num2}`;
-        answer = quotient.toString();
+      stepsCompleted = doc.data().steps;
     }
-    return { q: question, a: answer };
-}
+    initSidebar();
+    updateSidebar();
+    showPage(0, true);
+  }
 
-let currentCorrect = null;
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx && nextIdx < lessonData.length) showPage(nextIdx);
+  }
 
-function newChallenge() {
-  const problem = generateProblem();
-  currentCorrect = problem.a;
-  document.getElementById('challengeQ').textContent = problem.q + ' = ?';
-  document.getElementById('challengeInput').value = '';
-  document.getElementById('challengeResult').textContent = '';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-  const val = document.getElementById('challengeInput').value.trim();
-  const res = document.getElementById('challengeResult');
-  if (val === currentCorrect) {
-    res.textContent = '✅ Correct!';
-    res.className = 'answer ok';
-    tone(880, 0.06);
-    updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-  } else {
-    res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-    res.className = 'answer bad';
-    tone(220, 0.06);
-    updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
-  }
-});
-newChallenge();
+  // ---------------------------------------------------------
+  // 3. UI RENDERING & VALIDATION
+  // ---------------------------------------------------------
+  function initSidebar() {
+    const navList = document.getElementById('nav-list');
+    let currentSection = "";
+    let html = "";
+    lessonData.forEach((lesson, i) => {
+      if(lesson.section !== currentSection) {
+         currentSection = lesson.section;
+         html += `<div class="nav-section-title">${currentSection}</div>`;
+      }
+      html += `<div id="nav-item-${i}" class="nav-item" onclick="showPage(${i})">${lesson.title}</div>`;
+    });
+    navList.innerHTML = html;
+  }
 
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+  function updateSidebar() {
+    let completedCount = 0;
+    lessonData.forEach((lesson, i) => {
+      const el = document.getElementById(`nav-item-${i}`);
+      if(!el) return;
+      
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      
+      if(isDone) completedCount++;
+      
+      el.className = "nav-item";
+      if(i === currentStep) el.classList.add("active");
+      else if(isDone) el.classList.add("completed");
+      else if(!isPrevDone) el.classList.add("locked");
+    });
+    
+    const maxSteps = lessonData.length - 1; 
+    const pct = Math.round((completedCount / maxSteps) * 100);
+    document.getElementById('percent-display').textContent = `System Optimization: ${pct > 100 ? 100 : pct}%`;
+  }
 
-function newQuizQuestion() {
-  const problem = generateProblem();
-  currentQuiz = problem;
-  document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
-  document.getElementById('quizInput').value = '';
-  document.getElementById('quizFeedback').textContent = '';
-}
+  function showPage(index, force = false) {
+    if (!force && index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    currentStep = index;
+    const contentBox = document.getElementById('dynamic-content');
+    
+    // Reset animation
+    contentBox.classList.remove('active');
+    contentBox.innerHTML = lessonData[index].html;
+    void contentBox.offsetWidth; // trigger reflow
+    contentBox.classList.add('active');
+    
+    updateSidebar();
+  }
 
-document.getElementById('startQuiz').addEventListener('click', () => {
-  quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-  quizScore = 0;
-  document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-  newQuizQuestion();
-  clearInterval(quizTimerInt);
-  quizTimerInt = setInterval(() => {
-    quizTime--;
-    document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-    if (quizTime <= 0) {
-      clearInterval(quizTimerInt);
-      document.getElementById('quizQ').textContent = 'Time Up!';
-    }
-  }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-  clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-  const val = document.getElementById('quizInput').value.trim();
-  const f = document.getElementById('quizFeedback');
-  if (val === currentQuiz.a) {
-    f.textContent = '✅ Correct!';
-    f.className = 'answer ok';
-    quizScore++;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    tone(880, 0.06);
-    csvData.push([currentQuiz.q, currentQuiz.a]);
-  } else {
-    f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-    f.className = 'answer bad';
-    tone(220, 0.06);
-    csvData.push([currentQuiz.q, currentQuiz.a]);
-  }
-  newQuizQuestion();
-});
+  // Submission Handlers
+  function submitSimple() {
+    saveStepProgress(currentStep, currentStep + 1);
+  }
 
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-  const csvContent = csvData.map(e => e.join(',')).join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'decimal_ops.csv'; a.click();
-  URL.revokeObjectURL(url);
-});
+  function submitMCQ(isCorrect, msg) {
+    const fb = document.getElementById('fb-box');
+    if(isCorrect) {
+       fb.innerHTML = `<span style="color:var(--success);">${msg}</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">${msg}</span>`;
+    }
+  }
+
+  function submitInput(expectedValue) {
+    const val = document.getElementById('ans-input').value.trim();
+    const fb = document.getElementById('fb-box');
+    
+    if(val !== "" && Number(val) === expectedValue) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Verified! Vector locked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ System Alert: Check calculations.</span>`;
+    }
+  }
+
+  function submitFinal(exp1, exp2) {
+    const q1 = document.getElementById('final-q1').value.trim();
+    const q2 = document.getElementById('final-q2').value.trim();
+    const fb = document.getElementById('fb-box');
+    
+    if(q1 !== "" && q2 !== "" && Number(q1) === exp1 && Number(q2) === exp2) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Terminal checks passed! Matrix unlocked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1200);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ Diagnostics failed. Validate decimal coordinate placements.</span>`;
+    }
+  }
+
+  function markMastery() {
+    saveStepProgress(currentStep, currentStep);
+    const btn = document.getElementById('mastery-btn');
+    btn.disabled = true;
+    btn.innerText = "Logs Saved!";
+    btn.style.background = "var(--success)";
+    btn.style.boxShadow = "none";
+  }
 </script>
 </body>
 </html>
