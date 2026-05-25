@@ -1,333 +1,521 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — Volume (Cubic Units)</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Spatial Volume Lab</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <style>
+    :root { 
+      --lab-primary: #9b59b6; 
+      --lab-dark: #2c3e50; 
+      --bg: #ecf0f1; 
+      --success: #2ecc71; 
+      --error: #e74c3c;
+      --locked: #bdc3c7; 
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--lab-dark); }
+    
+    /* Navigation Sidebar */
+    nav { width: 340px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-primary); color: white; }
+    .nav-container { flex: 1; overflow-y: auto; }
+    .nav-section-title { padding: 12px 20px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #f1f2f6; color: #7f8c8d; }
+    .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #34495e; font-size: 13px; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+    .nav-item.active { background: #f4ebf8; color: var(--lab-primary); font-weight: bold; border-left: 5px solid var(--lab-primary); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; font-size: 12px; }
+    .nav-item.completed::after { content: '✅'; font-size: 12px; }
+    
+    /* Main Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; opacity: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Reusable UI Elements */
+    .btn { background: var(--lab-primary); color: white; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #8e44ad; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn.ans-btn { background: #ecf0f1; color: var(--lab-dark); margin: 0 10px; box-shadow: 0 4px 0 #bdc3c7; }
+    .btn.ans-btn:hover { background: #bdc3c7; }
+    
+    .math-box { font-size: 28px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px dashed #bdc3c7; margin: 25px 0; }
+    .math-input { width: 120px; padding: 10px; text-align: center; border: 2px solid var(--lab-primary); border-radius: 8px; font-size: 24px; font-weight: bold; color: var(--lab-dark); outline: none; }
+    .math-input:focus { border-color: var(--success); box-shadow: 0 0 8px rgba(46,204,113,0.3); }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    .feedback-text { font-size: 18px; font-weight: bold; text-align: center; margin-top: 15px; height: 30px; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — Volume (Cubic Units)</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • 3D viewer • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 18px;">📦 Spatial Volume Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Matrices...</div>
+  </div>
+  <div class="nav-container" id="nav-list"></div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p><strong>Volume</strong> is the amount of space an object takes up. We measure it in <strong>cubic units</strong>, like cubic centimeters ($cm^3$) or cubic inches ($in^3$). Imagine filling a box with tiny, one-inch cubes! To find the volume of a rectangular prism, you multiply its three dimensions: length, width, and height. 📦</p>
-<p>The formula is: <strong>Volume = Length × Width × Height</strong></p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
-
-<section aria-labelledby="threeDTitle">
-<h2 id="threeDTitle">Interactive 3D Viewer</h2>
-<p>Change the dimensions below to see how the volume of the box changes in 3D!</p>
-<div class="controls">
-  <label>Length: <input type="number" id="boxLength" value="3" min="1" max="10"></label>
-  <label>Width: <input type="number" id="boxWidth" value="2" min="1" max="10"></label>
-  <label>Height: <input type="number" id="boxHeight" value="4" min="1" max="10"></label>
-  <button id="updateBox" class="secondary">Update Box</button>
-</div>
-<div style="font-weight:bold;margin-top:8px" id="volumeText">Volume: 24 cubic units</div>
-<div class="canvas-wrapper">
-  <canvas id="threeDCanvas" width="800" height="400"></canvas>
-</div>
-</section>
-
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>Calculate the volume of these rectangular prisms. Don't forget the units! ✏️</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) 3cm × 4cm × 5cm</div>
-    <input id="q1" type="text" placeholder="e.g. 60 cm^3">
-    <div style="margin-top:6px"><button onclick="check('q1','60 cm^3')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) 2in × 2in × 6in</div>
-    <input id="q2" type="text" placeholder="e.g. 24 in^3">
-    <div style="margin-top:6px"><button onclick="check('q2','24 in^3')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) L=10m, W=5m, H=2m</div>
-    <input id="q3" type="text" placeholder="e.g. 100 m^3">
-    <div style="margin-top:6px"><button onclick="check('q3','100 m^3')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) Cube with side 4ft</div>
-    <input id="q4" type="text" placeholder="e.g. 64 ft^3">
-    <div style="margin-top:6px"><button onclick="check('q4','64 ft^3')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
-
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
-
-<footer>Tip: The volume of a cube is side × side × side, or side³.</footer>
+  <div id="dynamic-content" class="content-card"></div>
 </main>
 
-<script type="importmap">
-  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/" } }
-</script>
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+<script>
+  // ---------------------------------------------------------
+  // 1. DATA CONFIGURATION & LESSON GENERATORS
+  // ---------------------------------------------------------
+  function makeInfo(title, text, btnText = "Acknowledge Directive") {
+    return `<h1>${title}</h1><p style="font-size:18px; line-height:1.6;">${text}</p><br><div style="text-align:center;"><button class="btn" onclick="submitSimple()">${btnText}</button></div>`;
+  }
 
-/* ===== Score & CSV ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim().toLowerCase(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+  function makeInput(title, concept, q, ans) {
+    return `<h1>${title}</h1><p style="font-size:16px; color:#7f8c8d;">${concept}</p>
+            <div class="math-box"><span>${q}</span>
+            <input type="number" step="any" id="ans-input" class="math-input" placeholder="?">
+            <button class="btn" style="margin-left:20px;" onclick="submitInput(${ans})">Verify</button></div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-/* ===== 3D Viewer ===== */
-const canvas = document.getElementById('threeDCanvas');
-let renderer, scene, camera, controls, gridHelper, cubes = [];
-const cubeSize = 1;
+  function makeMCQ(title, concept, q, trueTxt, falseTxt, isTrueFirst) {
+    const correctMsg = "Correct! Spatial array stabilized.";
+    const errorMsg = "Matrix failure. Reassess dimensions.";
+    const btn1 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${trueTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${trueTxt}</button>`;
+    const btn2 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${falseTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${falseTxt}</button>`;
+    return `<h1>${title}</h1><p style="font-size:16px; color:#7f8c8d;">${concept}</p>
+            <div class="math-box">${q}</div>
+            <div style="text-align:center;">${btn1}${btn2}</div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-function initThree() {
-  renderer = new THREE.WebGLRenderer({ canvas, antialiasing: true });
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf7fbff);
-  camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-  camera.position.set(10, 10, 10);
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enablePan = false;
-  controls.minDistance = 5;
-  controls.maxDistance = 50;
+  const lessonData = [
+    // --- CORE PROTOCOLS (1) ---
+    {
+      title: "1. 🎬 Lab Briefing", section: "Core Protocols",
+      html: `<h1>Lab Briefing: The Third Dimension</h1>
+             <p>Welcome, Architect! Today we transcend flat 2D shapes and enter the 3D space. <strong>Volume</strong> measures how much space a solid object takes up, measured in cubic units. Scan this briefing.</p>
+             <div class="video-container"><iframe src="https://www.youtube.com/embed/RxLSJoFI5K4" frameborder="0" allowfullscreen></iframe></div>
+             <div style="text-align:center;"><button class="btn" onclick="submitSimple()">Initialize Spatial Engine</button></div>`
+    },
+    
+    // --- LEVEL 1: The Unit Cube (6) ---
+    {
+      title: "2. 📜 L1-1: Dimensions Defined", section: "Level 1: The Unit Cube",
+      html: makeInfo("Dimensions Defined", "Objects in 3D have three dimensions: <strong>Length</strong> (how long), <strong>Width</strong> (how wide/deep), and <strong>Height</strong> (how tall). Area is 2D (squares), but Volume is 3D (cubes).")
+    },
+    {
+      title: "3. 🔍 L1-2: 2D vs 3D", section: "Level 1: The Unit Cube",
+      html: makeMCQ("2D vs 3D", "Which measurement requires Cubic Units?", "Measuring the carpet for a floor.", "Measuring the water in a swimming pool.", false)
+    },
+    {
+      title: "4. 🧊 L1-3: What is a Cubic Unit?", section: "Level 1: The Unit Cube",
+      html: makeInfo("The Cubic Unit", "A single <strong>unit cube</strong> has a length of 1, width of 1, and height of 1. To find the volume of a shape, we figure out exactly how many of these unit cubes fit inside it without gaps or overlaps.")
+    },
+    {
+      title: "5. ⚡ L1-4: Counting Cubes 1", section: "Level 1: The Unit Cube",
+      html: makeInput("Counting Cubes 1", "If you have a solid straight line made of exactly 4 blocks connected end-to-end...", "Total Volume = ", 4)
+    },
+    {
+      title: "6. ⚡ L1-5: Counting Cubes 2", section: "Level 1: The Unit Cube",
+      html: makeInput("Counting Cubes 2", "Imagine a square made of blocks flat on a table. It is 3 blocks long and 3 blocks wide.", "Total Volume = ", 9)
+    },
+    {
+      title: "7. ⚡ L1-6: Hidden Cubes", section: "Level 1: The Unit Cube",
+      html: makeMCQ("Hidden Cubes", "When looking at a picture of a 3D block tower...", "Do you have to count the blocks supporting the top layer, even if you can't see them?", "Yes, gravity requires them.", "No, only count visible ones.", true)
+    },
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  directionalLight.position.set(5, 5, 5);
-  scene.add(directionalLight);
+    // --- LEVEL 2: Layers & Prisms (6) ---
+    {
+      title: "8. 📜 L2-1: The Layering Protocol", section: "Level 2: Layers & Prisms",
+      html: makeInfo("The Layering Protocol", "A <strong>Rectangular Prism</strong> is like a standard cardboard box. You can find its volume by counting the cubes in the very bottom <strong>layer</strong>, and then multiplying that by the total number of layers (the height).")
+    },
+    {
+      title: "9. 🔍 L2-2: Bottom Layer Count", section: "Level 2: Layers & Prisms",
+      html: makeInput("Bottom Layer Count", "A rectangular prism has a bottom layer that is 4 cubes long and 2 cubes wide.", "Cubes in ONE layer = ", 8)
+    },
+    {
+      title: "10. ⚡ L2-3: Stacking Layers", section: "Level 2: Layers & Prisms",
+      html: makeInput("Stacking Layers", "Using the 8-cube layer from the last module, you stack it exactly 3 layers high.", "Total Volume = ", 24)
+    },
+    {
+      title: "11. ⚡ L2-4: Multi-Layer Matrix", section: "Level 2: Layers & Prisms",
+      html: makeInput("Multi-Layer Matrix", "A box has 10 cubes in its bottom layer. The box is 5 layers tall.", "Total Volume = ", 50)
+    },
+    {
+      title: "12. ⚡ L2-5: Base Area Concept", section: "Level 2: Layers & Prisms",
+      html: makeMCQ("Base Area Concept", "The 'Bottom Layer' is mathematically referred to as the...", "Base Area", "Lateral Perimeter", true)
+    },
+    {
+      title: "13. ⚡ L2-6: Layering Challenge", section: "Level 2: Layers & Prisms",
+      html: makeInput("Layering Challenge", "A massive cargo unit has a base layer containing 100 unit cubes. It is 8 layers tall.", "Total Volume = ", 800)
+    },
 
-  gridHelper = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
-  gridHelper.material.opacity = 0.2;
-  gridHelper.material.transparent = true;
-  gridHelper.position.y = -0.01;
-  scene.add(gridHelper);
+    // --- LEVEL 3: V = L × W × H (6) ---
+    {
+      title: "14. 📜 L3-1: The Master Formula", section: "Level 3: V = L × W × H",
+      html: makeInfo("The Master Formula", "Instead of counting cubes or layers manually, use the master equation: <strong>Volume = Length &times; Width &times; Height</strong> (V = l &times; w &times; h).")
+    },
+    {
+      title: "15. 🔍 L3-2: Identifying L, W, H", section: "Level 3: V = L × W × H",
+      html: makeInput("Identifying L, W, H", "A shipping crate has a Length of 5, Width of 2, and Height of 3. What is 5 &times; 2 &times; 3?", "Volume = ", 30)
+    },
+    {
+      title: "16. ⚙️ L3-3: 3D MATRIX SIMULATOR", section: "Level 3: V = L × W × H",
+      html: `<h1>3D Matrix Simulator</h1>
+             <p style="color:#7f8c8d;">Adjust the spatial inputs to spawn cubic units in the Three.js Engine. Calculate the total volume based on your L, W, H inputs.</p>
+             <div style="display:flex; gap: 15px; justify-content:center; margin-bottom:15px; background:#f4ebf8; padding:15px; border-radius:8px;">
+                <label><b>Length:</b> <input type="number" id="sim-l" value="3" min="1" max="6" style="width:50px; text-align:center;"></label>
+                <label><b>Width:</b> <input type="number" id="sim-w" value="2" min="1" max="6" style="width:50px; text-align:center;"></label>
+                <label><b>Height:</b> <input type="number" id="sim-h" value="4" min="1" max="6" style="width:50px; text-align:center;"></label>
+                <button class="btn" style="padding:5px 20px; font-size:14px;" onclick="update3D()">Generate Matrix</button>
+             </div>
+             <div id="three-container" style="width:100%; height:300px; background:#2c3e50; border-radius:10px; margin-bottom:15px; overflow:hidden;"></div>
+             <div class="math-box" style="margin-top:0; padding:15px;">
+                <span style="font-size:20px;">Total Volume (Cubic Units): &nbsp;</span>
+                <input type="number" id="ans-sim" class="math-input" placeholder="?">
+                <button class="btn" style="margin-left:20px;" onclick="submitSim()">Verify Data</button>
+             </div>
+             <div id="fb-box" class="feedback-text"></div>`
+    },
+    {
+      title: "17. ⚡ L3-4: The Long Box", section: "Level 3: V = L × W × H",
+      html: makeInput("The Long Box", "L = 10, W = 2, H = 2", "Volume = ", 40)
+    },
+    {
+      title: "18. ⚡ L3-5: The Tall Tower", section: "Level 3: V = L × W × H",
+      html: makeInput("The Tall Tower", "L = 2, W = 2, H = 10", "Volume = ", 40)
+    },
+    {
+      title: "19. ⚡ L3-6: The Perfect Cube", section: "Level 3: V = L × W × H",
+      html: makeInput("The Perfect Cube", "A cube has all sides equal. If one side is 4, what is the volume? (4 &times; 4 &times; 4)", "Volume = ", 64)
+    },
 
-  animate();
-}
+    // --- LEVEL 4: V = B × H (6) ---
+    {
+      title: "20. 📜 L4-1: The Base Area Shortcut", section: "Level 4: V = B × H",
+      html: makeInfo("The Base Area Shortcut", "Sometimes problems give you the area of the base (B) already! Since Base Area = Length &times; Width, the shortcut formula is just <strong>Volume = Base Area &times; Height</strong> (V = B &times; h).")
+    },
+    {
+      title: "21. 🔍 L4-2: Finding 'B'", section: "Level 4: V = B × H",
+      html: makeMCQ("Finding 'B'", "If the bottom face of a box has an area of 20 square units, what is 'B'?", "20", "Unknown without L and W", true)
+    },
+    {
+      title: "22. ⚡ L4-3: Base = 12, Height = 4", section: "Level 4: V = B × H",
+      html: makeInput("Shortcut Application", "Base Area (B) = 12. Height (h) = 4.", "Volume = ", 48)
+    },
+    {
+      title: "23. ⚡ L4-4: Base = 20, Height = 5", section: "Level 4: V = B × H",
+      html: makeInput("Large Cargo", "Base Area (B) = 20. Height (h) = 5.", "Volume = ", 100)
+    },
+    {
+      title: "24. ⚡ L4-5: Base = 15, Height = 10", section: "Level 4: V = B × H",
+      html: makeInput("Tall Tower Shortcut", "Base Area (B) = 15. Height (h) = 10.", "Volume = ", 150)
+    },
+    {
+      title: "25. ⚡ L4-6: Reverse Engineering", section: "Level 4: V = B × H",
+      html: makeInput("Reverse Engineering", "The total Volume is 60. The Base Area is 10. What MUST the Height be? (10 &times; ? = 60)", "Height = ", 6)
+    },
 
-function createBox(length, width, height) {
-  cubes.forEach(cube => scene.remove(cube));
-  cubes = [];
-  const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-  const material = new THREE.MeshStandardMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.8 });
-  const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x1d4ed8, wireframe: true });
+    // --- LEVEL 5: Additive Volume (6) ---
+    {
+      title: "26. 📜 L5-1: Composite Prisms", section: "Level 5: Additive Volume",
+      html: makeInfo("Composite Prisms", "Irregular 3D shapes can often be broken down into two or more standard rectangular prisms. Just find the volume of each individual block, and <strong>add them together</strong>.")
+    },
+    {
+      title: "27. 🔍 L5-2: Deconstruct the Matrix", section: "Level 5: Additive Volume",
+      html: makeMCQ("Deconstruct the Matrix", "If a complex building is made of a bottom warehouse block and a top office block...", "Multiply their volumes.", "Add their volumes.", false)
+    },
+    {
+      title: "28. ⚡ L5-3: L-Shape Addition", section: "Level 5: Additive Volume",
+      html: makeInput("L-Shape Addition", "Block A has a volume of 20. Block B attached to it has a volume of 15.", "Total Volume = ", 35)
+    },
+    {
+      title: "29. ⚡ L5-4: T-Shape Addition", section: "Level 5: Additive Volume",
+      html: makeInput("T-Shape Addition", "Top bar volume = 40. Vertical pillar volume = 30.", "Total Volume = ", 70)
+    },
+    {
+      title: "30. 📝 L5-5: Terminal Diagnostics", section: "Level 5: Additive Volume",
+      html: `<h1>Final Diagnostics Output</h1>
+             <p>Verify all spatial matrix protocols to unlock the Mastery Badge.</p>
+             <div style="background:#f8f9fa; padding:20px; border-radius:10px; border:2px dashed #bdc3c7; margin:20px 0;">
+               <p style="margin:0 0 10px 0; font-size:20px;"><strong>1. Standard (L=6, W=2, H=3):</strong></p>
+               <input type="number" id="final-q1" class="math-input" placeholder="V = ?">
+               
+               <p style="margin:20px 0 10px 0; font-size:20px;"><strong>2. Base Shortcut (B=25, H=4):</strong></p>
+               <input type="number" id="final-q2" class="math-input" placeholder="V = ?">
+             </div>
+             <div style="text-align:center;"><button class="btn" onclick="submitFinal(36, 100)">Submit Log</button></div>
+             <div id="fb-box" class="feedback-text"></div>`
+    },
+    {
+      title: "31. 🏆 Graduation", section: "Level 5: Additive Volume",
+      html: `<div style="text-align: center; padding-top:40px;">
+               <h1 style="font-size: 80px; margin-bottom: 0;">🏆</h1>
+               <h1>Spatial Architect Verified!</h1>
+               <p style="font-size:18px; max-width:500px; margin: 0 auto 30px auto;">You have successfully mastered 3D dimensions, cubic unit packing, layer logic, and the master volume equations.</p>
+               <button id="mastery-btn" class="btn" onclick="markMastery()">Lock & Save Session Logs</button>
+             </div>`
+    }
+  ];
 
-  const totalVolume = length * width * height;
-  document.getElementById('volumeText').textContent = `Volume: ${totalVolume} cubic units`;
+  // ---------------------------------------------------------
+  // 2. FIREBASE & STATE MANAGEMENT
+  // ---------------------------------------------------------
+  const lessonID = "5th_grade_volume_v1";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
 
-  for (let l = 0; l < length; l++) {
-    for (let w = 0; w < width; w++) {
-      for (let h = 0; h < height; h++) {
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(l * cubeSize - (length - 1) / 2, h * cubeSize + cubeSize / 2, w * cubeSize - (width - 1) / 2);
-        scene.add(cube);
-        cubes.push(cube);
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
+
+  auth.onAuthStateChanged(user => { 
+    if (user) { currentUser = user; syncProgress(); } 
+  });
+
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    if(!doc.exists) {
+      stepsCompleted = {};
+      for(let i=0; i<lessonData.length; i++) stepsCompleted[`step_${i}`] = false;
+    } else {
+      stepsCompleted = doc.data().steps;
+    }
+    initSidebar();
+    updateSidebar();
+    showPage(0, true);
+  }
+
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx && nextIdx < lessonData.length) showPage(nextIdx);
+  }
+
+  // ---------------------------------------------------------
+  // 3. UI RENDERING & VALIDATION
+  // ---------------------------------------------------------
+  function initSidebar() {
+    const navList = document.getElementById('nav-list');
+    let currentSection = "";
+    let html = "";
+    lessonData.forEach((lesson, i) => {
+      if(lesson.section !== currentSection) {
+         currentSection = lesson.section;
+         html += `<div class="nav-section-title">${currentSection}</div>`;
+      }
+      html += `<div id="nav-item-${i}" class="nav-item" onclick="showPage(${i})">${lesson.title}</div>`;
+    });
+    navList.innerHTML = html;
+  }
+
+  function updateSidebar() {
+    let completedCount = 0;
+    lessonData.forEach((lesson, i) => {
+      const el = document.getElementById(`nav-item-${i}`);
+      if(!el) return;
+      
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      
+      if(isDone) completedCount++;
+      
+      el.className = "nav-item";
+      if(i === currentStep) el.classList.add("active");
+      else if(isDone) el.classList.add("completed");
+      else if(!isPrevDone) el.classList.add("locked");
+    });
+    
+    const maxSteps = lessonData.length - 1; 
+    const pct = Math.round((completedCount / maxSteps) * 100);
+    document.getElementById('percent-display').textContent = `System Optimization: ${pct > 100 ? 100 : pct}%`;
+  }
+
+  function showPage(index, force = false) {
+    if (!force && index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    
+    // Stop ThreeJS if leaving the page
+    if(animationId) cancelAnimationFrame(animationId);
+    
+    currentStep = index;
+    const contentBox = document.getElementById('dynamic-content');
+    
+    // Reset animation
+    contentBox.classList.remove('active');
+    contentBox.innerHTML = lessonData[index].html;
+    void contentBox.offsetWidth; // trigger reflow
+    contentBox.classList.add('active');
+    
+    // Initialize ThreeJS if on Simulator page
+    if (lessonData[index].title.includes("SIMULATOR")) {
+       setTimeout(initThreeJS, 100);
+    }
+    
+    updateSidebar();
+  }
+
+  // Submission Handlers
+  function submitSimple() { saveStepProgress(currentStep, currentStep + 1); }
+
+  function submitMCQ(isCorrect, msg) {
+    const fb = document.getElementById('fb-box');
+    if(isCorrect) {
+       fb.innerHTML = `<span style="color:var(--success);">${msg}</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">${msg}</span>`;
+    }
+  }
+
+  function submitInput(expectedValue) {
+    const val = document.getElementById('ans-input').value.trim();
+    const fb = document.getElementById('fb-box');
+    if(val !== "" && Number(val) === expectedValue) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Verified! Matrix locked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ System Alert: Check calculations.</span>`;
+    }
+  }
+
+  function submitFinal(exp1, exp2) {
+    const q1 = document.getElementById('final-q1').value.trim();
+    const q2 = document.getElementById('final-q2').value.trim();
+    const fb = document.getElementById('fb-box');
+    if(q1 !== "" && q2 !== "" && Number(q1) === exp1 && Number(q2) === exp2) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Terminal checks passed! Core unlocked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1200);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ Diagnostics failed. Re-calculate volume matrices.</span>`;
+    }
+  }
+
+  function markMastery() {
+    saveStepProgress(currentStep, currentStep);
+    const btn = document.getElementById('mastery-btn');
+    btn.disabled = true;
+    btn.innerText = "Logs Saved!";
+    btn.style.background = "var(--success)";
+    btn.style.boxShadow = "none";
+  }
+
+  // ---------------------------------------------------------
+  // 4. THREE.JS IMPLEMENTATION FOR L3-3 SIMULATOR
+  // ---------------------------------------------------------
+  let scene, camera, renderer, cubeGroup, animationId;
+
+  function initThreeJS() {
+    const container = document.getElementById('three-container');
+    if(!container) return;
+    
+    container.innerHTML = "";
+    scene = new THREE.Scene();
+    
+    // Setup Camera
+    camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(8, 8, 12);
+    camera.lookAt(0,0,0);
+    
+    // Setup Renderer
+    renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+    
+    // Setup Lights
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 7);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x606060));
+    
+    cubeGroup = new THREE.Group();
+    scene.add(cubeGroup);
+    
+    update3D();
+    animateThreeJS();
+  }
+
+  function update3D() {
+    if(!cubeGroup) return;
+    const l = parseInt(document.getElementById('sim-l').value) || 1;
+    const w = parseInt(document.getElementById('sim-w').value) || 1;
+    const h = parseInt(document.getElementById('sim-h').value) || 1;
+    
+    // Clear old cubes
+    while(cubeGroup.children.length > 0){ 
+        cubeGroup.remove(cubeGroup.children[0]); 
+    }
+    
+    // Box Geometry slightly smaller to show distinct cubes
+    const geo = new THREE.BoxGeometry(0.95, 0.95, 0.95);
+    const mat = new THREE.MeshLambertMaterial({color: 0x9b59b6});
+    
+    // Center the group
+    const offsetX = (l-1) / 2;
+    const offsetY = (h-1) / 2;
+    const offsetZ = (w-1) / 2;
+    
+    for(let x = 0; x < l; x++){
+      for(let y = 0; y < h; y++){
+        for(let z = 0; z < w; z++){
+          const mesh = new THREE.Mesh(geo, mat);
+          // Outline effect
+          const edges = new THREE.EdgesGeometry(geo);
+          const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 2}));
+          mesh.add(line);
+          
+          mesh.position.set(x - offsetX, y - offsetY, z - offsetZ);
+          cubeGroup.add(mesh);
+        }
       }
     }
   }
-}
 
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
+  function animateThreeJS() {
+    animationId = requestAnimationFrame(animateThreeJS);
+    if(cubeGroup) cubeGroup.rotation.y += 0.005;
+    renderer.render(scene, camera);
+  }
 
-document.getElementById('updateBox').addEventListener('click', () => {
-  const l = parseInt(document.getElementById('boxLength').value);
-  const w = parseInt(document.getElementById('boxWidth').value);
-  const h = parseInt(document.getElementById('boxHeight').value);
-  createBox(l, w, h);
-});
-
-initThree();
-createBox(3, 2, 4);
-
-/* ===== Random Challenge ===== */
-function generateProblem() {
-    const l = Math.floor(Math.random() * 8) + 2;
-    const w = Math.floor(Math.random() * 8) + 2;
-    const h = Math.floor(Math.random() * 8) + 2;
-    const units = ['cm', 'in', 'm', 'ft'][Math.floor(Math.random() * 4)];
-    const isCube = Math.random() < 0.3;
-    let question, answer;
-
-    if (isCube) {
-        question = `Cube with side ${l}${units}`;
-        answer = `${l * l * l} ${units}^3`;
+  function submitSim() {
+    const l = parseInt(document.getElementById('sim-l').value) || 1;
+    const w = parseInt(document.getElementById('sim-w').value) || 1;
+    const h = parseInt(document.getElementById('sim-h').value) || 1;
+    const expected = l * w * h;
+    
+    const ans = document.getElementById('ans-sim').value.trim();
+    const fb = document.getElementById('fb-box');
+    
+    if(ans !== "" && Number(ans) === expected) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Simulated Matrix Verified! Volume is ${expected}.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1200);
     } else {
-        question = `L=${l}${units}, W=${w}${units}, H=${h}${units}`;
-        answer = `${l * w * h} ${units}^3`;
+       fb.innerHTML = `<span style="color:var(--error);">❌ Incorrect Volume. Multiply L &times; W &times; H.</span>`;
     }
-    return { q: question, a: answer };
-}
-
-let currentCorrect = null;
-
-function newChallenge() {
-    const problem = generateProblem();
-    currentCorrect = problem.a;
-    document.getElementById('challengeQ').textContent = problem.q + ' = ?';
-    document.getElementById('challengeInput').value = '';
-    document.getElementById('challengeResult').textContent = '';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-    const val = document.getElementById('challengeInput').value.trim().toLowerCase();
-    const res = document.getElementById('challengeResult');
-    if (val === currentCorrect.toLowerCase()) {
-        res.textContent = '✅ Correct!';
-        res.className = 'answer ok';
-        tone(880, 0.06);
-        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-    } else {
-        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-        res.className = 'answer bad';
-        tone(220, 0.06);
-        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
-    }
-});
-newChallenge();
-
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
-
-function newQuizQuestion() {
-    const problem = generateProblem();
-    currentQuiz = problem;
-    document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
-    document.getElementById('quizInput').value = '';
-    document.getElementById('quizFeedback').textContent = '';
-}
-
-document.getElementById('startQuiz').addEventListener('click', () => {
-    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-    quizScore = 0;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    newQuizQuestion();
-    clearInterval(quizTimerInt);
-    quizTimerInt = setInterval(() => {
-        quizTime--;
-        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-        if (quizTime <= 0) {
-            clearInterval(quizTimerInt);
-            document.getElementById('quizQ').textContent = 'Time Up!';
-        }
-    }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-    clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-    const val = document.getElementById('quizInput').value.trim().toLowerCase();
-    const f = document.getElementById('quizFeedback');
-    if (val === currentQuiz.a.toLowerCase()) {
-        f.textContent = '✅ Correct!';
-        f.className = 'answer ok';
-        quizScore++;
-        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-        tone(880, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
-    } else {
-        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-        f.className = 'answer bad';
-        tone(220, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
-    }
-    if (quizTime > 0) newQuizQuestion();
-});
-
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-    const csvContent = csvData.map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'volume_practice_log.csv'; a.click();
-    URL.revokeObjectURL(url);
-});
+  }
 </script>
 </body>
 </html>
