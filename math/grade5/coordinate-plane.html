@@ -1,367 +1,417 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — The Coordinate Plane</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Coordinate Plane (Q1)</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    :root { 
+      /* Navigational/Radar Purple theme */
+      --lab-primary: #9b59b6; 
+      --lab-dark: #2c3e50; 
+      --bg: #f4f6f7; 
+      --success: #27ae60; 
+      --error: #e74c3c;
+      --locked: #bdc3c7; 
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--lab-dark); }
+    
+    /* Navigation Sidebar */
+    nav { width: 340px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-primary); color: white; }
+    .nav-container { flex: 1; overflow-y: auto; }
+    .nav-section-title { padding: 12px 20px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #f1f2f6; color: #7f8c8d; }
+    .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #34495e; font-size: 13px; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+    .nav-item.active { background: #f5eef8; color: var(--lab-primary); font-weight: bold; border-left: 5px solid var(--lab-primary); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; font-size: 12px; }
+    .nav-item.completed::after { content: '✅'; font-size: 12px; }
+    
+    /* Main Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; opacity: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Reusable UI Elements */
+    .btn { background: var(--lab-primary); color: white; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #8e44ad; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn.ans-btn { background: #ecf0f1; color: var(--lab-dark); margin: 0 10px; box-shadow: 0 4px 0 #bdc3c7; }
+    .btn.ans-btn:hover { background: #bdc3c7; }
+    
+    .math-box { font-size: 28px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px dashed #bdc3c7; margin: 25px 0; }
+    .math-input { width: 120px; padding: 10px; text-align: center; border: 2px solid var(--lab-primary); border-radius: 8px; font-size: 24px; font-weight: bold; color: var(--lab-dark); outline: none; }
+    .math-input:focus { border-color: var(--success); box-shadow: 0 0 8px rgba(39,174,96,0.3); }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    .feedback-text { font-size: 18px; font-weight: bold; text-align: center; margin-top: 15px; height: 30px; }
+
+    /* Custom Grid UI */
+    #grid-container { display: grid; grid-template-columns: repeat(11, 40px); grid-template-rows: repeat(11, 40px); margin: 0 auto; border-left: 3px solid var(--lab-dark); border-bottom: 3px solid var(--lab-dark); background-image: linear-gradient(#ecf0f1 1px, transparent 1px), linear-gradient(90deg, #ecf0f1 1px, transparent 1px); background-size: 40px 40px; position: relative; }
+    .grid-cell { width: 40px; height: 40px; position: relative; cursor: crosshair; }
+    .grid-cell:hover::after { content: ''; position: absolute; top: -5px; left: -5px; width: 10px; height: 10px; background: rgba(155, 89, 182, 0.5); border-radius: 50%; }
+    .grid-dot { position: absolute; top: -8px; left: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--lab-primary); z-index: 10; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .axis-label-x { position: absolute; bottom: -25px; left: -5px; font-size: 12px; font-weight: bold; }
+    .axis-label-y { position: absolute; left: -25px; top: -8px; font-size: 12px; font-weight: bold; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — The Coordinate Plane</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 18px;">📍 Cartesian Mapping Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Satellites...</div>
+  </div>
+  <div class="nav-container" id="nav-list"></div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p>A **coordinate plane** is a special grid used to locate points. It's like a map! It has two main lines: the horizontal **x-axis** and the vertical **y-axis**. They meet at the **origin**, which is the point (0, 0). 🗺️</p>
-<p>To find a point, you use an **ordered pair** of numbers, written as **(x, y)**. The first number tells you how far to move along the x-axis, and the second number tells you how far to move along the y-axis.</p>
-<ol>
-  <li>Start at the origin (0, 0).</li>
-  <li>Move right along the x-axis for the first number.</li>
-  <li>Then, move up along the y-axis for the second number.</li>
-</ol>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
-
-<section aria-labelledby="threeDTitle">
-<h2 id="threeDTitle">Interactive Coordinate Plane</h2>
-<p>Click on the grid to see the coordinates of the point you selected. Can you find the point (3, 5)? 🎯</p>
-<div class="controls">
-    <div style="font-weight:bold" id="coordsDisplay">Coordinates: (0, 0)</div>
-</div>
-<canvas id="gridCanvas" width="400" height="400"></canvas>
-</section>
-
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>What are the coordinates for each point shown on the grid?</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) Point A at (4, 1)</div>
-    <input id="q1" type="text" placeholder="e.g. 4,1">
-    <div style="margin-top:6px"><button onclick="check('q1','4,1')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) Point B at (2, 5)</div>
-    <input id="q2" type="text" placeholder="e.g. 2,5">
-    <div style="margin-top:6px"><button onclick="check('q2','2,5')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) Point C at (1, 3)</div>
-    <input id="q3" type="text" placeholder="e.g. 1,3">
-    <div style="margin-top:6px"><button onclick="check('q3','1,3')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) Point D at (5, 2)</div>
-    <input id="q4" type="text" placeholder="e.g. 5,2">
-    <div style="margin-top:6px"><button onclick="check('q4','5,2')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="e.g. 3,4">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
-
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="e.g. 3,4">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
-
-<footer>Tip: The x-axis goes across (like a horizon) and the y-axis goes up and down (like a sky).</footer>
+  <div id="dynamic-content" class="content-card"></div>
 </main>
 
 <script>
-/* ===== Utilities ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
-function getAnswer(problem) {
-    try {
-        const expression = problem.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**');
-        return eval(expression).toString();
-    } catch (e) {
-        return null;
-    }
-}
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+  // ---------------------------------------------------------
+  // 1. DATA CONFIGURATION & LESSON GENERATORS
+  // ---------------------------------------------------------
+  function makeInfo(title, text, btnText = "Acknowledge Directive") {
+    return `<h1>${title}</h1><p style="font-size:18px; line-height:1.6;">${text}</p><br><div style="text-align:center;"><button class="btn" onclick="submitSimple()">${btnText}</button></div>`;
+  }
 
-/* ===== Score & CSV ===== */
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+  function makeInput(title, concept, q, ans) {
+    return `<h1>${title}</h1><p style="font-size:16px; color:#7f8c8d;">${concept}</p>
+            <div class="math-box"><span>${q}</span>
+            <input type="number" step="any" id="ans-input" class="math-input" placeholder="?">
+            <button class="btn" style="margin-left:20px;" onclick="submitInput(${ans})">Verify</button></div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-/* ===== Interactive Coordinate Plane ===== */
-const canvas = document.getElementById('gridCanvas');
-const ctx = canvas.getContext('2d');
-const gridSize = 35;
-const padding = 20;
+  function makeMCQ(title, concept, q, trueTxt, falseTxt, isTrueFirst) {
+    const correctMsg = "Correct! Trajectory aligned.";
+    const errorMsg = "Incorrect. Recalculate your axis logic.";
+    const btn1 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${trueTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${trueTxt}</button>`;
+    const btn2 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${falseTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${falseTxt}</button>`;
+    return `<h1>${title}</h1><p style="font-size:16px; color:#7f8c8d;">${concept}</p>
+            <div class="math-box" style="font-size:22px; text-align:center;">${q}</div>
+            <div style="text-align:center; margin-top:20px;">${btn1}${btn2}</div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-function drawGrid(highlightX = null, highlightY = null) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+  const lessonData = [
+    // --- CORE PROTOCOLS ---
+    {
+      title: "1. 🎬 Briefing: The Grid System", section: "Core Protocols",
+      html: `<h1>Briefing: The Coordinate Plane</h1>
+             <p>Welcome, Navigator. A coordinate plane is a 2D grid used to pinpoint exact locations. It is formed by two intersecting number lines: a horizontal line and a vertical line. In this lab, we will focus on <strong>Quadrant 1</strong>, where all numbers are positive.</p>
+             <div class="video-container"><iframe src="https://www.youtube.com/embed/1O12A9cgIjY" frameborder="0" allowfullscreen></iframe></div>
+             <div style="text-align:center;"><button class="btn" onclick="submitSimple()">Initialize Radar Array</button></div>`
+    },
     
-    // Draw grid lines
-    ctx.strokeStyle = '#ccc';
-    for (let i = padding; i < canvas.width - padding; i += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(i, padding);
-        ctx.lineTo(i, canvas.height - padding);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(padding, i);
-        ctx.lineTo(canvas.width - padding, i);
-        ctx.stroke();
+    // --- LEVEL 1: Anatomy of the Grid ---
+    {
+      title: "2. 📜 The X and Y Axes", section: "Level 1: The Axes",
+      html: makeInfo("The X and Y Axes", "The grid is built on two main roads.<br><br>• The <strong>X-axis</strong> runs left to right (horizontal).<br>• The <strong>Y-axis</strong> runs up and down (vertical).<br><br>The exact corner where they meet is called the <strong>Origin</strong>.")
+    },
+    {
+      title: "3. ⚡ The Origin", section: "Level 1: The Axes",
+      html: makeInput("The Origin", "The Origin is the starting point of our grid, located at the very bottom-left corner.", "What number does the Origin represent on the X-axis?", 0)
+    },
+    {
+      title: "4. 🔍 Axis Identification", section: "Level 1: The Axes",
+      html: makeMCQ("Axis Identification", "If you want to measure how high up a mountain is on our grid, which axis do you look at?", "The Y-axis (Vertical)", "The X-axis (Horizontal)", true)
+    },
+
+    // --- LEVEL 2: Ordered Pairs ---
+    {
+      title: "5. 📜 Ordered Pairs (x, y)", section: "Level 2: Ordered Pairs",
+      html: makeInfo("Ordered Pairs (x, y)", "Locations are given as a set of two numbers inside parentheses, like <strong>(4, 7)</strong>. This is called an ordered pair.<br><br>The first number is ALWAYS the <strong>X-coordinate</strong>, and the second number is ALWAYS the <strong>Y-coordinate</strong>.")
+    },
+    {
+      title: "6. ⚡ Walk Before You Fly", section: "Level 2: Ordered Pairs",
+      html: makeInput("Walk Before You Fly", "To plot a point, you run along the X-axis first (walk), then jump up the Y-axis (fly).<br><br>Given the coordinate <strong>(8, 3)</strong>...", "What is the X-coordinate?", 8)
+    },
+    {
+      title: "7. ⚡ Y-Coordinate Check", section: "Level 2: Ordered Pairs",
+      html: makeInput("Identify the Altitude", "Given the coordinate <strong>(2, 9)</strong>...", "What is the Y-coordinate?", 9)
+    },
+
+    // --- LEVEL 3: Execution ---
+    {
+      title: "8. 🔍 Translation Protocol", section: "Level 3: Execution",
+      html: makeMCQ("Translation Protocol", "Your mission is to plot the point <strong>(5, 2)</strong>. What are the correct movements from the Origin (0,0)?", "Go right 5 spaces, then go up 2 spaces.", "Go right 2 spaces, then go up 5 spaces.", true)
+    },
+
+    // --- LEVEL 4: SIMULATOR ---
+    {
+      title: "9. ⚙️ RADAR SIMULATOR", section: "Level 4: Simulator",
+      html: `<h1>Target Plotting Simulator</h1>
+             <p style="color:#7f8c8d;">Your target coordinate is <strong style="color:var(--lab-primary); font-size:22px;">(6, 4)</strong>. Remember: Walk along the X-axis before flying up the Y-axis.</p>
+             
+             <div style="margin: 30px 0 40px 30px;">
+               <div id="grid-container"></div>
+             </div>
+
+             <div style="text-align:center; height: 40px;">
+                <div id="sim-fb" style="font-size:18px; font-weight:bold;">Awaiting manual click on the grid...</div>
+             </div>
+             <div style="text-align:center; margin-top:15px;">
+                <button id="sim-btn" class="btn" style="display:none;" onclick="submitSim()">Confirm Target Acquired</button>
+             </div>`
+    },
+
+    // --- LEVEL 5: Advanced ---
+    {
+      title: "10. 📝 Terminal Diagnostics", section: "Level 5: Advanced Diagnostics",
+      html: `<h1>Final Diagnostics Output</h1>
+             <p>Verify all mapping protocols to unlock the Mastery Badge.</p>
+             <div style="background:#f8f9fa; padding:20px; border-radius:10px; border:2px dashed #bdc3c7; margin:20px 0;">
+               <p style="margin:0 0 10px 0; font-size:18px;"><strong>1. If a point is plotted right on the X-axis, what is its Y-coordinate?</strong></p>
+               <input type="number" id="final-q1" class="math-input" placeholder="Y = ?">
+               
+               <p style="margin:20px 0 10px 0; font-size:18px;"><strong>2. The Origin is plotted at (X, Y). What is X + Y?</strong></p>
+               <input type="number" id="final-q2" class="math-input" placeholder="Sum = ?">
+             </div>
+             <div style="text-align:center;"><button class="btn" onclick="submitFinal(0, 0)">Submit Log</button></div>
+             <div id="fb-box" class="feedback-text"></div>`
+    },
+    {
+      title: "11. 🏆 Graduation", section: "Level 5: Advanced Diagnostics",
+      html: `<div style="text-align: center; padding-top:40px;">
+               <h1 style="font-size: 80px; margin-bottom: 0;">🏆</h1>
+               <h1>Cartesian Protocol Verified!</h1>
+               <p style="font-size:18px; max-width:500px; margin: 0 auto 30px auto;">You have successfully mastered the Coordinate Plane, identifying the Origin, navigating the X and Y axes, and plotting ordered pairs.</p>
+               <button id="mastery-btn" class="btn" style="background:#27ae60; box-shadow:none;" onclick="this.innerText='Logs Saved!'; this.disabled=true;">Session Complete</button>
+             </div>`
     }
-    
-    // Draw axes
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2;
-    // X-axis
-    ctx.beginPath();
-    ctx.moveTo(padding, canvas.height - padding);
-    ctx.lineTo(canvas.width - padding, canvas.height - padding);
-    ctx.stroke();
-    ctx.fillText('x-axis', canvas.width / 2, canvas.height - padding / 2);
-    // Y-axis
-    ctx.beginPath();
-    ctx.moveTo(padding, padding);
-    ctx.lineTo(padding, canvas.height - padding);
-    ctx.stroke();
-    ctx.fillText('y-axis', padding / 2, canvas.height / 2);
-    
-    // Draw numbers
-    ctx.fillStyle = '#000';
-    ctx.lineWidth = 1;
-    for (let i = 1; i <= 10; i++) {
-        const xPos = padding + i * gridSize;
-        const yPos = canvas.height - padding - i * gridSize;
-        ctx.fillText(i, xPos, canvas.height - padding + 10);
-        ctx.fillText(i, padding - 10, yPos);
+  ];
+
+  // ---------------------------------------------------------
+  // 2. FIREBASE & STATE MANAGEMENT
+  // ---------------------------------------------------------
+  const lessonID = "5th_grade_coordinate_q1_v1";
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
+
+  auth.onAuthStateChanged(user => { 
+    if (user) { currentUser = user; syncProgress(); } 
+  });
+
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    if(!doc.exists) {
+      stepsCompleted = {};
+      for(let i=0; i<lessonData.length; i++) stepsCompleted[`step_${i}`] = false;
+    } else {
+      stepsCompleted = doc.data().steps;
     }
-    
-    // Draw highlight points
-    if (highlightX !== null && highlightY !== null) {
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        const xCoord = padding + highlightX * gridSize;
-        const yCoord = canvas.height - padding - highlightY * gridSize;
-        ctx.arc(xCoord, yCoord, 5, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
+    initSidebar();
+    updateSidebar();
+    showPage(0, true);
+  }
 
-canvas.addEventListener('click', (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left - padding;
-    const y = event.clientY - rect.top - padding;
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx && nextIdx < lessonData.length) showPage(nextIdx);
+  }
 
-    const xGrid = Math.round(x / gridSize);
-    const yGrid = Math.round((canvas.height - padding * 2 - y) / gridSize);
-
-    if (xGrid > 0 && xGrid <= 10 && yGrid > 0 && yGrid <= 10) {
-        document.getElementById('coordsDisplay').textContent = `Coordinates: (${xGrid}, ${yGrid})`;
-        drawGrid(xGrid, yGrid);
-    }
-});
-
-drawGrid(0, 0); // Initial draw
-
-/* ===== Practice Section Grid Points ===== */
-const practicePoints = [
-    { label: 'A', x: 4, y: 1 },
-    { label: 'B', x: 2, y: 5 },
-    { label: 'C', x: 1, y: 3 },
-    { label: 'D', x: 5, y: 2 }
-];
-
-function drawPracticePoints() {
-    drawGrid();
-    ctx.fillStyle = '#1d4ed8';
-    practicePoints.forEach(point => {
-        const xCoord = padding + point.x * gridSize;
-        const yCoord = canvas.height - padding - point.y * gridSize;
-        ctx.beginPath();
-        ctx.arc(xCoord, yCoord, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#04263b';
-        ctx.font = '16px Arial';
-        ctx.fillText(point.label, xCoord + 15, yCoord - 15);
+  // ---------------------------------------------------------
+  // 3. UI RENDERING & VALIDATION
+  // ---------------------------------------------------------
+  function initSidebar() {
+    const navList = document.getElementById('nav-list');
+    let currentSection = "";
+    let html = "";
+    lessonData.forEach((lesson, i) => {
+      if(lesson.section !== currentSection) {
+         currentSection = lesson.section;
+         html += `<div class="nav-section-title">${currentSection}</div>`;
+      }
+      html += `<div id="nav-item-${i}" class="nav-item" onclick="showPage(${i})">${lesson.title}</div>`;
     });
-}
-drawPracticePoints();
+    navList.innerHTML = html;
+  }
 
-/* ===== Random Challenge ===== */
-function generateProblem() {
-    const x = getRandomInt(1, 10);
-    const y = getRandomInt(1, 10);
-    const question = `Find the point (${x}, ${y})`;
-    const answer = `${x},${y}`;
-    return { q: question, a: answer };
-}
-
-let currentCorrect = null;
-
-function newChallenge() {
-    const problem = generateProblem();
-    currentCorrect = problem.a;
-    document.getElementById('challengeQ').textContent = problem.q;
-    document.getElementById('challengeInput').value = '';
-    document.getElementById('challengeResult').textContent = '';
+  function updateSidebar() {
+    let completedCount = 0;
+    lessonData.forEach((lesson, i) => {
+      const el = document.getElementById(`nav-item-${i}`);
+      if(!el) return;
+      
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      
+      if(isDone) completedCount++;
+      
+      el.className = "nav-item";
+      if(i === currentStep) el.classList.add("active");
+      else if(isDone) el.classList.add("completed");
+      else if(!isPrevDone) el.classList.add("locked");
+    });
     
-    const [x, y] = problem.a.split(',').map(Number);
-    drawGrid(x, y);
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-    const val = document.getElementById('challengeInput').value.trim();
-    const res = document.getElementById('challengeResult');
-    if (val === currentCorrect) {
-        res.textContent = '✅ Correct!';
-        res.className = 'answer ok';
-        tone(880, 0.06);
-        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-    } else {
-        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-        res.className = 'answer bad';
-        tone(220, 0.06);
-        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+    const maxSteps = lessonData.length - 1; 
+    const pct = Math.round((completedCount / maxSteps) * 100);
+    document.getElementById('percent-display').textContent = `System Optimization: ${pct > 100 ? 100 : pct}%`;
+  }
+
+  function showPage(index, force = false) {
+    if (!force && index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    
+    currentStep = index;
+    const contentBox = document.getElementById('dynamic-content');
+    
+    contentBox.classList.remove('active');
+    contentBox.innerHTML = lessonData[index].html;
+    void contentBox.offsetWidth; 
+    contentBox.classList.add('active');
+    
+    // Check if Simulator page loaded
+    if (lessonData[index].title.includes("SIMULATOR")) {
+       setTimeout(initGrid, 50);
     }
-});
-newChallenge();
-
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
-
-function newQuizQuestion() {
-    const problem = generateProblem();
-    currentQuiz = problem;
-    document.getElementById('quizQ').textContent = currentQuiz.q;
-    document.getElementById('quizInput').value = '';
-    document.getElementById('quizFeedback').textContent = '';
     
-    const [x, y] = problem.a.split(',').map(Number);
-    drawGrid(x, y);
-}
+    updateSidebar();
+  }
 
-document.getElementById('startQuiz').addEventListener('click', () => {
-    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-    quizScore = 0;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    newQuizQuestion();
-    clearInterval(quizTimerInt);
-    quizTimerInt = setInterval(() => {
-        quizTime--;
-        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-        if (quizTime <= 0) {
-            clearInterval(quizTimerInt);
-            document.getElementById('quizQ').textContent = 'Time Up!';
+  // Submission Handlers
+  function submitSimple() { saveStepProgress(currentStep, currentStep + 1); }
+
+  function submitMCQ(isCorrect, msg) {
+    const fb = document.getElementById('fb-box');
+    if(isCorrect) {
+       fb.innerHTML = `<span style="color:var(--success);">${msg}</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">${msg}</span>`;
+    }
+  }
+
+  function submitInput(expectedValue) {
+    const val = document.getElementById('ans-input').value.trim();
+    const fb = document.getElementById('fb-box');
+    if(val !== "" && Number(val) === expectedValue) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Verified! Matrix locked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ System Alert: Check calculations.</span>`;
+    }
+  }
+
+  function submitFinal(exp1, exp2) {
+    const q1 = document.getElementById('final-q1').value.trim();
+    const q2 = document.getElementById('final-q2').value.trim();
+    const fb = document.getElementById('fb-box');
+    if(q1 !== "" && q2 !== "" && Number(q1) === exp1 && Number(q2) === exp2) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Terminal checks passed! Core unlocked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1200);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ Diagnostics failed. Re-evaluate grid rules.</span>`;
+    }
+  }
+
+  // ---------------------------------------------------------
+  // 4. SIMULATOR LOGIC (Custom 2D HTML/CSS Grid)
+  // ---------------------------------------------------------
+  let userSelectedTarget = false;
+
+  function initGrid() {
+    const container = document.getElementById('grid-container');
+    if (!container) return;
+    container.innerHTML = "";
+    userSelectedTarget = false;
+
+    // We build a 10x10 Grid. Loop Y from 10 down to 0, X from 0 up to 10
+    for (let y = 10; y >= 0; y--) {
+      for (let x = 0; x <= 10; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        
+        // Add axis labels
+        if (x === 0) {
+          const labelY = document.createElement('div');
+          labelY.className = 'axis-label-y';
+          labelY.innerText = y;
+          cell.appendChild(labelY);
         }
-    }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-    clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-    const val = document.getElementById('quizInput').value.trim();
-    const f = document.getElementById('quizFeedback');
-    if (val === currentQuiz.a) {
-        f.textContent = '✅ Correct!';
-        f.className = 'answer ok';
-        quizScore++;
-        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-        tone(880, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
-    } else {
-        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-        f.className = 'answer bad';
-        tone(220, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
-    }
-    if (quizTime > 0) newQuizQuestion();
-});
+        if (y === 0) {
+          const labelX = document.createElement('div');
+          labelX.className = 'axis-label-x';
+          labelX.innerText = x;
+          cell.appendChild(labelX);
+        }
 
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-    const csvContent = csvData.map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'coordinate_plane_log.csv'; a.click();
-    URL.revokeObjectURL(url);
-});
+        // Add Click listener
+        cell.onclick = () => handleGridClick(x, y, cell);
+        container.appendChild(cell);
+      }
+    }
+  }
+
+  function handleGridClick(clickedX, clickedY, cellElement) {
+    // Clear previous dots
+    const oldDots = document.querySelectorAll('.grid-dot');
+    oldDots.forEach(dot => dot.remove());
+
+    // Create a dot at the intersection
+    const dot = document.createElement('div');
+    dot.className = 'grid-dot';
+    cellElement.appendChild(dot);
+
+    const targetX = 6;
+    const targetY = 4;
+    const fb = document.getElementById('sim-fb');
+    const btn = document.getElementById('sim-btn');
+
+    if (clickedX === targetX && clickedY === targetY) {
+      fb.innerHTML = `<span style="color:var(--success);">✅ Target (6, 4) Acquired!</span>`;
+      btn.style.display = "inline-block";
+      userSelectedTarget = true;
+    } else {
+      btn.style.display = "none";
+      userSelectedTarget = false;
+      // Provide dynamic feedback based on their mistake
+      if (clickedX === targetY && clickedY === targetX) {
+        fb.innerHTML = `<span style="color:var(--error);">❌ You plotted (4, 6). Remember: X-axis first, then Y-axis.</span>`;
+      } else {
+        fb.innerHTML = `<span style="color:var(--error);">❌ Miss. You plotted (${clickedX}, ${clickedY}). Target is (6, 4).</span>`;
+      }
+    }
+  }
+
+  function submitSim() {
+    if (userSelectedTarget) {
+      saveStepProgress(currentStep, currentStep + 1);
+    }
+  }
 </script>
 </body>
 </html>
