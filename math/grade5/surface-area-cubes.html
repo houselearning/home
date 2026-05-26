@@ -1,317 +1,444 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — Surface Area of Cubes</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Surface Area Lab (Cubes)</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <style>
+    :root { 
+      /* Switched to an energetic blue theme for Surface Area */
+      --lab-primary: #3498db; 
+      --lab-dark: #2c3e50; 
+      --bg: #ecf0f1; 
+      --success: #2ecc71; 
+      --error: #e74c3c;
+      --locked: #bdc3c7; 
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--lab-dark); }
+    
+    /* Navigation Sidebar */
+    nav { width: 340px; background: white; border-right: 1px solid #dfe6e9; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-primary); color: white; }
+    .nav-container { flex: 1; overflow-y: auto; }
+    .nav-section-title { padding: 12px 20px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #f1f2f6; color: #7f8c8d; }
+    .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #34495e; font-size: 13px; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+    .nav-item.active { background: #eaf4fd; color: var(--lab-primary); font-weight: bold; border-left: 5px solid var(--lab-primary); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; font-size: 12px; }
+    .nav-item.completed::after { content: '✅'; font-size: 12px; }
+    
+    /* Main Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #dfe6e9; opacity: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Reusable UI Elements */
+    .btn { background: var(--lab-primary); color: white; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #2980b9; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn.ans-btn { background: #ecf0f1; color: var(--lab-dark); margin: 0 10px; box-shadow: 0 4px 0 #bdc3c7; }
+    .btn.ans-btn:hover { background: #bdc3c7; }
+    
+    .math-box { font-size: 28px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px dashed #bdc3c7; margin: 25px 0; }
+    .math-input { width: 120px; padding: 10px; text-align: center; border: 2px solid var(--lab-primary); border-radius: 8px; font-size: 24px; font-weight: bold; color: var(--lab-dark); outline: none; }
+    .math-input:focus { border-color: var(--success); box-shadow: 0 0 8px rgba(46,204,113,0.3); }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    .feedback-text { font-size: 18px; font-weight: bold; text-align: center; margin-top: 15px; height: 30px; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — Surface Area of Cubes</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • 3D viewer • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 18px;">📐 Surface Area Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Matrices...</div>
+  </div>
+  <div class="nav-container" id="nav-list"></div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p><strong>Surface area</strong> is the total area of all the faces (or sides) of a 3D object. Think of it like the amount of wrapping paper you would need to cover a gift box. A cube has 6 identical square faces. 🎁</p>
-<p>To find the surface area of a cube, we follow these steps:</p>
-<ol>
-  <li>Find the area of one face: Area = side × side.</li>
-  <li>Since a cube has 6 identical faces, multiply the area of one face by 6.</li>
-</ol>
-<p>The formula is: <strong>Surface Area = 6 × (side × side)</strong> or <strong>$SA = 6s^2$</strong></p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
-
-<section aria-labelledby="threeDTitle">
-<h2 id="threeDTitle">Interactive 3D Viewer</h2>
-<p>Change the side length below to see how the surface area changes in 3D!</p>
-<div class="controls">
-  <label>Side Length: <input type="number" id="sideLength" value="3" min="1" max="10"></label>
-  <button id="updateCube" class="secondary">Update Cube</button>
-</div>
-<div style="font-weight:bold;margin-top:8px" id="saText">Surface Area: 54 square units</div>
-<div class="canvas-wrapper">
-  <canvas id="threeDCanvas" width="800" height="400"></canvas>
-</div>
-</section>
-
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>Calculate the surface area of these cubes. Don't forget the units! 📏</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) Side = 2cm</div>
-    <input id="q1" type="text" placeholder="e.g. 24 cm^2">
-    <div style="margin-top:6px"><button onclick="check('q1','24 cm^2')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) Side = 5in</div>
-    <input id="q2" type="text" placeholder="e.g. 150 in^2">
-    <div style="margin-top:6px"><button onclick="check('q2','150 in^2')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) Side = 10m</div>
-    <input id="q3" type="text" placeholder="e.g. 600 m^2">
-    <div style="margin-top:6px"><button onclick="check('q3','600 m^2')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) Side = 1ft</div>
-    <input id="q4" type="text" placeholder="e.g. 6 ft^2">
-    <div style="margin-top:6px"><button onclick="check('q4','6 ft^2')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
-
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
-
-<footer>Tip: Surface Area is always measured in square units, like $in^2$, $cm^2$, etc.</footer>
+  <div id="dynamic-content" class="content-card"></div>
 </main>
 
-<script type="importmap">
-  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/" } }
-</script>
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+<script>
+  // ---------------------------------------------------------
+  // 1. DATA CONFIGURATION & LESSON GENERATORS
+  // ---------------------------------------------------------
+  function makeInfo(title, text, btnText = "Acknowledge Directive") {
+    return `<h1>${title}</h1><p style="font-size:18px; line-height:1.6;">${text}</p><br><div style="text-align:center;"><button class="btn" onclick="submitSimple()">${btnText}</button></div>`;
+  }
 
-/* ===== Score & CSV ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim().toLowerCase(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct.toLowerCase()){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
+  function makeInput(title, concept, q, ans) {
+    return `<h1>${title}</h1><p style="font-size:16px; color:#7f8c8d;">${concept}</p>
+            <div class="math-box"><span>${q}</span>
+            <input type="number" step="any" id="ans-input" class="math-input" placeholder="?">
+            <button class="btn" style="margin-left:20px;" onclick="submitInput(${ans})">Verify</button></div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-/* ===== 3D Viewer ===== */
-const canvas = document.getElementById('threeDCanvas');
-let renderer, scene, camera, controls, cube;
+  function makeMCQ(title, concept, q, trueTxt, falseTxt, isTrueFirst) {
+    const correctMsg = "Correct! Concept stabilized.";
+    const errorMsg = "Incorrect. Re-evaluate the dimensions.";
+    const btn1 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${trueTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${trueTxt}</button>`;
+    const btn2 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${falseTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${falseTxt}</button>`;
+    return `<h1>${title}</h1><p style="font-size:16px; color:#7f8c8d;">${concept}</p>
+            <div class="math-box" style="font-size:22px; text-align:center;">${q}</div>
+            <div style="text-align:center; margin-top:20px;">${btn1}${btn2}</div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-function initThree() {
-  renderer = new THREE.WebGLRenderer({ canvas, antialiasing: true });
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf7fbff);
-  camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-  camera.position.set(5, 5, 5);
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enablePan = false;
-  controls.minDistance = 5;
-  controls.maxDistance = 20;
+  const lessonData = [
+    // --- CORE PROTOCOLS ---
+    {
+      title: "1. 🎬 Briefing: Wrapping vs Packing", section: "Core Protocols",
+      html: `<h1>Briefing: The Outside of 3D</h1>
+             <p>Welcome back, Architect. You know that <em>Volume</em> is how much space is <strong>inside</strong> a 3D object (Packing). But what if you want to paint the outside, or wrap it in paper? That is called <strong>Surface Area</strong>. It's the total area of all the outside surfaces (faces) combined.</p>
+             <div class="video-container"><iframe src="https://www.youtube.com/embed/N-ZgOQzK26s" frameborder="0" allowfullscreen></iframe></div>
+             <div style="text-align:center;"><button class="btn" onclick="submitSimple()">Initialize Surface Engine</button></div>`
+    },
+    {
+      title: "2. 🔍 Volume vs Surface Area", section: "Core Protocols",
+      html: makeMCQ("Identifying the Math", "Which scenario requires finding the Surface Area?", "Figuring out how much wrapping paper is needed for a gift.", "Figuring out how much sand fills a sandbox.", true)
+    },
+    
+    // --- LEVEL 1: Anatomy of a Cube ---
+    {
+      title: "3. 📜 Anatomy of a Cube", section: "Level 1: Cube Faces",
+      html: makeInfo("Anatomy of a Cube", "A cube is a special 3D shape because every side length is exactly the same. The flat sides of a 3D shape are called <strong>faces</strong>. On a perfect cube, every single face is an identical <strong>square</strong>.")
+    },
+    {
+      title: "4. ⚡ Counting Faces", section: "Level 1: Cube Faces",
+      html: makeInput("Counting Faces", "Think of a standard six-sided die you use in a board game.", "Total faces on a cube = ", 6)
+    },
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  directionalLight.position.set(5, 5, 5);
-  scene.add(directionalLight);
+    // --- LEVEL 2: Area of One Face ---
+    {
+      title: "5. 📜 The 2D Square", section: "Level 2: One Face at a Time",
+      html: makeInfo("The 2D Square", "To find the total surface area, we first have to find the area of just <strong>one face</strong>. Since the face is a square, you just multiply the side by itself: <br><br><strong>Face Area = Side &times; Side (or s<sup>2</sup>)</strong>.")
+    },
+    {
+      title: "6. ⚡ Calculating One Face", section: "Level 2: One Face at a Time",
+      html: makeInput("Calculate One Face", "A cube has a side length of 4 inches.", "Area of ONE face = ", 16)
+    },
+    {
+      title: "7. ⚡ Face Area Challenge", section: "Level 2: One Face at a Time",
+      html: makeInput("Calculate One Face", "A massive concrete cube has a side length of 10 meters.", "Area of ONE face = ", 100)
+    },
 
-  const gridHelper = new THREE.GridHelper(20, 20, 0x000000, 0x000000);
-  gridHelper.material.opacity = 0.2;
-  gridHelper.material.transparent = true;
-  gridHelper.position.y = -0.01;
-  scene.add(gridHelper);
+    // --- LEVEL 3: Total Surface Area ---
+    {
+      title: "8. 📜 The Master Formula", section: "Level 3: Total Surface Area",
+      html: makeInfo("The Master Formula", "Now for the final step. Since a cube has 6 identical faces, you just take the area of one face and multiply it by 6!<br><br><strong>Surface Area (SA) = 6 &times; (Side &times; Side)</strong>")
+    },
+    {
+      title: "9. ⚡ Apply the Formula", section: "Level 3: Total Surface Area",
+      html: makeInput("Apply the Formula", "A cube has a side length of 3 cm. <br><span style='font-size:16px;'>(Hint: Face Area = 9. Now multiply by 6)</span>", "Total SA = ", 54)
+    },
+    {
+      title: "10. ⚡ The Standard Box", section: "Level 3: Total Surface Area",
+      html: makeInput("The Standard Box", "Side length = 5 units.", "Total SA = ", 150)
+    },
 
-  animate();
-}
+    // --- LEVEL 4: SIMULATOR ---
+    {
+      title: "11. ⚙️ 3D SURFACE SIMULATOR", section: "Level 4: Visualization",
+      html: `<h1>3D Surface Area Simulator</h1>
+             <p style="color:#7f8c8d;">Adjust the side length (s) to expand the cube. Notice how the area of the 6 colored faces grows. Calculate the total Surface Area based on your input.</p>
+             <div style="display:flex; gap: 15px; justify-content:center; margin-bottom:15px; background:#eaf4fd; padding:15px; border-radius:8px;">
+                <label><b>Side Length (s):</b> <input type="number" id="sim-s" value="4" min="1" max="12" style="width:60px; text-align:center;"></label>
+                <button class="btn" style="padding:5px 20px; font-size:14px;" onclick="update3D()">Render Faces</button>
+             </div>
+             <div id="three-container" style="width:100%; height:300px; background:#2c3e50; border-radius:10px; margin-bottom:15px; overflow:hidden;"></div>
+             <div class="math-box" style="margin-top:0; padding:15px;">
+                <span style="font-size:20px;">Total Surface Area (Square Units): &nbsp;</span>
+                <input type="number" id="ans-sim" class="math-input" placeholder="?">
+                <button class="btn" style="margin-left:20px;" onclick="submitSim()">Verify Data</button>
+             </div>
+             <div id="fb-box" class="feedback-text"></div>`
+    },
 
-function createCube(sideLength) {
-  if (cube) scene.remove(cube);
-  const geometry = new THREE.BoxGeometry(sideLength, sideLength, sideLength);
-  const material = new THREE.MeshStandardMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.8 });
-  cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-
-  // Add wireframe to show edges
-  const edges = new THREE.EdgesGeometry(geometry);
-  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x1d4ed8, linewidth: 2 }));
-  cube.add(line);
-
-  const sa = 6 * (sideLength * sideLength);
-  document.getElementById('saText').textContent = `Surface Area: ${sa} square units`;
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-
-document.getElementById('updateCube').addEventListener('click', () => {
-  const s = parseInt(document.getElementById('sideLength').value);
-  createCube(s);
-});
-
-initThree();
-createCube(3);
-
-/* ===== Random Challenge ===== */
-function generateProblem() {
-    const s = Math.floor(Math.random() * 8) + 2;
-    const units = ['cm', 'in', 'm', 'ft'][Math.floor(Math.random() * 4)];
-    const question = `Side = ${s}${units}`;
-    const answer = `${6 * s * s} ${units}^2`;
-    return { q: question, a: answer };
-}
-
-let currentCorrect = null;
-
-function newChallenge() {
-    const problem = generateProblem();
-    currentCorrect = problem.a;
-    document.getElementById('challengeQ').textContent = problem.q + ' = ?';
-    document.getElementById('challengeInput').value = '';
-    document.getElementById('challengeResult').textContent = '';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-    const val = document.getElementById('challengeInput').value.trim().toLowerCase();
-    const res = document.getElementById('challengeResult');
-    if (val === currentCorrect.toLowerCase()) {
-        res.textContent = '✅ Correct!';
-        res.className = 'answer ok';
-        tone(880, 0.06);
-        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-    } else {
-        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-        res.className = 'answer bad';
-        tone(220, 0.06);
-        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
+    // --- LEVEL 5: Advanced Engineering ---
+    {
+      title: "12. 📜 Reverse Engineering", section: "Level 5: Advanced Logic",
+      html: makeInfo("Reverse Engineering", "Sometimes you know the Surface Area and need to work backward. If you know the Total Surface Area, <strong>divide by 6</strong> to find the area of just one face. From there, you can figure out the side length.")
+    },
+    {
+      title: "13. ⚡ Backwards Math", section: "Level 5: Advanced Logic",
+      html: makeInput("Backwards Math", "The total Surface Area of a small cube is 24 square inches. What is the area of just ONE face?", "Face Area = ", 4)
+    },
+    {
+      title: "14. 📝 Terminal Diagnostics", section: "Level 5: Advanced Logic",
+      html: `<h1>Final Diagnostics Output</h1>
+             <p>Verify all surface area protocols to unlock the Mastery Badge.</p>
+             <div style="background:#f8f9fa; padding:20px; border-radius:10px; border:2px dashed #bdc3c7; margin:20px 0;">
+               <p style="margin:0 0 10px 0; font-size:20px;"><strong>1. Calculate Total SA for Side = 2:</strong></p>
+               <input type="number" id="final-q1" class="math-input" placeholder="SA = ?">
+               
+               <p style="margin:20px 0 10px 0; font-size:20px;"><strong>2. If Total SA = 600, what is the area of ONE face?</strong></p>
+               <input type="number" id="final-q2" class="math-input" placeholder="Area = ?">
+             </div>
+             <div style="text-align:center;"><button class="btn" onclick="submitFinal(24, 100)">Submit Log</button></div>
+             <div id="fb-box" class="feedback-text"></div>`
+    },
+    {
+      title: "15. 🏆 Graduation", section: "Level 5: Advanced Logic",
+      html: `<div style="text-align: center; padding-top:40px;">
+               <h1 style="font-size: 80px; margin-bottom: 0;">🏆</h1>
+               <h1>Surface Area Verified!</h1>
+               <p style="font-size:18px; max-width:500px; margin: 0 auto 30px auto;">You have successfully mastered the anatomy of cubes, 2D face calculations, and the 3D surface area equations.</p>
+               <button id="mastery-btn" class="btn" style="background:#2ecc71; box-shadow:none;" onclick="this.innerText='Logs Saved!'; this.disabled=true;">Session Complete</button>
+             </div>`
     }
-});
-newChallenge();
+  ];
 
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
+  // ---------------------------------------------------------
+  // 2. FIREBASE & STATE MANAGEMENT
+  // ---------------------------------------------------------
+  const lessonID = "5th_grade_surface_area_v1";
+  
+  // Use your same Firebase configuration block here
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
+    authDomain: "contract-center-llc-10.firebaseapp.com",
+    projectId: "contract-center-llc-10",
+    storageBucket: "contract-center-llc-10.firebasestorage.app",
+    messagingSenderId: "323221512767",
+    appId: "1:323221512767:web:6421260f875997dbf64e8a"
+  };
 
-function newQuizQuestion() {
-    const problem = generateProblem();
-    currentQuiz = problem;
-    document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
-    document.getElementById('quizInput').value = '';
-    document.getElementById('quizFeedback').textContent = '';
-}
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-document.getElementById('startQuiz').addEventListener('click', () => {
-    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-    quizScore = 0;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    newQuizQuestion();
-    clearInterval(quizTimerInt);
-    quizTimerInt = setInterval(() => {
-        quizTime--;
-        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-        if (quizTime <= 0) {
-            clearInterval(quizTimerInt);
-            document.getElementById('quizQ').textContent = 'Time Up!';
-        }
-    }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-    clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-    const val = document.getElementById('quizInput').value.trim().toLowerCase();
-    const f = document.getElementById('quizFeedback');
-    if (val === currentQuiz.a.toLowerCase()) {
-        f.textContent = '✅ Correct!';
-        f.className = 'answer ok';
-        quizScore++;
-        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-        tone(880, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
+  let currentUser = null;
+  let stepsCompleted = {};
+  let currentStep = 0;
+
+  auth.onAuthStateChanged(user => { 
+    if (user) { currentUser = user; syncProgress(); } 
+  });
+
+  async function syncProgress() {
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    const doc = await docRef.get();
+    if(!doc.exists) {
+      stepsCompleted = {};
+      for(let i=0; i<lessonData.length; i++) stepsCompleted[`step_${i}`] = false;
     } else {
-        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-        f.className = 'answer bad';
-        tone(220, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
+      stepsCompleted = doc.data().steps;
     }
-    if (quizTime > 0) newQuizQuestion();
-});
+    initSidebar();
+    updateSidebar();
+    showPage(0, true);
+  }
 
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-    const csvContent = csvData.map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'surface_area_practice_log.csv'; a.click();
-    URL.revokeObjectURL(url);
-});
+  async function saveStepProgress(stepIdx, nextIdx) {
+    stepsCompleted[`step_${stepIdx}`] = true;
+    const docRef = db.collection('UserLessonProgress').doc(currentUser.uid).collection('lessons').doc(lessonID);
+    await docRef.set({ steps: stepsCompleted, lastUpdated: new Date() }, { merge: true });
+    updateSidebar();
+    if(stepIdx !== nextIdx && nextIdx < lessonData.length) showPage(nextIdx);
+  }
+
+  // ---------------------------------------------------------
+  // 3. UI RENDERING & VALIDATION
+  // ---------------------------------------------------------
+  function initSidebar() {
+    const navList = document.getElementById('nav-list');
+    let currentSection = "";
+    let html = "";
+    lessonData.forEach((lesson, i) => {
+      if(lesson.section !== currentSection) {
+         currentSection = lesson.section;
+         html += `<div class="nav-section-title">${currentSection}</div>`;
+      }
+      html += `<div id="nav-item-${i}" class="nav-item" onclick="showPage(${i})">${lesson.title}</div>`;
+    });
+    navList.innerHTML = html;
+  }
+
+  function updateSidebar() {
+    let completedCount = 0;
+    lessonData.forEach((lesson, i) => {
+      const el = document.getElementById(`nav-item-${i}`);
+      if(!el) return;
+      
+      const isDone = stepsCompleted[`step_${i}`];
+      const isPrevDone = i === 0 || stepsCompleted[`step_${i-1}`];
+      
+      if(isDone) completedCount++;
+      
+      el.className = "nav-item";
+      if(i === currentStep) el.classList.add("active");
+      else if(isDone) el.classList.add("completed");
+      else if(!isPrevDone) el.classList.add("locked");
+    });
+    
+    const maxSteps = lessonData.length - 1; 
+    const pct = Math.round((completedCount / maxSteps) * 100);
+    document.getElementById('percent-display').textContent = `System Optimization: ${pct > 100 ? 100 : pct}%`;
+  }
+
+  function showPage(index, force = false) {
+    if (!force && index > 0 && !stepsCompleted[`step_${index-1}`]) return;
+    
+    if(animationId) cancelAnimationFrame(animationId);
+    
+    currentStep = index;
+    const contentBox = document.getElementById('dynamic-content');
+    
+    contentBox.classList.remove('active');
+    contentBox.innerHTML = lessonData[index].html;
+    void contentBox.offsetWidth; 
+    contentBox.classList.add('active');
+    
+    if (lessonData[index].title.includes("SIMULATOR")) {
+       setTimeout(initThreeJS, 100);
+    }
+    
+    updateSidebar();
+  }
+
+  // Submission Handlers
+  function submitSimple() { saveStepProgress(currentStep, currentStep + 1); }
+
+  function submitMCQ(isCorrect, msg) {
+    const fb = document.getElementById('fb-box');
+    if(isCorrect) {
+       fb.innerHTML = `<span style="color:var(--success);">${msg}</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">${msg}</span>`;
+    }
+  }
+
+  function submitInput(expectedValue) {
+    const val = document.getElementById('ans-input').value.trim();
+    const fb = document.getElementById('fb-box');
+    if(val !== "" && Number(val) === expectedValue) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Verified! Matrix locked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1000);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ System Alert: Check calculations.</span>`;
+    }
+  }
+
+  function submitFinal(exp1, exp2) {
+    const q1 = document.getElementById('final-q1').value.trim();
+    const q2 = document.getElementById('final-q2').value.trim();
+    const fb = document.getElementById('fb-box');
+    if(q1 !== "" && q2 !== "" && Number(q1) === exp1 && Number(q2) === exp2) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Terminal checks passed! Core unlocked.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1200);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ Diagnostics failed. Check formulas.</span>`;
+    }
+  }
+
+  // ---------------------------------------------------------
+  // 4. THREE.JS IMPLEMENTATION FOR L4 SIMULATOR
+  // ---------------------------------------------------------
+  let scene, camera, renderer, cubeMesh, edgesMesh, animationId;
+
+  function initThreeJS() {
+    const container = document.getElementById('three-container');
+    if(!container) return;
+    
+    container.innerHTML = "";
+    scene = new THREE.Scene();
+    
+    camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(20, 20, 25);
+    camera.lookAt(0,0,0);
+    
+    renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+    
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(10, 20, 15);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x707070));
+    
+    // Create base geometry
+    const geo = new THREE.BoxGeometry(1, 1, 1);
+    
+    // Make faces distinctly colored or grid-like to emphasize "surface"
+    const materials = [
+      new THREE.MeshLambertMaterial({color: 0x3498db}), // right
+      new THREE.MeshLambertMaterial({color: 0xe74c3c}), // left
+      new THREE.MeshLambertMaterial({color: 0x2ecc71}), // top
+      new THREE.MeshLambertMaterial({color: 0xf1c40f}), // bottom
+      new THREE.MeshLambertMaterial({color: 0x9b59b6}), // front
+      new THREE.MeshLambertMaterial({color: 0xe67e22})  // back
+    ];
+    
+    cubeMesh = new THREE.Mesh(geo, materials);
+    scene.add(cubeMesh);
+    
+    // Add grid/wireframe overlay to emphasize surface units
+    const edges = new THREE.EdgesGeometry(geo);
+    edgesMesh = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 2}));
+    cubeMesh.add(edgesMesh);
+    
+    update3D();
+    animateThreeJS();
+  }
+
+  function update3D() {
+    if(!cubeMesh) return;
+    const s = parseInt(document.getElementById('sim-s').value) || 1;
+    
+    // Scale the cube based on user input
+    cubeMesh.scale.set(s, s, s);
+    
+    // Adjust camera dynamically so large cubes stay in view
+    const dist = s * 2.5 + 5;
+    camera.position.set(dist, dist, dist + 5);
+    camera.lookAt(0,0,0);
+  }
+
+  function animateThreeJS() {
+    animationId = requestAnimationFrame(animateThreeJS);
+    if(cubeMesh) {
+      cubeMesh.rotation.x += 0.003;
+      cubeMesh.rotation.y += 0.005;
+    }
+    renderer.render(scene, camera);
+  }
+
+  function submitSim() {
+    const s = parseInt(document.getElementById('sim-s').value) || 1;
+    
+    // Formula for Surface Area of a cube
+    const faceArea = s * s;
+    const expected = 6 * faceArea;
+    
+    const ans = document.getElementById('ans-sim').value.trim();
+    const fb = document.getElementById('fb-box');
+    
+    if(ans !== "" && Number(ans) === expected) {
+       fb.innerHTML = `<span style="color:var(--success);">✅ Surface Math Verified! SA is ${expected}.</span>`;
+       setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 1200);
+    } else {
+       fb.innerHTML = `<span style="color:var(--error);">❌ Incorrect. Find the area of one face (s &times; s), then multiply by 6.</span>`;
+    }
+  }
 </script>
 </body>
 </html>
