@@ -1,381 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Grade 5 — Order of Operations (PEMDAS)</title>
-<style>
-:root{
-  --bg:#f7fbff; --panel:#fff; --accent:#60a5fa; --accent2:#1d4ed8; --ok:#16a34a; --bad:#ef4444; --muted:#566270;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter, "Segoe UI", Arial, sans-serif;background:var(--bg);color:#04263b;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:22px 12px;text-align:center}
-header h1{margin:0;font-size:clamp(20px,3vw,30px)}
-main{max-width:1100px;margin:20px auto;padding:14px}
-section{background:var(--panel);border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
-h2{color:var(--accent2);margin:0 0 10px 0}
-p{margin:8px 0}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{background:var(--accent2);color:#fff;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-button.secondary{background:#60a5fa;color:#fff}
-button.ghost{background:#dbeafe;color:var(--accent2);border:1px solid #93c5fd}
-button.warn{background:#f97316}
-input[type=number], input[type=text], select{padding:8px;border-radius:8px;border:1px solid #93c5fd;font-size:1rem}
-.grid{display:grid;gap:10px}
-.grid.cols-4{grid-template-columns:repeat(4,1fr)}
-.tile{background:#fff;padding:12px;border-radius:8px;text-align:center;border:1px solid #93c5fd;cursor:pointer;font-weight:700}
-.status{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.pill{background:#e6ffef;color:var(--ok);padding:6px 10px;border-radius:999px;font-weight:800}
-.muted{color:var(--muted)}
-footer{text-align:center;padding:12px;margin-top:8px;color:#334155}
-.answer{font-weight:800;margin-top:8px}
-.ok{color:var(--ok)}
-.bad{color:var(--bad)}
-canvas{background:#fff;border:1px solid #93c5fd;border-radius:8px;display:block;margin-top:10px;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5th Grade Math: Order of Operations (PEMDAS)</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    :root { 
+      /* Energetic Teal/Cyan theme for Algorithmic Logic */
+      --lab-primary: #00b894; 
+      --lab-dark: #2d3436; 
+      --bg: #dfe6e9; 
+      --success: #00cec9; 
+      --error: #d63031;
+      --locked: #b2bec3; 
+    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--lab-dark); }
+    
+    /* Navigation Sidebar */
+    nav { width: 340px; background: white; border-right: 1px solid #c8d6e5; display: flex; flex-direction: column; flex-shrink: 0; }
+    .nav-header { padding: 25px; background: var(--lab-primary); color: white; }
+    .nav-container { flex: 1; overflow-y: auto; }
+    .nav-section-title { padding: 12px 20px; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; background: #f1f2f6; color: #636e72; }
+    .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #eee; color: #2d3436; font-size: 13px; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+    .nav-item.active { background: #e8f8f5; color: var(--lab-primary); font-weight: bold; border-left: 5px solid var(--lab-primary); }
+    .nav-item.locked { color: var(--locked); cursor: not-allowed; background: #f9f9f9; }
+    .nav-item.locked::after { content: '🔒'; font-size: 12px; }
+    .nav-item.completed::after { content: '✅'; font-size: 12px; }
+    
+    /* Main Content Area */
+    main { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+    .content-card { background: white; width: 100%; max-width: 850px; padding: 40px; border-radius: 15px; border: 1px solid #c8d6e5; opacity: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .content-card.active { display: block; animation: fadeIn 0.4s forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* Reusable UI Elements */
+    .btn { background: var(--lab-primary); color: white; border: none; padding: 14px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 0 #009473; transition: 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn.ans-btn { background: #ecf0f1; color: var(--lab-dark); margin: 0 10px; box-shadow: 0 4px 0 #b2bec3; }
+    .btn.ans-btn:hover { background: #dfe6e9; }
+    
+    .math-box { font-size: 28px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px dashed #b2bec3; margin: 25px 0; }
+    .math-input { width: 120px; padding: 10px; text-align: center; border: 2px solid var(--lab-primary); border-radius: 8px; font-size: 24px; font-weight: bold; color: var(--lab-dark); outline: none; }
+    .math-input:focus { border-color: var(--success); box-shadow: 0 0 8px rgba(0,206,201,0.3); }
+    
+    .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    .feedback-text { font-size: 18px; font-weight: bold; text-align: center; margin-top: 15px; height: 30px; }
+
+    /* Custom Simulator UI */
+    .sim-step { display: flex; justify-content: space-between; align-items: center; background: #f1f2f6; padding: 15px 25px; margin-bottom: 10px; border-radius: 8px; font-size: 18px; border-left: 4px solid var(--lab-dark); }
+    .sim-input { width: 80px; padding: 8px; font-size: 18px; text-align: center; border: 2px solid #b2bec3; border-radius: 6px; }
+  </style>
 </head>
 <body>
-<header>
-<h1>Grade 5 — Order of Operations (PEMDAS)</h1>
-<p style="margin:6px 0 0 0;opacity:.95">Interactive practice • challenge problems • speed quiz • tutorial video • CSV download</p>
-</header>
+
+<nav>
+  <div class="nav-header">
+    <strong style="font-size: 18px;">🔢 PEMDAS Logic Lab</strong>
+    <div id="percent-display" style="font-size: 13px; margin-top:8px; opacity:0.8;">Syncing Algorithms...</div>
+  </div>
+  <div class="nav-container" id="nav-list"></div>
+</nav>
 
 <main>
-<section aria-labelledby="introTitle">
-<h2 id="introTitle">Intro & Concept</h2>
-<p>When you have a math problem with more than one operation (like addition and multiplication), you need to follow a special set of rules called the <strong>Order of Operations</strong>. This makes sure everyone gets the same answer every time! We can remember the order using the acronym <strong>PEMDAS</strong>. 📝</p>
-<p><strong>PEMDAS</strong> stands for:</p>
-<ul>
-  <li><strong>P</strong>arentheses: Solve anything inside parentheses first.</li>
-  <li><strong>E</strong>xponents: Solve any exponents (like $2^3$) next.</li>
-  <li><strong>M</strong>ultiplication and <strong>D</strong>ivision: Do these from left to right.</li>
-  <li><strong>A</strong>ddition and <strong>S</strong>ubtraction: Do these last, also from left to right.</li>
-</ul>
-<p>Remember: M and D are a team! A and S are a team! If you see multiplication and division, do whichever one comes first as you read the problem from left to right. The same goes for addition and subtraction. ➡️</p>
-<div class="status" style="margin-top:8px">
-  <div class="pill" id="score">Score: 0</div>
-  <div class="muted" id="streak">Streak: 0</div>
-</div>
-</section>
-
-<section aria-labelledby="videoTitle">
-<h2 id="videoTitle">Animated Tutorial Video</h2>
-<p>Click Play to watch a detailed animated example of solving an order of operations problem.</p>
-<div class="canvas-wrapper">
-  <canvas id="tutorialCanvas" width="800" height="400"></canvas>
-</div>
-<div class="controls">
-  <button id="playTutorial" class="secondary">▶️ Play Tutorial</button>
-</div>
-<div class="settings">
-  <label>Speed: <input type="number" id="videoSpeed" value="1" min="0.1" max="3" step="0.1"></label>
-</div>
-</section>
-
-<section aria-labelledby="practiceTitle">
-<h2 id="practiceTitle">Interactive Practice</h2>
-<p>Solve these problems using the PEMDAS order. Type your answer as a whole number.</p>
-<div class="grid cols-4" style="margin-top:10px">
-  <div class="tile">
-    <div style="font-weight:700">1) 10 + 2 × 3</div>
-    <input id="q1" type="text" placeholder="Answer">
-    <div style="margin-top:6px"><button onclick="check('q1','16')">Check</button></div>
-    <div id="r1" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">2) (8 - 3) × 4</div>
-    <input id="q2" type="text" placeholder="Answer">
-    <div style="margin-top:6px"><button onclick="check('q2','20')">Check</button></div>
-    <div id="r2" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">3) 24 ÷ 6 + 2</div>
-    <input id="q3" type="text" placeholder="Answer">
-    <div style="margin-top:6px"><button onclick="check('q3','6')">Check</button></div>
-    <div id="r3" class="answer"></div>
-  </div>
-  <div class="tile">
-    <div style="font-weight:700">4) 5 × 3 + 4 ÷ 2</div>
-    <input id="q4" type="text" placeholder="Answer">
-    <div style="margin-top:6px"><button onclick="check('q4','17')">Check</button></div>
-    <div id="r4" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="challengeTitle">
-<h2 id="challengeTitle">Random Challenge</h2>
-<div class="controls" style="margin-top:10px;align-items:center">
-  <div style="font-size:1.2rem;font-weight:800" id="challengeQ">—</div>
-  <input id="challengeInput" type="text" placeholder="Answer">
-  <button id="challengeCheck">Check</button>
-  <button id="challengeNew" class="secondary">New Question</button>
-  <div id="challengeResult" class="answer"></div>
-</div>
-</section>
-
-<section aria-labelledby="speedTitle">
-<h2 id="speedTitle">⚡ Speed Quiz</h2>
-<div class="controls">
-  <label>Duration:
-    <select id="quizDuration">
-      <option value="30">30s</option>
-      <option value="60" selected>60s</option>
-      <option value="90">90s</option>
-    </select>
-  </label>
-  <button id="startQuiz" class="warn">Start Quiz</button>
-  <button id="stopQuiz" class="ghost">Stop</button>
-  <div class="muted" id="quizTimer">Time: 0</div>
-  <div id="quizScore" class="pill">Correct: 0</div>
-</div>
-<div style="margin-top:12px">
-  <div style="font-size:1.6rem;font-weight:800" id="quizQ">Press Start</div>
-  <div style="margin-top:8px" class="controls">
-    <input id="quizInput" type="text" placeholder="Answer">
-    <button id="quizCheck" class="secondary">Submit</button>
-    <div id="quizFeedback" class="answer"></div>
-  </div>
-</div>
-</section>
-
-<section aria-labelledby="csvTitle">
-<h2 id="csvTitle">Download CSV Log</h2>
-<p>Track all practice & quiz answers in a CSV file.</p>
-<button id="downloadCSVBtn" class="secondary">⬇️ Download CSV</button>
-</section>
-
-<footer>Tip: A common mistake is doing addition before division! Always check for multiplication/division first.</footer>
+  <div id="dynamic-content" class="content-card"></div>
 </main>
 
 <script>
-/* ===== Utilities ===== */
-const tone=(f=880,d=0.06)=>{try{const A=new (window.AudioContext||window.webkitAudioContext)();const o=A.createOscillator();const g=A.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.0001;o.connect(g);g.connect(A.destination);o.start();g.gain.exponentialRampToValueAtTime(0.12,A.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,A.currentTime+d);setTimeout(()=>{o.stop();A.close().catch(()=>{});},d*1000+50);}catch(e){}};
-function getAnswer(problem) {
-    try {
-        const expression = problem.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**');
-        return eval(expression).toString();
-    } catch (e) {
-        return null;
-    }
-}
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/* ===== Score & CSV ===== */
-let totalScore=0, streak=0, csvData=[];
-function updateScore(points,q='',a=''){if(points>0){ totalScore+=points; streak++;}else{streak=0;} document.getElementById('score').textContent=`Score: ${totalScore}`; document.getElementById('streak').textContent=`Streak: ${streak}`; if(q&&a)csvData.push([q,a]);}
-window.check = (inputId,correct)=>{const val=document.getElementById(inputId).value.trim(); const res=document.getElementById('r'+inputId.replace(/[^\d]/g,'')); if(val===correct){res.textContent='✅ Correct!'; res.className='answer ok'; tone(880,0.06); updateScore(1,document.getElementById(inputId).previousElementSibling.textContent,correct);}else{res.textContent=`❌ Wrong (Answer: ${correct})`; res.className='answer bad'; tone(220,0.06); updateScore(0,document.getElementById(inputId).previousElementSibling.textContent,correct);}}
-
-/* ===== Canvas Tutorial ===== */
-const canvas=document.getElementById('tutorialCanvas');
-const ctx=canvas.getContext('2d');
-ctx.font="30px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
-const speedInput=document.getElementById('videoSpeed');
-
-const problem = "2 × (5 + 3) - 10";
-
-function drawProblem(currentProblem, stepText, highlightOp = '', highlightIndex = -1) {
-    ctx.clearRect(0, 0, 800, 400);
-    ctx.font = "40px Arial";
-    
-    // Draw PEMDAS
-    const pemdas = ['P', 'E', 'M/D', 'A/S'];
-    const pemdasColors = ['#1d4ed8', '#000', '#000', '#000'];
-    let x = 150;
-    for(let i=0; i<pemdas.length; i++) {
-        if (i === 0 && highlightOp === 'P') pemdasColors[i] = '#16a34a';
-        if (i === 2 && (highlightOp === 'M' || highlightOp === 'D')) pemdasColors[i] = '#16a34a';
-        if (i === 3 && (highlightOp === 'A' || highlightOp === 'S')) pemdasColors[i] = '#16a34a';
-        
-        ctx.fillStyle = pemdasColors[i];
-        ctx.fillText(pemdas[i], x, 50);
-        x += 150;
-    }
-    
-    // Draw current problem string with highlighting
-    ctx.font = "50px Arial";
-    let currentX = 100;
-    const parts = currentProblem.split(/(\d+|\(|\)|\s|[+\-×÷])/).filter(p => p.trim() !== '');
-    
-    parts.forEach((part, index) => {
-        let color = '#000';
-        if (highlightIndex === index) {
-            color = '#ef4444';
-        }
-        ctx.fillStyle = color;
-        ctx.fillText(part, currentX, 200);
-        currentX += ctx.measureText(part).width + 10;
-    });
-
-    // Draw step text
-    ctx.font = "24px Arial";
-    ctx.fillStyle = "#1d4ed8";
-    ctx.fillText(stepText, 400, 350);
-}
-
-const tutorialSteps = [
-    { audio: "Our problem is 2 times, open parenthesis, 5 plus 3, close parenthesis, minus 10.", 
-      draw: () => drawProblem(problem, "Step 1: Parentheses") },
-    { audio: "According to PEMDAS, we first solve what's inside the parentheses: 5 + 3, which equals 8.", 
-      draw: () => drawProblem(problem, "Step 1: Parentheses", 'P', 3) },
-    { audio: "Now our problem is 2 times 8 minus 10.", 
-      draw: () => drawProblem("2 × 8 - 10", "Step 2: Multiplication/Division", 'M') },
-    { audio: "Next, we do multiplication and division from left to right. We have 2 times 8, which is 16.", 
-      draw: () => drawProblem("2 × 8 - 10", "Step 2: Multiplication/Division", 'M', 1) },
-    { audio: "Our problem is now 16 minus 10.", 
-      draw: () => drawProblem("16 - 10", "Step 3: Addition/Subtraction", 'S') },
-    { audio: "Finally, we do addition and subtraction from left to right. 16 minus 10 equals 6.", 
-      draw: () => drawProblem("16 - 10", "Step 3: Addition/Subtraction", 'S', 1) },
-    { audio: "The final answer is 6.", 
-      draw: () => { drawProblem("The final answer is 6", "You did it! 🎉", 'S', -1); } }
-];
-
-let tutorialIndex = 0;
-function playTutorialVideo(callback) {
-  tutorialIndex = 0;
-  const speed = parseFloat(speedInput.value) || 1;
-  function nextStep() {
-    if (tutorialIndex >= tutorialSteps.length) {
-      if (callback) callback();
-      return;
-    }
-    const step = tutorialSteps[tutorialIndex];
-    step.draw();
-    const utter = new SpeechSynthesisUtterance(step.audio);
-    utter.rate = speed;
-    utter.onend = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    utter.onerror = () => {
-      tutorialIndex++;
-      nextStep();
-    };
-    speechSynthesis.speak(utter);
+  // ---------------------------------------------------------
+  // 1. DATA CONFIGURATION & LESSON GENERATORS
+  // ---------------------------------------------------------
+  function makeInfo(title, text, btnText = "Acknowledge Directive") {
+    return `<h1>${title}</h1><p style="font-size:18px; line-height:1.6;">${text}</p><br><div style="text-align:center;"><button class="btn" onclick="submitSimple()">${btnText}</button></div>`;
   }
-  nextStep();
-}
-document.getElementById('playTutorial').addEventListener('click', () => playTutorialVideo());
 
-/* ===== Random Challenge ===== */
-function generateProblem() {
-    let problem, answer;
-    let operators = ['+', '-', '×', '÷'];
-    let num1 = getRandomInt(1, 15);
-    let num2 = getRandomInt(1, 10);
-    let num3 = getRandomInt(1, 5);
-    let op1 = operators[getRandomInt(0, 3)];
-    let op2 = operators[getRandomInt(0, 3)];
-    
-    // Simple two-op problems
-    problem = `${num1} ${op1} ${num2} ${op2} ${num3}`;
-    answer = getAnswer(problem);
+  function makeInput(title, concept, q, ans) {
+    return `<h1>${title}</h1><p style="font-size:16px; color:#636e72;">${concept}</p>
+            <div class="math-box"><span>${q}</span>
+            <input type="number" step="any" id="ans-input" class="math-input" placeholder="?">
+            <button class="btn" style="margin-left:20px;" onclick="submitInput(${ans})">Verify</button></div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-    // Add parentheses sometimes
-    if (Math.random() > 0.5) {
-        if (Math.random() > 0.5) {
-            problem = `(${num1} ${op1} ${num2}) ${op2} ${num3}`;
-            answer = getAnswer(problem);
-        } else {
-            problem = `${num1} ${op1} (${num2} ${op2} ${num3})`;
-            answer = getAnswer(problem);
-        }
-    }
+  function makeMCQ(title, concept, q, trueTxt, falseTxt, isTrueFirst) {
+    const correctMsg = "Correct! Logic protocol verified.";
+    const errorMsg = "Sequence error. Re-evaluate order.";
+    const btn1 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${trueTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${trueTxt}</button>`;
+    const btn2 = isTrueFirst 
+      ? `<button class="btn ans-btn" onclick="submitMCQ(false, '${errorMsg}')">${falseTxt}</button>` 
+      : `<button class="btn ans-btn" onclick="submitMCQ(true, '${correctMsg}')">${falseTxt}</button>`;
+    return `<h1>${title}</h1><p style="font-size:16px; color:#636e72;">${concept}</p>
+            <div class="math-box" style="font-size:22px; text-align:center;">${q}</div>
+            <div style="text-align:center; margin-top:20px;">${btn1}${btn2}</div>
+            <div id="fb-box" class="feedback-text"></div>`;
+  }
 
-    // Ensure answer is a whole number for simplicity
-    if (answer.indexOf('.') !== -1) {
-        return generateProblem();
-    }
-
-    return { q: problem, a: answer };
-}
-
-let currentCorrect = null;
-
-function newChallenge() {
-    const problem = generateProblem();
-    currentCorrect = problem.a;
-    document.getElementById('challengeQ').textContent = problem.q + ' = ?';
-    document.getElementById('challengeInput').value = '';
-    document.getElementById('challengeResult').textContent = '';
-}
-document.getElementById('challengeNew').addEventListener('click', newChallenge);
-document.getElementById('challengeCheck').addEventListener('click', () => {
-    const val = document.getElementById('challengeInput').value.trim();
-    const res = document.getElementById('challengeResult');
-    if (val === currentCorrect) {
-        res.textContent = '✅ Correct!';
-        res.className = 'answer ok';
-        tone(880, 0.06);
-        updateScore(1, document.getElementById('challengeQ').textContent, currentCorrect);
-    } else {
-        res.textContent = `❌ Wrong (Answer: ${currentCorrect})`;
-        res.className = 'answer bad';
-        tone(220, 0.06);
-        updateScore(0, document.getElementById('challengeQ').textContent, currentCorrect);
-    }
-});
-newChallenge();
-
-/* ===== Speed Quiz ===== */
-let quizTimerInt = null, quizTime = 0, quizScore = 0, currentQuiz = null;
-
-function newQuizQuestion() {
-    const problem = generateProblem();
-    currentQuiz = problem;
-    document.getElementById('quizQ').textContent = currentQuiz.q + ' = ?';
-    document.getElementById('quizInput').value = '';
-    document.getElementById('quizFeedback').textContent = '';
-}
-
-document.getElementById('startQuiz').addEventListener('click', () => {
-    quizTime = parseInt(document.getElementById('quizDuration').value, 10);
-    quizScore = 0;
-    document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-    newQuizQuestion();
-    clearInterval(quizTimerInt);
-    quizTimerInt = setInterval(() => {
-        quizTime--;
-        document.getElementById('quizTimer').textContent = `Time: ${quizTime}s`;
-        if (quizTime <= 0) {
-            clearInterval(quizTimerInt);
-            document.getElementById('quizQ').textContent = 'Time Up!';
-        }
-    }, 1000);
-});
-document.getElementById('stopQuiz').addEventListener('click', () => {
-    clearInterval(quizTimerInt);
-});
-document.getElementById('quizCheck').addEventListener('click', () => {
-    const val = document.getElementById('quizInput').value.trim();
-    const f = document.getElementById('quizFeedback');
-    if (val === currentQuiz.a) {
-        f.textContent = '✅ Correct!';
-        f.className = 'answer ok';
-        quizScore++;
-        document.getElementById('quizScore').textContent = `Correct: ${quizScore}`;
-        tone(880, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
-    } else {
-        f.textContent = `❌ Wrong (Answer: ${currentQuiz.a})`;
-        f.className = 'answer bad';
-        tone(220, 0.06);
-        csvData.push([currentQuiz.q, currentQuiz.a]);
-    }
-    if (quizTime > 0) newQuizQuestion();
-});
-
-/* ===== CSV Download ===== */
-document.getElementById('downloadCSVBtn').addEventListener('click', () => {
-    const csvContent = csvData.map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'pemdas_practice_log.csv'; a.click();
-    URL.revokeObjectURL(url);
-});
-</script>
-</body>
-</html>
+  const lessonData = [
+    // --- CORE PROTOCOLS ---
+    {
+      title: "1. 🎬 Briefing: The Universal Code", section: "Core Protocols",
+      html: `<h1>Briefing: The Order of Operations</h1>
+             <p>Welcome, Logician. In mathematics, if two people solve the exact same problem, they MUST get the same answer. To guarantee this, the world uses a master sequence called <strong>PEMDAS</strong> to decide which part of a math problem to solve first.</p>
+             <div class="video-container"><iframe src="https://www.youtube.com/embed/dAgfnK528RA" frameborder="0" allowfullscreen></iframe></div>
+             <div style="text-align:center;"><button
