@@ -1,15 +1,3 @@
-function errorNA() {
-    clearTimeout()
-    document.getElementById('naerror').style.display = 'block';
-    setTimeout(function(){
-        document.getElementById('naerror').classList.add('zoom-out');
-    }, 3000);
-    setTimeout(function(){
-        document.getElementById('naerror').classList.remove('zoom-out');
-        document.getElementById('naerror').style.display = 'none';
-    }, 3200);
-}
-
 function webedition(){
     resetSelected();
     resetDefault()
