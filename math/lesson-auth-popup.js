@@ -17,6 +17,7 @@
       .lesson-auth-signin { background: #9b59b6; color: #fff; }
       .lesson-auth-keep { background: #fff; color: #6c3483; }
       .lesson-auth-video-blocker { position: absolute; inset: 0; z-index: 20; width: 100%; height: 100%; border: 0; background: rgba(15,23,42,.82); color: #fff; font: 700 16px 'Segoe UI', sans-serif; cursor: pointer; }
+      body > footer { position: fixed; right: 0; bottom: 0; left: 0; width: 100%; z-index: 10; }
       @media (max-width: 480px) { .lesson-auth-actions { flex-direction: column-reverse; } .lesson-auth-actions button { width: 100%; } }
     `;
     document.head.appendChild(style);
