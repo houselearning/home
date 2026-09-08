@@ -11,12 +11,20 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase App
-let auth;
+let auth = null;
 let db = null;
 try {
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.firestore();
+    if (window.firebase) {
+        firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        if (typeof firebase.firestore === 'function') {
+            db = firebase.firestore();
+        } else {
+            console.warn('Firestore SDK is not loaded; notifications are disabled.');
+        }
+    } else {
+        console.warn('Firebase SDK not found; notifications are disabled.');
+    }
 } catch (error) {
     console.error("Firebase initialization failed:", error);
 }
@@ -202,6 +210,7 @@ function initNotificationsListener(uid) {
 
 // Function to update 'read' status
 window.markAsRead = (id) => {
+    if (!db || !id) return;
     db.collection('notifications').doc(id).update({ 
         read: true 
     }).catch(err => console.error("Error marking as read:", err));
@@ -262,6 +271,10 @@ document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
     signUpButton = createAuthUI();
 
+    if (!auth) {
+        return;
+    }
+
     auth.onAuthStateChanged(user => {
         if (user) {
             if (!profileContainer) {
@@ -273,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ui.modal.querySelector('#notifications-modal-close').onclick = () => ui.modal.classList.remove('show');
                 
                 ui.modal.querySelector('#notif-mark-all-read-modal').onclick = async () => {
+                    if (!db || latestNotifications.length === 0) return;
                     const batch = db.batch();
                     latestNotifications.filter(n => !n.read).forEach(n => batch.update(db.collection('notifications').doc(n.id), { read: true }));
                     await batch.commit();
