@@ -2,6 +2,7 @@
   const authUrl = 'https://houselearning.org/auth/';
   const firebaseConfig = { apiKey: 'AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw', authDomain: 'contract-center-llc-10.firebaseapp.com', projectId: 'contract-center-llc-10', storageBucket: 'contract-center-llc-10.firebasestorage.app', messagingSenderId: '323221512767', appId: '1:323221512767:web:6421260f875997dbf64e8a' };
   let popup;
+  let featurePopup;
   let currentUser = null;
 
   function injectStyles() {
@@ -17,6 +18,9 @@
       .lesson-auth-signin { background: #9b59b6; color: #fff; }
       .lesson-auth-keep { background: #fff; color: #6c3483; }
       .lesson-auth-video-blocker { position: absolute; inset: 0; z-index: 20; width: 100%; height: 100%; border: 0; background: rgba(15,23,42,.82); color: #fff; font: 700 16px 'Segoe UI', sans-serif; cursor: pointer; }
+      .interactive-video-button { display: block; width: 100%; margin-top: 16px; padding: 10px 12px; border: 1px solid rgba(255,255,255,.65); border-radius: 8px; background: rgba(255,255,255,.16); color: #fff; font: 700 13px 'Segoe UI', sans-serif; cursor: pointer; }
+      .interactive-video-button:hover:not(:disabled) { background: rgba(255,255,255,.28); }
+      .interactive-video-button:disabled { opacity: .58; cursor: not-allowed; }
       body > footer { position: fixed; right: 0; bottom: 0; left: 0; width: 100%; z-index: 10; }
       @media (max-width: 480px) { .lesson-auth-actions { flex-direction: column-reverse; } .lesson-auth-actions button { width: 100%; } }
     `;
@@ -50,6 +54,56 @@
     if (!popup) return;
     popup.remove();
     popup = null;
+  }
+
+  function showFeaturePopup() {
+    if (featurePopup) return;
+    featurePopup = document.createElement('div');
+    featurePopup.className = 'lesson-auth-overlay';
+    featurePopup.setAttribute('role', 'dialog');
+    featurePopup.setAttribute('aria-modal', 'true');
+    featurePopup.innerHTML = `
+      <div class="lesson-auth-dialog">
+        <button class="lesson-auth-close" type="button" aria-label="Close">&times;</button>
+        <h2>Coming soon!</h2>
+        <p>Interactive video lessons are being prepared for this lesson.</p>
+      </div>
+    `;
+    document.body.appendChild(featurePopup);
+    featurePopup.querySelector('.lesson-auth-close').onclick = () => {
+      featurePopup.remove();
+      featurePopup = null;
+    };
+  }
+
+  function initInteractiveVideoButton() {
+    const header = document.querySelector('.nav-header');
+    if (!header || header.querySelector('.interactive-video-button')) return;
+    const parts = location.pathname.split('/').filter(Boolean);
+    const subject = parts.includes('science') ? 'science' : 'math';
+    const lesson = (parts[parts.length - 1] || '').replace(/\.html$/, '');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'interactive-video-button';
+    button.textContent = 'Interactive Video Lesson';
+    button.disabled = !currentUser;
+    button.setAttribute('popup', 'true');
+    button.setAttribute('aria-disabled', String(!currentUser));
+    button.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
+    button.setAttribute('data-href', `/${subject}/interactive/${lesson}.html`);
+    button.onclick = event => {
+      event.preventDefault();
+      if (currentUser) showFeaturePopup();
+    };
+    header.appendChild(button);
+  }
+
+  function updateInteractiveVideoButton() {
+    const button = document.querySelector('.interactive-video-button');
+    if (!button) return;
+    button.disabled = !currentUser;
+    button.setAttribute('aria-disabled', String(!currentUser));
+    button.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
   }
 
   window.showLessonAuthPopup = showPopup;
@@ -112,9 +166,10 @@
       return;
     }
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    firebase.auth().onAuthStateChanged(user => { currentUser = user; if (user) { closePopup(); unblockVideoPlayback(); } else blockVideoPlayback(); });
+    firebase.auth().onAuthStateChanged(user => { currentUser = user; updateInteractiveVideoButton(); if (user) { closePopup(); unblockVideoPlayback(); } else blockVideoPlayback(); });
     document.addEventListener('click', blockUnsignedActions, true);
     blockVideoPlayback();
+    initInteractiveVideoButton();
   }
 
   injectStyles();
