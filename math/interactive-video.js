@@ -30,18 +30,37 @@
     if (!target.querySelector('.interactive-video-button')) {
       const parts = location.pathname.split('/').filter(Boolean);
       const lesson = (parts[parts.length - 1] || '').replace(/\.html$/, '');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'interactive-video-button';
-      button.textContent = 'Interactive Video Lesson';
-      button.setAttribute('popup', 'true');
-      button.setAttribute('data-href', `/math/interactive/${lesson}.html`);
-      target.insertBefore(button, target.firstChild);
-      button.onclick = event => { event.preventDefault(); if (currentUser) showPopup(); };
+      const href = `/math/interactive/${lesson}.html`;
+      const link = document.createElement('a');
+      link.className = 'interactive-video-button';
+      link.textContent = 'Interactive Video Lesson';
+      link.href = href;
+      link.setAttribute('data-href', href);
+      link.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
+      if (!currentUser) {
+        link.removeAttribute('href');
+        link.onclick = event => {
+          event.preventDefault();
+          showPopup();
+        };
+      }
+      target.insertBefore(link, target.firstChild);
     }
     const button = target.querySelector('.interactive-video-button');
-    button.disabled = !currentUser;
-    button.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
+    if (!currentUser) {
+      button.removeAttribute('href');
+      button.setAttribute('aria-disabled', 'true');
+      button.title = 'Sign in to enable this lesson';
+      button.onclick = event => {
+        event.preventDefault();
+        showPopup();
+      };
+    } else {
+      button.href = button.getAttribute('data-href');
+      button.setAttribute('aria-disabled', 'false');
+      button.title = 'Open the interactive video lesson';
+      button.onclick = null;
+    }
   }
 
   function load(src) {

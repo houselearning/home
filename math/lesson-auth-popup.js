@@ -56,54 +56,55 @@
     popup = null;
   }
 
-  function showFeaturePopup() {
-    if (featurePopup) return;
-    featurePopup = document.createElement('div');
-    featurePopup.className = 'lesson-auth-overlay';
-    featurePopup.setAttribute('role', 'dialog');
-    featurePopup.setAttribute('aria-modal', 'true');
-    featurePopup.innerHTML = `
-      <div class="lesson-auth-dialog">
-        <button class="lesson-auth-close" type="button" aria-label="Close">&times;</button>
-        <h2>Coming soon!</h2>
-        <p>Interactive video lessons are being prepared for this lesson.</p>
-      </div>
-    `;
-    document.body.appendChild(featurePopup);
-    featurePopup.querySelector('.lesson-auth-close').onclick = () => {
-      featurePopup.remove();
-      featurePopup = null;
-    };
-  }
-
   function initInteractiveVideoButton() {
     const header = document.querySelector('.nav-header');
     if (!header || header.querySelector('.interactive-video-button')) return;
     const parts = location.pathname.split('/').filter(Boolean);
     const subject = parts.includes('science') ? 'science' : 'math';
     const lesson = (parts[parts.length - 1] || '').replace(/\.html$/, '');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'interactive-video-button';
-    button.textContent = 'Interactive Video Lesson';
-    button.disabled = !currentUser;
-    button.setAttribute('popup', 'true');
-    button.setAttribute('aria-disabled', String(!currentUser));
-    button.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
-    button.setAttribute('data-href', `/${subject}/interactive/${lesson}.html`);
-    button.onclick = event => {
-      event.preventDefault();
-      if (currentUser) showFeaturePopup();
-    };
-    header.appendChild(button);
+    const href = `/${subject}/interactive/${lesson}.html`;
+    const link = document.createElement('a');
+    link.href = href;
+    link.className = 'interactive-video-button';
+    link.textContent = 'Interactive Video Lesson';
+    link.setAttribute('data-href', href);
+    link.setAttribute('aria-disabled', String(!currentUser));
+    link.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
+    if (!currentUser) {
+      link.removeAttribute('href');
+      link.onclick = event => {
+        event.preventDefault();
+        showPopup('Sign in to unlock the interactive video lesson.');
+      };
+    } else {
+      link.onclick = event => {
+        if (!link.href) {
+          event.preventDefault();
+          return;
+        }
+      };
+    }
+    header.appendChild(link);
   }
 
   function updateInteractiveVideoButton() {
     const button = document.querySelector('.interactive-video-button');
     if (!button) return;
-    button.disabled = !currentUser;
-    button.setAttribute('aria-disabled', String(!currentUser));
-    button.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
+    const href = button.getAttribute('data-href');
+    if (!currentUser) {
+      button.removeAttribute('href');
+      button.setAttribute('aria-disabled', 'true');
+      button.title = 'Sign in to enable this lesson';
+      button.onclick = event => {
+        event.preventDefault();
+        showPopup('Sign in to unlock the interactive video lesson.');
+      };
+    } else {
+      button.href = href;
+      button.setAttribute('aria-disabled', 'false');
+      button.title = 'Open the interactive video lesson';
+      button.onclick = null;
+    }
   }
 
   window.showLessonAuthPopup = showPopup;

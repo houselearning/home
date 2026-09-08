@@ -1,4 +1,22 @@
 (function () {
+  const ensureSharedLessonScripts = () => {
+    const scripts = [
+      'https://houselearning.org/cookiebanner.js',
+      '/feedback.js',
+      'https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js',
+      'https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js',
+      'https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js',
+      'https://houselearning.org/home/main.js'
+    ];
+    scripts.forEach(src => {
+      if (document.querySelector(`script[src="${src}"]`)) return;
+      const scriptTag = document.createElement('script');
+      scriptTag.src = src;
+      document.head.appendChild(scriptTag);
+    });
+  };
+
+  ensureSharedLessonScripts();
   const script = document.currentScript;
   const parts = location.pathname.split('/');
   const level = parts[parts.length - 2];
