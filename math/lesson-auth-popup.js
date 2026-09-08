@@ -62,7 +62,7 @@
     const parts = location.pathname.split('/').filter(Boolean);
     const subject = parts.includes('science') ? 'science' : 'math';
     const lesson = (parts[parts.length - 1] || '').replace(/\.html$/, '');
-    const href = `/${subject}/interactive/${lesson}.html`;
+    const href = `/home/${subject}/interactive/${lesson}.html`;
     const link = document.createElement('a');
     link.href = href;
     link.className = 'interactive-video-button';

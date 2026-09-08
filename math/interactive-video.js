@@ -30,7 +30,7 @@
     if (!target.querySelector('.interactive-video-button')) {
       const parts = location.pathname.split('/').filter(Boolean);
       const lesson = (parts[parts.length - 1] || '').replace(/\.html$/, '');
-      const href = `/math/interactive/${lesson}.html`;
+      const href = `/home/math/interactive/${lesson}.html`;
       const link = document.createElement('a');
       link.className = 'interactive-video-button';
       link.textContent = 'Interactive Video Lesson';
