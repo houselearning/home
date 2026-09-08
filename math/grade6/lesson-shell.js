@@ -14,6 +14,19 @@ const lessonCatalog = {
 const key = document.body.dataset.lesson;
 const lesson = lessonCatalog[key];
 const lessonID = `grade6_${key}_v2`;
+const grade6VideoByLesson = {
+  'absolute-value': 'zpln5ExhkyI',
+  'area-triangles-parallelograms': 'hm17lVaor0Q',
+  'expressions-equations': 'C_KffdI34ZU',
+  'integers-add-subtract': 'rubKHy5GRvo',
+  'integers-mult-div': 'd8lP5tR2R3Q',
+  'percent-problems': 'TvSKeTFsaj4',
+  'ratios-proportions': 'bIKmw0aTmYc',
+  'statistics-mean-median-mode': 'h8EYEJ32oQ8',
+  'unit-rates': 'qGTYSAeLTOE',
+  'volume-rectangular-prisms': 'EJTPGyWqhqc'
+};
+const lessonVideoId = grade6VideoByLesson[key];
 const stepMinutes = [2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2];
 const practiceBank = {
   'absolute-value': [['Find |-3|.', 3], ['Find |7|.', 7], ['Find |-12|.', 12], ['Evaluate -|-5|.', -5], ['Find |0|.', 0], ['Find |-9|.', 9], ['Which is greater: |-4| or |2|?', 4], ['How far is -4 from zero?', 4], ['Evaluate |6 - 10|.', 4], ['Give the positive distance represented by -11.', 11]],
@@ -64,8 +77,8 @@ function updateSidebar() { let completed = 0; lessonData.forEach((item, index) =
 function showPage(index, force = false) { if (index === lessonData.length - 1 && !currentUser) { if (window.showLessonAuthPopup) window.showLessonAuthPopup(); return; } if (!force && index > 0 && !stepsCompleted[`step_${index - 1}`]) return; currentStep = index; videoWatched = !!stepsCompleted.step_0; const box = document.getElementById('dynamic-content'); box.classList.remove('active'); const previous = index > 0 ? `<button class="btn secondary" onclick="showPage(${index - 1})">Back</button>` : '<span></span>'; const next = index < lessonData.length - 1 ? `<span class="muted">Complete this part to continue</span>` : '<span></span>'; box.innerHTML = `<div class="lesson-meta"><span>Part ${index + 1} of ${lessonData.length}</span><strong>About ${stepMinutes[index]} min</strong></div>${lessonData[index].html}<div class="lesson-actions">${previous}${next}</div>`; void box.offsetWidth; box.classList.add('active'); updateSidebar(); if (index === 0 && !stepsCompleted.step_0) initLessonVideo(); if (window.MathJax) MathJax.typesetPromise([box]); }
 function submitSimple() { saveStepProgress(currentStep, currentStep + 1); }
 function submitVideoBriefing() { if (videoWatched) saveStepProgress(currentStep, currentStep + 1); }
-function openLessonVideo() { window.open('https://www.youtube.com/watch?v=1O12A9cgIjY', '_blank', 'noopener'); videoWatched = true; const status = document.getElementById('video-status'); const button = document.getElementById('video-continue'); if (status) status.textContent = 'Video opened in a new tab. Return here after watching to continue.'; if (button) { button.disabled = false; button.textContent = 'I watched the video - continue'; } }
-function initLessonVideo() { const status = document.getElementById('video-status'); const button = document.getElementById('video-continue'); if (!status || !button) return; window.onYouTubeIframeAPIReady = () => { videoPlayer = new YT.Player('lesson-video', { videoId: '1O12A9cgIjY', playerVars: { rel: 0, modestbranding: 1 }, events: { onStateChange: event => { if (event.data === YT.PlayerState.ENDED) { videoWatched = true; status.textContent = 'Video complete. You may continue.'; status.style.color = 'var(--success)'; button.disabled = false; button.textContent = 'Continue to the next part'; } }, onError: () => { status.textContent = 'Embedded playback is unavailable here. Open the video on YouTube, watch it, then confirm.'; } } }); }; if (window.YT) window.onYouTubeIframeAPIReady(); else { const script = document.createElement('script'); script.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(script); } }
+function openLessonVideo() { window.open(`https://www.youtube.com/watch?v=${lessonVideoId}`, '_blank', 'noopener'); videoWatched = true; const status = document.getElementById('video-status'); const button = document.getElementById('video-continue'); if (status) status.textContent = 'Video opened in a new tab. Return here after watching to continue.'; if (button) { button.disabled = false; button.textContent = 'I watched the video - continue'; } }
+function initLessonVideo() { const status = document.getElementById('video-status'); const button = document.getElementById('video-continue'); if (!status || !button) return; window.onYouTubeIframeAPIReady = () => { videoPlayer = new YT.Player('lesson-video', { videoId: lessonVideoId, playerVars: { rel: 0, modestbranding: 1 }, events: { onStateChange: event => { if (event.data === YT.PlayerState.ENDED) { videoWatched = true; status.textContent = 'Video complete. You may continue.'; status.style.color = 'var(--success)'; button.disabled = false; button.textContent = 'Continue to the next part'; } }, onError: () => { status.textContent = 'Embedded playback is unavailable here. Open the video on YouTube, watch it, then confirm.'; } } }); }; if (window.YT) window.onYouTubeIframeAPIReady(); else { const script = document.createElement('script'); script.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(script); } }
 function submitMCQ(value, answer) { const fb = document.getElementById('fb-box'); if (String(value).toLowerCase() === String(answer).toLowerCase()) { fb.innerHTML = '<span style="color:var(--success);">Correct! Reasoning aligned.</span>'; setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 700); } else fb.innerHTML = '<span style="color:var(--error);">Incorrect. Recheck the definition and operation.</span>'; }
 function submitInput(answer) { const value = document.getElementById('ans-input').value.trim(); const fb = document.getElementById('fb-box'); if (value !== '' && Number(value) === Number(answer)) { fb.innerHTML = '<span style="color:var(--success);">✅ Verified! Calculation locked.</span>'; setTimeout(() => saveStepProgress(currentStep, currentStep + 1), 700); } else fb.innerHTML = '<span style="color:var(--error);">❌ Check the model, signs, and calculation.</span>'; }
 const practiceResults = {};
