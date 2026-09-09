@@ -1,5 +1,10 @@
 // also.js — FULL PLUGIN
 
+if (location.protocol === "file:") {
+  window.openLanguageModal = () => {};
+  console.info("[ALSO] Disabled for local file preview to avoid launcher UI conflicts.");
+} else {
+
 /* ==============================
    📦 FIREBASE IMPORTS
    ============================== */
@@ -167,10 +172,13 @@ function openLanguageModal() {
         <h2>Language Settings</h2>
         <select id="also-lang-select" style="width:100%;padding:6px;">
           <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-          <option value="de">German</option>
-          <option value="zh-CN">Chinese</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="zh-CN">中文</option>
+          <option value="tr">Türkçe</option>
+          <option value="pt">Português</option>
+          <option value="ja">日本語</option>
         </select>
         <button id="also-save" style="
           margin-top:12px;
@@ -191,12 +199,22 @@ function openLanguageModal() {
     applyTranslation(lang);
     modal.remove();
   };
+
+  const saved = localStorage.getItem("also-lang");
+  if (saved) {
+    const select = document.getElementById("also-lang-select");
+    if (select) select.value = saved;
+  }
 }
+
+window.openLanguageModal = openLanguageModal;
 
 /* ==============================
    🌐 FULL PAGE GOOGLE TRANSLATE + TAB
    ============================== */
 function applyTranslation(lang) {
+  document.documentElement.lang = lang || "en";
+
   if (lang === "en") {
     removeTranslationTab();
     return;
@@ -307,3 +325,5 @@ logPageOnce();
    ============================== */
 const savedLang = localStorage.getItem("also-lang");
 if (savedLang) applyTranslation(savedLang);
+
+}

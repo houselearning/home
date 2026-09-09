@@ -161,47 +161,58 @@ function dropdowntoggle(){
 }
 
 function resetSelected() {
-    document.getElementById('gtabs1').style.fontWeight = '';
-    document.getElementById('gtabs1').style.borderLeft = '';
-    document.getElementById('gtabs2').style.fontWeight = '';
-    document.getElementById('gtabs2').style.borderLeft = '';
-    document.getElementById('gtabs3').style.fontWeight = '';
-    document.getElementById('gtabs3').style.borderLeft = '';
-    document.getElementById('gtabs4').style.fontWeight = '';
-    document.getElementById('gtabs4').style.borderLeft = '';
-    document.getElementById('gtabs5').style.fontWeight = '';
-    document.getElementById('gtabs5').style.borderLeft = '';
-    document.getElementById('gtabs6').style.fontWeight = '';
-    document.getElementById('gtabs6').style.borderLeft = '';
-    document.getElementById('dropdown1').style.display = 'none';
-    document.getElementById('dropdown2').style.display = 'none';
-    document.getElementById('dropdown3').style.display = 'none';
-    document.getElementById('dropdown4').style.display = 'none';
-    document.getElementById('dropdown5').style.display = 'none';
-    document.getElementById('dropdown6').style.display = 'none';
-    document.getElementById('dropdown7').style.display = 'none';
-    document.getElementById('dropdown8').style.display = 'none';
-    document.getElementById('dropdown9').style.display = 'none';
-    document.getElementById('dropdown10').style.display = 'none';
-    document.getElementById('dropdown11').style.display = 'none';
-    document.getElementById('dropdown12').style.display = 'none';
-    document.getElementById('dropdown13').style.display = 'none';
+    const sidebarIds = ['gtabs1', 'gtabs2', 'gtabs3', 'gtabs4', 'gtabs5', 'gtabs6'];
+    sidebarIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.fontWeight = '';
+        el.style.borderLeft = '';
+    });
+
+    const dropdownIds = ['dropdown1', 'dropdown2', 'dropdown3', 'dropdown4', 'dropdown5', 'dropdown6', 'dropdown7', 'dropdown8', 'dropdown9', 'dropdown10', 'dropdown11', 'dropdown12', 'dropdown13'];
+    dropdownIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
 }
 
 function resetDefault() {
-    document.getElementById('drop').style.display = 'flex';
-    document.getElementById('mainbutton').classList.remove('playButton2');
-    document.getElementById('mainbutton').classList.add('playButton');
+    const drop = document.getElementById('drop');
+    const mainButton = document.getElementById('mainbutton');
+
+    if (drop) drop.style.display = 'flex';
+    if (mainButton) {
+        mainButton.classList.remove('playButton2');
+        mainButton.classList.add('playButton');
+    }
 }
 
-window.addEventListener("scroll", preventMotion, false);
-window.addEventListener("touchmove", preventMotion, false);
+document.addEventListener('DOMContentLoaded', function () {
+    const answerButtons = document.querySelectorAll('.hl-answer-option');
+    const feedback = document.querySelector('.hl-challenge-feedback');
 
-function preventMotion(event)
-{
-    window.scrollTo(0, 0);
-    event.preventDefault();
-    event.stopPropagation();
-}
+    answerButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const isCorrect = button.dataset.correct === 'true';
+            answerButtons.forEach((option) => {
+                option.disabled = true;
+                option.classList.toggle('is-correct', option.dataset.correct === 'true');
+            });
+
+            if (isCorrect) {
+                feedback.textContent = 'Correct! Want more challenges?';
+                feedback.classList.add('success');
+                const link = document.createElement('a');
+                link.href = '../../math-page.html';
+                link.className = 'hl-button inline';
+                link.textContent = 'Explore Math';
+                feedback.after(link);
+            } else {
+                feedback.textContent = 'Not quite—try counting the rows and columns.';
+                feedback.classList.add('error');
+            }
+        });
+    });
+});
 
 console.clear()

@@ -52,6 +52,259 @@ const GITHUB_URL = 'https://github.com/houselearning';
 function injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
+        :root {
+            --hl-bg: #f3f6fb;
+            --hl-bg-strong: #edf4ff;
+            --hl-surface: #ffffff;
+            --hl-surface-strong: #f8fbff;
+            --hl-surface-alt: #f4f8ff;
+            --hl-text: #1f2937;
+            --hl-text-soft: #5b6b7d;
+            --hl-border: rgba(31, 41, 55, 0.12);
+            --hl-primary: #facc15;
+            --hl-primary-strong: #f9d342;
+            --hl-primary-deep: #d9a300;
+            --hl-secondary: #61dafb;
+            --hl-secondary-strong: #2bb7eb;
+            --hl-secondary-deep: #1b5bb8;
+            --hl-navbar: #20232a;
+            --hl-navbar-soft: #2a3140;
+            --hl-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+            --hl-shadow-strong: 0 18px 42px rgba(15, 23, 42, 0.22);
+            --hl-button-text: #111827;
+        }
+
+        body {
+            background: linear-gradient(180deg, var(--hl-bg-strong), var(--hl-bg));
+            color: var(--hl-text);
+        }
+
+        body.dark-mode {
+            --hl-bg: #0d1320;
+            --hl-bg-strong: #101827;
+            --hl-surface: #171f2d;
+            --hl-surface-strong: #1d2940;
+            --hl-surface-alt: #101a2b;
+            --hl-text: #edf3ff;
+            --hl-text-soft: #a7b6ce;
+            --hl-border: rgba(148, 163, 184, 0.18);
+            --hl-primary: #facc15;
+            --hl-primary-strong: #f9d342;
+            --hl-primary-deep: #efb500;
+            --hl-secondary: #61dafb;
+            --hl-secondary-strong: #40c4ff;
+            --hl-secondary-deep: #a7dcff;
+            --hl-navbar: #121a24;
+            --hl-navbar-soft: #1d2a3a;
+            --hl-shadow: 0 18px 32px rgba(2, 6, 23, 0.36);
+            --hl-shadow-strong: 0 20px 42px rgba(2, 6, 23, 0.48);
+            --hl-button-text: #111827;
+        }
+
+        body,
+        .section,
+        .card,
+        .lesson-card,
+        .game-card,
+        .games-layout,
+        .games,
+        .sidebar,
+        .lesson-panel,
+        .container,
+        .container > * {
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        body,
+        .section,
+        .card,
+        .lesson-card,
+        .game-card,
+        .games,
+        .games-layout,
+        .sidebar,
+        .lesson-panel,
+        .content-wrapper,
+        .main-content,
+        .search-bar input,
+        .warped-search,
+        .search-input {
+            background-color: var(--hl-surface);
+            color: var(--hl-text);
+        }
+
+        .navbar,
+        .navbar-inner,
+        header,
+        .navbar-content {
+            background-color: var(--hl-navbar);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar a,
+        .navbar-content a,
+        .navbar-inner a,
+        .navbar a:visited,
+        .games a,
+        .section a,
+        .lesson-card a,
+        .game-card a,
+        .card a,
+        .hl-button,
+        .menu-link,
+        .games-layout a,
+        .games a:visited {
+            color: var(--hl-secondary-deep);
+        }
+
+        .navbar a:hover,
+        .navbar a:focus,
+        .games a:hover,
+        .section a:hover,
+        .lesson-card a:hover,
+        .game-card a:hover,
+        .card a:hover,
+        .hl-button:hover,
+        .games-layout a:hover {
+            color: var(--hl-button-text);
+        }
+
+        .navbar a,
+        .navbar-content a,
+        .navbar-inner a,
+        .games a,
+        .section a,
+        .lesson-card a,
+        .game-card a,
+        .card a,
+        .hl-button,
+        .games-layout a {
+            text-decoration: none;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .navbar a:hover,
+        .navbar a:focus,
+        .games a:hover,
+        .section a:hover,
+        .lesson-card a:hover,
+        .game-card a:hover,
+        .card a:hover,
+        .hl-button:hover,
+        .games-layout a:hover {
+            background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
+            border-color: rgba(17, 24, 39, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .card,
+        .game-card,
+        .lesson-card,
+        .section,
+        .games,
+        .games-layout,
+        .sidebar,
+        .lesson-panel,
+        .search-bar input,
+        .search-bar,
+        .game-card,
+        .lesson-card,
+        .card {
+            border: 1px solid var(--hl-border);
+            box-shadow: var(--hl-shadow);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: var(--hl-text);
+        }
+
+        .section h2,
+        .games-layout h1,
+        .games h2,
+        .games h3,
+        .lesson-card h3,
+        .game-card h3,
+        .card h2,
+        .card h3 {
+            color: var(--hl-secondary-deep);
+            border-color: var(--hl-primary);
+        }
+
+        body.dark-mode .section h2,
+        body.dark-mode .games-layout h1,
+        body.dark-mode .games h2,
+        body.dark-mode .lesson-card h3,
+        body.dark-mode .game-card h3,
+        body.dark-mode .card h2,
+        body.dark-mode .card h3 {
+            color: var(--hl-secondary);
+        }
+
+        .theme-switch-wrapper {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            padding: 6px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--hl-border);
+            box-shadow: var(--hl-shadow-strong);
+        }
+
+        body.dark-mode .theme-switch-wrapper {
+            background: rgba(17, 24, 39, 0.82);
+        }
+
+        .theme-switch-wrapper button {
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: transparent;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
+            color: var(--hl-text);
+        }
+
+        .theme-switch-wrapper button:hover,
+        .theme-switch-wrapper button:focus-visible {
+            background: rgba(97, 218, 251, 0.15);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .theme-switch-wrapper button[aria-pressed="true"] {
+            background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
+            color: var(--hl-button-text);
+            box-shadow: inset 0 -2px 0 rgba(17, 24, 39, 0.12);
+        }
+
+        .search-bar input,
+        .search-bar {
+            border: 1px solid var(--hl-border);
+            background: var(--hl-surface);
+            color: var(--hl-text);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--hl-secondary);
+            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.16);
+        }
+
         /* PFP & Sign Up Button */
         .profile-container { position: fixed; top: 15px; right: 20px; z-index: 2000; display: none; }
         #sign-up-btn { position: fixed; top: 18px; right: 20px; z-index: 2000; display: none; background-color: #61dafb; color: #20232a; padding: 8px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
@@ -91,6 +344,56 @@ function injectStyles() {
     `;
     document.head.appendChild(style);
 }
+
+function initThemeToggle() {
+    if (document.querySelector('.theme-switch-wrapper')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'theme-switch-wrapper';
+    wrapper.setAttribute('role', 'toolbar');
+    wrapper.setAttribute('aria-label', 'Theme switcher');
+    wrapper.innerHTML = `
+        <button type="button" data-theme="light" aria-pressed="false" title="Use light mode">☀️</button>
+        <button type="button" data-theme="dark" aria-pressed="false" title="Use dark mode">🌙</button>
+    `;
+
+    const buttons = wrapper.querySelectorAll('button');
+    const themeKey = 'houselearning_theme';
+
+    function applyTheme(theme) {
+        const isDark = theme === 'dark';
+        document.body.classList.toggle('dark-mode', isDark);
+        buttons.forEach((btn) => {
+            const selected = btn.dataset.theme === theme;
+            btn.setAttribute('aria-pressed', String(selected));
+        });
+    }
+
+    function readTheme() {
+        try {
+            return localStorage.getItem(themeKey) === 'dark' ? 'dark' : 'light';
+        } catch (error) {
+            return 'light';
+        }
+    }
+
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const nextTheme = btn.dataset.theme;
+            try {
+                localStorage.setItem(themeKey, nextTheme);
+            } catch (error) {}
+            applyTheme(nextTheme);
+        });
+    });
+
+    document.body.appendChild(wrapper);
+    applyTheme(readTheme());
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    initThemeToggle();
+});
 
 // ====================================================================
 // 2. UI CREATION
