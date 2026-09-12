@@ -397,13 +397,6 @@ function injectAssistantWidget() {
     if (document.querySelector('[data-hl-assistant-script]')) return;
 
     const currentPath = (window.location.pathname || '/').toLowerCase();
-    const isLessonPage = /\/(?:math|science)\//.test(currentPath)
-        || /(?:math-page|science-page|lesson|grade\d)/.test(currentPath)
-        || /\/math(?:\.html)?$/.test(currentPath)
-        || /\/science(?:\.html)?$/.test(currentPath);
-
-    if (isLessonPage) return;
-
     const siteOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? window.location.origin
         : 'https://houselearning.org';
@@ -474,9 +467,33 @@ function initThemeToggle() {
     applyTheme(readTheme());
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function initSharedSiteBootstrap() {
     initThemeToggle();
-});
+    injectAssistantWidget();
+
+    const bodyTarget = document.body || document.documentElement;
+    if (bodyTarget && !bodyTarget.dataset.hlAssistantObserver) {
+        bodyTarget.dataset.hlAssistantObserver = 'true';
+        const observer = new MutationObserver(() => {
+            if (!document.querySelector('.hl-assistant')) {
+                injectAssistantWidget();
+            }
+        });
+        observer.observe(bodyTarget, { childList: true, subtree: true });
+    }
+
+    window.setTimeout(() => {
+        if (!document.querySelector('.hl-assistant')) {
+            injectAssistantWidget();
+        }
+    }, 1500);
+}
+
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initSharedSiteBootstrap, { once: true });
+} else {
+    initSharedSiteBootstrap();
+}
 
 // ====================================================================
 // 2. UI CREATION
@@ -693,7 +710,9 @@ function checkReminder(notifications) {
 // ====================================================================
 document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
-    injectAssistantWidget();
+    if (!document.querySelector('[data-hl-assistant-script]')) {
+        injectAssistantWidget();
+    }
     signUpButton = createAuthUI();
 
     if (!auth) {
