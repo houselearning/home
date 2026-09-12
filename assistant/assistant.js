@@ -3,6 +3,12 @@
   const DEFAULT_LANG = 'en';
   const ASSISTANT_VERSION = '1.1.0';
 
+  function getHouseLearningHomeUrl() {
+    return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:8000/home'
+      : 'https://houselearning.org/home';
+  }
+
   function scriptBaseUrl() {
     const candidates = [];
     const path = window.location.pathname || '/';
@@ -99,6 +105,8 @@
 
   async function defaultAssistantBackend(message, context = {}) {
     const text = safeText(message);
+    const safeAiEnabled = window.HLAssistantSafeAI ? window.HLAssistantSafeAI.isEnabled() : true;
+
     if (!text) {
       return {
         text: context.translations?.responseFallback || 'I can help you explore HouseLearning lessons, math, science, and coding. Try asking for a topic or choose one of the suggestions.',
@@ -110,6 +118,13 @@
     const session = context.session || null;
     const topicText = session && session.activeTopic ? session.activeTopic : '';
     const suggestions = (context.recommendations || []).slice(0, 4);
+
+    if (safeAiEnabled && /\b(hack|bypass|exploit|malware|weapon|self-harm|suicide|violent attack|bomb|illegal drug|buy drugs)\b/i.test(text)) {
+      return {
+        text: 'I can help with school-friendly, safe learning topics. Let’s focus on math, science, coding, or a lesson you are studying.',
+        suggestions: []
+      };
+    }
 
     let answer = context.translations?.responseFallback || 'I can help you find a topic to explore on HouseLearning.';
 
@@ -285,20 +300,21 @@
 
     function buildQuickSuggestions() {
       const subject = getSubjectContext(window.location.pathname || window.location.href);
+      const homePage = getHouseLearningHomeUrl();
       const defaultPrompts = strings.defaultPrompts || {};
       const generated = [
-        { title: defaultPrompts.lesson || 'Find a lesson', url: 'https://www.houselearning.org/' },
-        { title: defaultPrompts.math || 'Help me with math', url: 'https://www.houselearning.org/' },
-        { title: defaultPrompts.coding || 'Learn coding', url: 'https://www.houselearning.org/computerscience/' },
-        { title: defaultPrompts.science || 'Explore science', url: 'https://www.houselearning.org/science-page.html' }
+        { title: defaultPrompts.lesson || 'Find a lesson', url: homePage },
+        { title: defaultPrompts.math || 'Help me with math', url: `${homePage}/math-page.html` },
+        { title: defaultPrompts.coding || 'Learn coding', url: 'https://houselearning.org/computer-science-page.html' },
+        { title: defaultPrompts.science || 'Explore science', url: 'https://houselearning.org/science-page.html' }
       ];
 
       if (subject === 'math') {
-        generated[1].url = 'https://www.houselearning.org/math-page.html';
+        generated[1].url = 'https://houselearning.org/math-page.html';
       } else if (subject === 'coding') {
-        generated[2].url = 'https://www.houselearning.org/computer-science-page.html';
+        generated[2].url = 'https://houselearning.org/computer-science-page.html';
       } else if (subject === 'science') {
-        generated[3].url = 'https://www.houselearning.org/science-page.html';
+        generated[3].url = 'https://houselearning.org/science-page.html';
       }
 
       return generated;
@@ -614,6 +630,35 @@
 
     start();
   }
+
+  function createSafeAIController() {
+    const SAFE_AI_KEY = 'houselearning_safeai_enabled';
+    function isEnabled() {
+      try {
+        const value = localStorage.getItem(SAFE_AI_KEY);
+        if (value === null) return true;
+        return value !== 'false';
+      } catch (_error) {
+        return true;
+      }
+    }
+
+    function setEnabled(enabled) {
+      try {
+        localStorage.setItem(SAFE_AI_KEY, String(Boolean(enabled)));
+      } catch (_error) {
+        // ignore storage failures
+      }
+    }
+
+    window.HLAssistantSafeAI = {
+      isEnabled,
+      setEnabled,
+      getStatus: isEnabled
+    };
+  }
+
+  createSafeAIController();
 
   window.HouseLearningAssistant = {
     init,

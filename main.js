@@ -324,6 +324,54 @@ function injectStyles() {
         .logout-container { padding: 15px 25px; border-top: 1px solid #f0f0f0; }
         #logout-dropdown-btn { background-color: #f8f8f8; color: #333; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid #ccc; width: 100%; }
 
+        .safeai-setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 25px;
+            color: #555;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .safeai-toggle {
+            position: relative;
+            width: 42px;
+            height: 24px;
+            display: inline-block;
+        }
+        .safeai-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .safeai-toggle .slider {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: #d1d5db;
+            transition: background 0.2s ease;
+        }
+        .safeai-toggle .slider::before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+        .safeai-toggle input:checked + .slider {
+            background: #34d399;
+        }
+        .safeai-toggle input:checked + .slider::before {
+            transform: translateX(18px);
+        }
+
         /* Notifications */
         .notif-badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #ff3b30; color: white; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
         .notif-dot { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: #ff3b30; display: none; }
@@ -348,25 +396,20 @@ function injectStyles() {
 function injectAssistantWidget() {
     if (document.querySelector('[data-hl-assistant-script]')) return;
 
-    const candidateBases = [];
-    const currentPath = window.location.pathname || '/';
-    if (currentPath.includes('/home')) candidateBases.push('/home');
-    candidateBases.push('');
-    const uniqueBases = [...new Set(candidateBases)];
+    const currentPath = (window.location.pathname || '/').toLowerCase();
+    const isLessonPage = /\/(?:math|science)\//.test(currentPath)
+        || /(?:math-page|science-page|lesson|grade\d)/.test(currentPath)
+        || /\/math(?:\.html)?$/.test(currentPath)
+        || /\/science(?:\.html)?$/.test(currentPath);
 
-    const resolveAssetUrl = (filename) => {
-        for (const base of uniqueBases) {
-            const candidate = `${base}/assistant/${filename}`;
-            if (candidate === '/assistant/assistant.js' || candidate === '/home/assistant/assistant.js' || candidate === '/assistant/assistant.css' || candidate === '/home/assistant/assistant.css') {
-                return candidate;
-            }
-            return candidate;
-        }
-        return '/assistant/assistant.js';
-    };
+    if (isLessonPage) return;
 
-    const scriptUrl = resolveAssetUrl('assistant.js');
-    const cssUrl = resolveAssetUrl('assistant.css');
+    const siteOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? window.location.origin
+        : 'https://houselearning.org';
+
+    const scriptUrl = `${siteOrigin}/assistant/assistant.js`;
+    const cssUrl = `${siteOrigin}/assistant/assistant.css`;
 
     if (!document.querySelector(`link[href="${cssUrl}"]`)) {
         const cssLink = document.createElement('link');
@@ -467,10 +510,48 @@ function createProfileUI(userPhotoURL, userName) {
                 <span class="dropdown-username">${userName}</span>
             </div>
             <a href="https://houselearning.org/auth/dashboard" class="menu-link">Dashboard</a>
+            <div class="safeai-setting-row">
+                <span>SafeAI</span>
+                <label class="safeai-toggle" aria-label="Toggle SafeAI">
+                    <input id="safeai-toggle" type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
             <a href="#" id="notifications-btn" class="menu-link">Notifications <span id="notif-count-inline" class="notif-badge" style="display:none; margin-left:8px;">0</span></a>
             <div class="logout-container"><button id="logout-dropdown-btn">Sign out</button></div>
         </div>
     `;
+
+    const safeAiToggle = container.querySelector('#safeai-toggle');
+    const safeAiKey = 'houselearning_safeai_enabled';
+
+    function readSafeAiPreference() {
+        try {
+            const value = localStorage.getItem(safeAiKey);
+            if (value === null) return true;
+            return value !== 'false';
+        } catch (_error) {
+            return true;
+        }
+    }
+
+    function writeSafeAiPreference(enabled) {
+        try {
+            localStorage.setItem(safeAiKey, String(enabled));
+        } catch (_error) {
+            // ignore storage failures
+        }
+        if (window.HLAssistantSafeAI && typeof window.HLAssistantSafeAI.setEnabled === 'function') {
+            window.HLAssistantSafeAI.setEnabled(Boolean(enabled));
+        }
+    }
+
+    if (safeAiToggle) {
+        safeAiToggle.checked = readSafeAiPreference();
+        safeAiToggle.addEventListener('change', () => {
+            writeSafeAiPreference(safeAiToggle.checked);
+        });
+    }
 
     const modal = document.createElement('div');
     modal.id = 'notifications-modal-overlay';
