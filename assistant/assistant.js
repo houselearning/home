@@ -614,7 +614,9 @@
     }
     updateActiveContext();
     refreshSuggestions(state.session.activeTopic || 'lesson');
-    toggleOpen(true);
+    state.open = true;
+    assistantRoot.setAttribute('data-open', 'true');
+    orb.setAttribute('aria-expanded', 'true');
 
     if (state.session && state.session.messages && state.session.messages.length) {
       state.session.messages.forEach((item) => {
