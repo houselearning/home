@@ -345,6 +345,44 @@ function injectStyles() {
     document.head.appendChild(style);
 }
 
+function injectAssistantWidget() {
+    if (document.querySelector('[data-hl-assistant-script]')) return;
+
+    const candidateBases = [];
+    const currentPath = window.location.pathname || '/';
+    if (currentPath.includes('/home')) candidateBases.push('/home');
+    candidateBases.push('');
+    const uniqueBases = [...new Set(candidateBases)];
+
+    const resolveAssetUrl = (filename) => {
+        for (const base of uniqueBases) {
+            const candidate = `${base}/assistant/${filename}`;
+            if (candidate === '/assistant/assistant.js' || candidate === '/home/assistant/assistant.js' || candidate === '/assistant/assistant.css' || candidate === '/home/assistant/assistant.css') {
+                return candidate;
+            }
+            return candidate;
+        }
+        return '/assistant/assistant.js';
+    };
+
+    const scriptUrl = resolveAssetUrl('assistant.js');
+    const cssUrl = resolveAssetUrl('assistant.css');
+
+    if (!document.querySelector(`link[href="${cssUrl}"]`)) {
+        const cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = cssUrl;
+        cssLink.setAttribute('data-hl-assistant-script', 'true');
+        document.head.appendChild(cssLink);
+    }
+
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.defer = true;
+    script.setAttribute('data-hl-assistant-script', 'true');
+    document.head.appendChild(script);
+}
+
 function initThemeToggle() {
     if (document.querySelector('.theme-switch-wrapper')) return;
 
@@ -572,6 +610,7 @@ function checkReminder(notifications) {
 // ====================================================================
 document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
+    injectAssistantWidget();
     signUpButton = createAuthUI();
 
     if (!auth) {
