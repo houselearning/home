@@ -14,7 +14,8 @@ import {
 import {
   getDatabase,
   ref,
-  push
+  push,
+  get
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 if (location.protocol === "file:") {
@@ -48,7 +49,10 @@ const state = {
    ============================== */
 let app;
 
-if (getApps().length > 0) {
+if (window.firebase && window.firebase.apps && window.firebase.apps.length) {
+  app = window.firebase.app();
+  console.log("[ALSO] Reusing existing Firebase app from the global scope");
+} else if (getApps().length > 0) {
   app = getApp();
   console.log("[ALSO] Using existing Firebase app");
 } else {
@@ -292,23 +296,21 @@ function removeTranslationTab() {
 function logPageOnce() {
   try {
     const pageURL = window.location.href;
-    // create a key-safe ID for this page
-    const pageKey = "log-" + btoa(pageURL).replace(/=/g, ""); // base64 encode + remove =
-
+    const pageKey = "log-" + btoa(pageURL).replace(/=/g, "");
     const pageRef = ref(db, "AlsoJsPageLogs/" + pageKey);
 
-    // Check if it already exists
-    pageRef.get
-      ? pageRef.get().then((snapshot) => {
-          if (!snapshot.exists()) {
-            // Page not logged yet → log it
-            push(ref(db, "AlsoJsPageLogs/" + pageKey), {
-              pageURL: pageURL,
-              dateLogged: new Date().toISOString()
-            });
-          }
-        })
-      : console.warn("[ALSO] Your Firebase SDK might not support get() in this way");
+    get(pageRef)
+      .then((snapshot) => {
+        if (!snapshot.exists()) {
+          push(ref(db, "AlsoJsPageLogs/" + pageKey), {
+            pageURL: pageURL,
+            dateLogged: new Date().toISOString()
+          });
+        }
+      })
+      .catch((e) => {
+        console.warn("[ALSO] Failed to log page once", e);
+      });
   } catch (e) {
     console.warn("[ALSO] Failed to log page once", e);
   }

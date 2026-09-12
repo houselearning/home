@@ -408,37 +408,23 @@ function injectAssistantWidget() {
         ? window.location.origin
         : 'https://houselearning.org';
 
-    const rootCandidates = [`${siteOrigin}/assistant`, `${siteOrigin}/home/assistant`, `${siteOrigin}/home`, `${siteOrigin}`]
-        .filter((value, index, array) => value && array.indexOf(value) === index);
+    const assetBase = currentPath.includes('/home')
+        ? `${siteOrigin}/home/assistant`
+        : `${siteOrigin}/assistant`;
 
-    const cssCandidates = rootCandidates.map((root) => `${root}/assistant.css`);
-    const scriptCandidates = rootCandidates.map((root) => `${root}/assistant.js`);
-
-    const cssUrl = cssCandidates[0];
+    const cssUrl = `${assetBase}/assistant.css`;
     if (!document.querySelector(`link[href="${cssUrl}"]`)) {
         const cssLink = document.createElement('link');
         cssLink.rel = 'stylesheet';
         cssLink.href = cssUrl;
         cssLink.setAttribute('data-hl-assistant-script', 'true');
-        cssLink.onerror = () => {
-            const nextUrl = cssCandidates.find((candidate) => candidate !== cssLink.href);
-            if (nextUrl) {
-                cssLink.href = nextUrl;
-            }
-        };
         document.head.appendChild(cssLink);
     }
 
     const script = document.createElement('script');
-    script.src = scriptCandidates[0];
+    script.src = `${assetBase}/assistant.js`;
     script.defer = true;
     script.setAttribute('data-hl-assistant-script', 'true');
-    script.onerror = () => {
-        const nextUrl = scriptCandidates.find((candidate) => candidate !== script.src);
-        if (nextUrl) {
-            script.src = nextUrl;
-        }
-    };
     document.head.appendChild(script);
 }
 

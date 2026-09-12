@@ -10,19 +10,9 @@
   }
 
   function scriptBaseUrl() {
-    const currentScriptUrl = document.currentScript && document.currentScript.src
-      ? new URL(document.currentScript.src, window.location.href).href
-      : window.location.href;
-
     const origin = new URL(window.location.href).origin;
-    const candidates = [
-      currentScriptUrl.includes('/home/') ? currentScriptUrl.replace(/\/assistant\.js$/, '').replace(/\/$/, '') : '',
-      `${origin}/assistant`,
-      `${origin}/home/assistant`,
-      `${origin}/home`
-    ].filter(Boolean);
-
-    return candidates[0] || '/assistant';
+    const path = new URL(window.location.href).pathname.toLowerCase();
+    return path.includes('/home') ? `${origin}/home/assistant` : `${origin}/assistant`;
   }
 
   function ensureCss() {
