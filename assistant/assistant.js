@@ -724,8 +724,16 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'hl-assistant-suggestion';
-        button.textContent = item.title || item.url;
-        button.setAttribute('aria-label', `Open ${item.title || item.url}`);
+
+        const displayTitle = (item.title && typeof item.title === 'string' && item.title.trim() && !/^https?:\/\//i.test(item.title))
+          ? item.title.trim()
+          : (item.url ? safeTitleFromUrl(item.url) : 'HouseLearning');
+
+        button.innerHTML = `
+          <span class="hl-assistant-suggestion-title">${sanitizeHtml(displayTitle)}</span>
+          ${item.url ? `<span class="hl-assistant-suggestion-url">${sanitizeHtml(item.url.replace(/^https?:\/\//i, ''))}</span>` : ''}
+        `;
+        button.setAttribute('aria-label', `Open ${displayTitle}`);
         button.addEventListener('click', () => {
           if (item.url) {
             window.location.href = item.url;

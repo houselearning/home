@@ -65,13 +65,32 @@
   function safeTitleFromUrl(url) {
     try {
       const pathname = new URL(url).pathname.replace(/\/+$/, '') || '/';
-      const parts = pathname.split('/').filter(Boolean);
-      if (!parts.length) return 'HouseLearning';
-      return parts
-        .map((part) => part.replace(/[-_]/g, ' '))
-        .join(' ')
+      const resource = pathname.split('/').filter(Boolean).pop() || 'home';
+      const cleaned = resource
+        .replace(/index\.html$/i, '')
+        .replace(/\.html$/i, '')
+        .replace(/[-_]/g, ' ')
+        .replace(/\bpage\b/gi, '')
         .replace(/\s+/g, ' ')
         .trim();
+
+      const titleMap = {
+        'home': 'HouseLearning',
+        'about': 'About',
+        'blog': 'Blog',
+        'games': 'Games',
+        'math': 'Math Lessons',
+        'science': 'Science Lessons',
+        'computer science': 'Computer Science',
+        'computer-science': 'Computer Science',
+        'computer science page': 'Computer Science',
+        'science page': 'Science Lessons',
+        'math page': 'Math Lessons'
+      };
+
+      const mapped = titleMap[cleaned.toLowerCase()] || cleaned;
+      if (!mapped || mapped === 'home') return 'HouseLearning';
+      return mapped.replace(/\b\w/g, (char) => char.toUpperCase());
     } catch (_error) {
       return 'HouseLearning';
     }
