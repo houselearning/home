@@ -105,6 +105,63 @@
     }[char]));
   }
 
+  function renderMarkdownText(value) {
+    const rawText = String(value || '').replace(/\r\n/g, '\n').trim();
+    if (!rawText) return '';
+
+    const escaped = sanitizeHtml(rawText);
+    const blocks = escaped.split(/\n\s*\n/).filter(Boolean);
+
+    return blocks.map((block) => {
+      let html = block.replace(/\n/g, '<br>');
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+      const listItems = html.split(/<br>\s*(?=[*-]\s+)/g).map((item) => item.trim()).filter(Boolean);
+      const hasList = listItems.some((item) => /^[-*]\s+/.test(item.replace(/<[^>]+>/g, '')));
+      if (hasList) {
+        const items = listItems
+          .map((item) => item.replace(/^[-*]\s+/, '').trim())
+          .filter(Boolean)
+          .map((item) => `<li>${item}</li>`)
+          .join('');
+        return `<ul>${items}</ul>`;
+      }
+
+      return `<p>${html}</p>`;
+    }).join('');
+  }
+
+  function getDefaultAssistantPosition() {
+    return { x: 20, y: 18 };
+  }
+
+  function readAssistantPositionCookie() {
+    try {
+      const cookieString = document.cookie.split('; ').find((entry) => entry.startsWith('hl_assistant_position='));
+      if (!cookieString) return getDefaultAssistantPosition();
+      const rawValue = decodeURIComponent(cookieString.split('=')[1] || '{}');
+      const parsed = JSON.parse(rawValue);
+      if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+        return { x: parsed.x, y: parsed.y };
+      }
+    } catch (_error) {
+      // Ignore invalid saved position cookies.
+    }
+    return getDefaultAssistantPosition();
+  }
+
+  function writeAssistantPositionCookie(x, y) {
+    try {
+      document.cookie = `hl_assistant_position=${encodeURIComponent(JSON.stringify({ x, y }))}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    } catch (_error) {
+      // Ignore cookie write failures.
+    }
+  }
+
   function getSubjectContext(currentUrl) {
     const path = (currentUrl || window.location.pathname || '').toLowerCase();
     if (path.includes('/math')) return 'math';
@@ -177,6 +234,7 @@
   async function defaultAssistantBackend(message, context = {}) {
     const text = safeText(message);
     const safeAiEnabled = window.HLAssistantSafeAI ? window.HLAssistantSafeAI.isEnabled() : true;
+    const requestedLanguage = context.language || 'en';
 
     if (!text) {
       return {
@@ -184,6 +242,13 @@
         suggestions: []
       };
     }
+
+    const localizedFallbacks = {
+      en: 'I can help you explore HouseLearning lessons, math, science, and coding. Try asking for a topic or choose one of the suggestions.',
+      es: 'Puedo ayudarte a explorar lecciones de HouseLearning, matemáticas, ciencia y programación. Prueba preguntando por un tema o elige una sugerencia.',
+      tr: 'HouseLearning derslerini, matematiği, bilimi ve kodlamayı keşfetmene yardımcı olabilirim. Bir konu sor veya önerilerden birini seç.',
+      pt: 'Posso ajudar você a explorar aulas do HouseLearning, matemática, ciência e programação. Tente perguntar por um tema ou escolher uma sugestão.'
+    };
 
     const normalized = text.toLowerCase();
     const session = context.session || null;
@@ -193,6 +258,8 @@
     const subject = pageSubject || 'general';
     const pageTitle = (page.title || session?.currentPage?.title || document.title || 'this page').trim();
     const suggestions = (context.recommendations || []).slice(0, 4);
+
+    const fallbackText = localizedFallbacks[requestedLanguage] || localizedFallbacks.en;
 
     if (safeAiEnabled && /\b(hack|bypass|exploit|malware|weapon|self-harm|suicide|violent attack|bomb|illegal drug|buy drugs)\b/i.test(text)) {
       return {
@@ -206,9 +273,75 @@
     const asksForHelp = /(help|stuck|confused|can you help|how do i|how to)/i.test(normalized);
     const isGreeting = /^(hi|hello|hey|good morning|good afternoon|good evening)/i.test(normalized);
 
-    let answer = context.translations?.responseFallback || 'I can help you find a topic to explore on HouseLearning.';
+    let answer = context.translations?.responseFallback || fallbackText;
 
-    if (isGreeting) {
+    if (requestedLanguage === 'es') {
+      if (isGreeting) {
+        answer = `¡Hola! Puedo ayudarte con ${subject === 'general' ? 'matemáticas, ciencia, programación y actividades de aprendizaje' : subject + ' temas'}. ¿Qué quieres explorar hoy?`;
+      } else if (subject === 'math' && (normalized.includes('fraction') || normalized.includes('fractions'))) {
+        answer = 'Las fracciones son partes de un todo. Una forma fácil de pensarlo es: el numerador indica cuántas partes tienes, y el denominador indica en cuántas partes iguales se divide el total. Intenta dibujar una pizza o una barra y compara las partes.';
+      } else if (subject === 'math' && (normalized.includes('algebra') || normalized.includes('equation') || normalized.includes('solve'))) {
+        answer = 'Para resolver álgebra, aísla la variable paso a paso. Simplifica ambos lados, mueve términos a un lado y luego divide o multiplica para dejar la variable sola. Comprueba la respuesta sustituyéndola de nuevo.';
+      } else if (subject === 'coding' || normalized.includes('python') || normalized.includes('coding') || normalized.includes('programming')) {
+        answer = 'Un buen hábito de programación es: define el problema, divídelo en pasos, escribe una prueba pequeña y luego construye el código por partes simples. Si aprendes Python, empieza con variables, bucles y condiciones antes de proyectos grandes.';
+      } else if (subject === 'science' || normalized.includes('science') || normalized.includes('biology') || normalized.includes('physics') || normalized.includes('chemistry')) {
+        answer = 'La ciencia funciona mejor cuando observas, haces preguntas y buscas evidencia. Intenta explicar lo que notas, hacer una predicción y luego probarla con un ejemplo simple o una comparación.';
+      } else if (asksForPractice) {
+        answer = `Aquí tienes un desafío rápido para ${topicText}: 1) explica la idea con tus palabras, 2) intenta un ejemplo, 3) comprueba si la respuesta tiene sentido. Si quieres, puedo convertirlo en una práctica corta.`;
+      } else if (asksForExplain) {
+        answer = `Aquí tienes una explicación simple para ${topicText}: empieza con la idea principal, da un ejemplo cotidiano y luego conéctalo con la lección en ${pageTitle}. Eso hace que el concepto sea más fácil de recordar.`;
+      } else if (asksForHelp) {
+        answer = `Desglosemos esto. Primero, identifica la idea clave en ${topicText}. Luego busca la parte que te confunde. Después intenta un ejemplo pequeño antes de resolver el problema completo. Eso suele aclarar el siguiente paso.`;
+      } else if (session && session.currentPage && session.currentPage.title) {
+        answer = `Estás en ${session.currentPage.title}. Un siguiente paso útil es enfocarte en ${topicText || 'tu lección actual'}, resumir la idea principal en una frase y luego intentar un ejemplo o problema sencillo.`;
+      } else if (normalized.includes('lesson') || normalized.includes('learn')) {
+        answer = 'Puedo ayudarte a elegir un buen siguiente paso. Empieza por el tema que quieres entender, luego busca un ejemplo, una definición clave y un problema de práctica para poner a prueba lo aprendido.';
+      }
+    } else if (requestedLanguage === 'tr') {
+      if (isGreeting) {
+        answer = `Merhaba! ${subject === 'general' ? 'matematik, bilim, kodlama ve öğrenme etkinlikleri' : subject + ' konuları'} hakkında sana yardımcı olabilirim. Bugün neyi keşfetmek istiyorsun?`;
+      } else if (subject === 'math' && (normalized.includes('fraction') || normalized.includes('fractions'))) {
+        answer = 'Kesirler bir bütünün parçalarıdır. Bunu düşünmenin kolay yolu: pay kaç parça aldığını, payda ise bütünün kaç eşit parçaya bölündüğünü söyler. Bir pizza veya çubuk modeli çizip parçaları karşılaştırmayı deneyin.';
+      } else if (subject === 'math' && (normalized.includes('algebra') || normalized.includes('equation') || normalized.includes('solve'))) {
+        answer = 'Cebiri çözmek için değişkeni adım adım izole et. Her iki tarafı da sadeleştir, terimleri bir tarafa taşı ve sonra değişkeni yalnız bırakmak için böl veya çarp. Cevabını yerine koyarak kontrol et.';
+      } else if (subject === 'coding' || normalized.includes('python') || normalized.includes('coding') || normalized.includes('programming')) {
+        answer = 'İyi bir kodlama alışkanlığı şudur: problemi tanımla, adımlara ayır, küçük bir test yaz ve sonra kodu basit parçalara göre oluştur. Python öğreniyorsan, büyük projelere geçmeden önce değişkenler, döngüler ve koşullar üzerinde çalış.';
+      } else if (subject === 'science' || normalized.includes('science') || normalized.includes('biology') || normalized.includes('physics') || normalized.includes('chemistry')) {
+        answer = 'Bilim en iyi şekilde gözlem yaparak, soru sorarak ve kanıt arayarak ilerler. Ne fark ettiğini açıklamayı dene, bir tahminde bulun ve ardından basit bir örnek veya karşılaştırma ile test et.';
+      } else if (asksForPractice) {
+        answer = `${topicText} için kısa bir alıştırma: 1) fikri kendi cümlelerinle açıkla, 2) bir örnek dene, 3) cevabın mantıklı olup olmadığını kontrol et. İstersen bunu kısa bir çalışma setine çevirebilirim.`;
+      } else if (asksForExplain) {
+        answer = `${topicText} için basit bir açıklama: ana fikri başla, günlük hayattan bir örnek ver ve sonra bunu ${pageTitle} dersine bağla. Bu kavramın akılda kalmasını kolaylaştırır.`;
+      } else if (asksForHelp) {
+        answer = `Bunu parçalayalım. Önce ${topicText} içindeki ana fikri belirle. Sonra kafanı karıştıran kısmı bul. Ardından tüm sorunu çözmeden önce küçük bir örnek dene. Bu genellikle sonraki adımı netleştirir.`;
+      } else if (session && session.currentPage && session.currentPage.title) {
+        answer = `${session.currentPage.title} sayfasındasın. Faydalı bir sonraki adım, ${topicText || 'mevcut dersin'} üzerine odaklanmak, ana fikri tek cümlede özetlemek ve ardından bir örnek veya soru denemektir.`;
+      } else if (normalized.includes('lesson') || normalized.includes('learn')) {
+        answer = 'Sana güçlü bir sonraki adımı seçmede yardımcı olabilirim. Anlamak istediğin konusu başla, ardından bir örnek, ana bir tanım ve kendini test etmek için kısa bir alıştırma bul.';
+      }
+    } else if (requestedLanguage === 'pt') {
+      if (isGreeting) {
+        answer = `Olá! Posso ajudar com ${subject === 'general' ? 'matemática, ciência, programação e atividades de aprendizado' : subject + ' tópicos'}. O que você quer explorar hoje?`;
+      } else if (subject === 'math' && (normalized.includes('fraction') || normalized.includes('fractions'))) {
+        answer = 'Frações são partes de um todo. Uma forma simples de pensar nisso é: o numerador mostra quantas partes você tem, e o denominador mostra em quantas partes iguais o inteiro foi dividido. Tente desenhar uma pizza ou uma barra e comparar as partes.';
+      } else if (subject === 'math' && (normalized.includes('algebra') || normalized.includes('equation') || normalized.includes('solve'))) {
+        answer = 'Para resolver álgebra, isole a variável passo a passo. Simplifique os dois lados, mova termos para um lado e depois multiplique ou divida para deixar a variável sozinha. Verifique a resposta substituindo-a novamente.';
+      } else if (subject === 'coding' || normalized.includes('python') || normalized.includes('coding') || normalized.includes('programming')) {
+        answer = 'Um bom hábito de programação é: defina o problema, divida em etapas, escreva um teste pequeno e depois construa o código em partes simples. Se estiver aprendendo Python, comece com variáveis, laços e condicionais antes de projetos maiores.';
+      } else if (subject === 'science' || normalized.includes('science') || normalized.includes('biology') || normalized.includes('physics') || normalized.includes('chemistry')) {
+        answer = 'A ciência funciona melhor quando você observa, faz uma pergunta e procura evidências. Tente explicar o que percebe, fazer uma previsão e depois testá-la com um exemplo simples ou comparação.';
+      } else if (asksForPractice) {
+        answer = `Aqui está um desafio rápido para ${topicText}: 1) explique a ideia com suas próprias palavras, 2) tente um exemplo, 3) verifique se a resposta faz sentido. Se quiser, posso transformar isso em uma pequena prática.`;
+      } else if (asksForExplain) {
+        answer = `Aqui vai uma explicação simples para ${topicText}: comece pela ideia principal, dê um exemplo do dia a dia e depois conecte isso à lição em ${pageTitle}. Isso ajuda a memorizar melhor o conceito.`;
+      } else if (asksForHelp) {
+        answer = `Vamos quebrar isso. Primeiro, identifique a ideia principal em ${topicText}. Em seguida, procure a parte que está confusa. Depois tente um exemplo pequeno antes de resolver o problema inteiro. Isso costuma deixar o próximo passo mais claro.`;
+      } else if (session && session.currentPage && session.currentPage.title) {
+        answer = `Você está em ${session.currentPage.title}. Um próximo passo útil é focar em ${topicText || 'sua lição atual'}, resumir a ideia principal em uma frase e então tentar um exemplo ou um problema simples.`;
+      } else if (normalized.includes('lesson') || normalized.includes('learn')) {
+        answer = 'Posso ajudar você a escolher um bom próximo passo. Comece pelo tópico que deseja entender, depois procure um exemplo, uma definição importante e um exercício para testar o que você aprendeu.';
+      }
+    } else if (isGreeting) {
       answer = `Hi! I can help you with ${subject === 'general' ? 'math, science, coding, and learning activities' : subject + ' topics'}. What do you want to explore today?`;
     } else if (subject === 'math' && (normalized.includes('fraction') || normalized.includes('fractions'))) {
       answer = 'Fractions are parts of a whole. A quick way to think about them is: numerator tells how many parts you have, denominator tells how many equal parts the whole is split into. Try drawing a pizza or bar model and then compare the pieces.';
@@ -312,6 +445,7 @@
     assistantRoot.setAttribute('data-version', ASSISTANT_VERSION);
 
     const session = window.HLAssistantSession ? window.HLAssistantSession.restoreFromStorage(defaultLanguage) : { sessionId: 'local', language: defaultLanguage, messages: [], activeTopic: '', currentPage: null, previousPage: null, guidedMode: true, mode: 'keyboard' };
+    const savedPosition = readAssistantPositionCookie();
 
     const state = {
       open: false,
@@ -324,6 +458,9 @@
       guidedMode: session.guidedMode !== false,
       mode: session.mode || 'keyboard'
     };
+
+    assistantRoot.style.left = `${savedPosition.x}px`;
+    assistantRoot.style.bottom = `${savedPosition.y}px`;
 
     const strings = window.HLAssistantI18n?.translations?.[state.language] || window.HLAssistantI18n?.translations?.en || {};
 
@@ -414,7 +551,7 @@
     function renderAssistantMessage(text, type = 'assistant') {
       const message = document.createElement('div');
       message.className = `hl-assistant-message ${type}`;
-      message.innerHTML = sanitizeHtml(text);
+      message.innerHTML = renderMarkdownText(text);
       messagesBox.appendChild(message);
       messagesBox.scrollTop = messagesBox.scrollHeight;
     }
@@ -564,6 +701,7 @@
 
       const context = {
         backend,
+        language: state.language,
         translations: strings,
         recommendations,
         session: state.session,
@@ -605,6 +743,13 @@
       input.value = '';
       input.style.height = '42px';
       handleUserMessage(value);
+    }
+
+    function resetAssistantPosition() {
+      const defaultPosition = getDefaultAssistantPosition();
+      assistantRoot.style.left = `${defaultPosition.x}px`;
+      assistantRoot.style.bottom = `${defaultPosition.y}px`;
+      writeAssistantPositionCookie(defaultPosition.x, defaultPosition.y);
     }
 
     function toggleOpen(forceOpen) {
@@ -696,7 +841,48 @@
       syncSessionStorage();
     }
 
-    orb.addEventListener('click', () => toggleOpen());
+    let dragMoved = false;
+
+    orb.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startLeft = parseFloat(assistantRoot.style.left || getComputedStyle(assistantRoot).left || '20');
+      const startBottom = parseFloat(assistantRoot.style.bottom || getComputedStyle(assistantRoot).bottom || '18');
+
+      const onPointerMove = (moveEvent) => {
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+        const nextLeft = Math.max(10, startLeft + deltaX);
+        const nextBottom = Math.max(10, startBottom + (startY - moveEvent.clientY));
+
+        assistantRoot.style.left = `${nextLeft}px`;
+        assistantRoot.style.bottom = `${nextBottom}px`;
+        dragMoved = Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4;
+      };
+
+      const onPointerUp = () => {
+        const left = parseFloat(assistantRoot.style.left || getComputedStyle(assistantRoot).left || '20');
+        const bottom = parseFloat(assistantRoot.style.bottom || getComputedStyle(assistantRoot).bottom || '18');
+        writeAssistantPositionCookie(left, bottom);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+      };
+
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+    });
+
+    orb.addEventListener('click', (event) => {
+      if (event.button !== 0) return;
+      if (dragMoved) {
+        dragMoved = false;
+        return;
+      }
+      resetAssistantPosition();
+      toggleOpen();
+    });
+
     clearButton.addEventListener('click', () => {
       messagesBox.innerHTML = '';
       setStatus('idle');
@@ -751,6 +937,9 @@
       state.language = nextLang;
       state.session.language = nextLang;
       syncSessionStorage();
+      if (state.session && state.session.messages && state.session.messages.length) {
+        renderAssistantMessage('Language updated. I will respond in ' + (nextLang || 'English') + '.', 'assistant');
+      }
     });
 
     input.addEventListener('input', () => {
