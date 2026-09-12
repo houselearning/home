@@ -3,25 +3,6 @@
   const DEFAULT_REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
   const LOCAL_CACHE_KEY = 'hl-assistant-sitemap-cache-v1';
 
-  const VALID_HOUSELEARNING_PATHS = new Set([
-    '/',
-    '/index.html',
-    '/home/',
-    '/home/index.html',
-    '/home/about.html',
-    '/home/blog.html',
-    '/home/games.html',
-    '/home/math-page.html',
-    '/home/science-page.html',
-    '/home/computer-science-page.html',
-    '/about.html',
-    '/blog.html',
-    '/games.html',
-    '/math-page.html',
-    '/science-page.html',
-    '/computer-science-page.html'
-  ]);
-
   function normalizeUrl(value) {
     try {
       const parsed = new URL(value, window.location.origin);
@@ -37,9 +18,6 @@
 
       if (candidate.hostname === 'houselearning.org' || candidate.hostname === 'www.houselearning.org') {
         const normalizedPath = pathname === '' ? '/' : pathname;
-        if (!VALID_HOUSELEARNING_PATHS.has(normalizedPath) && !VALID_HOUSELEARNING_PATHS.has(normalizedPath.replace(/\/$/, ''))) {
-          return null;
-        }
         return candidate.href;
       }
 
@@ -196,14 +174,20 @@
       }
     }
 
-    async fetchSitemapIndex(url) {
+    async fetchSitemapIndex(url, visited = new Set()) {
+      if (visited.has(url)) return [];
+      visited.add(url);
       const response = await fetch(url, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Sitemap fetch failed: ${response.status}`);
       const xmlText = await response.text();
       const locs = parseSitemapUrls(xmlText);
-      const urls = locs.filter((candidate) => /sitemap|xml/i.test(candidate) || candidate.includes('meta'));
-      if (urls.length && urls.length !== locs.length) {
-        return urls;
+      const childSitemaps = locs.filter((candidate) => /(?:sitemap|\.xml)(?:$|[?#])/i.test(candidate));
+      if (childSitemaps.length) {
+        const nested = [];
+        for (const child of childSitemaps) {
+          nested.push(...await this.fetchSitemapIndex(child, visited));
+        }
+        return nested;
       }
       return locs;
     }
@@ -232,7 +216,7 @@
         urls = uniqueUrls.filter((entry) => {
           try {
             const parsed = new URL(entry);
-            return !hasAssetExtension(parsed.pathname) && VALID_HOUSELEARNING_PATHS.has(parsed.pathname.replace(/\/$/, '') || '/')
+            return !hasAssetExtension(parsed.pathname)
               && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === 'houselearning.org' || parsed.hostname === 'www.houselearning.org');
           } catch (_error) {
             return false;
@@ -329,6 +313,11 @@
         .slice(0, limit)
         .map((entry) => entry.item);
     }
+
+    isAllowedUrl(value) {
+      const normalized = normalizeUrl(value);
+      return Boolean(normalized && this.index.some((entry) => entry.url === normalized));
+    }
   }
 
   const indexer = new SitemapIndexer();
@@ -345,6 +334,9 @@
     async getIndex() {
       await indexer.load();
       return indexer.index;
+    },
+    isAllowedUrl(value) {
+      return indexer.isAllowedUrl(value);
     },
     DEFAULT_SITEMAP_URL,
     DEFAULT_REFRESH_INTERVAL

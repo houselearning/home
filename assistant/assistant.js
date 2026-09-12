@@ -141,11 +141,18 @@
       const candidate = typeof item.url === 'string' ? item.url : '';
       if (!candidate) return false;
       try {
-        const parsed = new URL(candidate, window.location.href);
-        return parsed.hostname === 'houselearning.org' || parsed.hostname === 'www.houselearning.org' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+        return window.HLAssistantSitemap && window.HLAssistantSitemap.isAllowedUrl(candidate);
       } catch (_error) {
         return false;
       }
+    });
+  }
+
+  function sanitizeAssistantResponse(value) {
+    const allowedUrls = new Set((window.HLAssistantSitemap?.indexer?.index || []).map((entry) => entry.url));
+    return String(value || '').replace(/https?:\/\/[^\s<>"`]+/gi, (candidate) => {
+      const trimmed = candidate.replace(/[.,);\]]+$/, '');
+      return allowedUrls.has(trimmed) ? candidate : 'HouseLearning.org resource';
     });
   }
 
@@ -302,50 +309,34 @@
     return 'general';
   }
 
+  function shouldRejectNonHouseLearningRequest(text) {
+    const value = String(text || '').trim();
+    if (!value) return false;
+
+    const normalized = value.toLowerCase();
+    if (/(https?:\/\/|www\.)/i.test(normalized) && !/houselearning\.org/i.test(normalized)) {
+      return true;
+    }
+
+    if (/\b(youtube|wikipedia|reddit|github|amazon|netflix|spotify|google|facebook|instagram|tiktok|news|weather|stocks|sports|travel|politics|health|fashion|recipes|dating|movies|music|poem|rap|story|essay|resume|job|salary|car|phone|game walkthrough|minecraft|fortnite|roblox)\b/i.test(normalized)) {
+      return true;
+    }
+
+    const greeting = /^(hi|hello|hey|good morning|good afternoon|good evening)/i.test(normalized);
+    if (greeting) return false;
+
+    const houseLearningSignals = /\b(lesson|learn|study|school|class|homework|math|mathematics|science|biology|physics|chemistry|coding|computer science|programming|algebra|fractions|geometry|grade|teacher|student|practice|quiz|assignment|exam|curriculum|houselearning)\b/i;
+    return !houseLearningSignals.test(normalized);
+  }
+
   function createSystemPrompt() {
-    return `You are the HouseLearning AI Assistant. Help students learn and navigate HouseLearning. Use HouseLearning resources first and never invent HouseLearning links. Be friendly, patient, kid-safe, and encourage learning. Explain concepts clearly in the user's language. If you do not know something, say so honestly. Keep responses concise and age-appropriate. The supported languages are English, Spanish, Turkish, and Portuguese.`;
+    return `You are the HouseLearning AI Assistant. Help students learn and navigate HouseLearning. Use HouseLearning resources first and never invent HouseLearning links. Be friendly, patient, kid-safe, and encourage learning. Explain concepts clearly in the user's language. If a user asks for anything outside HouseLearning learning topics, reply exactly: "Sorry, I can only assist with learning related to HouseLearning." Keep responses concise and age-appropriate. The supported languages are English, Spanish, Turkish, and Portuguese.`;
   }
 
   function buildSubjectSuggestions(subject, topicText) {
-    const pageRoot = 'https://houselearning.org/home';
-    const suggestions = [
-      { title: 'Explore the main learning hub', url: pageRoot },
-      { title: 'Math lessons', url: `${pageRoot}/math-page.html` },
-      { title: 'Science lessons', url: `${pageRoot}/science-page.html` },
-      { title: 'Computer science lessons', url: `${pageRoot}/computer-science-page.html` }
-    ];
-
-    const friendlyTopic = topicText || subject || 'learning';
-    const topicLabel = friendlyTopic.charAt(0).toUpperCase() + friendlyTopic.slice(1);
-
-    if (subject === 'math') {
-      return [
-        { title: `${topicLabel} practice`, url: `${pageRoot}/math-page.html` },
-        { title: 'Solve a math problem step by step', url: `${pageRoot}/math-page.html` },
-        { title: 'Find a new math topic', url: `${pageRoot}/math-page.html` },
-        { title: 'Return to learning hub', url: pageRoot }
-      ];
-    }
-
-    if (subject === 'science') {
-      return [
-        { title: `${topicLabel} idea check`, url: `${pageRoot}/science-page.html` },
-        { title: 'Explore a science lesson', url: `${pageRoot}/science-page.html` },
-        { title: 'Look for a real-world example', url: `${pageRoot}/science-page.html` },
-        { title: 'Return to learning hub', url: pageRoot }
-      ];
-    }
-
-    if (subject === 'coding') {
-      return [
-        { title: `${topicLabel} coding guide`, url: `${pageRoot}/computer-science-page.html` },
-        { title: 'Try a coding lesson', url: `${pageRoot}/computer-science-page.html` },
-        { title: 'Build a tiny project', url: `${pageRoot}/computer-science-page.html` },
-        { title: 'Return to learning hub', url: pageRoot }
-      ];
-    }
-
-    return suggestions;
+    const entries = window.HLAssistantSitemap?.indexer?.index || [];
+    const matching = entries.filter((entry) => subject === 'general' || entry.subject === subject || entry.category === subject);
+    return (matching.length ? matching : entries).slice(0, 4);
   }
 
   function inferTopicFromText(text, pageSubject, session) {
@@ -374,6 +365,13 @@
       };
     }
 
+    if (shouldRejectNonHouseLearningRequest(text)) {
+      return {
+        text: 'Sorry, I can only assist with learning related to HouseLearning.',
+        suggestions: []
+      };
+    }
+
     const localizedFallbacks = {
       en: 'I can help you explore HouseLearning lessons, math, science, and coding. Try asking for a topic or choose one of the suggestions.',
       es: 'Puedo ayudarte a explorar lecciones de HouseLearning, matemáticas, ciencia y programación. Prueba preguntando por un tema o elige una sugerencia.',
@@ -388,7 +386,7 @@
     const topicText = inferTopicFromText(text, pageSubject, session);
     const subject = pageSubject || 'general';
     const pageTitle = (page.title || session?.currentPage?.title || document.title || 'this page').trim();
-    const suggestions = (context.recommendations || []).slice(0, 4);
+    const suggestions = filterHouseLearningOnlyEntries((context.recommendations || []).slice(0, 4));
 
     const fallbackText = localizedFallbacks[requestedLanguage] || localizedFallbacks.en;
 
@@ -494,7 +492,9 @@
       answer = 'I can help you choose a strong next step. Start with the topic you want to understand, then look for one example, one key definition, and one practice problem to test yourself.';
     }
 
-    const finalSuggestions = suggestions.length ? suggestions.slice(0, 4) : buildSubjectSuggestions(subject, topicText);
+    const finalSuggestions = suggestions.length
+      ? suggestions.slice(0, 4)
+      : filterHouseLearningOnlyEntries(buildSubjectSuggestions(subject, topicText));
     return { text: answer, suggestions: finalSuggestions };
   }
 
@@ -504,15 +504,31 @@
   }
 
   async function askLiveAssistant(message, context = {}) {
+    if (shouldRejectNonHouseLearningRequest(message)) {
+      return {
+        text: 'Sorry, I can only assist with learning related to HouseLearning.',
+        suggestions: []
+      };
+    }
+
     const page = context.page || {};
     const session = context.session || null;
     const subject = page.subject || getSubjectContext(window.location.pathname || window.location.href) || 'general';
+    let sitemapSources = [];
+    try {
+      sitemapSources = window.HLAssistantSitemap && typeof window.HLAssistantSitemap.getIndex === 'function'
+        ? (await window.HLAssistantSitemap.getIndex()).map((entry) => entry.url)
+        : [];
+    } catch (_error) {
+      sitemapSources = [];
+    }
     const payload = {
       message,
       subject,
       pageTitle: page.title || document.title || 'HouseLearning page',
       grade: session && session.grade ? session.grade : '',
-      language: context.language || 'en'
+      language: context.language || 'en',
+      sourceUrls: sitemapSources
     };
 
     const candidates = [
@@ -539,10 +555,10 @@
           throw new Error(`HTTP ${response.status}`);
         }
 
-        const data = await response.json();
+          const data = await response.json();
         if (data && typeof data.text === 'string' && data.text.trim()) {
           return {
-            text: data.text,
+              text: sanitizeAssistantResponse(data.text),
             suggestions: Array.isArray(data.suggestions) ? data.suggestions : []
           };
         }
@@ -1070,13 +1086,10 @@
     });
 
     clearButton.addEventListener('click', () => {
-      messagesBox.innerHTML = '';
-      setStatus('idle');
-      if (window.HLAssistantSession) {
-        state.session.messages = [];
-        state.session.activeTopic = '';
+      toggleOpen(false);
+      if (window.HLAssistantUI) {
+        window.HLAssistantUI.setOrbNotice(state.session && state.session.messages && state.session.messages.length ? 'I\'m still here 👋' : '');
       }
-      syncSessionStorage();
     });
 
     sendButton.addEventListener('click', sendInput);
@@ -1212,6 +1225,14 @@
   }
 
   function init() {
+    if (window.HLAssistantSafeAI && typeof window.HLAssistantSafeAI.isEnabled === 'function' && !window.HLAssistantSafeAI.isEnabled()) {
+      const existingAssistant = document.querySelector('.hl-assistant');
+      const existingOrb = document.querySelector('.hl-assistant-orb');
+      if (existingAssistant) existingAssistant.style.display = 'none';
+      if (existingOrb) existingOrb.style.display = 'none';
+      return;
+    }
+
     if (document.querySelector('.hl-assistant')) return;
     const start = () => {
       initAssistant({ sitemap: DEFAULT_SITEMAP_URL, defaultLanguage: DEFAULT_LANG, backend: defaultAssistantBackend }).catch(() => {
@@ -1240,11 +1261,26 @@
     }
 
     function setEnabled(enabled) {
+      const nextState = Boolean(enabled);
       try {
-        localStorage.setItem(SAFE_AI_KEY, String(Boolean(enabled)));
+        localStorage.setItem(SAFE_AI_KEY, String(nextState));
       } catch (_error) {
         // ignore storage failures
       }
+
+      const assistantNode = document.querySelector('.hl-assistant');
+      const orbNode = document.querySelector('.hl-assistant-orb');
+
+      if (assistantNode) assistantNode.style.display = nextState ? '' : 'none';
+      if (orbNode) orbNode.style.display = nextState ? '' : 'none';
+
+      if (nextState && !assistantNode) {
+        if (typeof window.HouseLearningAssistant?.init === 'function') {
+          window.HouseLearningAssistant.init();
+        }
+      }
+
+      return nextState;
     }
 
     window.HLAssistantSafeAI = {
@@ -1257,6 +1293,12 @@
       consumeOne: consumeSafeAiMessage,
       refreshUsageUI: updateSafeAiUsageUI
     };
+
+    const assistantNode = document.querySelector('.hl-assistant');
+    const orbNode = document.querySelector('.hl-assistant-orb');
+    if (assistantNode) assistantNode.style.display = isEnabled() ? '' : 'none';
+    if (orbNode) orbNode.style.display = isEnabled() ? '' : 'none';
+
     updateSafeAiUsageUI();
   }
 
