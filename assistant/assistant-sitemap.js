@@ -3,9 +3,47 @@
   const DEFAULT_REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
   const LOCAL_CACHE_KEY = 'hl-assistant-sitemap-cache-v1';
 
+  const VALID_HOUSELEARNING_PATHS = new Set([
+    '/',
+    '/index.html',
+    '/home/',
+    '/home/index.html',
+    '/home/about.html',
+    '/home/blog.html',
+    '/home/games.html',
+    '/home/math-page.html',
+    '/home/science-page.html',
+    '/home/computer-science-page.html',
+    '/about.html',
+    '/blog.html',
+    '/games.html',
+    '/math-page.html',
+    '/science-page.html',
+    '/computer-science-page.html'
+  ]);
+
   function normalizeUrl(value) {
     try {
-      return new URL(value, window.location.origin).href;
+      const parsed = new URL(value, window.location.origin);
+      const pathname = parsed.pathname.replace(/\/index\.html$/i, '/');
+      const candidate = new URL(parsed.href);
+      candidate.hash = '';
+      candidate.search = '';
+
+      if (!/^https?:\/\//i.test(candidate.href)) return value;
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return candidate.href.replace(/^http:\/\/localhost:\d+/i, 'http://localhost:8000');
+      }
+
+      if (candidate.hostname === 'houselearning.org' || candidate.hostname === 'www.houselearning.org') {
+        const normalizedPath = pathname === '' ? '/' : pathname;
+        if (!VALID_HOUSELEARNING_PATHS.has(normalizedPath) && !VALID_HOUSELEARNING_PATHS.has(normalizedPath.replace(/\/$/, ''))) {
+          return null;
+        }
+        return candidate.href;
+      }
+
+      return candidate.href;
     } catch (_error) {
       return value;
     }
@@ -92,6 +130,8 @@
 
     const locNodes = Array.from(doc.querySelectorAll('loc'))
       .map((node) => (node.textContent || '').trim())
+      .filter(Boolean)
+      .map((value) => normalizeUrl(value))
       .filter(Boolean);
 
     if (locNodes.length) return locNodes;
@@ -99,6 +139,7 @@
     const urls = Array.from(doc.getElementsByTagName('url'))
       .map((entry) => entry.getElementsByTagName('loc')[0]?.textContent || '')
       .map((value) => value.trim())
+      .map((value) => normalizeUrl(value))
       .filter(Boolean);
 
     return urls;
@@ -168,8 +209,16 @@
       let urls = [];
       try {
         const pageUrls = await this.fetchSitemapIndex(this.sitemapUrl);
-        const uniqueUrls = [...new Set(pageUrls.map(normalizeUrl))];
-        urls = uniqueUrls.filter((entry) => !hasAssetExtension(new URL(entry).pathname));
+        const uniqueUrls = [...new Set(pageUrls.map((value) => normalizeUrl(value)).filter(Boolean))];
+        urls = uniqueUrls.filter((entry) => {
+          try {
+            const parsed = new URL(entry);
+            return !hasAssetExtension(parsed.pathname) && VALID_HOUSELEARNING_PATHS.has(parsed.pathname.replace(/\/$/, '') || '/')
+              && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === 'houselearning.org' || parsed.hostname === 'www.houselearning.org');
+          } catch (_error) {
+            return false;
+          }
+        });
       } catch (error) {
         const cached = this.readCache();
         if (cached && cached.entries?.length) {

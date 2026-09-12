@@ -300,21 +300,21 @@
 
     function buildQuickSuggestions() {
       const subject = getSubjectContext(window.location.pathname || window.location.href);
-      const homePage = getHouseLearningHomeUrl();
+      const homePage = 'https://houselearning.org/home';
       const defaultPrompts = strings.defaultPrompts || {};
       const generated = [
         { title: defaultPrompts.lesson || 'Find a lesson', url: homePage },
-        { title: defaultPrompts.math || 'Help me with math', url: `${homePage}/math-page.html` },
-        { title: defaultPrompts.coding || 'Learn coding', url: 'https://houselearning.org/computer-science-page.html' },
-        { title: defaultPrompts.science || 'Explore science', url: 'https://houselearning.org/science-page.html' }
+        { title: defaultPrompts.math || 'Help me with math', url: 'https://houselearning.org/home/math-page.html' },
+        { title: defaultPrompts.coding || 'Learn coding', url: 'https://houselearning.org/home/computer-science-page.html' },
+        { title: defaultPrompts.science || 'Explore science', url: 'https://houselearning.org/home/science-page.html' }
       ];
 
       if (subject === 'math') {
-        generated[1].url = 'https://houselearning.org/math-page.html';
+        generated[1].url = 'https://houselearning.org/home/math-page.html';
       } else if (subject === 'coding') {
-        generated[2].url = 'https://houselearning.org/computer-science-page.html';
+        generated[2].url = 'https://houselearning.org/home/computer-science-page.html';
       } else if (subject === 'science') {
-        generated[3].url = 'https://houselearning.org/science-page.html';
+        generated[3].url = 'https://houselearning.org/home/science-page.html';
       }
 
       return generated;
