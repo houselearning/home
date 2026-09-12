@@ -1,0 +1,313 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function cookbookUserDoc() {
+      return get(/databases/$(database)/documents/cookbook_users/$(request.auth.uid));
+    }
+
+    function cookbookRole() {
+      return cookbookUserDoc().exists() ? cookbookUserDoc().data.role : null;
+    }
+
+    function isBanned() {
+      return isAuthenticated() && cookbookUserDoc().exists() && cookbookUserDoc().data.banned == true;
+    }
+
+    function isTeacher() {
+      return isAuthenticated() && (
+        (request.auth.token.role != null && request.auth.token.role == 'teacher') ||
+        cookbookRole() == 'teacher'
+      );
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        cookbookRole() == 'admin'
+      );
+    }
+
+    function canAccessDashboard() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'cajm23331@gmail.com' ||
+        request.auth.uid == '2nuzhsYAXiaMhm4RhRWksNLIBcJ3'
+      );
+    }
+
+    function validProject(data) {
+      return data.keys().hasAll(['filename', 'content', 'ts'])
+        && data.filename is string
+        && data.content is string
+        && data.ts is int;
+    }
+
+    match /aiPromptReports/{reportId} {
+      allow create: if request.resource.data.keys().hasOnly([
+        'prompt', 'reason', 'reportedAt', 'signedIn',
+        'accountEmail', 'accountUid', 'pageUrl'
+      ])
+      && request.resource.data.prompt is string
+      && request.resource.data.prompt.size() > 0
+      && request.resource.data.prompt.size() <= 12000
+      && request.resource.data.reason in [
+        'Off topic', 'Profanity Use', 'Incorrect information',
+        'Unsafe content', 'Other'
+      ]
+      && request.resource.data.reportedAt is timestamp
+      && request.resource.data.signedIn is bool
+      && request.resource.data.accountEmail is string
+      && request.resource.data.accountEmail.size() <= 320
+      && request.resource.data.accountUid is string
+      && request.resource.data.accountUid.size() <= 256
+      && request.resource.data.pageUrl is string
+      && request.resource.data.pageUrl.size() <= 2048
+      && (
+        request.resource.data.signedIn == false
+        || (
+          request.auth != null
+          && request.resource.data.accountUid == request.auth.uid
+          && (
+            request.resource.data.accountEmail == ''
+            || request.resource.data.accountEmail == request.auth.token.email
+          )
+        )
+      );
+      allow read, update, delete: if false;
+    }
+
+    match /cookbook_users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /artifacts/{appId}/public/data/forum_posts/{postId} {
+      allow read, list: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if isOwner(resource.data.userId) || isTeacher();
+
+      match /comments/{commentId} {
+        allow read, write: if isAuthenticated();
+      }
+
+      match /votes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+    }
+
+    match /artifacts/{appId}/public/data/user_profiles/{userId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['followersCount']);
+      allow update: if isAuthenticated() && !isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']);
+    }
+
+    match /user_profiles/{userId} {
+      allow read: if true;
+      allow create, update: if isOwner(userId);
+
+      match /following/{targetUserId} {
+        allow read: if true;
+        allow create, delete: if isOwner(userId);
+      }
+
+      match /followers/{followerId} {
+        allow read: if true;
+        allow create, delete: if isOwner(followerId);
+      }
+    }
+
+    match /assignments/{assignmentId} {
+      allow get: if isAuthenticated()
+        && (resource.data.studentId == request.auth.uid || resource.data.teacherId == request.auth.uid);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    match /classes/{classId} {
+      allow read, list: if isAuthenticated();
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.recipientUid;
+      allow create: if canAccessDashboard();
+      allow update: if isAuthenticated()
+        && request.auth.uid == resource.data.recipientUid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if false;
+    }
+
+    match /quizzes/{quizId} {
+      allow read, list: if true;
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /leaderboard/{entryId} {
+      allow read, list: if true;
+      allow create, update: if isAuthenticated();
+    }
+
+    match /users/{userId} {
+      allow read, create, update, delete: if isOwner(userId);
+
+      match /surveys/{surveyId} {
+        allow create: if isOwner(userId);
+      }
+
+      match /survey_limits/{rateDoc} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /projects/{projectId} {
+        allow read, list: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin()) && validProject(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /partner-deals/{docId} {
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasAll([
+        'fileName', 'verified', 'captchaToken', 'markdownContent', 'slides', 'submittedAt'
+      ])
+      && request.resource.data.slides.size() <= 2
+      && request.resource.data.submittedAt == request.time;
+      allow update, delete: if false;
+    }
+
+    match /surveys/{surveyId} {
+      allow read, create: if true;
+
+      match /submissions/{submissionId} {
+        allow create: if true;
+      }
+    }
+
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isTeacher();
+    }
+
+    match /recipes/{recipeId} {
+      allow read, list: if isAuthenticated() && !isBanned() && resource.data.blocked != true;
+      allow create, update, delete: if isAdmin() || isTeacher();
+    }
+
+    match /favorites/{userId}/recipes/{recipeId} {
+      allow read, write: if isOwner(userId) && !isBanned();
+    }
+
+    match /blobUsers/{userId} {
+      allow read, create, update: if isOwner(userId);
+    }
+
+    match /blobs/{blobId} {
+      allow read: if resource.data.visibility == 'public'
+        || (isAuthenticated() && request.auth.uid == resource.data.ownerId);
+      allow create: if isAuthenticated()
+        && request.resource.data.sizeBytes <= 15 * 1024 * 1024
+        && request.resource.data.keys().hasAll([
+          'ownerId', 'title', 'fileName', 'sizeBytes', 'visibility',
+          'createdAt', 'lastAccessedAt', 'status', 'chunkCount'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/blobUsers/$(request.auth.uid)).data.totalBytesUsed
+          + request.resource.data.sizeBytes <= 45 * 1024 * 1024;
+      allow update: if isAuthenticated()
+        && request.auth.uid == resource.data.ownerId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerId', 'sizeBytes']);
+      allow delete: if isAuthenticated()
+        && (request.auth.uid == resource.data.ownerId || isAdmin());
+    }
+
+    match /blobs/{blobId}/chunks/{chunkId} {
+      allow read: if get(/databases/$(database)/documents/blobs/$(blobId)).data.visibility == 'public'
+        || (isAuthenticated()
+          && request.auth.uid == get(/databases/$(database)/documents/blobs/$(blobId)).data.ownerId);
+      allow create: if isAuthenticated()
+        && request.auth.uid == get(/databases/$(database)/documents/blobs/$(blobId)).data.ownerId
+        && request.resource.data.keys().hasAll(['index', 'dataBase64'])
+        && request.resource.data.dataBase64.size() <= 300 * 1024;
+      allow delete: if isAuthenticated()
+        && request.auth.uid == get(/databases/$(database)/documents/blobs/$(blobId)).data.ownerId;
+      allow update: if false;
+    }
+
+    match /deletedChunks/{docId} {
+      allow read: if false;
+      allow create: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+
+    match /sites/{siteDocId} {
+      allow read: if true;
+      allow create, update, delete: if canAccessDashboard();
+    }
+
+    match /siteFiles/{siteDocId} {
+      allow read: if true;
+      allow create, update, delete: if canAccessDashboard();
+    }
+
+    match /UserLessonProgress/{userId} {
+      allow read: if isOwner(userId);
+
+      match /lessons/{lessonId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /dashboard/{docId} {
+      allow read, write: if canAccessDashboard();
+    }
+
+    match /Staff/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    match /StaffLogs/{uid} {
+      allow create: if isOwner(uid);
+      allow read, update, delete: if false;
+    }
+
+    match /StaffGitLogs/{docId} {
+      allow read: if false;
+      allow write: if isAuthenticated();
+    }
+
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+    }
+
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Unspecified collections remain denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
