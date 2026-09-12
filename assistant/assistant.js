@@ -149,6 +149,123 @@
     });
   }
 
+  function getSignedInSafeAiUser() {
+    const candidates = [
+      window.HouseLearningAuth,
+      window.houselearningAuth,
+      window.user,
+      window.currentUser,
+      window.HouseLearningUser,
+      window.houselearningUser
+    ];
+
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      if (candidate.id || candidate.uid || candidate.userId) {
+        return { id: candidate.id || candidate.uid || candidate.userId, signedIn: Boolean(candidate.signedIn !== false) };
+      }
+      if (candidate.signedIn && (candidate.id || candidate.uid || candidate.userId)) {
+        return { id: candidate.id || candidate.uid || candidate.userId, signedIn: true };
+      }
+    }
+
+    try {
+      if (window.firebase && window.firebase.auth && typeof window.firebase.auth === 'function') {
+        const currentUser = window.firebase.auth().currentUser;
+        if (currentUser && currentUser.uid) {
+          return { id: currentUser.uid, signedIn: true };
+        }
+      }
+    } catch (_error) {
+      // ignore firebase lookup errors
+    }
+
+    return { id: 'guest', signedIn: false };
+  }
+
+  function getSafeAiDailyLimit() {
+    return getSignedInSafeAiUser().signedIn ? 40 : 20;
+  }
+
+  function getSafeAiCookieName() {
+    const user = getSignedInSafeAiUser();
+    const id = user && user.id ? String(user.id) : 'guest';
+    return `hl_safeai_daily_usage_${id}`;
+  }
+
+  function getTodayStamp() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  function readSafeAiDailyUsage() {
+    try {
+      const match = document.cookie.split('; ').find((entry) => entry.startsWith(`${getSafeAiCookieName()}=`));
+      if (!match) return { date: getTodayStamp(), count: 0 };
+      const raw = decodeURIComponent(match.split('=').slice(1).join('='));
+      const parsed = JSON.parse(raw || '{}');
+      if (!parsed || typeof parsed.count !== 'number') return { date: getTodayStamp(), count: 0 };
+      if (parsed.date !== getTodayStamp()) return { date: getTodayStamp(), count: 0 };
+      return { date: parsed.date, count: Math.max(0, parsed.count) };
+    } catch (_error) {
+      return { date: getTodayStamp(), count: 0 };
+    }
+  }
+
+  function writeSafeAiDailyUsage(nextCount) {
+    const safeCount = Math.max(0, Number(nextCount) || 0);
+    try {
+      document.cookie = `${getSafeAiCookieName()}=${encodeURIComponent(JSON.stringify({ date: getTodayStamp(), count: safeCount }))}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+    } catch (_error) {
+      // ignore cookie failures
+    }
+  }
+
+  function getSafeAiDailyProgress() {
+    const usage = readSafeAiDailyUsage();
+    const limit = getSafeAiDailyLimit();
+    return {
+      date: usage.date,
+      used: usage.count,
+      limit,
+      remaining: Math.max(0, limit - usage.count),
+      percent: Math.min(100, (usage.count / limit) * 100)
+    };
+  }
+
+  function canUseSafeAiMessage() {
+    const usage = readSafeAiDailyUsage();
+    return usage.count < getSafeAiDailyLimit();
+  }
+
+  function consumeSafeAiMessage() {
+    const usage = readSafeAiDailyUsage();
+    const nextCount = usage.count + 1;
+    writeSafeAiDailyUsage(nextCount);
+    updateSafeAiUsageUI();
+    return nextCount;
+  }
+
+  function updateSafeAiUsageUI() {
+    const progressBar = document.getElementById('safeai-progress-bar');
+    const progressText = document.getElementById('safeai-progress-text');
+    const progressRow = document.getElementById('safeai-progress-row');
+    if (!progressBar && !progressText && !progressRow) return;
+
+    const progress = getSafeAiDailyProgress();
+    const isSignedIn = getSignedInSafeAiUser().signedIn;
+    if (progressRow) {
+      progressRow.style.display = isSignedIn ? 'flex' : 'none';
+    }
+    if (progressBar) {
+      progressBar.style.width = `${Math.min(100, progress.percent)}%`;
+      progressBar.setAttribute('aria-valuenow', String(progress.used));
+    }
+    if (progressText) {
+      progressText.textContent = `${progress.used}/${progress.limit}`;
+    }
+  }
+
   function getDefaultAssistantPosition() {
     return { x: 20, y: 18 };
   }
@@ -738,10 +855,19 @@
       const cleanMessage = safeText(messageText);
       if (!cleanMessage) return;
 
+      if (!canUseSafeAiMessage()) {
+        const limit = getSafeAiDailyLimit();
+        const label = getSignedInSafeAiUser().signedIn ? 'signed-in' : 'guest';
+        renderAssistantMessage(`You’ve reached your daily SafeAI limit for ${label === 'signed-in' ? 'today' : 'today as a guest'} (${limit} messages). Come back tomorrow or sign in for a higher limit.`, 'assistant');
+        setStatus('idle');
+        return;
+      }
+
       if (window.HLAssistantSession) {
         state.session = window.HLAssistantSession.addMessage(state.session, 'user', cleanMessage);
       }
 
+      consumeSafeAiMessage();
       renderAssistantMessage(cleanMessage, 'user');
       setStatus('thinking');
 
@@ -1116,8 +1242,14 @@
     window.HLAssistantSafeAI = {
       isEnabled,
       setEnabled,
-      getStatus: isEnabled
+      getStatus: isEnabled,
+      getDailyLimit: getSafeAiDailyLimit,
+      getDailyUsage: getSafeAiDailyProgress,
+      canUseAnother: canUseSafeAiMessage,
+      consumeOne: consumeSafeAiMessage,
+      refreshUsageUI: updateSafeAiUsageUI
     };
+    updateSafeAiUsageUI();
   }
 
   createSafeAIController();

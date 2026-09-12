@@ -334,6 +334,35 @@ function injectStyles() {
             font-weight: 500;
             font-size: 15px;
         }
+        .safeai-progress-row {
+            display: none;
+            padding: 0 25px 12px;
+            color: #555;
+            font-size: 13px;
+        }
+        .safeai-progress-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .safeai-progress-track {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .safeai-progress-fill {
+            display: block;
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #22c55e, #61dafb);
+            transition: width 0.2s ease;
+        }
         .safeai-toggle {
             position: relative;
             width: 42px;
@@ -536,6 +565,15 @@ function createProfileUI(userPhotoURL, userName) {
                     <span class="slider"></span>
                 </label>
             </div>
+            <div id="safeai-progress-row" class="safeai-progress-row" aria-live="polite">
+                <div class="safeai-progress-meta">
+                    <span>Daily SafeAI</span>
+                    <span id="safeai-progress-text">0/40</span>
+                </div>
+                <div class="safeai-progress-track" aria-label="SafeAI daily usage">
+                    <div id="safeai-progress-bar" class="safeai-progress-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                </div>
+            </div>
             <a href="#" id="notifications-btn" class="menu-link">Notifications <span id="notif-count-inline" class="notif-badge" style="display:none; margin-left:8px;">0</span></a>
             <div class="logout-container"><button id="logout-dropdown-btn">Sign out</button></div>
         </div>
@@ -657,6 +695,34 @@ window.markAsRead = (id) => {
     }).catch(err => console.error("Error marking as read:", err));
 };
 
+function updateSafeAiProgressUI() {
+    const row = document.getElementById('safeai-progress-row');
+    const bar = document.getElementById('safeai-progress-bar');
+    const text = document.getElementById('safeai-progress-text');
+    if (!row || !bar || !text) return;
+
+    const signedIn = Boolean(
+        (window.HouseLearningAuth && window.HouseLearningAuth.user && window.HouseLearningAuth.user.signedIn) ||
+        (window.houselearningAuth && window.houselearningAuth.user && window.houselearningAuth.user.signedIn) ||
+        (window.firebase && window.firebase.auth && window.firebase.auth().currentUser)
+    );
+
+    row.style.display = signedIn ? 'block' : 'none';
+
+    let usage = { used: 0, limit: 40, percent: 0 };
+    if (window.HLAssistantSafeAI && typeof window.HLAssistantSafeAI.getDailyUsage === 'function') {
+        usage = window.HLAssistantSafeAI.getDailyUsage();
+    }
+
+    const limit = Number(usage.limit) > 0 ? Number(usage.limit) : 40;
+    const used = Math.max(0, Math.min(Number(usage.used) || 0, limit));
+    const percent = Math.min(100, (used / limit) * 100);
+
+    text.textContent = `${used}/${limit}`;
+    bar.style.width = `${percent}%`;
+    bar.setAttribute('aria-valuenow', String(Math.round(percent)));
+}
+
 function updateBadges(count) {
     const badge = document.querySelector('#notif-count');
     const inline = document.querySelector('#notif-count-inline');
@@ -746,10 +812,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             profileContainer.style.display = 'block';
             signUpButton.style.display = 'none';
+            updateSafeAiProgressUI();
             initNotificationsListener(user.uid);
         } else {
             if (profileContainer) profileContainer.style.display = 'none';
             signUpButton.style.display = 'block';
+            if (document.getElementById('safeai-progress-row')) {
+                document.getElementById('safeai-progress-row').style.display = 'none';
+            }
             if (notificationsUnsubscribe) notificationsUnsubscribe();
         }
     });
