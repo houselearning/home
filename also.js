@@ -1,13 +1,5 @@
 // also.js — FULL PLUGIN
 
-if (location.protocol === "file:") {
-  window.openLanguageModal = () => {};
-  console.info("[ALSO] Disabled for local file preview to avoid launcher UI conflicts.");
-} else {
-
-/* ==============================
-   📦 FIREBASE IMPORTS
-   ============================== */
 import {
   initializeApp,
   getApps,
@@ -24,6 +16,11 @@ import {
   ref,
   push
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+if (location.protocol === "file:") {
+  window.openLanguageModal = () => {};
+  console.info("[ALSO] Disabled for local file preview to avoid launcher UI conflicts.");
+} else {
 
 /* ==============================
    🔥 FALLBACK FIREBASE CONFIG

@@ -10,14 +10,19 @@
   }
 
   function scriptBaseUrl() {
-    const candidates = [];
-    const path = window.location.pathname || '/';
-    if (path.includes('/home')) candidates.push('/home/assistant');
-    candidates.push('/assistant');
-    for (const candidate of candidates) {
-      if (candidate === '/home/assistant' || candidate === '/assistant') return candidate;
-    }
-    return '/assistant';
+    const currentScriptUrl = document.currentScript && document.currentScript.src
+      ? new URL(document.currentScript.src, window.location.href).href
+      : window.location.href;
+
+    const origin = new URL(window.location.href).origin;
+    const candidates = [
+      currentScriptUrl.includes('/home/') ? currentScriptUrl.replace(/\/assistant\.js$/, '').replace(/\/$/, '') : '',
+      `${origin}/assistant`,
+      `${origin}/home/assistant`,
+      `${origin}/home`
+    ].filter(Boolean);
+
+    return candidates[0] || '/assistant';
   }
 
   function ensureCss() {
@@ -60,19 +65,39 @@
   }
 
   async function ensureScripts() {
-    const base = scriptBaseUrl();
+    const baseCandidates = [
+      scriptBaseUrl(),
+      `${new URL(window.location.href).origin}/assistant`,
+      `${new URL(window.location.href).origin}/home/assistant`
+    ].filter(Boolean);
+
+    const uniqueBases = [...new Set(baseCandidates.map((base) => base.replace(/\/$/, '')))].filter(Boolean);
     const scripts = [
-      `${base}/assistant-i18n.js`,
-      `${base}/assistant-storage.js`,
-      `${base}/assistant-session.js`,
-      `${base}/assistant-context.js`,
-      `${base}/assistant-ui.js`,
-      `${base}/assistant-sitemap.js`,
-      `${base}/assistant-voice.js`
+      'assistant-i18n.js',
+      'assistant-storage.js',
+      'assistant-session.js',
+      'assistant-context.js',
+      'assistant-ui.js',
+      'assistant-sitemap.js',
+      'assistant-voice.js'
     ];
 
-    for (const src of scripts) {
-      await loadScript(src);
+    for (const filename of scripts) {
+      let loaded = false;
+      for (const base of uniqueBases) {
+        const src = `${base}/${filename}`;
+        try {
+          await loadScript(src);
+          loaded = true;
+          break;
+        } catch (_error) {
+          // Try the next valid assistant path.
+        }
+      }
+
+      if (!loaded) {
+        console.warn(`[HL Assistant] Failed to load ${filename}`);
+      }
     }
   }
 
