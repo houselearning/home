@@ -135,6 +135,20 @@
     }).join('');
   }
 
+  function filterHouseLearningOnlyEntries(items) {
+    return (items || []).filter((item) => {
+      if (!item) return false;
+      const candidate = typeof item.url === 'string' ? item.url : '';
+      if (!candidate) return false;
+      try {
+        const parsed = new URL(candidate, window.location.href);
+        return parsed.hostname === 'houselearning.org' || parsed.hostname === 'www.houselearning.org' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+      } catch (_error) {
+        return false;
+      }
+    });
+  }
+
   function getDefaultAssistantPosition() {
     return { x: 20, y: 18 };
   }
@@ -537,6 +551,13 @@
     function setStatus(nextStatus) {
       state.status = nextStatus;
       assistantRoot.setAttribute('data-state', nextStatus);
+
+      if (nextStatus === 'thinking') {
+        renderThinkingIndicator();
+      } else {
+        clearThinkingIndicator();
+      }
+
       if (nextStatus === 'listening') {
         window.HLAssistantUI && window.HLAssistantUI.setOrbNotice('Listening...');
       } else if (nextStatus === 'thinking') {
@@ -556,9 +577,32 @@
       messagesBox.scrollTop = messagesBox.scrollHeight;
     }
 
+    function renderThinkingIndicator() {
+      const existing = messagesBox.querySelector('.hl-assistant-thinking');
+      if (existing) return;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'hl-assistant-thinking';
+      bubble.setAttribute('role', 'status');
+      bubble.setAttribute('aria-live', 'polite');
+      bubble.innerHTML = `
+        <span class="hl-assistant-thinking-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="hl-assistant-thinking-label">Thinking...</span>
+      `;
+      messagesBox.appendChild(bubble);
+      messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+
+    function clearThinkingIndicator() {
+      const indicator = messagesBox.querySelector('.hl-assistant-thinking');
+      if (indicator) indicator.remove();
+    }
+
     function renderSuggestions(items) {
       suggestionsBox.innerHTML = '';
-      const safeItems = (items || []).slice(0, 4);
+      const safeItems = filterHouseLearningOnlyEntries((items || []).slice(0, 4));
       safeItems.forEach((item) => {
         const button = document.createElement('button');
         button.type = 'button';
@@ -583,7 +627,15 @@
         { title: defaultPrompts.math || 'Help me with math', url: 'https://houselearning.org/home/math-page.html' },
         { title: defaultPrompts.coding || 'Learn coding', url: 'https://houselearning.org/home/computer-science-page.html' },
         { title: defaultPrompts.science || 'Explore science', url: 'https://houselearning.org/home/science-page.html' }
-      ];
+      ].filter((entry) => {
+        if (!entry || !entry.url) return false;
+        try {
+          const parsed = new URL(entry.url, window.location.href);
+          return parsed.hostname === 'houselearning.org' || parsed.hostname === 'www.houselearning.org' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+        } catch (_error) {
+          return false;
+        }
+      });
 
       if (subject === 'math') {
         generated[1].url = 'https://houselearning.org/home/math-page.html';

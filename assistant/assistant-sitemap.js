@@ -43,9 +43,9 @@
         return candidate.href;
       }
 
-      return candidate.href;
+      return null;
     } catch (_error) {
-      return value;
+      return null;
     }
   }
 
