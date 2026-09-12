@@ -378,6 +378,24 @@
       assistantRoot.insertBefore(bubble, orb);
     }
 
+    function showQuickHelloBubble() {
+      const existing = assistantRoot.querySelector('.hl-safeai-bubble-hello');
+      if (existing) {
+        existing.remove();
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = 'hl-safeai-bubble hl-safeai-bubble-hello';
+      bubble.setAttribute('role', 'status');
+      bubble.setAttribute('aria-live', 'polite');
+      bubble.innerHTML = '<span class="hl-safeai-bubble-main">Hello!</span>';
+      assistantRoot.insertBefore(bubble, orb);
+
+      setTimeout(() => {
+        bubble.remove();
+      }, 2200);
+    }
+
     function maybeWelcomeBack() {
       if (!state.session || !state.session.messages || state.session.messages.length === 0) return;
       if (state.session.welcomeShown) return;
@@ -601,11 +619,37 @@
       input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
     });
 
-    document.addEventListener('keydown', (event) => {
+    let lastAltPress = 0;
+    function isAltShortcutEvent(event) {
+      return Boolean(event && (
+        event.altKey ||
+        event.key === 'Alt' ||
+        event.key === 'AltGraph' ||
+        event.code === 'AltLeft' ||
+        event.code === 'AltRight'
+      ));
+    }
+
+    function handleGlobalShortcut(event) {
       if (event.key === 'Escape') {
         toggleOpen(false);
       }
-    });
+
+      if (isAltShortcutEvent(event) && !event.repeat) {
+        const now = Date.now();
+        if (now - lastAltPress < 350) {
+          toggleOpen(true);
+          showQuickHelloBubble();
+          input.focus();
+        }
+        lastAltPress = now;
+      }
+    }
+
+    document.addEventListener('keydown', handleGlobalShortcut);
+    document.addEventListener('keyup', handleGlobalShortcut);
+    window.addEventListener('keydown', handleGlobalShortcut);
+    window.addEventListener('keyup', handleGlobalShortcut);
 
     document.body.appendChild(assistantRoot);
     maybeCreateSafeAiBubble();
