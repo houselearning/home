@@ -118,6 +118,62 @@
     return `You are the HouseLearning AI Assistant. Help students learn and navigate HouseLearning. Use HouseLearning resources first and never invent HouseLearning links. Be friendly, patient, kid-safe, and encourage learning. Explain concepts clearly in the user's language. If you do not know something, say so honestly. Keep responses concise and age-appropriate. The supported languages are English, Spanish, Turkish, and Portuguese.`;
   }
 
+  function buildSubjectSuggestions(subject, topicText) {
+    const pageRoot = 'https://houselearning.org/home';
+    const suggestions = [
+      { title: 'Explore the main learning hub', url: pageRoot },
+      { title: 'Math lessons', url: `${pageRoot}/math-page.html` },
+      { title: 'Science lessons', url: `${pageRoot}/science-page.html` },
+      { title: 'Computer science lessons', url: `${pageRoot}/computer-science-page.html` }
+    ];
+
+    const friendlyTopic = topicText || subject || 'learning';
+    const topicLabel = friendlyTopic.charAt(0).toUpperCase() + friendlyTopic.slice(1);
+
+    if (subject === 'math') {
+      return [
+        { title: `${topicLabel} practice`, url: `${pageRoot}/math-page.html` },
+        { title: 'Solve a math problem step by step', url: `${pageRoot}/math-page.html` },
+        { title: 'Find a new math topic', url: `${pageRoot}/math-page.html` },
+        { title: 'Return to learning hub', url: pageRoot }
+      ];
+    }
+
+    if (subject === 'science') {
+      return [
+        { title: `${topicLabel} idea check`, url: `${pageRoot}/science-page.html` },
+        { title: 'Explore a science lesson', url: `${pageRoot}/science-page.html` },
+        { title: 'Look for a real-world example', url: `${pageRoot}/science-page.html` },
+        { title: 'Return to learning hub', url: pageRoot }
+      ];
+    }
+
+    if (subject === 'coding') {
+      return [
+        { title: `${topicLabel} coding guide`, url: `${pageRoot}/computer-science-page.html` },
+        { title: 'Try a coding lesson', url: `${pageRoot}/computer-science-page.html` },
+        { title: 'Build a tiny project', url: `${pageRoot}/computer-science-page.html` },
+        { title: 'Return to learning hub', url: pageRoot }
+      ];
+    }
+
+    return suggestions;
+  }
+
+  function inferTopicFromText(text, pageSubject, session) {
+    const normalized = safeText(text).toLowerCase();
+    const pageTopic = (session && session.activeTopic) || '';
+
+    if (!normalized) return pageTopic || pageSubject || 'learning';
+    if (/fractions?|fraction/i.test(normalized)) return 'fractions';
+    if (/algebra|equation|solve/i.test(normalized)) return 'algebra';
+    if (/python|code|coding|programming|javascript|html|css|java/i.test(normalized)) return 'coding';
+    if (/science|biology|physics|chemistry|earth|space/i.test(normalized)) return 'science';
+    if (/game|play/i.test(normalized)) return 'games';
+    if (pageTopic) return pageTopic;
+    return pageSubject || 'learning';
+  }
+
   async function defaultAssistantBackend(message, context = {}) {
     const text = safeText(message);
     const safeAiEnabled = window.HLAssistantSafeAI ? window.HLAssistantSafeAI.isEnabled() : true;
@@ -131,42 +187,110 @@
 
     const normalized = text.toLowerCase();
     const session = context.session || null;
-    const topicText = session && session.activeTopic ? session.activeTopic : '';
+    const page = context.page || {};
+    const pageSubject = page.subject || getSubjectContext(page.pathname || window.location.pathname || window.location.href);
+    const topicText = inferTopicFromText(text, pageSubject, session);
+    const subject = pageSubject || 'general';
+    const pageTitle = (page.title || session?.currentPage?.title || document.title || 'this page').trim();
     const suggestions = (context.recommendations || []).slice(0, 4);
 
     if (safeAiEnabled && /\b(hack|bypass|exploit|malware|weapon|self-harm|suicide|violent attack|bomb|illegal drug|buy drugs)\b/i.test(text)) {
       return {
         text: 'I can help with school-friendly, safe learning topics. Let’s focus on math, science, coding, or a lesson you are studying.',
-        suggestions: []
+        suggestions: buildSubjectSuggestions(subject, topicText)
       };
     }
 
+    const asksForPractice = /(quiz|practice|exercise|test|questions?)/i.test(normalized);
+    const asksForExplain = /(explain|what is|teach me|tell me about|define|how does)/i.test(normalized);
+    const asksForHelp = /(help|stuck|confused|can you help|how do i|how to)/i.test(normalized);
+    const isGreeting = /^(hi|hello|hey|good morning|good afternoon|good evening)/i.test(normalized);
+
     let answer = context.translations?.responseFallback || 'I can help you find a topic to explore on HouseLearning.';
 
-    if (session && session.currentPage && session.currentPage.title) {
-      answer = `Welcome back! We were working on ${topicText || 'your current topic'}. You are on ${session.currentPage.title}. Want to keep learning from here?`;
-    }
-
-    if (normalized.includes('python') || normalized.includes('coding') || normalized.includes('programming')) {
-      answer = 'Python and coding are great places to start. Try exploring our coding and computer science lessons, then build a small project step by step.';
-    } else if (normalized.includes('fraction') || normalized.includes('fractions')) {
-      answer = 'Fractions are parts of a whole. You can compare the numerator and denominator, or draw a visual model to help understand them better.';
-    } else if (normalized.includes('algebra') || normalized.includes('equation') || normalized.includes('math')) {
-      answer = 'Math becomes easier when you look for patterns and break problems into smaller steps. Start with a simple example and then try a similar one on your own.';
-    } else if (normalized.includes('science')) {
-      answer = 'Science is all about observing, asking questions, and testing ideas. Try exploring a topic like energy, planets, or living things.';
+    if (isGreeting) {
+      answer = `Hi! I can help you with ${subject === 'general' ? 'math, science, coding, and learning activities' : subject + ' topics'}. What do you want to explore today?`;
+    } else if (subject === 'math' && (normalized.includes('fraction') || normalized.includes('fractions'))) {
+      answer = 'Fractions are parts of a whole. A quick way to think about them is: numerator tells how many parts you have, denominator tells how many equal parts the whole is split into. Try drawing a pizza or bar model and then compare the pieces.';
+    } else if (subject === 'math' && (normalized.includes('algebra') || normalized.includes('equation') || normalized.includes('solve'))) {
+      answer = 'To solve algebra, isolate the variable one step at a time. Start by simplifying both sides, move terms to one side, and then divide or multiply to get the variable by itself. Check your answer by plugging it back in.';
+    } else if (subject === 'coding' || normalized.includes('python') || normalized.includes('coding') || normalized.includes('programming')) {
+      answer = 'A good coding habit is: state the problem, break it into steps, write a small test, then build the code in simple pieces. If you are learning Python, start with variables, loops, and conditionals before trying bigger projects.';
+    } else if (subject === 'science' || normalized.includes('science') || normalized.includes('biology') || normalized.includes('physics') || normalized.includes('chemistry')) {
+      answer = 'Science works best when you observe, ask a question, and look for evidence. Try to explain what you notice, make a prediction, and then test it with a simple example or comparison.';
+    } else if (asksForPractice) {
+      answer = `Here’s a quick challenge for ${topicText}: 1) explain the idea in your own words, 2) try one example, 3) check if the answer makes sense. If you want, I can turn this into a short practice set.`;
+    } else if (asksForExplain) {
+      answer = `Here is a simple explanation for ${topicText}: start with the main idea, give one everyday example, and then connect it back to the lesson on ${pageTitle}. That makes the concept easier to remember.`;
+    } else if (asksForHelp) {
+      answer = `Let’s break it down. First, identify the key idea in ${topicText}. Next, look for the part that is confusing. Then try one small example before you solve the whole problem. That usually makes the next step clear.`;
+    } else if (session && session.currentPage && session.currentPage.title) {
+      answer = `You are on ${session.currentPage.title}. A useful next step is to focus on ${topicText || 'your current lesson'}, summarize the main idea in one sentence, and then try one sample problem or example.`;
     } else if (normalized.includes('lesson') || normalized.includes('learn')) {
-      answer = 'I can help you find a good lesson on HouseLearning. Start with the topic you want to study, and I will suggest the most relevant pages.';
-    } else if (normalized.includes('hello') || normalized.includes('hi')) {
-      answer = 'Hi! I can help you explore math, science, coding, and lessons on HouseLearning. What would you like to study today?';
+      answer = 'I can help you choose a strong next step. Start with the topic you want to understand, then look for one example, one key definition, and one practice problem to test yourself.';
     }
 
-    return { text: answer, suggestions };
+    const finalSuggestions = suggestions.length ? suggestions.slice(0, 4) : buildSubjectSuggestions(subject, topicText);
+    return { text: answer, suggestions: finalSuggestions };
   }
 
   async function askAssistant(message, context = {}) {
     const backend = context.backend || defaultAssistantBackend;
     return backend(message, context);
+  }
+
+  async function askLiveAssistant(message, context = {}) {
+    const page = context.page || {};
+    const session = context.session || null;
+    const subject = page.subject || getSubjectContext(window.location.pathname || window.location.href) || 'general';
+    const payload = {
+      message,
+      subject,
+      pageTitle: page.title || document.title || 'HouseLearning page',
+      grade: session && session.grade ? session.grade : '',
+      language: context.language || 'en'
+    };
+
+    const candidates = [
+      'https://houselearning-ai.houselearning.workers.dev',
+      '/api/assistant',
+      '/assistant/api',
+      'https://houselearning.org/api/assistant',
+      'https://www.houselearning.org/api/assistant',
+      'http://localhost:8001/api/assistant'
+    ];
+
+    const headers = { 'Content-Type': 'application/json' };
+    let lastError = null;
+
+    for (const url of candidates) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data && typeof data.text === 'string' && data.text.trim()) {
+          return {
+            text: data.text,
+            suggestions: Array.isArray(data.suggestions) ? data.suggestions : []
+          };
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastError) {
+      console.warn('[HL Assistant] Live backend unavailable, falling back to local logic.', lastError);
+    }
+    return defaultAssistantBackend(message, context);
   }
 
   async function initAssistant(options = {}) {
@@ -451,7 +575,7 @@
       };
 
       try {
-        const response = await askAssistant(cleanMessage, context);
+        const response = await askLiveAssistant(cleanMessage, context);
         const responseText = safeText(response?.text || strings.responseFallback || 'I can help with that.');
         renderAssistantMessage(responseText, 'assistant');
         if (window.HLAssistantSession) {
