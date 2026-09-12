@@ -344,6 +344,40 @@
       }
     }
 
+    function maybeCreateSafeAiBubble() {
+      const seenKey = 'houselearning_safeai_intro_seen';
+      let seen = false;
+      try {
+        seen = localStorage.getItem(seenKey) === 'true';
+      } catch (_error) {
+        seen = false;
+      }
+
+      if (seen) return;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'hl-safeai-bubble';
+      bubble.setAttribute('role', 'status');
+      bubble.setAttribute('aria-live', 'polite');
+      bubble.innerHTML = `
+        <span class="hl-safeai-bubble-main">Hello, I'm SafeAI. Your personal helper friend.</span>
+        <span class="hl-safeai-bubble-extra">Ask me everything... I know everything.</span>
+      `;
+
+      const markSeen = () => {
+        try {
+          localStorage.setItem(seenKey, 'true');
+        } catch (_error) {
+          // ignore storage failures
+        }
+      };
+
+      bubble.addEventListener('mouseenter', markSeen);
+      bubble.addEventListener('focusin', markSeen);
+      bubble.addEventListener('click', markSeen);
+      assistantRoot.insertBefore(bubble, orb);
+    }
+
     function maybeWelcomeBack() {
       if (!state.session || !state.session.messages || state.session.messages.length === 0) return;
       if (state.session.welcomeShown) return;
@@ -574,11 +608,13 @@
     });
 
     document.body.appendChild(assistantRoot);
+    maybeCreateSafeAiBubble();
     if (window.HLAssistantUI) {
       window.HLAssistantUI.setOrbNotice(state.session.messages?.length ? 'I\'m still here 👋' : '');
     }
     updateActiveContext();
     refreshSuggestions(state.session.activeTopic || 'lesson');
+    toggleOpen(true);
 
     if (state.session && state.session.messages && state.session.messages.length) {
       state.session.messages.forEach((item) => {
