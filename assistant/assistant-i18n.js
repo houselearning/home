@@ -20,7 +20,8 @@
         language: 'Language',
         inputPlaceholder: 'Ask me anything...',
         explainPageTooltip: 'Explain this page',
-        clearChatTooltip: 'Clear conversation'
+        clearChatTooltip: 'Clear conversation',
+        closeTooltip: 'Close assistant'
       },
       defaultPrompts: {
         lesson: 'Find a lesson',
@@ -50,7 +51,8 @@
         language: 'Idioma',
         inputPlaceholder: 'Pregúntame algo...',
         explainPageTooltip: 'Explica esta página',
-        clearChatTooltip: 'Borrar conversación'
+        clearChatTooltip: 'Borrar conversación',
+        closeTooltip: 'Cerrar asistente'
       },
       defaultPrompts: {
         lesson: 'Busca una lección',
@@ -80,7 +82,8 @@
         language: 'Dil',
         inputPlaceholder: 'Bana bir şey sor...',
         explainPageTooltip: 'Bu sayfayı açıkla',
-        clearChatTooltip: 'Konuşmayı temizle'
+        clearChatTooltip: 'Konuşmayı temizle',
+        closeTooltip: 'Asistanı kapat'
       },
       defaultPrompts: {
         lesson: 'Bir ders bul',
@@ -110,7 +113,8 @@
         language: 'Idioma',
         inputPlaceholder: 'Pergunte-me algo...',
         explainPageTooltip: 'Explicar esta página',
-        clearChatTooltip: 'Limpar conversa'
+        clearChatTooltip: 'Limpar conversa',
+        closeTooltip: 'Fechar assistente'
       },
       defaultPrompts: {
         lesson: 'Encontre uma lição',

@@ -18,6 +18,31 @@
   --hl-assistant-suggestion-text: #ecf5ff;
 }
 
+/* Keep the full site usable when the viewport is too narrow or short. */
+@media (max-width: 319px), (max-height: 479px) {
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    background: #bdbdbd;
+  }
+
+  body::after {
+    content: 'Display resolution too small\A\AMinimum display size: 320 x 480 pixels\A\AResize the window or device to at least this size to use HouseLearning.';
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: grid;
+    place-content: center;
+    padding: 24px;
+    color: #ffffff;
+    font: 700 clamp(1.1rem, 6vw, 2.1rem)/1.25 system-ui, sans-serif;
+    text-align: center;
+    white-space: pre-line;
+  }
+}
+
 .hl-assistant {
   position: fixed;
   left: 20px;
@@ -45,7 +70,7 @@
 }
 
 .hl-assistant[data-open='false'] .hl-assistant-panel {
-  display: block;
+  display: none;
 }
 
 @keyframes hlAssistantSlideIn {
@@ -435,6 +460,18 @@
   color: rgba(255,255,255,0.7);
 }
 
+.hl-assistant-input:focus-visible,
+.hl-assistant-select:focus-visible,
+.hl-assistant-send:focus-visible,
+.hl-assistant-mic:focus-visible,
+.hl-assistant-clear:focus-visible,
+.hl-assistant-mode-btn:focus-visible,
+.hl-assistant-end-btn:focus-visible,
+.hl-assistant-orb:focus-visible {
+  outline: 3px solid #ffe27a;
+  outline-offset: 2px;
+}
+
 .hl-assistant-send,
 .hl-assistant-mic {
   border: none;
@@ -642,20 +679,39 @@
   box-shadow: 0 0 12px rgba(255,255,255,0.8);
 }
 
-@media (max-width: 540px) {
+@media (max-width: 900px) {
   .hl-assistant {
-    left: 10px;
-    bottom: 12px;
+    left: 10px !important;
+    bottom: 10px !important;
   }
 
   .hl-assistant-panel {
-    width: min(92vw, 360px);
+    width: min(calc(100vw - 20px), 420px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100vh - 120px) !important;
     border-radius: 20px 20px 16px 16px;
+    resize: none;
+    overflow: auto;
+  }
+
+  .hl-assistant-messages {
+    max-height: 32vh;
   }
 
   .hl-assistant-orb {
     width: 56px;
     height: 56px;
+  }
+}
+
+@media (min-width: 901px) {
+  .hl-assistant-panel {
+    min-width: 320px;
+    min-height: 360px;
+    max-width: min(720px, calc(100vw - 28px));
+    max-height: calc(100vh - 120px);
+    resize: both;
+    overflow: auto;
   }
 }
 
