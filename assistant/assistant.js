@@ -1775,7 +1775,24 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
     updateSafeAiUsageUI();
   }
 
+  function setupAdminCommands() {
+    window.HLAssistantAdmin = window.HLAssistantAdmin || {};
+    window.HLAssistantAdmin.run = async function(command) {
+      if (!window.firebase || !window.firebase.functions) {
+        return { ok: false, error: 'Firebase not initialized.' };
+      }
+      try {
+        const fn = window.firebase.functions().httpsCallable('safeAiAdminCommand');
+        const result = await fn({ command });
+        return result.data || { ok: true };
+      } catch (err) {
+        return { ok: false, error: err.message || String(err) };
+      }
+    };
+  }
+
   createSafeAIController();
+  setupAdminCommands();
 
   window.HouseLearningAssistant = {
     init,
