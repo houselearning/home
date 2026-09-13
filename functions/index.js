@@ -54,6 +54,9 @@ exports.assistant = functions.https.onRequest(async (req, res) => {
     const sitemapEntries = Array.isArray(body.sourceEntries)
       ? body.sourceEntries.filter((entry) => entry && /^https:\/\/(?:www\.)?houselearning\.org\//i.test(String(entry.url))).slice(0, 500)
       : [];
+    const siteKnowledge = body.siteKnowledge && typeof body.siteKnowledge === 'object'
+      ? JSON.stringify(body.siteKnowledge)
+      : '';
     const sitemapCatalog = sitemapEntries.length
       ? `Sitemap source catalog:\n${sitemapEntries.map((entry) => JSON.stringify({
         url: entry.url,
@@ -77,6 +80,7 @@ exports.assistant = functions.https.onRequest(async (req, res) => {
       'Identify yourself as SafeAI from HouseLearning.org when asked.',
       sitemapUrls.length ? `Sitemap source URLs:\n${sitemapUrls.join('\n')}` : 'No sitemap source URLs are available; do not provide links.',
       sitemapCatalog,
+      siteKnowledge ? `HouseLearning brand and subject knowledge catalog:\n${siteKnowledge}` : '',
       `Student message: ${message}`,
       `Subject: ${subject}`,
       `Page title: ${pageTitle}`,

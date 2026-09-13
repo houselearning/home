@@ -2,6 +2,18 @@
   const DEFAULT_SITEMAP_URL = 'https://www.houselearning.org/meta/sitemap.xml';
   const DEFAULT_LANG = 'en';
   const ASSISTANT_VERSION = '1.1.0';
+  let siteKnowledgeCache = null;
+
+  async function loadSiteKnowledge() {
+    if (siteKnowledgeCache) return siteKnowledgeCache;
+    try {
+      const response = await fetch(`${scriptBaseUrl()}/site-knowledge.json`, { cache: 'no-store' });
+      if (response.ok) siteKnowledgeCache = await response.json();
+    } catch (_error) {
+      siteKnowledgeCache = null;
+    }
+    return siteKnowledgeCache;
+  }
 
   function getHouseLearningHomeUrl() {
     return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -534,6 +546,16 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
     return 'HouseLearning is a free educational platform with lessons, activities, games, and learning resources in math, science, coding, and other school subjects.';
   }
 
+  function getBrandKnowledgeResponse(text) {
+    const normalized = safeText(text).toLowerCase();
+    if (!/\b(what is|what's|define|describe|tell me about)\b/.test(normalized)) return '';
+    if (/\bsafelibrary\b/.test(normalized)) return 'SafeLibrary is HouseLearning\'s resource library for safe audio, books, audiobooks, videos, interactive programs, and images; it is a library section, not the name of SafeAI or the parent platform.';
+    if (/\bcoolmathtime\b/.test(normalized)) return 'CoolMathTime is HouseLearning\'s math learning surface for arithmetic, fractions, algebra, geometry, measurement, numbers, and word problems.';
+    if (/\bcoolsciencetime\b/.test(normalized)) return 'CoolScienceTime is HouseLearning\'s science learning surface for biology, physics, chemistry, earth science, space science, and other K-12 science topics.';
+    if (/\bbeans101\b/.test(normalized)) return 'Beans101 is a separate collaboration or promotional reference connected to some HouseLearning content, not the identity of SafeAI, HouseLearning, or SafeLibrary.';
+    return '';
+  }
+
   async function defaultAssistantBackend(message, context = {}) {
     const text = safeText(message);
     const safeAiEnabled = window.HLAssistantSafeAI ? window.HLAssistantSafeAI.isEnabled() : true;
@@ -557,6 +579,9 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
     if (houseLearningDefinition) {
       return { text: houseLearningDefinition, suggestions: [] };
     }
+
+    const brandKnowledge = getBrandKnowledgeResponse(text);
+    if (brandKnowledge) return { text: brandKnowledge, suggestions: [] };
 
     const localizedFallbacks = {
       en: 'I can help you explore HouseLearning lessons, math, science, and coding. Try asking for a topic or choose one of the suggestions.',
@@ -720,6 +745,7 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
       grade: session && session.grade ? session.grade : '',
       language: context.language || 'en',
       sourceUrls: sitemapEntries.slice(0, 500).map((entry) => entry.url),
+      siteKnowledge: context.siteKnowledge || null,
       sourceEntries: sitemapEntries.slice(0, 500).map((entry) => ({
         url: entry.url,
         title: entry.title,
@@ -784,6 +810,7 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
     const sitemapUrl = options.sitemap || DEFAULT_SITEMAP_URL;
     const defaultLanguage = options.defaultLanguage || DEFAULT_LANG;
     const backend = options.backend || defaultAssistantBackend;
+    const siteKnowledge = await loadSiteKnowledge();
 
     const assistantRoot = document.createElement('div');
     assistantRoot.className = 'hl-assistant';
@@ -1088,16 +1115,18 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
       return generated;
     }
 
-    async function refreshSuggestions(query = '') {
+    async function refreshSuggestions(query = '', useFallback = true) {
       let results = [];
       if (window.HLAssistantSitemap && typeof window.HLAssistantSitemap.getRelevant === 'function') {
         results = await window.HLAssistantSitemap.getRelevant(query || state.session.activeTopic || 'lesson', 4);
       }
-      if (!results.length) {
+      if (!results.length && useFallback) {
         results = buildQuickSuggestions();
       }
       state.currentSuggestions = results;
       renderSuggestions(results);
+      const title = assistantRoot.querySelector('.hl-assistant-suggestions-title');
+      if (title) title.textContent = query ? 'Related HouseLearning resources' : (strings.suggestionsTitle || 'What would you like to learn?');
     }
 
     function updateModeButtons() {
@@ -1214,6 +1243,7 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
         backend,
         language: state.language,
         translations: strings,
+        siteKnowledge,
         recommendations,
         session: state.session,
         page: {
@@ -1240,10 +1270,17 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
           }
         }
 
-        if (response?.suggestions?.length) {
-          renderSuggestions(response.suggestions);
-        } else if (recommendations.length) {
-          renderSuggestions(recommendations);
+        const relatedQuery = `${cleanMessage} ${responseText}`;
+        if (lessonRequested && sitemapLesson) {
+          state.currentSuggestions = [sitemapLesson];
+          renderSuggestions([sitemapLesson]);
+          const title = assistantRoot.querySelector('.hl-assistant-suggestions-title');
+          if (title) title.textContent = 'Related HouseLearning resources';
+        } else {
+          await refreshSuggestions(relatedQuery, false);
+          if (!state.currentSuggestions.length) {
+            renderSuggestions(response?.suggestions?.length ? response.suggestions : recommendations);
+          }
         }
         syncSessionStorage();
         setStatus('idle');

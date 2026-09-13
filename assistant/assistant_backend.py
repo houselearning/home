@@ -34,8 +34,16 @@ load_env_file()
 
 
 SITEMAP_URL = 'https://www.houselearning.org/meta/sitemap.xml'
+SITE_KNOWLEDGE_PATH = Path(__file__).resolve().parent / 'site-knowledge.json'
 SITEMAP_CACHE_TTL = 15 * 60
 _sitemap_cache = {'expires_at': 0.0, 'urls': set()}
+
+
+def get_site_knowledge() -> dict:
+    try:
+        return json.loads(SITE_KNOWLEDGE_PATH.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
 
 DEFAULT_SYSTEM_PROMPT = """# SAFEAI - CORE SYSTEM INSTRUCTIONS
 You are SafeAI, the official AI assistant for HouseLearning.org.
@@ -184,9 +192,11 @@ def build_prompt(user_message: str, subject: str = 'general', page_title: str = 
     prompt = DEFAULT_SYSTEM_PROMPT
     sources = sorted(source_urls if source_urls is not None else get_sitemap_urls())
     source_part = 'Sitemap source URLs:\n' + ('\n'.join(sources) if sources else '(No sitemap URLs are available.)')
+    knowledge_part = 'HouseLearning and SafeLibrary knowledge catalog:\n' + json.dumps(get_site_knowledge(), ensure_ascii=True, sort_keys=True)
     return (
         f"{prompt}\n\n"
         f"Respond in {response_language} unless the student explicitly asks for a different language.\n\n"
+        f"{knowledge_part}\n\n"
         f"{source_part}\n\n"
         f"Student message: {cleaned_message}\n"
         f"Subject: {subject}\n"
