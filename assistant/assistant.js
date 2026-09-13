@@ -730,7 +730,7 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
     assistantRoot.style.left = `${savedPosition.x}px`;
     assistantRoot.style.bottom = `${savedPosition.y}px`;
 
-    const strings = window.HLAssistantI18n?.translations?.[state.language] || window.HLAssistantI18n?.translations?.en || {};
+    let strings = window.HLAssistantI18n?.translations?.[state.language] || window.HLAssistantI18n?.translations?.en || {};
 
     assistantRoot.innerHTML = `
       <div class="hl-assistant-panel" role="dialog" aria-live="polite" aria-label="HouseLearning assistant">
@@ -784,6 +784,23 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
     const modeButtons = assistantRoot.querySelectorAll('.hl-assistant-mode-btn');
     const endButton = assistantRoot.querySelector('.hl-assistant-end-btn');
 
+    function updateLocalizedUi() {
+      strings = window.HLAssistantI18n?.translations?.[state.language]
+        || window.HLAssistantI18n?.translations?.en
+        || {};
+      assistantRoot.querySelector('.hl-assistant-panel')?.setAttribute('aria-label', strings.assistantName || 'HouseLearning Assistant');
+      assistantRoot.querySelector('.hl-assistant-title > span:last-child').textContent = strings.assistantName || 'HouseLearning Assistant';
+      assistantRoot.querySelector('label[for="hl-assistant-language"]').textContent = strings.labels?.language || 'Language';
+      languageSelect.setAttribute('aria-label', strings.labels?.language || 'Language');
+      clearButton.setAttribute('aria-label', strings.labels?.clearChatTooltip || 'Clear conversation');
+      clearButton.setAttribute('title', strings.labels?.clearChatTooltip || 'Clear conversation');
+      assistantRoot.querySelector('.hl-assistant-suggestions-title').textContent = strings.suggestionsTitle || 'What would you like to learn?';
+      input.placeholder = strings.labels?.inputPlaceholder || 'Ask me anything...';
+      input.setAttribute('aria-label', strings.labels?.inputPlaceholder || 'Assistant prompt');
+      micButton.setAttribute('aria-label', strings.mic || 'Voice');
+      sendButton.textContent = strings.send || 'Send';
+    }
+
     function syncSessionStorage() {
       if (window.HLAssistantSession && window.HLAssistantSession.saveSession) {
         window.HLAssistantSession.saveSession(state.session);
@@ -813,11 +830,11 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
       }
 
       if (nextStatus === 'listening') {
-        window.HLAssistantUI && window.HLAssistantUI.setOrbNotice('Listening...');
+        window.HLAssistantUI && window.HLAssistantUI.setOrbNotice(strings.listening || 'Listening...');
       } else if (nextStatus === 'thinking') {
-        window.HLAssistantUI && window.HLAssistantUI.setOrbNotice('Thinking...');
+        window.HLAssistantUI && window.HLAssistantUI.setOrbNotice(strings.thinking || 'Thinking...');
       } else if (nextStatus === 'speaking') {
-        window.HLAssistantUI && window.HLAssistantUI.setOrbNotice('Speaking...');
+        window.HLAssistantUI && window.HLAssistantUI.setOrbNotice(strings.speaking || 'Speaking...');
       } else {
         window.HLAssistantUI && window.HLAssistantUI.setOrbNotice(state.session && state.session.messages && state.session.messages.length ? 'I\'m still here 👋' : '');
       }
@@ -925,7 +942,7 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
         <span class="hl-assistant-thinking-dots" aria-hidden="true">
           <span></span><span></span><span></span>
         </span>
-        <span class="hl-assistant-thinking-label">Thinking...</span>
+        <span class="hl-assistant-thinking-label">${sanitizeHtml(strings.thinking || 'Thinking...')}</span>
       `;
       messagesBox.appendChild(bubble);
       messagesBox.scrollTop = messagesBox.scrollHeight;
@@ -1350,9 +1367,10 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
       }
       state.language = nextLang;
       state.session.language = nextLang;
+      updateLocalizedUi();
       syncSessionStorage();
       if (state.session && state.session.messages && state.session.messages.length) {
-        renderAssistantMessage('Language updated. I will respond in ' + (nextLang || 'English') + '.', 'assistant');
+        renderAssistantMessage((strings.languageUpdated || 'Language updated. I will respond in') + ' ' + (nextLang || 'English') + '.', 'assistant');
       }
     });
 

@@ -170,14 +170,21 @@ def get_provider_config() -> Dict[str, str]:
     }
 
 
-def build_prompt(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', system_prompt: Optional[str] = None, source_urls: Optional[set[str]] = None) -> str:
+def normalize_language(language: str = 'en') -> str:
+    value = str(language or 'en').lower().split('-', 1)[0]
+    return value if value in {'en', 'es', 'tr', 'pt'} else 'en'
+
+
+def build_prompt(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', language: str = 'en', system_prompt: Optional[str] = None, source_urls: Optional[set[str]] = None) -> str:
     cleaned_message = (user_message or '').strip()
+    response_language = normalize_language(language)
     grade_part = f"Grade context: {grade}. " if grade else ''
     prompt = DEFAULT_SYSTEM_PROMPT
     sources = sorted(source_urls if source_urls is not None else get_sitemap_urls())
     source_part = 'Sitemap source URLs:\n' + ('\n'.join(sources) if sources else '(No sitemap URLs are available.)')
     return (
         f"{prompt}\n\n"
+        f"Respond in {response_language} unless the student explicitly asks for a different language.\n\n"
         f"{source_part}\n\n"
         f"Student message: {cleaned_message}\n"
         f"Subject: {subject}\n"
@@ -246,11 +253,11 @@ def _call_gemini(prompt: str, config: Dict[str, str]) -> str:
     return sanitize_reply(payload['candidates'][0]['content']['parts'][0]['text'].strip())
 
 
-def generate_reply(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', system_prompt: Optional[str] = None) -> str:
+def generate_reply(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', language: str = 'en', system_prompt: Optional[str] = None) -> str:
     config = get_provider_config()
     provider = config.get('provider', 'openai')
     source_urls = get_sitemap_urls()
-    prompt = build_prompt(user_message, subject=subject, page_title=page_title, grade=grade, source_urls=source_urls)
+    prompt = build_prompt(user_message, subject=subject, page_title=page_title, grade=grade, language=language, source_urls=source_urls)
 
     if provider == 'mock':
         return sanitize_reply(

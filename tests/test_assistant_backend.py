@@ -20,6 +20,13 @@ class AssistantBackendTests(unittest.TestCase):
         self.assertIn('Sitemap source URLs:', prompt)
         self.assertIn('exact URLs appear in the supplied HouseLearning sitemap source list', prompt)
 
+    def test_build_prompt_instructs_provider_to_use_selected_language(self):
+        from assistant.assistant_backend import build_prompt
+
+        prompt = build_prompt('Explain fractions', language='es-MX')
+
+        self.assertIn('Respond in es unless the student explicitly asks for a different language.', prompt)
+
     def test_build_prompt_ignores_custom_system_prompt(self):
         from assistant.assistant_backend import build_prompt
 
