@@ -84,6 +84,21 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    match /safeAiAdminLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'command', 'action', 'minutes', 'uid', 'email', 'happenedAt'
+        ])
+        && request.resource.data.command is string
+        && request.resource.data.action is string
+        && request.resource.data.minutes is int
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.happenedAt is timestamp;
+      allow update, delete: if false;
+    }
+
     match /cookbook_users/{userId} {
       allow read: if isOwner(userId);
       allow create, update: if isOwner(userId) || isAdmin();

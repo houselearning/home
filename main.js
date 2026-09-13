@@ -434,7 +434,8 @@ function injectAssistantWidget() {
         ? `${siteOrigin}/home/assistant`
         : `${siteOrigin}/assistant`;
 
-    const cssUrl = `${assetBase}/assistant.css`;
+    const assistantAssetVersion = '1.1.4';
+    const cssUrl = `${assetBase}/assistant.css?v=${assistantAssetVersion}`;
     if (!document.querySelector(`link[href="${cssUrl}"]`)) {
         const cssLink = document.createElement('link');
         cssLink.rel = 'stylesheet';
@@ -444,7 +445,7 @@ function injectAssistantWidget() {
     }
 
     const script = document.createElement('script');
-    script.src = `${assetBase}/assistant.js`;
+    script.src = `${assetBase}/assistant.js?v=${assistantAssetVersion}`;
     script.defer = true;
     script.setAttribute('data-hl-assistant-script', 'true');
     document.head.appendChild(script);

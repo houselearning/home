@@ -1,11 +1,56 @@
 const functions = require('firebase-functions');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const admin = require('firebase-admin');
+
+if (!admin.apps.length) admin.initializeApp();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 };
+
+function isSafeAiAdmin(context) {
+  const auth = context && context.auth;
+  if (!auth) return false;
+  return auth.token && (
+    auth.token.admin === true
+    || auth.token.email === 'cajm23331@gmail.com'
+    || auth.uid === '2nuzhsYAXiaMhm4RhRWksNLIBcJ3'
+  );
+}
+
+exports.safeAiAdminCommand = functions.https.onCall(async (data, context) => {
+  if (!isSafeAiAdmin(context)) {
+    throw new functions.https.HttpsError('permission-denied', 'SafeAI admin access is required.');
+  }
+
+  const rawCommand = String(data && data.command || '').trim().toLowerCase();
+  const commandMatch = rawCommand.match(/^(reset-daily-limit|add-time|remove-time)(?:\s+(\d+))?$/);
+  if (!commandMatch) {
+    throw new functions.https.HttpsError('invalid-argument', 'Use reset-daily-limit, add-time MINUTES, or remove-time MINUTES.');
+  }
+
+  const command = commandMatch[1];
+  const minutes = command === 'reset-daily-limit' ? 0 : Number(commandMatch[2] || 0);
+  if (command !== 'reset-daily-limit' && (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Minutes must be an integer from 1 to 1440.');
+  }
+
+  const action = command === 'reset-daily-limit'
+    ? 'reset-usage'
+    : command === 'add-time' ? 'add-window-minutes' : 'remove-window-minutes';
+  await admin.firestore().collection('safeAiAdminLogs').add({
+    command: rawCommand,
+    action,
+    minutes,
+    uid: context.auth.uid,
+    email: context.auth.token.email || '',
+    happenedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+
+  return { ok: true, command, action, minutes };
+});
 
 exports.assistant = functions.https.onRequest(async (req, res) => {
   if (req.method === 'OPTIONS') {

@@ -1,7 +1,7 @@
 (function () {
   const DEFAULT_SITEMAP_URL = 'https://www.houselearning.org/meta/sitemap.xml';
   const DEFAULT_REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
-  const LOCAL_CACHE_KEY = 'hl-assistant-sitemap-cache-v1';
+  const LOCAL_CACHE_KEY = 'hl-assistant-sitemap-cache-v2';
 
   function normalizeUrl(value) {
     try {
@@ -94,7 +94,7 @@
   function inferSubject(pathname, title) {
     const text = `${pathname} ${title}`.toLowerCase();
     if (text.includes('algebra') || text.includes('fractions') || text.includes('equation')) return 'math';
-    if (text.includes('python') || text.includes('javascript') || text.includes('coding') || text.includes('html') || text.includes('css')) return 'coding';
+    if (pathname.includes('/computerscience') || title.toLowerCase().includes('python') || title.toLowerCase().includes('javascript') || title.toLowerCase().includes('coding') || title.toLowerCase().includes('html') || title.toLowerCase().includes('css')) return 'coding';
     if (text.includes('biology') || text.includes('science') || text.includes('physics') || text.includes('chemistry')) return 'science';
     if (text.includes('/math')) return 'math';
     if (text.includes('/science')) return 'science';
