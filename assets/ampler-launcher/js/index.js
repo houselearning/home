@@ -188,6 +188,16 @@ function resetDefault() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.safeai-link').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            const assistantOrb = document.querySelector('.hl-assistant-orb');
+            if (!assistantOrb) return;
+
+            event.preventDefault();
+            assistantOrb.click();
+        });
+    });
+
     const answerButtons = document.querySelectorAll('.hl-answer-option');
     const feedback = document.querySelector('.hl-challenge-feedback');
 
