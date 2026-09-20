@@ -1,5 +1,9 @@
 // main.js
 
+if (window.HouseLearningOnlineFeatures && window.HouseLearningOnlineFeatures.isLocal) {
+    console.info('[HouseLearning] Online features disabled for local preview.');
+} else {
+
 // 🚨 FIREBASE CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
@@ -45,6 +49,7 @@ let anonymousPopup = null;
 const POPUP_DISMISS_KEY = 'houselearning_popup_dismissed'; 
 const AUTH_PAGE_URL = 'https://houselearning.org/auth/';
 const GITHUB_URL = 'https://github.com/houselearning'; 
+
 
 // ====================================================================
 // 1. DYNAMIC CSS INJECTION
@@ -825,3 +830,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+}

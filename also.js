@@ -18,7 +18,7 @@ import {
   get
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-if (location.protocol === "file:") {
+if (window.HouseLearningOnlineFeatures && window.HouseLearningOnlineFeatures.isLocal || location.protocol === "file:") {
   window.openLanguageModal = () => {};
   console.info("[ALSO] Disabled for local file preview to avoid launcher UI conflicts.");
 } else {
