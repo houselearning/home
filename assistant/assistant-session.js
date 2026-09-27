@@ -1,7 +1,13 @@
 (function () {
   function makeSessionId() {
-    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    return `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    if (window.crypto && window.crypto.getRandomValues) {
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      return `session-${Date.now()}-${hex}`;
+    }
+    return `session-${Date.now()}`;
   }
 
   function createSession(language = 'en', options = {}) {
