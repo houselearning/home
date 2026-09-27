@@ -284,6 +284,10 @@
       result.textContent = `${score} / ${testQuestions.length}`;
       const message = document.createElement('p');
       message.textContent = score >= 3 ? 'Passing result. You demonstrated a strong grasp of the grade-level ideas.' : 'Review the lesson material and retry the unit test. A score of 3 out of 4 is passing.';
+      const saveStatus = document.createElement('p');
+      saveStatus.className = 'feedback';
+      saveStatus.setAttribute('role', 'status');
+      saveStatus.textContent = 'Saving unit-test result...';
       const actions = document.createElement('div');
       actions.className = 'result-actions';
       const retry = document.createElement('button');
@@ -292,8 +296,33 @@
       retry.textContent = 'Retake test';
       retry.addEventListener('click', startTest);
       actions.appendChild(retry);
-      panel.append(heading, result, message, actions);
+      panel.append(heading, result, message, saveStatus, actions);
       workspace.appendChild(panel);
+      void saveUnitTestResult(subject, grade, score, testQuestions.length, saveStatus);
+    }
+  }
+
+  async function saveUnitTestResult(subject, grade, score, total, status) {
+    try {
+      const service = window.HouseLearningLessonProgress;
+      if (!service) throw new Error('Lesson progress service is unavailable.');
+      const result = await service.saveAttempt(`unit_${subject}_grade${grade}`, {
+        type: 'unit-test',
+        subject,
+        grade,
+        lessonTitle: `${grade === 0 ? 'Kindergarten' : `Grade ${grade}`} ${subjectNames[subject]} Unit Test`,
+        score,
+        total,
+        passed: score >= 3
+      });
+      status.textContent = result.saved && result.local
+        ? 'Unit-test result saved on this device.'
+        : result.saved
+          ? 'Unit-test result saved to your account.'
+          : 'Sign in to save unit-test results to your account.';
+    } catch (error) {
+      status.textContent = 'Unit-test result could not be saved. Check your connection and try again.';
+      console.error('Unable to save unit-test result:', error);
     }
   }
 

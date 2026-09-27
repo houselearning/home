@@ -18,6 +18,12 @@
   if (isLessonPage && sourceScript) {
     var loadLessonTools = function () {
       if (document.querySelector("script[data-houselearning-lesson-tools]")) return;
+      var progressScript = document.createElement("script");
+      progressScript.src = new URL("lesson-progress.js", sourceScript.src).href;
+      progressScript.onload = loadExpansionScript;
+      document.head.appendChild(progressScript);
+    };
+    var loadExpansionScript = function () {
       var toolsScript = document.createElement("script");
       toolsScript.src = new URL("lesson-expansion.js", sourceScript.src).href;
       toolsScript.dataset.houselearningLessonTools = "true";

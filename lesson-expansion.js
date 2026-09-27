@@ -11,6 +11,8 @@
 
   const gradeSection = sections.find(section => /^grade\d+$/.test(section) || section === 'k');
   const grade = gradeSection ? (gradeSection === 'k' ? '0' : gradeSection.slice(5)) : '';
+  const lessonSlug = (path[path.length - 1] || '').replace(/\.html$/i, '');
+  const lessonId = getLessonId(subject, sections, gradeSection, lessonSlug);
   const title = document.title
     .replace(/\s*[|–—-]\s*(HouseLearning|CoolMathTime).*$/i, '')
     .replace(/^(?:Grade\s*\d+|\d+(?:st|nd|rd|th)\s*Grade)\s*[:—-]?\s*/i, '')
@@ -66,6 +68,9 @@
   let quizIndex = 0;
   let quizScore = 0;
   let quizLocked = false;
+  let quizAttemptSaved = false;
+  let activeQuiz = [];
+  let ivlCompleted = false;
 
   function openDialog(mode) {
     activeMode = mode;
@@ -145,14 +150,25 @@
       finish.type = 'button';
       finish.className = 'hl-primary';
       finish.textContent = 'Complete IVL';
+      if (ivlCompleted) {
+        response.disabled = true;
+        finish.disabled = true;
+        feedback.textContent = 'This interactive lesson checkpoint is complete.';
+      }
       finish.addEventListener('click', () => {
         if (response.value.trim().length < 12) {
           feedback.textContent = 'Add a little more detail before completing this checkpoint.';
           response.focus();
           return;
         }
+        ivlCompleted = true;
         feedback.textContent = 'Checkpoint complete. Your response is ready to compare with the original lesson.';
         finish.disabled = true;
+        void persistIvlProgress({
+          currentStep: ivlStep,
+          completed: true,
+          responseLength: response.value.trim().length
+        }, feedback);
       });
       content.appendChild(finish);
     }
@@ -170,32 +186,88 @@
       next.type = 'button';
       next.className = 'hl-primary';
       next.textContent = 'Continue';
-      next.addEventListener('click', () => { ivlStep = Math.min(totalSteps - 1, ivlStep + 1); renderIvl(); });
+      next.addEventListener('click', () => {
+        ivlStep = Math.min(totalSteps - 1, ivlStep + 1);
+        renderIvl();
+        void persistIvlProgress({ currentStep: ivlStep, completed: false });
+      });
       controls.appendChild(next);
     }
+    const saveStatus = document.createElement('p');
+    saveStatus.className = 'hl-save-status';
+    saveStatus.setAttribute('role', 'status');
+    content.appendChild(saveStatus);
     content.appendChild(controls);
     body.appendChild(content);
+  }
+
+  async function persistIvlProgress(progress, statusNode) {
+    const status = statusNode || body.querySelector('.hl-save-status');
+    if (status) status.textContent = 'Saving lesson progress...';
+    try {
+      const service = window.HouseLearningLessonProgress;
+      if (!service) throw new Error('Lesson progress service is unavailable.');
+      const result = await service.saveLessonProgress(lessonId, {
+        ivl: { ...progress, updatedAt: new Date().toISOString() }
+      });
+      if (status) status.textContent = result.saved && result.local
+        ? 'Progress saved on this device.'
+        : result.saved
+          ? 'Progress saved to your account.'
+          : 'Sign in to save lesson progress to your account.';
+    } catch (error) {
+      if (status) status.textContent = 'Progress could not be saved. Check your connection and try again.';
+      console.error('Unable to save IVL progress:', error);
+    }
+  }
+
+  async function startIvl() {
+    ivlStep = 0;
+    ivlCompleted = false;
+    openDialog('ivl');
+    try {
+      const saved = await window.HouseLearningLessonProgress.getLessonProgress(lessonId);
+      if (!saved || !saved.ivl) return;
+      ivlCompleted = saved.ivl.completed === true;
+      ivlStep = ivlCompleted ? 3 : Math.min(3, Math.max(0, Number(saved.ivl.currentStep) || 0));
+      renderIvl();
+    } catch (error) {
+      const status = body.querySelector('.hl-save-status');
+      if (status) status.textContent = 'Saved progress could not be loaded.';
+      console.error('Unable to load IVL progress:', error);
+    }
   }
 
   function renderQuiz() {
     body.replaceChildren();
     eyebrow.textContent = 'Lesson quiz';
     dialogTitle.textContent = title || 'Check your understanding';
-    const quiz = makeQuiz();
+    const quiz = activeQuiz;
     if (quizIndex >= quiz.length) {
       const result = document.createElement('div');
       result.className = 'hl-quiz-result';
       const heading = document.createElement('h3');
       heading.textContent = `Score: ${quizScore} of ${quiz.length}`;
       const note = document.createElement('p');
-      note.textContent = quizScore === quiz.length ? 'All answers correct. Nice work.' : 'Review the original lesson and try again.';
+      note.textContent = quizScore >= Math.ceil(quiz.length * 2 / 3)
+        ? 'Passing score. Nice work.'
+        : 'Review the original lesson and try again.';
       const retry = document.createElement('button');
       retry.type = 'button';
       retry.className = 'hl-primary';
       retry.textContent = 'Retake quiz';
-      retry.addEventListener('click', () => { quizIndex = 0; quizScore = 0; quizLocked = false; renderQuiz(); });
+      retry.addEventListener('click', () => { quizIndex = 0; quizScore = 0; quizLocked = false; quizAttemptSaved = false; activeQuiz = makeQuiz(); renderQuiz(); });
       result.append(heading, note, retry);
+      const saveStatus = document.createElement('p');
+      saveStatus.className = 'hl-save-status';
+      saveStatus.setAttribute('role', 'status');
+      saveStatus.textContent = quizAttemptSaved ? 'Quiz result saved.' : 'Saving quiz result...';
+      result.appendChild(saveStatus);
       body.appendChild(result);
+      if (!quizAttemptSaved) {
+        quizAttemptSaved = true;
+        void persistQuizAttempt(quiz.length, saveStatus);
+      }
       return;
     }
 
@@ -229,6 +301,30 @@
       choices.appendChild(button);
     });
     body.append(count, question, choices, feedback);
+  }
+
+  async function persistQuizAttempt(total, status) {
+    try {
+      const service = window.HouseLearningLessonProgress;
+      if (!service) throw new Error('Lesson progress service is unavailable.');
+      const result = await service.saveAttempt(lessonId, {
+        type: 'lesson-quiz',
+        subject,
+        grade: grade === '' ? -1 : Number(grade),
+        lessonTitle: title || lessonSlug,
+        score: quizScore,
+        total,
+        passed: quizScore >= Math.ceil(total * 2 / 3)
+      });
+      status.textContent = result.saved && result.local
+        ? 'Quiz result saved on this device.'
+        : result.saved
+          ? 'Quiz result saved to your account.'
+          : 'Sign in to save quiz results to your account.';
+    } catch (error) {
+      status.textContent = 'Quiz result could not be saved. Check your connection and try again.';
+      console.error('Unable to save lesson quiz:', error);
+    }
   }
 
   function makeQuiz() {
@@ -325,12 +421,13 @@
       const heading = originalRoot.querySelector('h1') || originalRoot;
       heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (action.dataset.action === 'ivl') {
-      ivlStep = 0;
-      openDialog('ivl');
+      void startIvl();
     } else if (action.dataset.action === 'quiz') {
       quizIndex = 0;
       quizScore = 0;
       quizLocked = false;
+      quizAttemptSaved = false;
+      activeQuiz = makeQuiz();
       openDialog('quiz');
     }
   });
@@ -340,4 +437,27 @@
 
   const host = document.querySelector('main') || document.body;
   host.insertBefore(toolbar, host.firstChild);
+
+  function getLessonId(pageSubject, pageSections, pageGrade, slug) {
+    if (pageSubject === 'science' && pageGrade) return `science_${pageGrade}_${slug}_v1`;
+    if (pageSubject === 'math' && pageGrade === 'grade6') {
+      const shellSlug = document.body.dataset.lesson || slug;
+      return `grade6_${shellSlug}_v2`;
+    }
+    if (pageSubject === 'math' && pageGrade && /^grade(?:7|8|9|10|11|12)$/.test(pageGrade)) {
+      return `${pageGrade}_${slug}_v3`;
+    }
+    if (pageSubject === 'math' && pageGrade && /^grade[1-5]$/.test(pageGrade)) {
+      const existingLessonId = Array.from(document.scripts)
+        .map(script => script.textContent.match(/\b(?:const|let|var)\s+lessonID\s*=\s*(['"])([^'"]+)\1/))
+        .find(match => match);
+      if (existingLessonId) return existingLessonId[2];
+    }
+    if (pageSubject === 'cs') {
+      const course = pageSections[0] || 'general';
+      return `cs_${course}_${slug}_v1`;
+    }
+    const level = pageGrade || pageSections[0] || 'general';
+    return `${pageSubject}_${level}_${slug}_expansion_v1`;
+  }
 })();

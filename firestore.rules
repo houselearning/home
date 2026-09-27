@@ -288,6 +288,33 @@ service cloud.firestore {
 
       match /lessons/{lessonId} {
         allow read, write: if isOwner(userId);
+
+        match /attempts/{attemptId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId)
+            && request.resource.data.keys().hasOnly([
+              'type', 'subject', 'grade', 'lessonId', 'lessonTitle',
+              'score', 'total', 'passed', 'completedAt'
+            ])
+            && request.resource.data.type in ['lesson-quiz', 'unit-test']
+            && request.resource.data.subject in ['math', 'science', 'cs']
+            && request.resource.data.grade is int
+            && request.resource.data.grade >= -1
+            && request.resource.data.grade <= 12
+            && request.resource.data.lessonId is string
+            && request.resource.data.lessonId.size() > 0
+            && request.resource.data.lessonId.size() <= 128
+            && request.resource.data.lessonTitle is string
+            && request.resource.data.lessonTitle.size() <= 200
+            && request.resource.data.score is int
+            && request.resource.data.total is int
+            && request.resource.data.score >= 0
+            && request.resource.data.total > 0
+            && request.resource.data.score <= request.resource.data.total
+            && request.resource.data.passed is bool
+            && request.resource.data.completedAt is timestamp;
+          allow update, delete: if false;
+        }
       }
     }
 
