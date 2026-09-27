@@ -87,10 +87,24 @@
     header.appendChild(link);
   }
 
+  function sanitizeLessonHref(rawHref) {
+    if (typeof rawHref !== 'string' || !rawHref.trim()) return null;
+    try {
+      const parsed = new URL(rawHref, window.location.origin);
+      const isHttp = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      const isSameOrigin = parsed.origin === window.location.origin;
+      const isAllowedPath = /^\/home\/(?:math|science)\/interactive\/[^/?#]+\.html$/i.test(parsed.pathname);
+      if (!isHttp || !isSameOrigin || !isAllowedPath) return null;
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function updateInteractiveVideoButton() {
     const button = document.querySelector('.interactive-video-button');
     if (!button) return;
-    const href = button.getAttribute('data-href');
+    const href = sanitizeLessonHref(button.getAttribute('data-href'));
     if (!currentUser) {
       button.removeAttribute('href');
       button.setAttribute('aria-disabled', 'true');
@@ -100,10 +114,17 @@
         showPopup('Sign in to unlock the interactive video lesson.');
       };
     } else {
-      button.href = href;
-      button.setAttribute('aria-disabled', 'false');
-      button.title = 'Open the interactive video lesson';
-      button.onclick = null;
+      if (href) {
+        button.href = href;
+        button.setAttribute('aria-disabled', 'false');
+        button.title = 'Open the interactive video lesson';
+        button.onclick = null;
+      } else {
+        button.removeAttribute('href');
+        button.setAttribute('aria-disabled', 'true');
+        button.title = 'This lesson link is unavailable';
+        button.onclick = event => event.preventDefault();
+      }
     }
   }
 
