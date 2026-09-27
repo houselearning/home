@@ -32,6 +32,52 @@
         #info-panel p {
             margin: 5px 0;
         }
+        #debug-menu {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            width: min(34vw, 320px);
+            max-height: 50vh;
+            overflow: auto;
+            background: rgba(15, 23, 42, 0.88);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.8);
+            border-radius: 12px;
+            padding: 10px 12px;
+            z-index: 110;
+            display: none;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
+        }
+        #debug-menu.visible {
+            display: block;
+        }
+        #debug-menu h3 {
+            margin: 0 0 8px 0;
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #cbd5e1;
+        }
+        #debug-log {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.76rem;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+        }
+        #debug-log li {
+            padding: 5px 6px;
+            border-radius: 6px;
+            background: rgba(30, 41, 59, 0.9);
+            border-left: 3px solid #60a5fa;
+            word-break: break-word;
+        }
+        #debug-log li.warn { border-left-color: #fbbf24; }
+        #debug-log li.error { border-left-color: #f87171; }
+        #debug-menu.hidden { display: none; }
         #message-box {
             position: absolute;
             top: 50%;
@@ -182,6 +228,10 @@
         <p>Explore the house!</p>
         <p>Press <b>ESC</b> to exit interactions.</p>
     </div>
+    <aside id="debug-menu" class="hidden" aria-live="polite">
+        <h3>Debug Console</h3>
+        <ul id="debug-log"></ul>
+    </aside>
     <div id="message-box"></div>
     <div id="controls">
         <button id="togglePush">Toggle Push Furniture (ON)</button>
@@ -244,8 +294,7 @@
         const FIXED_TIME_STEP = 1 / 60; // seconds
 
         // Cannon.js Materials
-        let groundMaterial, furnitureMaterial, doorMaterial; // Keep doorMaterial for backward compatibility in comments, but it's unused
-        let groundMaterial, furnitureMaterial;
+        let groundMaterial, furnitureMaterial, groundFurnitureContactMaterial;
 
         // Three.js Raycaster for interaction
         const raycaster = new THREE.Raycaster();
@@ -257,7 +306,7 @@
 
         // Texture loader
         const textureLoader = new THREE.TextureLoader();
-        let wallTexture, ceilingTexture, floorTexture, windowViewTexture, carpetTexture, grassTexture;
+        let wallTexture, ceilingTexture, floorTexture, windowViewTexture, carpetTexture, grassTexture, showerTileTexture;
         let cityTexture, swanTexture, oceanTexture; // New textures for pictures
         const pictureTextures = []; // Array to hold loaded textures in order
 
@@ -293,6 +342,13 @@
         let audioContextStarted = false;
         let footstepInterval = null;
         const footstepIntervalTime = 300; // milliseconds between footstep sounds
+        let roomLightMap = {};
+        let debugLogEntries = [];
+        let debugMenuVisible = false;
+        let playerGroundHeight = 1.1;
+        let playerVerticalVelocity = 0;
+        let stairsOpen = false;
+        let upstairsEnabled = false;
 
         // Function to show messages to the user
         function showMessage(message, duration = 3000) {
@@ -302,6 +358,51 @@
             setTimeout(() => {
                 messageBox.style.display = 'none';
             }, duration);
+        }
+
+        function updateDebugMenu() {
+            const panel = document.getElementById('debug-menu');
+            if (!panel) return;
+            const list = document.getElementById('debug-log');
+            if (!list) return;
+            list.innerHTML = '';
+            const entries = debugLogEntries.slice(-18);
+            entries.forEach(entry => {
+                const item = document.createElement('li');
+                item.className = `debug-entry ${entry.type}`;
+                item.textContent = entry.text;
+                list.appendChild(item);
+            });
+            panel.classList.toggle('visible', debugMenuVisible);
+            panel.classList.toggle('hidden', !debugMenuVisible);
+        }
+
+        function toggleDebugMenu() {
+            debugMenuVisible = !debugMenuVisible;
+            updateDebugMenu();
+            showMessage(debugMenuVisible ? 'Debug menu opened.' : 'Debug menu closed.', 1000);
+        }
+
+        function logDebugEntry(type, text) {
+            debugLogEntries.push({ type, text: String(text) });
+            if (debugLogEntries.length > 80) debugLogEntries.shift();
+            updateDebugMenu();
+        }
+
+        function registerConsoleCapture() {
+            if (window.__houseExplorerDebugHookInstalled) return;
+            window.__houseExplorerDebugHookInstalled = true;
+            ['log', 'warn', 'error', 'info'].forEach(method => {
+                const original = console[method];
+                console[method] = (...args) => {
+                    logDebugEntry(method, args.map(value => {
+                        if (typeof value === 'string') return value;
+                        if (value instanceof Error) return value.message;
+                        try { return JSON.stringify(value); } catch (error) { return String(value); }
+                    }).join(' '));
+                    original.apply(console, args);
+                };
+            });
         }
 
         // Function to play footstep sound
@@ -388,43 +489,46 @@
             gltfLoader = new THREE.GLTFLoader();
 
             // Load textures
-            wallTexture = textureLoader.load('https://houselearning.org/home/assets/house-explorer/textures/wall.png',
+            const assetRoot = './';
+            wallTexture = textureLoader.load(`${assetRoot}textures/wall.png`,
                 function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(2, 2); }, undefined,
                 function (err) { console.error('An error occurred loading the wall texture.', err); wallTexture = null; }
             );
 
-            ceilingTexture = textureLoader.load('https://houselearning.org/home/assets/house-explorer/textures/top.png',
+            ceilingTexture = textureLoader.load(`${assetRoot}textures/top.png`,
                 function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(2, 2); }, undefined,
                 function (err) { console.error('An error occurred loading the ceiling texture.', err); ceilingTexture = null; }
             );
 
-            // Load floor texture
-            floorTexture = textureLoader.load('https://houselearning.org/home/assets/house-explorer/textures/floor.png',
-                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(3, 3); }, undefined, // More repeats for detail
+            floorTexture = textureLoader.load(`${assetRoot}textures/floor.png`,
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(3, 3); }, undefined,
                 function (err) { console.error('An error occurred loading the floor texture.', err); floorTexture = null; }
             );
 
-            // Load carpet texture
-            carpetTexture = textureLoader.load('https://houselearning.org/home/assets/house-explorer/textures/carpet.png',
-                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(3, 3); }, undefined, // More repeats for detail
+            carpetTexture = textureLoader.load(`${assetRoot}textures/carpet.png`,
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(3, 3); }, undefined,
                 function (err) { console.error('An error occurred loading the carpet texture.', err); carpetTexture = null; }
             );
 
-            grassTexture = textureLoader.load('https://houselearning.org/home/assets/house-explorer/textures/grass.png',
-                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(20, 20); }, undefined, // Repeat for large areas
+            grassTexture = textureLoader.load(`${assetRoot}textures/grass.png`,
+                function (texture) { texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(20, 20); }, undefined,
                 function (err) { console.error('An error occurred loading the grass texture.', err); grassTexture = null; }
             );
 
-            windowViewTexture = textureLoader.load('https://houselearning.org/home/assets/house-explorer/wv/window-view.gif',
+            windowViewTexture = textureLoader.load(`${assetRoot}wv/window-view.gif`,
                 undefined, undefined,
                 function (err) { console.error('An error occurred loading the window view GIF.', err); windowViewTexture = null; }
             );
+            showerTileTexture = textureLoader.load(`${assetRoot}textures/shower-tile.png`, undefined, undefined, err => {
+                console.error('An error occurred loading the shower tile texture.', err);
+                showerTileTexture = null;
+            });
+            window.__houseExplorerShowerTile = showerTileTexture;
 
-            // Load picture textures
             const textureLoadPromises = [
-                textureLoader.load('https://houselearning.org/home/assets/house-explorer/pictures/city.png', (texture) => { cityTexture = texture; }),
-                textureLoader.load('https://houselearning.org/home/assets/house-explorer/pictures/swan.png', (texture) => { swanTexture = texture; }),
-                textureLoader.load('https://houselearning.org/home/assets/house-explorer/pictures/ocean.png', (texture) => { oceanTexture = texture; })
+                textureLoader.load(`${assetRoot}pictures/city.png`, (texture) => { cityTexture = texture; }),
+                textureLoader.load(`${assetRoot}pictures/swan.png`, (texture) => { swanTexture = texture; }),
+                textureLoader.load(`${assetRoot}pictures/ocean.png`, (texture) => { oceanTexture = texture; })
             ];
 
             try {
@@ -438,7 +542,7 @@
 
             // Load car model
             try {
-                const gltf = await gltfLoader.loadAsync('https://houselearning.org/home/assets/house-explorer/furniture/basic_car.gltf');
+                const gltf = await gltfLoader.loadAsync(`${assetRoot}furniture/basic_car.gltf`);
                 carModel = gltf.scene;
                 carModel.traverse((node) => {
                     if (node.isMesh) {
@@ -592,9 +696,13 @@
 
         // Helper function to create a window plane
         function createWindow(x, y, z, width, height, rotationY) {
-            const material = new THREE.MeshBasicMaterial({
-                map: windowViewTexture || null,
-                color: windowViewTexture ? 0xffffff : 0x87CEEB,
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0x9ed7ff,
+                transparent: true,
+                opacity: 0.45,
+                transmission: 0.9,
+                roughness: 0.15,
+                metalness: 0.05,
                 side: THREE.DoubleSide
             });
             const geometry = new THREE.PlaneGeometry(width, height);
@@ -733,131 +841,380 @@
             }
         }
 
-        // Function to create a door (no longer used for interactive doors, but kept for reference)
+        function createRoomLightSwitch(roomName, x, y, z, rotationY = 0) {
+            const switchGroup = new THREE.Group();
+            switchGroup.position.set(x, y, z);
+            switchGroup.rotation.y = rotationY;
 
-            wallMeshes = [];
-                }
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, 0.18, 0.06),
+                new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.7, roughness: 0.4 })
+            );
+            base.position.set(0, 0, 0);
+            switchGroup.add(base);
 
+            const toggle = new THREE.Mesh(
+                new THREE.BoxGeometry(0.06, 0.08, 0.03),
+                new THREE.MeshStandardMaterial({ color: 0xf5d76e, emissive: 0x333300 })
+            );
+            toggle.position.set(0.02, 0.04, 0.04);
+            switchGroup.add(toggle);
 
+            switchGroup.userData.roomName = roomName;
+            switchGroup.userData.interact = () => {
+                const lights = roomLightMap[roomName] || [];
+                const on = lights.some(light => light.visible);
+                lights.forEach(light => { light.visible = !on; });
+                showMessage(`${roomName} lights ${on ? 'off' : 'on'}.`, 1000);
+                const switchState = lights[0] ? lights[0].visible : false;
+                toggle.material.color.setHex(switchState ? 0x7bdc6c : 0xf5d76e);
+            };
 
+            scene.add(switchGroup);
+            return switchGroup;
+        }
 
+        function createLightSwitch(roomName, x, y, z, rotationY = 0) {
+            return createRoomLightSwitch(roomName, x, y, z, rotationY);
+        }
 
+        function createBathroomSet(roomX, roomZ) {
+            const bathroomGroup = new THREE.Group();
+            bathroomGroup.position.set(roomX, 0, roomZ);
+            scene.add(bathroomGroup);
 
-
-
-
-
-
-
-
+            const showerMaterial = new THREE.MeshStandardMaterial({
+                map: (window.__houseExplorerShowerTile || null),
+                color: 0xffffff,
+                roughness: 0.6,
+                metalness: 0.05
             });
+
+            const sinkBase = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.4 }));
+            sinkBase.position.set(-2.2, 0.15, -2.7);
+            bathroomGroup.add(sinkBase);
+
+            const sinkBasin = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.28), new THREE.MeshStandardMaterial({ color: 0xf4f5f7, metalness: 0.6, roughness: 0.2 }));
+            sinkBasin.position.set(-2.2, 0.45, -2.7);
+            sinkBasin.userData.interact = () => {
+                if (!sinkBasin.userData.water) {
+                    const water = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.05, 0.18), new THREE.MeshStandardMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.7 }));
+                    water.position.set(0, 0.05, 0);
+                    sinkBasin.add(water);
+                    sinkBasin.userData.water = water;
+                }
+                sinkBasin.userData.water.visible = !sinkBasin.userData.water.visible;
+                showMessage(`Sink ${sinkBasin.userData.water.visible ? 'on' : 'off'}.`, 800);
+            };
+            bathroomGroup.add(sinkBasin);
+
+            const sinkLegLeft = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.08), new THREE.MeshStandardMaterial({ color: 0x9ca3af }));
+            sinkLegLeft.position.set(-2.5, -0.1, -2.95);
+            const sinkLegRight = sinkLegLeft.clone();
+            sinkLegRight.position.set(-1.9, -0.1, -2.95);
+            bathroomGroup.add(sinkLegLeft, sinkLegRight);
+
+            const toiletBase = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.42, 0.52, 24), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }));
+            toiletBase.position.set(1.9, 0.25, -2.4);
+            bathroomGroup.add(toiletBase);
+
+            const toiletTank = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.38), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.55 }));
+            toiletTank.position.set(1.9, 0.75, -2.7);
+            bathroomGroup.add(toiletTank);
+
+            const toiletSeat = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.12, 0.52), new THREE.MeshStandardMaterial({ color: 0xf9fafb, roughness: 0.35 }));
+            toiletSeat.position.set(1.9, 0.85, -2.4);
+            toiletSeat.userData.closed = true;
+            toiletSeat.userData.interact = () => {
+                const lid = toiletSeat;
+                lid.rotation.x = lid.rotation.x === 0 ? -Math.PI / 3 : 0;
+                showMessage(`Toilet lid ${lid.rotation.x === 0 ? 'closed' : 'open'}.`, 700);
+            };
+            bathroomGroup.add(toiletSeat);
+
+            const showerFrame = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.1, 1.2), new THREE.MeshStandardMaterial({ color: 0xb5c8d8, transparent: true, opacity: 0.35, roughness: 0.2 }));
+            showerFrame.position.set(2.2, 1.05, 2.6);
+            bathroomGroup.add(showerFrame);
+
+            const showerTile = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.08, 1.1), new THREE.MeshStandardMaterial({
+                map: window.__houseExplorerShowerTile || null,
+                color: 0xffffff,
+                roughness: 0.5,
+                metalness: 0.05
+            }));
+            showerTile.position.set(2.2, 0.05, 2.6);
+            bathroomGroup.add(showerTile);
+
+            const showerHead = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.18, 16), new THREE.MeshStandardMaterial({ color: 0xcfcdd1 }));
+            showerHead.position.set(2.7, 2.0, 2.2);
+            showerHead.rotation.z = Math.PI / 2;
+            bathroomGroup.add(showerHead);
+
+            const showerWater = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 0.08, 0.8),
+                new THREE.MeshStandardMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.5 })
+            );
+            showerWater.position.set(2.2, 1.7, 2.6);
+            showerWater.visible = false;
+            showerWater.userData.interact = () => {
+                showerWater.visible = !showerWater.visible;
+                showMessage(`Shower ${showerWater.visible ? 'on' : 'off'}.`, 800);
+            };
+            bathroomGroup.add(showerWater);
+
+            const bathroomSwitch = createRoomLightSwitch('Upstairs Bathroom', roomX + 2.9, 1.1, roomZ + 1.0, -Math.PI / 2);
+            roomLightMap['Upstairs Bathroom'] = [
+                new THREE.PointLight(0xfef3c7, 0.8, 10),
+                new THREE.PointLight(0xfef3c7, 0.45, 6)
+            ];
+            roomLightMap['Upstairs Bathroom'][0].position.set(roomX + 2.5, 2.2, roomZ + 0.6);
+            roomLightMap['Upstairs Bathroom'][1].position.set(roomX + 0.8, 2.2, roomZ + 1.4);
+            roomLightMap['Upstairs Bathroom'].forEach(light => { scene.add(light); light.visible = true; });
+            bathroomGroup.userData.lights = roomLightMap['Upstairs Bathroom'];
+
+            [sinkBasin, toiletSeat, showerWater].forEach(mesh => { mesh.userData.type = 'bathroomFixture'; });
+            return bathroomGroup;
+        }
+
+        function createSecondFloor() {
+            const secondFloorY = roomHeight + 0.15;
+            const upstairsRooms = [
+                { name: 'Upstairs Hall', x: 0, z: 0, width: roomDim, depth: roomDim, color: 0xe5e7eb },
+                { name: 'Upstairs Bedroom', x: -(roomDim + wallThickness), z: roomDim + wallThickness, width: roomDim, depth: roomDim, color: 0xcfdbff },
+                { name: 'Upstairs Study', x: roomDim + wallThickness, z: roomDim + wallThickness, width: roomDim, depth: roomDim, color: 0xf9e7c7 },
+                { name: 'Upstairs Bathroom', x: roomDim + wallThickness, z: 0, width: roomDim, depth: roomDim, color: 0xdbeafe }
+            ];
+
+            const stairX = -roomDim / 2 + 1.3;
+            const stairZ = roomDim / 2 + 0.6;
+
+            const stairsGroup = new THREE.Group();
+            stairsGroup.position.set(stairX, secondFloorY - 0.2, stairZ);
+            stairsGroup.userData.type = 'stairs';
+            const stairMat = new THREE.MeshStandardMaterial({ color: 0xb7a287, roughness: 0.7 });
+            for (let i = 0; i < 12; i++) {
+                const step = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.22, 0.65), stairMat);
+                step.position.set(0, i * 0.22, -i * 0.42);
+                stairsGroup.add(step);
+            }
+            const landing = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.2, 1.1), new THREE.MeshStandardMaterial({ color: 0xd3b38c }));
+            landing.position.set(0, 11 * 0.22 + 0.1, -12 * 0.42 + 0.45);
+            stairsGroup.add(landing);
+            const stairsTrigger = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.5, 1.1), new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.0 }));
+            stairsTrigger.position.set(0.35, 1.3, -4.5);
+            stairsTrigger.userData.interact = () => {
+                playerGroundHeight = secondFloorY + 0.9;
+                camera.position.set(stairX + 0.8, playerGroundHeight, stairZ - 1.2);
+                camera.rotation.y = -Math.PI / 2;
+                showMessage('Climbing upstairs...', 1200);
+            };
+            stairsGroup.add(stairsTrigger);
+            scene.add(stairsGroup);
+
+            const balconyFence = new THREE.Group();
+            balconyFence.position.set(0, secondFloorY + 0.8, -roomDim / 2 - 0.5);
+            const fenceMat = new THREE.MeshStandardMaterial({ color: 0xa78bfa, roughness: 0.7 });
+            for (let i = 0; i < 8; i++) {
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.1, 0.14), fenceMat);
+                post.position.set(-3.7 + i * 1.05, 0, 0);
+                balconyFence.add(post);
+            }
+            const rail = new THREE.Mesh(new THREE.BoxGeometry(8.1, 0.12, 0.12), fenceMat);
+            rail.position.set(0, 0.55, 0);
+            balconyFence.add(rail);
+            scene.add(balconyFence);
+
+            upstairsRooms.forEach((room, idx) => {
+                const floor = new THREE.Mesh(
+                    new THREE.BoxGeometry(room.width, wallThickness, room.depth),
+                    new THREE.MeshStandardMaterial({ map: floorTexture || null, color: room.color, roughness: 0.8 })
+                );
+                floor.position.set(room.x, secondFloorY, room.z);
+                floor.receiveShadow = true;
+                scene.add(floor);
+
+                const roomCeiling = new THREE.Mesh(
+                    new THREE.BoxGeometry(room.width, wallThickness, room.depth),
+                    new THREE.MeshStandardMaterial({ map: ceilingTexture || null, color: 0xdfe7ef, roughness: 0.8 })
+                );
+                roomCeiling.position.set(room.x, secondFloorY + roomHeight, room.z);
+                scene.add(roomCeiling);
+
+                const roomName = room.name;
+                if (room.name === 'Upstairs Hall') {
+                    createFullWall(room.x, room.z + room.depth / 2 + wallThickness / 2, 'z', room.width, roomHeight, room.color); 
+                    createSegmentedWall(room.x + room.width / 2 + wallThickness / 2, room.z, 'x', room.depth, roomHeight, room.color, doorWidth, doorHeight);
+                    createSegmentedWall(room.x - room.width / 2 - wallThickness / 2, room.z, 'x', room.depth, roomHeight, room.color, doorWidth, doorHeight);
+                    createWindow(room.x, roomHeight / 2, room.z + room.depth / 2 + wallThickness / 2 + 0.04, windowWidth, windowHeight, 0);
+                    createWindow(room.x + room.width / 2 + wallThickness / 2 + 0.04, roomHeight / 2, room.z, windowWidth, windowHeight, Math.PI / 2);
+                } else if (room.name === 'Upstairs Bathroom') {
+                    createFullWall(room.x, room.z + room.depth / 2 + wallThickness / 2, 'z', room.width, roomHeight, room.color);
+                    createSegmentedWall(room.x - room.width / 2 - wallThickness / 2, room.z, 'x', room.depth, roomHeight, room.color, doorWidth, doorHeight);
+                    createWindow(room.x + room.width / 2 + wallThickness / 2 + 0.04, roomHeight / 2, room.z, windowWidth, windowHeight, Math.PI / 2);
+                    createBathroomSet(room.x, room.z);
+                } else {
+                    createSegmentedWall(room.x, room.z + room.depth / 2 + wallThickness / 2, 'z', room.width, roomHeight, room.color, doorWidth, doorHeight);
+                    createSegmentedWall(room.x - room.width / 2 - wallThickness / 2, room.z, 'x', room.depth, roomHeight, room.color, doorWidth, doorHeight);
+                    createSegmentedWall(room.x + room.width / 2 + wallThickness / 2, room.z, 'x', room.depth, roomHeight, room.color, doorWidth, doorHeight);
+                    createWindow(room.x, roomHeight / 2, room.z + room.depth / 2 + wallThickness / 2 + 0.04, windowWidth, windowHeight, 0);
+                    createLightSwitch(roomName, room.x + room.width / 2 - 0.8, roomHeight - 0.8, room.z - room.depth / 2 + 0.8, Math.PI / 2);
+                    roomLightMap[roomName] = [
+                        new THREE.PointLight(0xfef3c7, 0.9, 10),
+                        new THREE.PointLight(0xfef3c7, 0.6, 8)
+                    ];
+                    roomLightMap[roomName][0].position.set(room.x - 1.4, roomHeight + 1.2, room.z - 1.2);
+                    roomLightMap[roomName][1].position.set(room.x + 1.4, roomHeight + 1.2, room.z + 1.2);
+                    roomLightMap[roomName].forEach(light => scene.add(light));
+                }
+            });
+
+            const upstairsStairSwitch = createRoomLightSwitch('Upstairs Hall', -3.7, 1.2, 1.8, Math.PI / 2);
+            roomLightMap['Upstairs Hall'] = [
+                new THREE.PointLight(0xfef3c7, 1.0, 12),
+                new THREE.PointLight(0xfef3c7, 0.8, 11)
+            ];
+            roomLightMap['Upstairs Hall'][0].position.set(-1.4, 2.7, 1.2);
+            roomLightMap['Upstairs Hall'][1].position.set(1.6, 2.7, -1.3);
+            roomLightMap['Upstairs Hall'].forEach(light => scene.add(light));
+
+            upstairsEnabled = true;
+            return stairsGroup;
+        }
+
+        function createHouse() {
+            wallMeshes = [];
             furnitureMeshes = [];
-            mockHouseMeshes.forEach(mesh => { // Clear mock house meshes
+            mockHouseMeshes.forEach(mesh => {
                 scene.remove(mesh);
                 if (mesh.userData.physicsBody) {
                     world.removeBody(mesh.userData.physicsBody);
                 }
             });
             mockHouseMeshes = [];
-            doorMeshes = []; // Ensure doorMeshes is empty
-
+            doorMeshes = [];
+            roomLightMap = {};
 
             // --- Room 1: Living Room (Center: 0, 0, 0) ---
             const r1X = 0, r1Z = 0;
             const r1FloorColor = 0x8B4513;
             const r1WallColor = 0xD2B48C;
             scene.add(createRoomFloorAndCarpet(r1X, r1Z, roomDim, roomDim, r1FloorColor));
-            const pointLight1 = new THREE.PointLight(0xffffff, 0.6, 10); // Dimmed point light
+            const pointLight1 = new THREE.PointLight(0xffffff, 0.6, 10);
             pointLight1.position.set(r1X, roomHeight - 0.5, r1Z);
             scene.add(pointLight1);
+            roomLightMap.LivingRoom = [pointLight1];
 
-            // Walls for Living Room
-            // Wall with doorway to Dining Room
             createSegmentedWall(r1X, r1Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
-            // Front wall now has a doorway (hole)
             createSegmentedWall(r1X, r1Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
-            // Left wall
             createFullWall(r1X - roomDim / 2 - wallThickness/2, r1Z, 'x', roomDim, roomHeight, r1WallColor);
-            // Wall with doorway to Kitchen
             createSegmentedWall(r1X + roomDim / 2 + wallThickness/2, r1Z, 'x', roomDim, roomHeight, r1WallColor, doorWidth, doorHeight);
+            createWindow(r1X + roomDim / 2 + wallThickness/2 + 0.04, roomHeight / 2, r1Z, windowWidth, windowHeight, Math.PI / 2);
+            createLightSwitch('LivingRoom', r1X - roomDim / 2 + 0.7, 1.1, r1Z + roomDim / 2 - 0.7, Math.PI / 2);
             scene.add(createCeiling(r1X, r1Z, roomDim, roomDim, 0xcccccc));
 
-
-            // --- Room 2: Kitchen (Right of Living Room) ---
             const r2X = roomDim + wallThickness;
             const r2Z = 0;
             const r2FloorColor = 0x556B2F;
             const r2WallColor = 0xF5F5DC;
             scene.add(createRoomFloorAndCarpet(r2X, r2Z, roomDim, roomDim, r2FloorColor));
-            const pointLight2 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            const pointLight2 = new THREE.PointLight(0xffffff, 0.6, 15);
             pointLight2.position.set(r2X, roomHeight - 0.5, r2Z);
             scene.add(pointLight2);
-
-            // Walls for Kitchen
-            createFullWall(r2X, r2Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r2WallColor); // Back wall
-            createFullWall(r2X, r2Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r2WallColor); // Front wall
-            createSegmentedWall(r2X - roomDim / 2 - wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor, doorWidth, doorHeight); // Wall with doorway to Living Room
-            createFullWall(r2X + roomDim / 2 + wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor); // Right wall
-            createWindow(r2X + roomDim / 2 + wallThickness/2 + 0.01, roomHeight / 2, r2Z, windowWidth, windowHeight, Math.PI / 2);
+            roomLightMap.Kitchen = [pointLight2];
+            createFullWall(r2X, r2Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r2WallColor);
+            createFullWall(r2X, r2Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r2WallColor);
+            createSegmentedWall(r2X - roomDim / 2 - wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor, doorWidth, doorHeight);
+            createFullWall(r2X + roomDim / 2 + wallThickness/2, r2Z, 'x', roomDim, roomHeight, r2WallColor);
+            createWindow(r2X + roomDim / 2 + wallThickness/2 + 0.04, roomHeight / 2, r2Z, windowWidth, windowHeight, Math.PI / 2);
+            createLightSwitch('Kitchen', r2X - roomDim / 2 + 0.9, 1.1, r2Z + roomDim / 2 - 0.7, 0);
             scene.add(createCeiling(r2X, r2Z, roomDim, roomDim, 0xcccccc));
 
-
-            // --- Room 3: Dining Room (Behind Living Room) ---
             const r3X = 0;
             const r3Z = roomDim + wallThickness;
             const r3FloorColor = 0x4682B4;
             const r3WallColor = 0xB0C4DE;
             scene.add(createRoomFloorAndCarpet(r3X, r3Z, roomDim, roomDim, r3FloorColor));
-            const pointLight3 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            const pointLight3 = new THREE.PointLight(0xffffff, 0.6, 15);
             pointLight3.position.set(r3X, roomHeight - 0.5, r3Z);
             scene.add(pointLight3);
-
-            // Walls for Dining Room
-            createFullWall(r3X, r3Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r3WallColor); // Back wall
-            createWindow(r3X, roomHeight / 2, r3Z + roomDim / 2 + wallThickness/2 + 0.01, windowWidth, windowHeight, 0);
-            createSegmentedWall(r3X, r3Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight); // Wall with doorway to Living Room
-            createSegmentedWall(r3X - roomDim / 2 - wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight); // Wall with doorway to Bedroom 1
-            createSegmentedWall(r3X + roomDim / 2 + wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight); // Wall with doorway to Bedroom 2
+            roomLightMap.DiningRoom = [pointLight3];
+            createFullWall(r3X, r3Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r3WallColor);
+            createWindow(r3X, roomHeight / 2, r3Z + roomDim / 2 + wallThickness/2 + 0.04, windowWidth, windowHeight, 0);
+            createSegmentedWall(r3X, r3Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            createSegmentedWall(r3X - roomDim / 2 - wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            createSegmentedWall(r3X + roomDim / 2 + wallThickness/2, r3Z, 'x', roomDim, roomHeight, r3WallColor, doorWidth, doorHeight);
+            createLightSwitch('DiningRoom', r3X + roomDim / 2 - 0.7, 1.1, r3Z - roomDim / 2 + 0.8, Math.PI / 2);
             scene.add(createCeiling(r3X, r3Z, roomDim, roomDim, 0xcccccc));
 
-
-            // --- Room 4: Bedroom 1 (Left of Dining Room) ---
             const r4X = -(roomDim + wallThickness);
             const r4Z = roomDim + wallThickness;
             const r4FloorColor = 0x6A5ACD;
             const r4WallColor = 0xE6E6FA;
             scene.add(createRoomFloorAndCarpet(r4X, r4Z, roomDim, roomDim, r4FloorColor));
-            const pointLight4 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            const pointLight4 = new THREE.PointLight(0xffffff, 0.6, 15);
             pointLight4.position.set(r4X, roomHeight - 0.5, r4Z);
             scene.add(pointLight4);
-
-            // Walls for Bedroom 1
-            createFullWall(r4X, r4Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r4WallColor); // Back wall
-            createFullWall(r4X, r4Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r4WallColor); // Front wall
-            createFullWall(r4X - roomDim / 2 - wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor); // Left wall
-            createWindow(r4X - roomDim / 2 - wallThickness/2 - 0.01, roomHeight / 2, r4Z, windowWidth, windowHeight, -Math.PI / 2);
-            createSegmentedWall(r4X + roomDim / 2 + wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor, doorWidth, doorHeight); // Wall with doorway to Dining Room
+            roomLightMap['Bedroom 1'] = [pointLight4];
+            createFullWall(r4X, r4Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r4WallColor);
+            createFullWall(r4X, r4Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r4WallColor);
+            createFullWall(r4X - roomDim / 2 - wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor);
+            createWindow(r4X - roomDim / 2 - wallThickness/2 - 0.04, roomHeight / 2, r4Z, windowWidth, windowHeight, -Math.PI / 2);
+            createSegmentedWall(r4X + roomDim / 2 + wallThickness/2, r4Z, 'x', roomDim, roomHeight, r4WallColor, doorWidth, doorHeight);
+            createLightSwitch('Bedroom 1', r4X + roomDim / 2 - 0.8, 1.1, r4Z - roomDim / 2 + 0.8, Math.PI / 2);
             scene.add(createCeiling(r4X, r4Z, roomDim, roomDim, 0xcccccc));
 
-
-            // --- Room 5: Bedroom 2 (Right of Dining Room) ---
             const r5X = roomDim + wallThickness;
             const r5Z = roomDim + wallThickness;
             const r5FloorColor = 0x800000;
             const r5WallColor = 0xFFA07A;
             scene.add(createRoomFloorAndCarpet(r5X, r5Z, roomDim, roomDim, r5FloorColor));
-            const pointLight5 = new THREE.PointLight(0xffffff, 0.6, 15); // Dimmed point light
+            const pointLight5 = new THREE.PointLight(0xffffff, 0.6, 15);
             pointLight5.position.set(r5X, roomHeight - 0.5, r5Z);
             scene.add(pointLight5);
-
-            // Walls for Bedroom 2
-            createFullWall(r5X, r5Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r5WallColor); // Back wall
-            createFullWall(r5X, r5Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r5WallColor); // Front wall
-            createSegmentedWall(r5X - roomDim / 2 - wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor, doorWidth, doorHeight); // Wall with doorway to Dining Room
-            createFullWall(r5X + roomDim / 2 + wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor); // Right wall
-            createWindow(r5X + roomDim / 2 + wallThickness/2 + 0.01, roomHeight / 2, r5Z, windowWidth, windowHeight, Math.PI / 2);
+            roomLightMap['Bedroom 2'] = [pointLight5];
+            createFullWall(r5X, r5Z + roomDim / 2 + wallThickness/2, 'z', roomDim, roomHeight, r5WallColor);
+            createFullWall(r5X, r5Z - roomDim / 2 - wallThickness/2, 'z', roomDim, roomHeight, r5WallColor);
+            createSegmentedWall(r5X - roomDim / 2 - wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor, doorWidth, doorHeight);
+            createFullWall(r5X + roomDim / 2 + wallThickness/2, r5Z, 'x', roomDim, roomHeight, r5WallColor);
+            createWindow(r5X + roomDim / 2 + wallThickness/2 + 0.04, roomHeight / 2, r5Z, windowWidth, windowHeight, Math.PI / 2);
+            createLightSwitch('Bedroom 2', r5X - roomDim / 2 + 0.9, 1.1, r5Z + roomDim / 2 - 0.7, 0);
             scene.add(createCeiling(r5X, r5Z, roomDim, roomDim, 0xcccccc));
+
+            const leftStairX = -roomDim / 2 + 1.2;
+            const leftStairZ = roomDim / 2 + 0.8;
+            const stairGroup = new THREE.Group();
+            stairGroup.position.set(leftStairX, 0, leftStairZ);
+            const stairMaterial = new THREE.MeshStandardMaterial({ color: 0xd8b28a, roughness: 0.7 });
+            for (let step = 0; step < 11; step++) {
+                const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.8), stairMaterial);
+                box.position.set(0, step * 0.2, -step * 0.5);
+                stairGroup.add(box);
+            }
+            const landing = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 1.4), stairMaterial);
+            landing.position.set(0, 11 * 0.2, -5.5);
+            stairGroup.add(landing);
+            const stairTrigger = new THREE.Mesh(
+                new THREE.BoxGeometry(1.4, 2.3, 1.8),
+                new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.0 })
+            );
+            stairTrigger.position.set(0.4, 1.2, -4.2);
+            stairTrigger.userData.interact = () => {
+                playerGroundHeight = roomHeight + 0.9;
+                camera.position.set(leftStairX + 0.4, playerGroundHeight, leftStairZ - 3.4);
+                camera.rotation.y = -Math.PI / 2;
+                showMessage('Stair climb engaged.', 1200);
+                stairsOpen = true;
+                logDebugEntry('info', 'Stairs climb triggered: upstairs reached.');
+            };
+            stairGroup.add(stairTrigger);
+            scene.add(stairGroup);
+
+            const upstairs = createSecondFloor();
+            upstairs.position.set(0, 0, 0);
+            createLightSwitch('Upstairs Hall', -2.7, 1.1, 1.5, Math.PI / 2);
+            return stairGroup;
         }
+
 
         // --- Outside Environment Functions ---
 
@@ -974,14 +1331,21 @@
             houseGroup.position.set(x, wallHeight / 2 - playerHeight / 2, z);
 
             // Walls
-            const wallMaterial = new THREE.MeshStandardMaterial({ color: wallColor });
+            const wallMaterial = new THREE.MeshStandardMaterial({
+                map: wallTexture || null,
+                color: wallTexture ? 0xffffff : wallColor,
+                roughness: 0.8
+            });
             const walls = new THREE.Mesh(new THREE.BoxGeometry(width, wallHeight, depth), wallMaterial);
             walls.castShadow = true;
             walls.receiveShadow = true;
             houseGroup.add(walls);
 
-            // Roof (pyramid shape, adjusted for box geometry)
-            const roofMaterial = new THREE.MeshStandardMaterial({ color: roofColor });
+            const roofMaterial = new THREE.MeshStandardMaterial({
+                map: ceilingTexture || null,
+                color: ceilingTexture ? 0xffffff : roofColor,
+                roughness: 0.8
+            });
             const roofGeometry = new THREE.ConeGeometry(Math.max(width, depth) / Math.sqrt(2), roofHeight, 4); // Square base cone
             const roof = new THREE.Mesh(roofGeometry, roofMaterial);
             roof.rotation.y = Math.PI / 4; // Align points with sides
@@ -1957,90 +2321,54 @@
             // Furniture layouts with precise positions against walls or at specific points
             const furnitureLayouts = {
                 'Living Room': [
-                    // Couch against the back wall, facing the center, moved slightly further from doorway
-                    { type: 'couch', color: 0x8B4513, width: 2.5, height: 0.8, depth: 1, xOffset: 0, zOffset: roomDepth / 2 - 2.0 + furniturePadding, rotationY: Math.PI }, // Adjusted zOffset
-                    // Coffee table in front of the couch
-                    { type: 'table', color: 0x654321, width: 1.5, height: 0.5, depth: 0.8, xOffset: 0, zOffset: roomDepth / 2 - 2.0 - 0.8 - furniturePadding, rotationY: 0 },
-                    // Two chairs by the front window
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.5, zOffset: -roomDepth / 2 + 0.6 + furniturePadding, rotationY: 0 },
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.5, zOffset: -roomDepth / 2 + 0.6 + furniturePadding, rotationY: 0 },
-                    // Cabinet against left wall
-                    { type: 'cabinet', color: 0x778899, width: 1.5, height: 1.0, depth: 0.5, xOffset: -roomWidth / 2 + 0.75 + furniturePadding, zOffset: 0, rotationY: Math.PI / 2 },
-                    // Dresser against right wall
-                    { type: 'dresser', color: 0xdeb887, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.6 - furniturePadding, zOffset: 0, rotationY: -Math.PI / 2 },
-                    // Bookshelf by the back wall
-                    { type: 'bookshelf', color: 0x8B4513, width: 1.0, height: 1.8, depth: 0.4, xOffset: 3.5, zOffset: roomDepth / 2 - 0.2 - furniturePadding, rotationY: Math.PI },
-                    // Floor lamp in a corner
-                    { type: 'lamp', color: 0xAAAAAA, width: 0.5, height: 2.0, depth: 0.5, xOffset: -roomWidth / 2 + 0.5 + furniturePadding, zOffset: roomDepth / 2 - 0.5 - furniturePadding, rotationY: 0 },
-                    // Picture frame on the back wall
-                    { type: 'pictureFrame', initialTexture: 'cityTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: roomDepth / 2 - wallThickness / 2 - 0.01, rotationY: Math.PI } // Against back wall
+                    { type: 'couch', color: 0x8B4513, width: 2.6, height: 0.8, depth: 1.0, xOffset: 0, zOffset: roomDepth / 2 - 2.0 + furniturePadding, rotationY: Math.PI },
+                    { type: 'table', color: 0x654321, width: 1.6, height: 0.5, depth: 0.9, xOffset: 0, zOffset: -0.5, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -2.2, zOffset: -2.4, rotationY: 0.3 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 2.2, zOffset: -2.4, rotationY: -0.3 },
+                    { type: 'cabinet', color: 0x778899, width: 1.4, height: 1.0, depth: 0.5, xOffset: -roomWidth / 2 + 1.0 + furniturePadding, zOffset: 0, rotationY: Math.PI / 2 },
+                    { type: 'lamp', color: 0xAAAAAA, width: 0.5, height: 2.0, depth: 0.5, xOffset: 3.2, zOffset: 3.0, rotationY: 0 },
+                    { type: 'bookshelf', color: 0x8B4513, width: 1.0, height: 1.8, depth: 0.4, xOffset: 3.4, zOffset: -2.4, rotationY: Math.PI },
+                    { type: 'pictureFrame', initialTexture: 'cityTexture', width: 2.0, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: roomDepth / 2 - wallThickness / 2 - 0.01, rotationY: Math.PI }
                 ],
                 'Kitchen': [
-                    // Oven against back wall
-                    { type: 'oven', color: 0x333333, width: 0.8, height: 1.2, depth: 0.7, xOffset: -3, zOffset: roomDepth / 2 - 0.35 - furniturePadding, rotationY: Math.PI },
-                    // Cabinets along back wall
-                    { type: 'cabinet', color: 0x8B4513, width: 2.0, height: 1.0, depth: 0.5, xOffset: 0, zOffset: roomDepth / 2 - 0.25 - furniturePadding, rotationY: Math.PI },
-                    { type: 'cabinet', color: 0x8B4513, width: 2.0, height: 1.0, depth: 0.5, xOffset: 3, zOffset: roomDepth / 2 - 0.25 - furniturePadding, rotationY: Math.PI },
-                    // Dining table in the center of the kitchen
-                    { type: 'table', color: 0x654321, width: 1.8, height: 0.9, depth: 1.0, xOffset: 0, zOffset: -2, rotationY: Math.PI / 4 },
-                    // Two chairs around the table
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.5, zOffset: -2.5, rotationY: Math.PI / 4 },
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.5, zOffset: -1.5, rotationY: Math.PI / 4 },
-                    // Another small cabinet for extra storage
-                    { type: 'cabinet', color: 0x8B4513, width: 1.0, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.5 - furniturePadding, zOffset: 3.5, rotationY: -Math.PI / 2 },
-                    // Picture frame on the right wall
-                    { type: 'pictureFrame', initialTexture: 'swanTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: roomWidth / 2 - wallThickness / 2 - 0.01, yOffset: 0.5, zOffset: 0, rotationY: -Math.PI / 2 } // Against right wall
+                    { type: 'oven', color: 0x333333, width: 0.8, height: 1.2, depth: 0.7, xOffset: -3.1, zOffset: roomDepth / 2 - 0.5 - furniturePadding, rotationY: Math.PI },
+                    { type: 'cabinet', color: 0x8B4513, width: 1.8, height: 1.0, depth: 0.5, xOffset: -0.5, zOffset: roomDepth / 2 - 0.3 - furniturePadding, rotationY: Math.PI },
+                    { type: 'cabinet', color: 0x8B4513, width: 1.8, height: 1.0, depth: 0.5, xOffset: 2.5, zOffset: roomDepth / 2 - 0.3 - furniturePadding, rotationY: Math.PI },
+                    { type: 'table', color: 0x654321, width: 1.8, height: 0.9, depth: 1.0, xOffset: 0, zOffset: -2.2, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.8, zOffset: -2.8, rotationY: Math.PI / 4 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.8, zOffset: -1.6, rotationY: -Math.PI / 4 },
+                    { type: 'cabinet', color: 0x8B4513, width: 1.0, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.7 - furniturePadding, zOffset: 3.2, rotationY: -Math.PI / 2 },
+                    { type: 'pictureFrame', initialTexture: 'swanTexture', width: 2.0, height: 1.5, frameThickness: 0.1, xOffset: roomWidth / 2 - wallThickness / 2 - 0.01, yOffset: 0.5, zOffset: 0, rotationY: -Math.PI / 2 }
                 ],
                 'Dining Room': [
-                    // Large dining table in the center
-                    { type: 'table', color: 0x654321, width: 2.5, height: 0.8, depth: 1.5, xOffset: 0, zOffset: 0, rotationY: 0 },
-                    // Chairs around the dining table
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.2, zOffset: 1, rotationY: 0 },
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.2, zOffset: 1, rotationY: 0 },
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.2, zOffset: -1, rotationY: Math.PI },
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.2, zOffset: -1, rotationY: Math.PI },
-                    // Side cabinet
-                    { type: 'cabinet', color: 0x8B4513, width: 1.5, height: 1.5, depth: 0.5, xOffset: 4, zOffset: 0, rotationY: -Math.PI / 2 },
-                    // Bookshelf in dining room
-                    { type: 'bookshelf', color: 0x654321, width: 1.2, height: 1.5, depth: 0.4, xOffset: -4, zOffset: 2, rotationY: Math.PI / 2 },
-                    // Picture frame on the back wall
-                    { type: 'pictureFrame', initialTexture: 'oceanTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: roomDepth / 2 - wallThickness / 2 - 0.01, rotationY: Math.PI } // Against back wall
+                    { type: 'table', color: 0x654321, width: 2.3, height: 0.8, depth: 1.4, xOffset: 0, zOffset: 0, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.4, zOffset: 1.5, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.4, zOffset: 1.5, rotationY: 0 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -1.4, zOffset: -1.5, rotationY: Math.PI },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: 1.4, zOffset: -1.5, rotationY: Math.PI },
+                    { type: 'cabinet', color: 0x8B4513, width: 1.4, height: 1.4, depth: 0.5, xOffset: 3.8, zOffset: 0, rotationY: -Math.PI / 2 },
+                    { type: 'bookshelf', color: 0x654321, width: 1.0, height: 1.6, depth: 0.4, xOffset: -3.8, zOffset: 2.5, rotationY: Math.PI / 2 },
+                    { type: 'pictureFrame', initialTexture: 'oceanTexture', width: 2.0, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: roomDepth / 2 - wallThickness / 2 - 0.01, rotationY: Math.PI }
                 ],
                 'Bedroom 1': [
-                    // Bed against the back wall
-                    { type: 'bed', color: 0x8B0000, width: 2.0, height: 0.6, depth: 2.5, xOffset: 0, zOffset: roomDepth / 2 - 1.25 - furniturePadding, rotationY: Math.PI },
-                    // Dresser
-                    { type: 'dresser', color: 0xCD853F, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.6 - furniturePadding, zOffset: -2, rotationY: -Math.PI / 2 },
-                    // Nightstand left of bed
-                    { type: 'table', color: 0x654321, width: 0.7, height: 0.7, depth: 0.7, xOffset: -1.2, zOffset: roomDepth / 2 - 0.75 - furniturePadding, rotationY: Math.PI },
-                    // Nightstand right of bed
-                    { type: 'table', color: 0x654321, width: 0.7, height: 0.7, depth: 0.7, xOffset: 1.2, zOffset: roomDepth / 2 - 0.75 - furniturePadding, rotationY: Math.PI },
-                    // Chair with computer in a corner
-                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -roomWidth / 2 + 1 + furniturePadding, zOffset: -roomDepth / 2 + 1 + furniturePadding, rotationY: Math.PI / 4 },
-                    { type: 'computer', color: 0x333333, width: 0.8, height: 0.6, depth: 0.5, xOffset: -roomWidth / 2 + 1.5 + furniturePadding, zOffset: -roomDepth / 2 + 1.5 + furniturePadding, rotationY: Math.PI / 4 },
-                    // Bookshelf
-                    { type: 'bookshelf', color: 0xCD853F, width: 1.0, height: 1.5, depth: 0.4, xOffset: roomWidth / 2 - 0.5 - furniturePadding, zOffset: 2, rotationY: -Math.PI / 2 },
-                    // Floor lamp
-                    { type: 'lamp', color: 0xAAAAAA, width: 0.4, height: 1.8, depth: 0.4, xOffset: -3.5, zOffset: -3.5, rotationY: Math.PI / 2 },
-                    // Picture frame on the front wall
-                    { type: 'pictureFrame', initialTexture: 'cityTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: -roomWidth / 2 + wallThickness / 2 + 0.01, yOffset: 0.5, zOffset: 0, rotationY: Math.PI / 2 } // Against left wall
+                    { type: 'bed', color: 0x8B0000, width: 2.0, height: 0.6, depth: 2.5, xOffset: 0, zOffset: roomDepth / 2 - 1.8 - furniturePadding, rotationY: Math.PI },
+                    { type: 'dresser', color: 0xCD853F, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.8 - furniturePadding, zOffset: -1.4, rotationY: -Math.PI / 2 },
+                    { type: 'table', color: 0x654321, width: 0.7, height: 0.7, depth: 0.7, xOffset: -1.6, zOffset: roomDepth / 2 - 0.9 - furniturePadding, rotationY: Math.PI },
+                    { type: 'table', color: 0x654321, width: 0.7, height: 0.7, depth: 0.7, xOffset: 1.6, zOffset: roomDepth / 2 - 0.9 - furniturePadding, rotationY: Math.PI },
+                    { type: 'table', color: 0x654321, width: 1.5, height: 0.7, depth: 0.8, xOffset: -3.2, zOffset: -2.4, rotationY: Math.PI / 4 },
+                    { type: 'chair', color: 0xA0522D, width: 0.6, height: 0.9, depth: 0.6, xOffset: -2.8, zOffset: -3.4, rotationY: Math.PI / 4 },
+                    { type: 'bookshelf', color: 0xCD853F, width: 1.0, height: 1.5, depth: 0.4, xOffset: roomWidth / 2 - 0.8 - furniturePadding, zOffset: 2.2, rotationY: -Math.PI / 2 },
+                    { type: 'pictureFrame', initialTexture: 'cityTexture', width: 2.0, height: 1.5, frameThickness: 0.1, xOffset: -roomWidth / 2 + wallThickness / 2 + 0.01, yOffset: 0.5, zOffset: 0, rotationY: Math.PI / 2 }
                 ],
                 'Bedroom 2': [
-                    // Bed against the left wall
-                    { type: 'bed', color: 0x4682B4, width: 2.0, height: 0.6, depth: 2.5, xOffset: -roomWidth / 2 + 1.25 + furniturePadding, zOffset: 0, rotationY: Math.PI / 2 },
-                    // Dresser
-                    { type: 'dresser', color: 0xdeb887, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.6 - furniturePadding, zOffset: 0, rotationY: -Math.PI / 2 },
-                    // Computer desk against back wall
-                    { type: 'table', color: 0x654321, width: 1.5, height: 0.7, depth: 0.8, xOffset: 0, zOffset: roomDepth / 2 - 0.4 - furniturePadding, rotationY: Math.PI },
-                    { type: 'computer', color: 0x333333, width: 0.8, height: 0.6, depth: 0.5, xOffset: 0, zOffset: roomDepth / 2 - 0.6 - furniturePadding, rotationY: Math.PI },
-                    // Chair for computer desk
-                    { type: 'chair', color: 0x708090, width: 0.6, height: 0.9, depth: 0.6, xOffset: 0, zOffset: roomDepth / 2 - 1.5 - furniturePadding, rotationY: 0 },
-                    // Cabinet
-                    { type: 'cabinet', color: 0x778899, width: 1.0, height: 1.5, depth: 0.5, xOffset: -2, zOffset: -roomDepth / 2 + 0.5 + furniturePadding, rotationY: 0 },
-                    // Bookshelf
-                    { type: 'bookshelf', color: 0x4682B4, width: 1.0, height: 1.8, depth: 0.4, xOffset: -roomWidth / 2 + 0.5 + furniturePadding, zOffset: -2.5, rotationY: Math.PI / 2 },
-                    // Picture frame on the front wall
-                    { type: 'pictureFrame', initialTexture: 'swanTexture', width: 2, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: -roomDepth / 2 + wallThickness / 2 + 0.01, rotationY: 0 } // Against front wall
+                    { type: 'bed', color: 0x4682B4, width: 2.0, height: 0.6, depth: 2.5, xOffset: -roomWidth / 2 + 1.5 + furniturePadding, zOffset: 0, rotationY: Math.PI / 2 },
+                    { type: 'dresser', color: 0xdeb887, width: 1.2, height: 0.9, depth: 0.5, xOffset: roomWidth / 2 - 0.8 - furniturePadding, zOffset: 0, rotationY: -Math.PI / 2 },
+                    { type: 'table', color: 0x654321, width: 1.5, height: 0.7, depth: 0.8, xOffset: 0, zOffset: roomDepth / 2 - 1.0 - furniturePadding, rotationY: Math.PI },
+                    { type: 'computer', color: 0x333333, width: 0.8, height: 0.6, depth: 0.5, xOffset: 0, zOffset: roomDepth / 2 - 1.6 - furniturePadding, rotationY: Math.PI },
+                    { type: 'chair', color: 0x708090, width: 0.6, height: 0.9, depth: 0.6, xOffset: 0, zOffset: roomDepth / 2 - 2.6 - furniturePadding, rotationY: 0 },
+                    { type: 'cabinet', color: 0x778899, width: 1.0, height: 1.5, depth: 0.5, xOffset: -2.2, zOffset: -2.6, rotationY: 0 },
+                    { type: 'bookshelf', color: 0x4682B4, width: 1.0, height: 1.8, depth: 0.4, xOffset: -roomWidth / 2 + 0.7 + furniturePadding, zOffset: -2.2, rotationY: Math.PI / 2 },
+                    { type: 'pictureFrame', initialTexture: 'swanTexture', width: 2.0, height: 1.5, frameThickness: 0.1, xOffset: 0, yOffset: 0.5, zOffset: -roomDepth / 2 + wallThickness / 2 + 0.01, rotationY: 0 }
                 ]
             };
 
@@ -2169,6 +2497,11 @@
                 audioContextStarted = true;
             }
 
+            if (event.code === 'KeyX') {
+                toggleDebugMenu();
+                return;
+            }
+
             // If player is interacting (e.g., in computer modal, sitting, or lying), only allow ESC
             if (playerState !== 'walking' && event.code !== 'Escape') {
                 return;
@@ -2176,7 +2509,7 @@
 
             switch (event.code) {
                 case 'ArrowUp': case 'KeyW':
-                    if (!keys.forward) { keys.forward = true; } // Don't trigger footstep sound on every keydown if already moving
+                    if (!keys.forward) { keys.forward = true; }
                     break;
                 case 'ArrowDown': case 'KeyS':
                     if (!keys.backward) { keys.backward = true; }
@@ -2187,7 +2520,7 @@
                 case 'ArrowRight': case 'KeyD':
                     if (!keys.lookRight) { keys.lookRight = true; }
                     break;
-                case 'Escape': exitInteraction(); break; // Handle ESC key
+                case 'Escape': exitInteraction(); break;
             }
         }
 
@@ -2388,6 +2721,7 @@
 
         // Initialize the game when the window loads
         window.onload = function () {
+            registerConsoleCapture();
             init();
         };
     </script>
