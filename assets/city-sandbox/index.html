@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City Sandbox</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+  <style>
+    :root {
+      --panel: rgba(15, 23, 42, 0.82);
+      --panel-border: rgba(148, 163, 184, 0.45);
+      --text: #e2e8f0;
+      --muted: #cbd5e1;
+      --accent: #38bdf8;
+      --accent-2: #a78bfa;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #d6ebff 0%, #79c3f5 20%, #090f1a 100%);
+      font-family: Arial, sans-serif;
+      color: var(--text);
+    }
+    #game-root { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; cursor: none; }
+    #hud {
+      position: absolute; top: 18px; left: 18px; z-index: 15; max-width: 440px;
+      background: rgba(15, 23, 42, 0.78); border: 1px solid var(--panel-border); border-radius: 12px;
+      padding: 14px 18px; box-shadow: 0 12px 28px rgba(0,0,0,0.24);
+      line-height: 1.55; font-size: 14px;
+    }
+    #hud strong { font-size: 18px; color: white; }
+    .panel-close {
+      position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border: 1px solid rgba(148,163,184,0.7);
+      border-radius: 50%; background: rgba(15,23,42,0.7); color: #e2e8f0; font-weight: 700; cursor: pointer; display: grid; place-items: center;
+      line-height: 1; padding: 0; font-size: 14px;
+    }
+    #mission-panel {
+      position: absolute; right: 22px; top: 22px; z-index: 14; max-width: 270px;
+      background: rgba(15, 23, 42, 0.78); border: 1px solid var(--panel-border); border-radius: 10px;
+      padding: 10px 12px; font-size: 12px; line-height: 1.5; box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+    }
+    #debug-menu {
+      position: absolute; right: 18px; top: 100px; z-index: 16; width: min(32vw, 330px); max-height: 44vh;
+      overflow: auto; background: rgba(15, 23, 42, 0.82); border: 1px solid var(--panel-border); border-radius: 12px;
+      padding: 12px 14px; display: none;
+    }
+    #debug-menu.visible { display: block; }
+    #debug-menu h3 {
+      margin: 0 0 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    }
+    #debug-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-family: ui-monospace, monospace; }
+    #debug-log li { background: rgba(30, 41, 59, 0.82); border-left: 3px solid #60a5fa; padding: 6px 7px; border-radius: 6px; word-break: break-word; }
+    #debug-log li.warn { border-left-color: #fbbf24; }
+    #debug-log li.error { border-left-color: #f87171; }
+    #message {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 18;
+      background: rgba(15, 23, 42, 0.82); border: 1px solid var(--panel-border); color: white;
+      border-radius: 12px; padding: 15px 22px; font-weight: 700; display: none; box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+    }
+    #crosshair { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; transform: translate(-50%, -50%); z-index: 10; pointer-events: none; opacity: 0.8; }
+    #crosshair::before, #crosshair::after { content: ''; position: absolute; background: rgba(255,255,255,0.85); left: 50%; top: 50%; transform: translate(-50%, -50%); }
+    #crosshair::before { width: 2px; height: 16px; }
+    #crosshair::after { width: 16px; height: 2px; }
+    #menu {
+      position: absolute; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+      background: rgba(15, 23, 42, 0.62); backdrop-filter: blur(6px);
+    }
+    #menu.hidden { display: none; }
+    .menu-panel {
+      width: min(92vw, 620px); background: rgba(15, 23, 42, 0.9); border: 1px solid var(--panel-border);
+      border-radius: 20px; padding: 28px 26px 20px; box-shadow: 0 18px 42px rgba(0,0,0,0.36); color: var(--text);
+    }
+    .menu-panel h1 { margin: 0 0 8px; font-size: clamp(2.2rem, 4vw, 3.2rem); color: white; }
+    .menu-panel p { margin: 0 0 18px; color: var(--muted); line-height: 1.6; }
+    .garage-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .garage-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148,163,184,0.35); border-radius: 10px; padding: 14px; }
+    .garage-card label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+    #vehicle-select, #color-picker {
+      width: 100%; border: 1px solid rgba(148,163,184,0.4); background: rgba(15, 23, 42, 0.7); color: white;
+      border-radius: 8px; padding: 10px 12px; font-size: 14px;
+    }
+    .menu-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 16px; }
+    .menu-actions button {
+      border: none; border-radius: 10px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: transform 0.15s ease;
+    }
+    .menu-actions button:hover { transform: translateY(-1px); }
+    .menu-actions button.primary { background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; }
+    .menu-actions button.secondary { background: linear-gradient(135deg, #a78bfa, #7c3aed); color: white; }
+    #menu-status { min-height: 22px; margin-top: 8px; color: #dbeafe; font-size: 13px; }
+    #minimap {
+      position: absolute; right: 22px; bottom: 22px; z-index: 12; width: 200px; height: 200px;
+      border-radius: 16px; border: 2px solid rgba(148, 163, 184, 0.9); background: rgba(15, 23, 42, 0.74);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+    }
+    #speedometer {
+      position: absolute; right: 22px; bottom: 240px; z-index: 13; width: 146px; height: 110px;
+      border-radius: 16px; border: 2px solid rgba(148, 163, 184, 0.9); background: rgba(15, 23, 42, 0.82);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22); display: none; align-items: center; justify-content: center; flex-direction: column;
+    }
+    #speedometer.visible { display: flex; }
+    #speed-readout { font-size: 40px; font-weight: 800; line-height: 1; }
+    #speed-unit { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div id="game-root">
+    <div id="menu">
+      <div class="menu-panel">
+        <h1>City Sandbox</h1>
+        <p>Explore a dense downtown district, drive around a layered city grid, visit public plazas and building districts, and watch the city come alive with traffic, sidewalks, and pedestrians.</p>
+        <div class="garage-controls">
+          <div class="garage-card">
+            <label for="vehicle-select">Vehicle</label>
+            <select id="vehicle-select">
+              <option value="sedan">Sedan</option>
+              <option value="taxi">Taxi Cab</option>
+              <option value="sports">Sports Coupe</option>
+            </select>
+          </div>
+          <div class="garage-card">
+            <label for="color-picker">Garage Color</label>
+            <input id="color-picker" type="color" value="#60a5fa" />
+          </div>
+        </div>
+        <div class="menu-actions">
+          <button id="start-button" class="primary">Start City</button>
+          <button id="load-button" class="secondary">Load Save</button>
+          <button id="garage-button" class="secondary">Apply Garage</button>
+        </div>
+        <div id="menu-status">No saved city yet.</div>
+      </div>
+    </div>
+
+    <div id="hud">
+      <button id="close-guide-button" class="panel-close" aria-label="Close guide">×</button>
+      <strong>City Sandbox</strong><br>
+      Mission: <span id="mission-text">Downtown cruise</span><br>
+      WASD: drive / move<br>
+      Mouse: look around<br>
+      Right click a human: punch them<br>
+      Right click a car: enter / exit vehicle<br>
+      E: elevator floor select<br>
+      X: debug menu<br>
+      Esc: menu<br>
+      G: garage cycle<br>
+      Space: jump / brake
+    </div>
+    <div id="debug-menu">
+      <h3>Debug Console</h3>
+      <ul id="debug-log"></ul>
+    </div>
+    <div id="mission-panel">
+      <button id="close-routine-button" class="panel-close" aria-label="Close routine">×</button>
+      <span id="mission-panel-text">City routine: downtown cruise • explore the plaza, blocks, sidewalks, and parking lanes.</span>
+    </div>
+    <div id="speedometer"><div id="speed-readout">0</div><div id="speed-unit">MPH</div></div>
+    <canvas id="minimap" width="200" height="200"></canvas>
+    <div id="crosshair"></div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x9ed0fb);
+    scene.fog = new THREE.Fog(0x9ed0fb, 120, 420);
+
+    const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 2200);
+    camera.position.set(0, 7, 28);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('game-root').appendChild(renderer.domElement);
+
+    const world = new CANNON.World();
+    world.gravity.set(0, -18, 0);
+    world.broadphase = new CANNON.NaiveBroadphase();
+    world.solver.iterations = 6;
+    world.defaultContactMaterial.friction = 0.45;
+    world.defaultContactMaterial.restitution = 0.08;
+
+    const textureLoader = new THREE.TextureLoader();
+    const textureMap = {
+      asphalt: 'textures/asphalt.png',
+      asphaltDark: 'textures/asphalt_dark.png',
+      sidewalk: 'textures/sidewalk.png',
+      stoneLight: 'textures/stone_light.png',
+      plaza: 'textures/plaza.png',
+      fountainMarble: 'textures/fountain_marble.png',
+      grass: 'textures/grass.png',
+      windowGrid: 'textures/window_grid.png',
+      glassWindowBlue: 'textures/glass_window_blue.png',
+      brick: 'textures/brick_red.png',
+      brickRed: 'textures/brick_red.png',
+      roofTiles: 'textures/roof_tiles.png',
+      metalSilverBright: 'textures/metal_silver_bright.png',
+      water: 'textures/water.png',
+      waterPool: 'textures/water_pool.png',
+      woodFloor: 'textures/wood_floor.png',
+      woodDoor: 'textures/wood_door.png',
+      metalDoor: 'textures/metal_door.png',
+      metalSilver: 'textures/metal_silver.png',
+      darkMetal: 'textures/dark_metal.png',
+      concreteGrey: 'textures/concrete_grey.png',
+      plasterGrey: 'textures/plaster_grey.png',
+      stuccoWhite: 'textures/stucco_white.png',
+      crosswalkWhite: 'textures/crosswalk_white.png',
+      phoneScreenGif: 'gifs/phone_screen.gif',
+      laptopScreenGif: 'gifs/laptop_interaction.gif'
+    };
+    const textures = {};
+    const textureKeys = Object.keys(textureMap);
+    let texturesReady = false;
+
+    function loadTextures() {
+      const promises = textureKeys.map((key) => new Promise((resolve, reject) => {
+        textureLoader.load(textureMap[key], (tex) => {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          tex.needsUpdate = true;
+          if (['asphalt', 'asphaltDark', 'sidewalk', 'stoneLight', 'plaza', 'grass', 'roofTiles', 'windowGrid', 'crosswalkWhite', 'water', 'waterPool'].includes(key)) {
+            const repeatX = key === 'grass' ? 30 : key === 'sidewalk' || key === 'stoneLight' ? 6 : key === 'water' || key === 'waterPool' ? 8 : key === 'roofTiles' ? 2 : key === 'windowGrid' ? 3 : 12;
+            const repeatY = key === 'grass' ? 30 : key === 'sidewalk' || key === 'stoneLight' ? 6 : key === 'water' || key === 'waterPool' ? 8 : key === 'roofTiles' ? 2 : key === 'windowGrid' ? 3 : 12;
+            tex.repeat.set(repeatX, repeatY);
+          }
+          textures[key] = tex;
+          resolve();
+        }, undefined, reject);
+      }));
+      Promise.all(promises).then(() => {
+        texturesReady = true;
+        init();
+      }).catch((err) => {
+        console.error('Failed to load textures', err);
+        init();
+      });
+    }
+
+    const walkKeys = { forward: false, backward: false, left: false, right: false, brake: false, jump: false, sprint: false };
+    const driveKeys = { forward: false, backward: false, left: false, right: false, brake: false, jump: false, sprint: false };
+    let activeMode = 'walk';
+    let cameraMode = 'third';
+    let cameraViewOffset = new THREE.Vector3(0, 1.8, 4.8);
+    const debugEntries = [];
+    let debugVisible = false;
+    let playerHeight = 1.7;
+    let playerVelocity = new THREE.Vector3();
+    let playerOnGround = true;
+    let lastWPressTime = 0;
+    let controlledVehicle = null;
+    let currentGarageModel = 'sedan';
+    let garageColor = 0x60a5fa;
+    let gameStarted = false;
+    let missionIndex = 0;
+    const missions = ['Downtown cruise', 'City core loop', 'Parking district sweep', 'Plaza promenade'];
+    const cityRoot = new THREE.Group();
+    scene.add(cityRoot);
+
+    function syncActiveMode() {
+      activeMode = controlledVehicle ? 'drive' : 'walk';
+    }
+
+    function clearVehicleKeys() {
+      Object.keys(driveKeys).forEach((key) => { driveKeys[key] = false; });
+      Object.keys(walkKeys).forEach((key) => { walkKeys[key] = false; });
+    }
+
+    const solids = [];
+    const buildings = [];
+    const buildingColliders = [];
+    const cars = [];
+    const npcCars = [];
+    const people = [];
+    const buildingElevators = [];
+    const sidewalkTargets = [];
+    const pedestrianSpawnPoints = [];
+    const benchSeats = [];
+    const pushableObjects = [];
+    const rampZones = [];
+    const cityGoals = { targetBuildings: 48, targetParkedCars: 24 };
+    const worldBounds = { minX: -180, maxX: 180, minZ: -180, maxZ: 180 };
+    let flyMode = false;
+    let lastSpaceTapTime = 0;
+    const playerState = {
+      position: new THREE.Vector3(0, 1.7, 28),
+      yaw: 0,
+      pitch: -0.35,
+      velocity: new THREE.Vector3(),
+      onGround: true,
+      height: 1.7,
+      moveSpeed: 8.5,
+      pointerLocked: false,
+      seatedOn: null,
+      seatedOffset: null
+    };
+    const playerCharacter = new THREE.Group();
+    const playerBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.38, 0.38, 1.1, 12),
+      new THREE.MeshStandardMaterial({ color: 0x5eead4, roughness: 0.8 })
+    );
+    playerBody.position.y = 1.1;
+    playerCharacter.add(playerBody);
+    const playerHead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.24, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xf5d0b5, roughness: 1 })
+    );
+    playerHead.position.y = 2.0;
+    playerCharacter.add(playerHead);
+    scene.add(playerCharacter);
+
+    const startButton = document.getElementById('start-button');
+    const loadButton = document.getElementById('load-button');
+    const garageButton = document.getElementById('garage-button');
+    const vehicleSelect = document.getElementById('vehicle-select');
+    const colorPicker = document.getElementById('color-picker');
+    const menu = document.getElementById('menu');
+    const menuStatus = document.getElementById('menu-status');
+    const missionText = document.getElementById('mission-text');
+    const missionPanel = document.getElementById('mission-panel');
+    const missionPanelText = document.getElementById('mission-panel-text');
+    const minimap = document.getElementById('minimap');
+    const minimapCtx = minimap.getContext('2d');
+    const closeGuideButton = document.getElementById('close-guide-button');
+    const closeRoutineButton = document.getElementById('close-routine-button');
+    const speedometer = document.getElementById('speedometer');
+    const speedReadout = document.getElementById('speed-readout');
+
+    function setMission(index) {
+      missionIndex = (index + missions.length) % missions.length;
+      const value = missions[missionIndex];
+      missionText.textContent = value;
+      if (missionPanelText) {
+        missionPanelText.textContent = 'City routine: ' + value + ' • visit the plaza, blocks, sidewalks, and parking lanes.';
+      }
+    }
+
+    function setGuideVisible(visible) {
+      const guide = document.getElementById('hud');
+      if (guide) guide.style.display = visible ? 'block' : 'none';
+    }
+
+    function setRoutineVisible(visible) {
+      if (missionPanel) missionPanel.style.display = visible ? 'block' : 'none';
+    }
+
+    function setCookie(name, value, days = 365) {
+      const expiry = new Date(Date.now() + days * 86400000).toUTCString();
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expiry}; path=/; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+      const cookies = document.cookie.split('; ');
+      for (const entry of cookies) {
+        const [cookieName, ...rest] = entry.split('=');
+        if (cookieName === name) return decodeURIComponent(rest.join('='));
+      }
+      return '';
+    }
+
+    function saveGameState() {
+      if (!gameStarted) return;
+      const state = {
+        position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+        missionIndex,
+        garageColor,
+        currentGarageModel,
+        timestamp: Date.now()
+      };
+      setCookie('citySandboxSave', JSON.stringify(state));
+      menuStatus.textContent = 'City saved to cookie.';
+      logDebug('info', 'Saved city state');
+    }
+
+    function loadGameState() {
+      const raw = getCookie('citySandboxSave');
+      if (!raw) {
+        menuStatus.textContent = 'No saved city yet.';
+        return null;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.position) {
+          camera.position.set(parsed.position.x, parsed.position.y, parsed.position.z);
+          missionIndex = Number(parsed.missionIndex || 0);
+          garageColor = Number(parsed.garageColor || 0x60a5fa);
+          currentGarageModel = parsed.currentGarageModel || 'sedan';
+          vehicleSelect.value = currentGarageModel;
+          colorPicker.value = '#' + garageColor.toString(16).padStart(6, '0');
+          setMission(missionIndex);
+          menuStatus.textContent = 'Saved city loaded.';
+          return parsed;
+        }
+      } catch (error) {
+        console.warn('Cookie load failed', error);
+      }
+      menuStatus.textContent = 'Saved data is invalid.';
+      return null;
+    }
+
+    function applyGarageSelection() {
+      currentGarageModel = vehicleSelect.value;
+      garageColor = parseInt(colorPicker.value.replace('#', ''), 16);
+      if (controlledVehicle) {
+        controlledVehicle.color = garageColor;
+        controlledVehicle.mesh.children[0].material.color.setHex(garageColor);
+      }
+      saveGameState();
+      showMessage('Garage updated: ' + currentGarageModel);
+    }
+
+    function showMenu(show = true) {
+      menu.classList.toggle('hidden', !show);
+      if (show) {
+        document.body.style.cursor = 'auto';
+        if (document.pointerLockElement === renderer.domElement) document.exitPointerLock();
+      } else {
+        document.body.style.cursor = 'none';
+        if (document.pointerLockElement !== renderer.domElement) renderer.domElement.requestPointerLock();
+      }
+    }
+
+    function makeProceduralGroundTexture(baseColor, accentColor, tileSize = 32) {
+      const canvas = document.createElement('canvas');
+      canvas.width = tileSize * 2;
+      canvas.height = tileSize * 2;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = baseColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < canvas.height; y += tileSize) {
+        for (let x = 0; x < canvas.width; x += tileSize) {
+          ctx.fillStyle = (x + y) % (tileSize * 2) === 0 ? accentColor : baseColor;
+          ctx.fillRect(x, y, tileSize, tileSize);
+        }
+      }
+      for (let i = 0; i < 120; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 2 + Math.random() * 4;
+        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+        ctx.fillRect(x, y, size, size);
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(8, 8);
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    function showMessage(text, duration = 1400) {
+      const message = document.getElementById('message');
+      if (!message) return;
+      message.textContent = text;
+      message.style.display = 'block';
+      clearTimeout(showMessage.timer);
+      showMessage.timer = setTimeout(() => { message.style.display = 'none'; }, duration);
+    }
+
+    function logDebug(type, text) {
+      debugEntries.push({ type, text: String(text) });
+      if (debugEntries.length > 40) debugEntries.shift();
+      renderDebug();
+    }
+
+    function renderDebug() {
+      const menuElement = document.getElementById('debug-menu');
+      const list = document.getElementById('debug-log');
+      if (!menuElement || !list) return;
+      list.innerHTML = '';
+      debugEntries.slice(-18).forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = entry.type;
+        item.textContent = entry.text;
+        list.appendChild(item);
+      });
+      menuElement.classList.toggle('visible', debugVisible);
+    }
+
+    function addStaticMesh(mesh, body = null) {
+      cityRoot.add(mesh);
+      if (body) solids.push({ mesh, body });
+    }
+
+    function pointIsInsideBuildingRect(x, z, padding = 0.8) {
+      return buildingColliders.some((box) => {
+        const minX = box.minX - padding;
+        const maxX = box.maxX + padding;
+        const minZ = box.minZ - padding;
+        const maxZ = box.maxZ + padding;
+        const inside = x >= minX && x <= maxX && z >= minZ && z <= maxZ;
+        if (!inside) return false;
+
+        const openingHalfWidth = Math.max(1.2, (box.entranceWidth || Math.min(box.sizeX * 0.32, 6)) / 2);
+        const frontOpeningDepth = box.entranceDepth || 2.4;
+        const centerX = box.x;
+        const frontMiddle = z >= box.maxZ - frontOpeningDepth - padding && z <= box.maxZ + padding;
+        const centerPassage = x >= centerX - openingHalfWidth && x <= centerX + openingHalfWidth;
+        return !(frontMiddle && centerPassage);
+      });
+    }
+
+    function resolveFootstep(x, z, radius = 0.75) {
+      const proposedX = THREE.MathUtils.clamp(x, worldBounds.minX + radius, worldBounds.maxX - radius);
+      const proposedZ = THREE.MathUtils.clamp(z, worldBounds.minZ + radius, worldBounds.maxZ - radius);
+
+      if (pointIsInsideBuildingRect(proposedX, proposedZ, radius + 0.4)) {
+        return { x: x, z: z, blocked: true };
+      }
+
+      return { x: proposedX, z: proposedZ, blocked: false };
+    }
+
+    function updatePlayerCharacter() {
+      playerCharacter.position.set(playerState.position.x, 0, playerState.position.z);
+      playerCharacter.rotation.y = playerState.yaw;
+      playerCharacter.visible = !controlledVehicle && !playerState.seatedOn;
+      playerBody.visible = !playerState.seatedOn;
+      playerHead.visible = !playerState.seatedOn;
+    }
+
+    function applyPointerLook() {
+      camera.rotation.order = 'YXZ';
+      const base = playerState.position.clone();
+      if (controlledVehicle) {
+        camera.rotation.y = playerState.yaw;
+        camera.rotation.x = playerState.pitch;
+        return;
+      }
+      if (playerState.seatedOn) {
+        camera.position.set(playerState.position.x + Math.sin(playerState.yaw) * 1.2, playerState.position.y + 1.3, playerState.position.z + Math.cos(playerState.yaw) * 1.2);
+        camera.rotation.y = playerState.yaw;
+        camera.rotation.x = playerState.pitch * 0.8;
+        return;
+      }
+      if (cameraMode === 'first') {
+        camera.position.set(base.x, base.y + 1.6, base.z);
+        camera.rotation.y = playerState.yaw;
+        camera.rotation.x = playerState.pitch;
+      } else {
+        const offset = new THREE.Vector3(Math.sin(playerState.yaw) * -4.4, 2.0, Math.cos(playerState.yaw) * -4.4);
+        camera.position.copy(base.clone().add(offset));
+        camera.rotation.y = playerState.yaw + Math.PI;
+        camera.rotation.x = playerState.pitch * 0.8;
+      }
+    }
+
+    function updateMinimap() {
+      const ctx = minimapCtx;
+      const size = minimap.width;
+      const margin = 14;
+      const worldWidth = worldBounds.maxX - worldBounds.minX;
+      const worldHeight = worldBounds.maxZ - worldBounds.minZ;
+      const scale = Math.min((size - margin * 2) / worldWidth, (size - margin * 2) / worldHeight);
+      const cx = size / 2;
+      const cy = size / 2;
+
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+      ctx.fillRect(0, 0, size, size);
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.85)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(margin, margin, size - margin * 2, size - margin * 2);
+
+      ctx.fillStyle = 'rgba(100, 116, 139, 0.82)';
+      ctx.fillRect(cx - 80, cy - 80, 160, 160);
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
+      ctx.fillRect(cx - 60, cy - 60, 120, 120);
+
+      buildings.forEach((b) => {
+        const x = cx + (b.x - (worldBounds.minX + worldBounds.maxX) / 2) * scale;
+        const y = cy + (b.z - (worldBounds.minZ + worldBounds.maxZ) / 2) * scale;
+        const w = Math.max(6, b.sizeX * scale * 0.82);
+        const h = Math.max(6, b.sizeZ * scale * 0.82);
+        ctx.fillStyle = 'rgba(96, 165, 250, 0.82)';
+        ctx.fillRect(x - w / 2, y - h / 2, w, h);
+      });
+
+      const trackedPosition = controlledVehicle ? controlledVehicle.body.position : new CANNON.Vec3(playerState.position.x, 0, playerState.position.z);
+      const px = cx + (trackedPosition.x - (worldBounds.minX + worldBounds.maxX) / 2) * scale;
+      const py = cy + (trackedPosition.z - (worldBounds.minZ + worldBounds.maxZ) / 2) * scale;
+      ctx.fillStyle = controlledVehicle ? '#34d399' : '#f8fafc';
+      ctx.beginPath(); ctx.arc(px, py, controlledVehicle ? 7 : 5, 0, Math.PI * 2); ctx.fill();
+      if (controlledVehicle) {
+        const angle = controlledVehicle.mesh.rotation.y;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + Math.sin(angle) * 12, py + Math.cos(angle) * 12);
+        ctx.strokeStyle = '#dcfce7';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function createGroundPlane() {
+      const grassTexture = textures.grass || makeProceduralGroundTexture('#a6d67b', '#679f5a');
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(520, 520),
+        new THREE.MeshStandardMaterial({ map: grassTexture, color: 0xffffff, roughness: 1 })
+      );
+      ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
+      const groundBody = new CANNON.Body({ mass: 0 }); groundBody.addShape(new CANNON.Plane()); groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0); world.addBody(groundBody);
+    }
+
+    function createRoad(x, z, width, depth) {
+      const asphaltTexture = textures.asphalt || makeProceduralGroundTexture('#4b5563', '#2b3440');
+      const road = new THREE.Mesh(new THREE.BoxGeometry(width, 0.08, depth), new THREE.MeshStandardMaterial({ map: asphaltTexture, color: 0xffffff, roughness: 0.9 }));
+      road.position.set(x, 0.04, z); road.receiveShadow = true; cityRoot.add(road);
+      const roadBody = new CANNON.Body({ mass: 0 }); roadBody.addShape(new CANNON.Box(new CANNON.Vec3(width/2, 0.04, depth/2))); roadBody.position.set(x, 0.04, z); world.addBody(roadBody); solids.push({ mesh: road, body: roadBody });
+      const laneMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4 });
+      const halfWidth = Math.max(width, depth) / 2;
+      for (let offset = -halfWidth + 8; offset < halfWidth; offset += 14) {
+        const dash = new THREE.Mesh(new THREE.BoxGeometry(width > depth ? 7 : 1.2, 0.02, width > depth ? 1.2 : 7), laneMat);
+        if (width > depth) dash.position.set(x + offset, 0.11, z); else dash.position.set(x, 0.11, z + offset);
+        cityRoot.add(dash);
+      }
+      const edgeOffset = width > depth ? width / 2 + 1.8 : depth / 2 + 1.8;
+      const axisPoints = width > depth
+        ? Array.from({ length: Math.max(3, Math.floor(width / 12) + 1) }, (_, i) => {
+            const step = -width / 2 + 10 + i * 12;
+            return [x + step, z + edgeOffset];
+          }).concat(Array.from({ length: Math.max(3, Math.floor(width / 12) + 1) }, (_, i) => {
+            const step = -width / 2 + 10 + i * 12;
+            return [x + step, z - edgeOffset];
+          }))
+        : Array.from({ length: Math.max(3, Math.floor(depth / 12) + 1) }, (_, i) => {
+            const step = -depth / 2 + 10 + i * 12;
+            return [x + edgeOffset, z + step];
+          }).concat(Array.from({ length: Math.max(3, Math.floor(depth / 12) + 1) }, (_, i) => {
+            const step = -depth / 2 + 10 + i * 12;
+            return [x - edgeOffset, z + step];
+          }));
+      axisPoints.forEach(([px, pz]) => {
+        sidewalkTargets.push(new THREE.Vector3(px, 0, pz));
+        pedestrianSpawnPoints.push(new THREE.Vector3(px, 0, pz));
+      });
+    }
+
+    function createSidewalk(x, z, width, depth) {
+      const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(width, 0.12, depth), new THREE.MeshStandardMaterial({ map: textures.sidewalk || null, color: 0xd9dde2, roughness: 0.95 }));
+      sidewalk.position.set(x, 0.06, z); sidewalk.receiveShadow = true; cityRoot.add(sidewalk); sidewalkTargets.push(new THREE.Vector3(x, 0, z));
+    }
+
+    function createParkingBay(x, z, orientation = 'horizontal') {
+      const bay = new THREE.Mesh(new THREE.BoxGeometry(orientation === 'horizontal' ? 4.8 : 2.5, 0.06, orientation === 'horizontal' ? 2.5 : 4.8), new THREE.MeshStandardMaterial({ color: 0xdfe7ef, roughness: 0.9 }));
+      bay.position.set(x, 0.08, z); cityRoot.add(bay);
+    }
+
+    function addTree(x, z, scale = 1) {
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.22 * scale, 1.8 * scale, 10), new THREE.MeshStandardMaterial({ color: 0x7c4a27, roughness: 1 }));
+      trunk.position.y = 0.9 * scale; trunk.castShadow = true;
+      const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.82 * scale, 16, 16), new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.9 }));
+      leaves.position.y = 2.2 * scale; leaves.castShadow = true;
+      const g = new THREE.Group(); g.add(trunk, leaves); g.position.set(x, 0, z); cityRoot.add(g);
+    }
+
+    function addBench(x, z, rot = 0) {
+      const bench = new THREE.Group();
+      const wood = new THREE.MeshStandardMaterial({ color: 0x8b5e3c, roughness: 0.82 });
+      const metal = new THREE.MeshStandardMaterial({ color: 0x4b5563, metalness: 0.8, roughness: 0.28 });
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.12, 0.42), wood); seat.position.y = 0.55; bench.add(seat);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.52, 0.1), wood); back.position.set(0, 0.8, -0.15); bench.add(back);
+      for (const px of [-0.75, 0.75]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.55, 0.1), metal); leg.position.set(px, 0.25, 0.1); bench.add(leg); }
+      bench.position.set(x, 0, z); bench.rotation.y = rot; cityRoot.add(bench);
+      benchSeats.push({ x, z, rot, group: bench });
+    }
+
+    function addFountain() {
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 6.2, 1.4, 32), new THREE.MeshStandardMaterial({ map: textures.plaza || null, color: 0xc8beaf, roughness: 0.88 }));
+      base.position.y = 0.7; base.receiveShadow = true; group.add(base);
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(4.4, 4.8, 0.8, 32), new THREE.MeshStandardMaterial({ color: 0xd4c5b0, roughness: 0.7 })); rim.position.y = 1.7; group.add(rim);
+      const pool = new THREE.Mesh(new THREE.CylinderGeometry(3.9, 4.2, 0.8, 32), new THREE.MeshStandardMaterial({ map: textures.water || null, color: 0x6abad6, transparent: true, opacity: 0.92 })); pool.position.y = 2.2; group.add(pool);
+      const monument = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 4.5, 18), new THREE.MeshStandardMaterial({ color: 0xf0ead2, roughness: 0.6, metalness: 0.2 })); monument.position.y = 4.7; group.add(monument);
+      const top = new THREE.Mesh(new THREE.SphereGeometry(0.8, 18, 18), new THREE.MeshStandardMaterial({ color: 0xf7d15d, emissive: 0x5e4a00, emissiveIntensity: 0.3 })); top.position.y = 7.6; group.add(top);
+      group.position.set(0, 0, 0); cityRoot.add(group);
+    }
+
+    function addPlaza() {
+      const plaza = new THREE.Mesh(new THREE.BoxGeometry(50, 0.16, 50), new THREE.MeshStandardMaterial({ map: textures.plaza || null, color: 0xd6d0c5, roughness: 0.92 })); plaza.position.set(0, 0.08, 0); plaza.receiveShadow = true; cityRoot.add(plaza);
+      const bigPad = new THREE.Mesh(new THREE.BoxGeometry(55, 0.35, 55), new THREE.MeshStandardMaterial({ color: 0x7f8d8e, roughness: 0.9 })); bigPad.position.set(0, -0.18, 0); cityRoot.add(bigPad);
+      addFountain();
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2; const x = Math.cos(angle) * 17; const z = Math.sin(angle) * 17; addBench(x, z, angle + Math.PI / 2);
+      }
+    }
+
+    function addStreetMarkings() {
+      const dashMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.55 });
+      const crosswalkMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 });
+      const roads = [
+        { x: 0, z: 0, w: 200, d: 12 }, { x: 0, z: 52, w: 200, d: 12 }, { x: 0, z: -52, w: 200, d: 12 },
+        { x: 66, z: 0, w: 12, d: 200 }, { x: -66, z: 0, w: 12, d: 200 }, { x: 0, z: 120, w: 220, d: 10 }, { x: 0, z: -120, w: 220, d: 10 }
+      ];
+      roads.forEach((road) => {
+        const laneLength = road.w > road.d ? road.w : road.d;
+        for (let offset = -laneLength / 2 + 8; offset < laneLength / 2; offset += 14) {
+          const dash = new THREE.Mesh(new THREE.BoxGeometry(road.w > road.d ? 7 : 1.2, 0.02, road.w > road.d ? 1.2 : 7), dashMat);
+          if (road.w > road.d) dash.position.set(road.x + offset, 0.11, road.z); else dash.position.set(road.x, 0.11, road.z + offset);
+          cityRoot.add(dash);
+        }
+      });
+      for (let i = -2; i <= 2; i++) {
+        const z = i * 26;
+        const cross1 = new THREE.Mesh(new THREE.BoxGeometry(10, 0.02, 1.4), crosswalkMat); cross1.position.set(0, 0.11, z + 7); cityRoot.add(cross1);
+        const cross2 = new THREE.Mesh(new THREE.BoxGeometry(10, 0.02, 1.4), crosswalkMat); cross2.position.set(0, 0.11, z - 7); cityRoot.add(cross2);
+      }
+      for (let px = -84; px <= 84; px += 18) {
+        for (let pz = -100; pz <= 100; pz += 24) {
+          createParkingBay(px + 2, pz, 'horizontal');
+          createParkingBay(px + 2, pz + 12, 'horizontal');
+        }
+      }
+    }
+
+    function createBuilding(x, z, sizeX, sizeZ, floors, color, zone = 'office') {
+      const building = new THREE.Group(); building.position.set(x, 0, z);
+      const palette = {
+        commercial: { base: 0x2a3343, roof: 0x9ca3af, trim: 0xdfe7ef, facade: textures.brickRed || textures.concreteGrey || textures.plasterGrey, accent: textures.windowGrid || textures.glassWindowBlue },
+        office: { base: 0x4a5d75, roof: 0xb7b3a6, trim: 0xf0f4f7, facade: textures.concreteGrey || textures.plasterGrey || textures.stuccoWhite, accent: textures.windowGrid || textures.glassWindowBlue },
+        residential: { base: 0x8a6f5d, roof: 0xc7b39b, trim: 0xf3efe8, facade: textures.stuccoWhite || textures.plasterGrey || textures.brickRed, accent: textures.windowGrid || textures.glassWindowBlue }
+      };
+      const p = palette[zone] || palette.office;
+      const towerHeight = Math.max(8, floors * 3.1 + 2);
+      const podium = new THREE.Mesh(new THREE.BoxGeometry(sizeX, 1.0, sizeZ), new THREE.MeshStandardMaterial({ color: p.base, roughness: 0.9 }));
+      podium.position.y = 0.5; podium.castShadow = true; podium.receiveShadow = true; building.add(podium);
+
+      const facadeTexture = p.facade || textures.concreteGrey || null;
+      const towerMaterial = new THREE.MeshStandardMaterial({
+        map: facadeTexture,
+        color: 0xffffff,
+        roughness: 0.82,
+        metalness: 0.08
+      });
+      if (towerMaterial.map) {
+        towerMaterial.map.repeat.set(Math.max(1, sizeX / 6), Math.max(1, towerHeight / 6));
+      }
+
+      const towerShell = new THREE.Group();
+      const entranceWidth = Math.min(sizeX * 0.32, 6.5);
+      const frontDepth = 0.12;
+      const shellHeight = towerHeight * 0.92;
+      const leftWall = new THREE.Mesh(new THREE.BoxGeometry((sizeX - entranceWidth) * 0.5, shellHeight, sizeZ * 0.18), towerMaterial);
+      leftWall.position.set(-(entranceWidth + (sizeX - entranceWidth) * 0.25), shellHeight * 0.5 + 0.8, sizeZ * 0.18);
+      leftWall.castShadow = true; leftWall.receiveShadow = true; towerShell.add(leftWall);
+      const rightWall = new THREE.Mesh(new THREE.BoxGeometry((sizeX - entranceWidth) * 0.5, shellHeight, sizeZ * 0.18), towerMaterial);
+      rightWall.position.set((entranceWidth + (sizeX - entranceWidth) * 0.25), shellHeight * 0.5 + 0.8, sizeZ * 0.18);
+      rightWall.castShadow = true; rightWall.receiveShadow = true; towerShell.add(rightWall);
+      const backWall = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.78, shellHeight, sizeZ * 0.12), towerMaterial);
+      backWall.position.set(0, shellHeight * 0.5 + 0.8, -sizeZ * 0.32); backWall.castShadow = true; backWall.receiveShadow = true; towerShell.add(backWall);
+      const sideWallLeft = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.14, shellHeight, sizeZ * 0.62), towerMaterial);
+      sideWallLeft.position.set(-sizeX * 0.42, shellHeight * 0.5 + 0.8, 0); sideWallLeft.castShadow = true; sideWallLeft.receiveShadow = true; towerShell.add(sideWallLeft);
+      const sideWallRight = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.14, shellHeight, sizeZ * 0.62), towerMaterial);
+      sideWallRight.position.set(sizeX * 0.42, shellHeight * 0.5 + 0.8, 0); sideWallRight.castShadow = true; sideWallRight.receiveShadow = true; towerShell.add(sideWallRight);
+      building.add(towerShell);
+
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.96, 0.5, sizeZ * 0.96), new THREE.MeshStandardMaterial({ map: textures.roofTiles || null, color: p.roof, roughness: 0.7 })); roof.position.y = towerHeight + 1.0; building.add(roof);
+
+      const accentSeed = (x + z + floors) % 5;
+      if (zone === 'commercial') {
+        const crown = new THREE.Mesh(new THREE.CylinderGeometry(sizeX * 0.16, sizeX * 0.18, 2.2, 18), new THREE.MeshStandardMaterial({ color: 0xf4d35e, emissive: 0x5c4300, emissiveIntensity: 0.4 }));
+        crown.position.y = towerHeight + 2.4; building.add(crown);
+        const sign = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.6, 1.1, 0.3), new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x0f172a, emissiveIntensity: 0.15 }));
+        sign.position.set(0, towerHeight * 0.4, sizeZ * 0.52); building.add(sign);
+      } else if (zone === 'office') {
+        const sideWing = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.28, towerHeight * 0.5, sizeZ * 0.35), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.78 }));
+        sideWing.position.set(sizeX * 0.34, towerHeight * 0.28 + 1.1, 0); building.add(sideWing);
+      } else {
+        const balcony = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.7, 0.15, 0.9), new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.8 }));
+        balcony.position.set(0, 4.5 + (accentSeed % 2), sizeZ * 0.38); building.add(balcony);
+        const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 2.5 + accentSeed, 10), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.25 }));
+        antenna.position.set(sizeX * 0.22, towerHeight + 1.3, -sizeZ * 0.22); building.add(antenna);
+      }
+
+      const lobby = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.52, 3.3, sizeZ * 0.36), new THREE.MeshStandardMaterial({ color: 0x141f2a, roughness: 0.88 })); lobby.position.set(0, 1.7, 0); building.add(lobby);
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(entranceWidth * 1.1, 0.45, 0.24), new THREE.MeshStandardMaterial({ color: 0xf5f5f4, roughness: 0.8 }));
+      lintel.position.set(0, towerHeight * 0.9 + 1.15, sizeZ * 0.47); building.add(lintel);
+      const shaft = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.14, towerHeight, sizeZ * 0.14), new THREE.MeshStandardMaterial({ color: 0x2f4858, transparent: true, opacity: 0.52 })); shaft.position.set(sizeX * 0.24, towerHeight / 2 + 0.9, -sizeZ * 0.26); building.add(shaft);
+      const elevatorCar = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.12, 2.2, sizeZ * 0.12), new THREE.MeshStandardMaterial({ color: 0x6ee7b7, emissive: 0x0b2a1d })); elevatorCar.position.set(sizeX * 0.24, 1.1, -sizeZ * 0.26); building.add(elevatorCar);
+      const elevator = { building, car: elevatorCar, shaft, targetFloor: 0, maxFloor: Math.max(0, floors - 1), currentFloor: 0, yBase: 1.0, x, z, width: sizeX, depth: sizeZ };
+
+      const windowBars = accentSeed % 2 === 0 ? 0.18 : 0.28;
+      for (let i = 0; i < Math.max(2, floors); i++) {
+        const floorY = i * 3.1 + 0.8;
+        const floorPlate = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.74, 0.16, sizeZ * 0.74), new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.9 }));
+        floorPlate.position.set(0, floorY, 0); building.add(floorPlate);
+        const light = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.18, 0.08, sizeZ * 0.18), new THREE.MeshStandardMaterial({ color: 0xfff7d6, emissive: 0xfef3c7, emissiveIntensity: 0.7 }));
+        light.position.set(0, floorY + 2.5, 0); building.add(light);
+
+        if (zone !== 'residential') {
+          for (let p = -2; p <= 2; p += 2) {
+            const desk = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.28, 0.7), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+            desk.position.set(p * 1.2, floorY + 0.3, -0.9 + (p === 0 ? 1.2 : 0)); building.add(desk);
+            const chair = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.52, 0.52), new THREE.MeshStandardMaterial({ color: 0x334155 }));
+            chair.position.set(p * 1.2, floorY + 0.5, 0.9 - (p === 0 ? 1.0 : 0)); building.add(chair);
+            const wallPanel = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.14, 1.0, 0.08), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.9 }));
+            wallPanel.position.set(p * 1.8, floorY + 1.5, sizeZ * 0.22); building.add(wallPanel);
+          }
+        } else {
+          const unit = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 1.2), new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.8 }));
+          unit.position.set(-1.1 + (i % 2) * 1.6, floorY + 0.35, -0.8 + (i % 3) * 0.9); building.add(unit);
+          const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), new THREE.MeshStandardMaterial({ color: 0xfef3c7, emissive: 0xfacc15, emissiveIntensity: 0.4 }));
+          lamp.position.set((i % 2 === 0 ? -1.5 : 1.4) * 0.8, floorY + 0.85, 1.1); building.add(lamp);
+        }
+
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(sizeX * 0.7, 0.16, 0.16), new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xf8fafc : 0xcbd5e1, roughness: 0.75 }));
+        panel.position.set(0, floorY + 1.9, sizeZ * 0.22 + windowBars); building.add(panel);
+      }
+      const body = new CANNON.Body({ mass: 0, material: new CANNON.Material('building') });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(sizeX / 2, towerHeight / 2 + 1, sizeZ / 2))); body.position.set(x, towerHeight / 2 + 0.6, z); world.addBody(body);
+      const collider = {
+        x,
+        z,
+        sizeX,
+        sizeZ,
+        minX: x - sizeX / 2,
+        maxX: x + sizeX / 2,
+        minZ: z - sizeZ / 2,
+        maxZ: z + sizeZ / 2,
+        height: towerHeight,
+        entranceWidth: Math.min(sizeX * 0.32, 6.5),
+        entranceDepth: 2.6
+      };
+      buildingColliders.push(collider);
+      solids.push({ mesh: building, body }); buildings.push({ x, z, sizeX, sizeZ, floors, zone, elevator }); buildingElevators.push(elevator); cityRoot.add(building); return building;
+    }
+
+    function createVehicleModel(type, color) {
+      const group = new THREE.Group();
+      const bodyColor = type === 'taxi' ? 0xfacc15 : type === 'sports' ? 0xe11d48 : color;
+      const mainBody = new THREE.Mesh(new THREE.BoxGeometry(type === 'sports' ? 2.0 : 2.2, 0.72, type === 'sports' ? 3.8 : 4.2), new THREE.MeshStandardMaterial({ color: bodyColor, metalness: 0.52, roughness: 0.3 }));
+      mainBody.position.y = 0.8; group.add(mainBody);
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(type === 'sports' ? 1.45 : 1.7, 0.58, type === 'sports' ? 2.1 : 2.2), new THREE.MeshStandardMaterial({ color: 0xdfeafc, metalness: 0.7, roughness: 0.2 }));
+      cabin.position.set(0, 1.28, 0.1); group.add(cabin);
+      if (type === 'taxi') {
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 0.1), new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0x524100, emissiveIntensity: 0.25 })); stripe.position.set(0, 1.0, 1.2); group.add(stripe);
+      }
+      for (const side of [-1, 1]) {
+        for (const zSide of [-1.2, 1.2]) {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.44, 18), new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
+          wheel.rotation.z = Math.PI / 2; wheel.position.set(side * 1.05, 0.42, zSide); group.add(wheel);
+        }
+      }
+      const body = new CANNON.Body({ mass: 100, material: new CANNON.Material('car') });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(type === 'sports' ? 1.0 : 1.2, 0.55, type === 'sports' ? 1.9 : 2.1))); body.position.set(0, 1.2, 0); body.linearDamping = 0.18; body.angularDamping = 0.7; world.addBody(body);
+      return { mesh: group, body, type, color, speed: 0, steer: 0, target: null, npc: false, parked: false, inside: false, canEnter: true, fuel: Infinity, maxFuel: Infinity, rampLift: 0, airborne: false };
+    }
+
+    function createRamp(x, z, width = 9, depth = 6, height = 1.4, rotation = 0) {
+      const ramp = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, depth),
+        new THREE.MeshStandardMaterial({ color: 0x8b9bb7, roughness: 0.8, metalness: 0.12 })
+      );
+      ramp.position.set(x, height / 2, z);
+      ramp.rotation.y = rotation;
+      ramp.castShadow = true;
+      ramp.receiveShadow = true;
+      cityRoot.add(ramp);
+
+      const body = new CANNON.Body({ mass: 0 });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)));
+      body.position.set(x, height / 2, z);
+      body.quaternion.setFromEuler(0, rotation, 0);
+      world.addBody(body);
+      rampZones.push({ x, z, width, depth, height, rotation, mesh: ramp });
+    }
+
+    function createCar(x, z, color = 0x60a5fa, isPlayer = false, parked = false, type = 'sedan') {
+      const car = createVehicleModel(type, color);
+      car.mesh.position.set(x, 0, z); car.body.position.set(x, 1.2, z); scene.add(car.mesh); cars.push(car); return car;
+    }
+
+    function createBreakableCrate(x, z, size = 1.8, color = 0x8b5d3c, maxHealth = 3) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(size, size, size),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.08 })
+      );
+      mesh.position.set(x, size / 2, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      cityRoot.add(mesh);
+
+      const crate = {
+        mesh,
+        size,
+        health: maxHealth,
+        maxHealth,
+        hitFlash: 0,
+        radius: size * 0.75,
+        broken: false
+      };
+      pushableObjects.push(crate);
+      return crate;
+    }
+
+    function createNPCCar() {
+      const colors = [0xff7f50, 0x3b82f6, 0x34d399, 0xfbbf24, 0xf472b6];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const type = ['sedan', 'taxi', 'sports'][Math.floor(Math.random() * 3)];
+      const car = createCar((Math.random() - 0.5) * 150, (Math.random() - 0.5) * 150, color, false, false, type);
+      car.npc = true; car.target = new THREE.Vector3((Math.random() - 0.5) * 160, 0, (Math.random() - 0.5) * 160); car.speed = 12 + Math.random() * 7; return car;
+    }
+
+    function getQuaternionYaw(quaternion) {
+      const x = quaternion.x; const y = quaternion.y; const z = quaternion.z; const w = quaternion.w;
+      return Math.atan2(2 * (w * y + x * z), 1 - 2 * (y * y + z * z));
+    }
+
+    function getSidewalkPointNear(position) {
+      const source = pedestrianSpawnPoints.length ? pedestrianSpawnPoints : sidewalkTargets;
+      let best = null; let bestDist = Infinity;
+      source.forEach((target) => {
+        const d = target.distanceTo(position); if (d < bestDist) { bestDist = d; best = target.clone(); }
+      });
+      return best || new THREE.Vector3(0, 0, 0);
+    }
+
+    function getPedestrianSpawnPoint() {
+      const source = pedestrianSpawnPoints.length ? pedestrianSpawnPoints : sidewalkTargets;
+      if (!source.length) return new THREE.Vector3(0, 0, 0);
+      return source[Math.floor(Math.random() * source.length)].clone();
+    }
+
+    function createHuman() {
+      const group = new THREE.Group();
+      const torsoMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.5, 0.62) });
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xf0c7a5 });
+      const pantsMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random() * 0.18, 0.3, 0.45) });
+      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.92, 12), torsoMaterial); torso.position.y = 1.18; torso.castShadow = true; group.add(torso);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), skinMat); head.position.y = 1.9; head.castShadow = true; group.add(head);
+      const leftArm = new THREE.Group(); const rightArm = new THREE.Group(); const leftLeg = new THREE.Group(); const rightLeg = new THREE.Group();
+      const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.52, 8); const legGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.75, 8);
+      const leftArmMesh = new THREE.Mesh(armGeo, skinMat); leftArmMesh.position.y = -0.28; leftArm.add(leftArmMesh); leftArm.position.set(-0.33, 1.33, 0); group.add(leftArm);
+      const rightArmMesh = new THREE.Mesh(armGeo, skinMat); rightArmMesh.position.y = -0.28; rightArm.add(rightArmMesh); rightArm.position.set(0.33, 1.33, 0); group.add(rightArm);
+      const leftLegMesh = new THREE.Mesh(legGeo, pantsMat); leftLegMesh.position.y = -0.48; leftLeg.add(leftLegMesh); leftLeg.position.set(-0.12, 0.7, 0); group.add(leftLeg);
+      const rightLegMesh = new THREE.Mesh(legGeo, pantsMat); rightLegMesh.position.y = -0.48; rightLeg.add(rightLegMesh); rightLeg.position.set(0.12, 0.7, 0); group.add(rightLeg);
+      const start = getPedestrianSpawnPoint(); group.position.copy(start);
+      const destination = getPedestrianSpawnPoint();
+
+      const useDevice = Math.random() < 0.4;
+      const deviceType = useDevice && Math.random() < 0.5 ? 'phone' : (useDevice ? 'laptop' : 'none');
+      const deviceGroup = new THREE.Group();
+      const deviceMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(deviceType === 'phone' ? 0.18 : 0.46, deviceType === 'phone' ? 0.34 : 0.26, 0.03),
+        new THREE.MeshBasicMaterial({ map: deviceType === 'phone' ? textures.phoneScreenGif : textures.laptopScreenGif, transparent: true, side: THREE.DoubleSide })
+      );
+      deviceMesh.position.set(0, 1.6, 0.18);
+      deviceGroup.add(deviceMesh);
+      group.add(deviceGroup);
+      deviceGroup.visible = !!useDevice;
+
+      const person = {
+        mesh: group,
+        leftArm,
+        rightArm,
+        leftLeg,
+        rightLeg,
+        torso,
+        destination,
+        speed: 1.3 + Math.random() * 0.8,
+        walkPhase: Math.random() * Math.PI * 2,
+        isPunching: false,
+        punchUntil: 0,
+        task: 'walk',
+        bench: null,
+        deviceType,
+        deviceGroup,
+        deviceMesh,
+        useDevice,
+        benchTimer: 0
+      };
+
+      if (benchSeats.length && Math.random() < 0.35) {
+        const benchChoice = benchSeats[Math.floor(Math.random() * benchSeats.length)];
+        person.task = 'bench';
+        person.bench = benchChoice;
+      }
+
+      scene.add(group); people.push(person); return person;
+    }
+
+    function createPeople() { for (let i = 0; i < 28; i++) createHuman(); }
+
+    function updateHumans(dt) {
+      const now = performance.now();
+      people.forEach((person) => {
+        if (person.deviceGroup) person.deviceGroup.visible = person.useDevice && person.task !== 'walk' ? true : person.useDevice;
+
+        if (person.isPunching && now < person.punchUntil) {
+          person.mesh.rotation.z = Math.sin(now * 0.02) * 0.45; person.mesh.rotation.x = 1.2; person.leftArm.rotation.x = -1.6; person.rightArm.rotation.x = 1.2; person.leftLeg.rotation.x = 0.3; person.rightLeg.rotation.x = -0.3; return;
+        }
+        if (person.isPunching && now >= person.punchUntil) { person.isPunching = false; person.mesh.rotation.z = 0; person.mesh.rotation.x = 0; }
+
+        if (person.task === 'bench' && person.bench) {
+          const bx = person.bench.x + Math.cos(person.bench.rot) * 0.5;
+          const bz = person.bench.z + Math.sin(person.bench.rot) * 0.5;
+          person.mesh.position.set(bx, 0, bz);
+          person.mesh.rotation.y = person.bench.rot + Math.PI / 2;
+          person.walkPhase += dt * 2;
+          const swing = Math.sin(person.walkPhase) * 0.2;
+          person.leftArm.rotation.x = swing; person.rightArm.rotation.x = -swing; person.leftLeg.rotation.x = -swing * 0.4; person.rightLeg.rotation.x = swing * 0.4;
+          if (person.useDevice) {
+            person.deviceGroup.visible = true;
+            person.deviceGroup.position.set(0.18, 0.6, 0.15);
+            person.deviceGroup.rotation.set(0.1, 0, 0);
+          }
+          return;
+        }
+
+        const dir = new THREE.Vector3(person.destination.x - person.mesh.position.x, 0, person.destination.z - person.mesh.position.z);
+        if (dir.length() < 1.5) {
+          if (person.useDevice && Math.random() < 0.2) {
+            person.task = 'bench';
+            person.bench = benchSeats[Math.floor(Math.random() * benchSeats.length)] || null;
+          } else {
+            person.destination.copy(getSidewalkPointNear(new THREE.Vector3((Math.random() - 0.5) * 160, 0, (Math.random() - 0.5) * 160)));
+          }
+          return;
+        }
+
+        dir.normalize();
+        const nextX = person.mesh.position.x + dir.x * person.speed * dt * 1.8;
+        const nextZ = person.mesh.position.z + dir.z * person.speed * dt * 1.8;
+        const resolved = resolveFootstep(nextX, nextZ, 0.55);
+
+        if (!resolved.blocked) {
+          person.mesh.position.x = resolved.x;
+          person.mesh.position.z = resolved.z;
+        } else {
+          person.destination.copy(getSidewalkPointNear(person.mesh.position.clone()));
+        }
+
+        person.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+        person.walkPhase += dt * 7; const swing = Math.sin(person.walkPhase) * 0.8; person.leftArm.rotation.x = swing; person.rightArm.rotation.x = -swing; person.leftLeg.rotation.x = -swing; person.rightLeg.rotation.x = swing;
+
+        if (person.useDevice) {
+          person.deviceGroup.visible = true;
+          person.deviceGroup.position.set(0.15, 1.25, 0.22);
+          person.deviceGroup.rotation.set(0, 0, 0);
+          person.deviceMesh.rotation.y = Math.PI * 0.16;
+        }
+      });
+    }
+
+    function nearestBenchToPlayer() {
+      let bestBench = null; let bestDistance = Infinity;
+      const benches = [];
+      const benchPositions = [
+        { x: -110, z: 0 }, { x: -70, z: 30 }, { x: 70, z: 30 }, { x: 110, z: 0 }, { x: -70, z: -30 }, { x: 70, z: -30 }
+      ];
+      benchPositions.forEach((bench) => {
+        const d = Math.hypot(playerState.position.x - bench.x, playerState.position.z - bench.z);
+        if (d < bestDistance) { bestDistance = d; bestBench = bench; }
+      });
+      return bestDistance < 8 ? bestBench : null;
+    }
+
+    function getPointerRaycaster(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const useCenter = document.pointerLockElement === renderer.domElement || !event || typeof event.clientX !== 'number';
+      const targetX = useCenter ? 0 : ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const targetY = useCenter ? 0 : -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      const mouse = new THREE.Vector2(useCenter ? 0 : targetX, useCenter ? 0 : targetY);
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+      return raycaster;
+    }
+
+    function maybePunchPersonAtPointer(event) {
+      const raycaster = getPointerRaycaster(event);
+      const hits = raycaster.intersectObjects(people.map((p) => p.mesh), true);
+      if (!hits.length) return;
+      const hit = hits[0].object; const person = people.find((p) => p.mesh === hit || p.mesh.children.includes(hit) || p.mesh === hit.parent || p.mesh === hit.parent?.parent);
+      if (!person) return;
+      person.isPunching = true; person.punchUntil = performance.now() + 3000; showMessage('Punch landed!');
+    }
+
+    function pickCarFromPointer(event) {
+      const raycaster = getPointerRaycaster(event);
+      const hits = raycaster.intersectObjects(cars.map((car) => car.mesh), true);
+      let selectedCar = null;
+
+      if (hits.length) {
+        const hit = hits[0].object;
+        selectedCar = cars.find((car) => car.mesh === hit || car.mesh.children.includes(hit) || car.mesh === hit.parent || car.mesh === hit.parent?.parent);
+      }
+
+      if (!selectedCar) {
+        const playerPos = controlledVehicle ? controlledVehicle.body.position : playerState.position;
+        selectedCar = cars
+          .filter((car) => car && car.mesh && car.mesh.visible)
+          .filter((car) => Math.hypot(car.mesh.position.x - playerPos.x, car.mesh.position.z - playerPos.z) < 8)
+          .sort((a, b) => Math.hypot(a.mesh.position.x - playerPos.x, a.mesh.position.z - playerPos.z) - Math.hypot(b.mesh.position.x - playerPos.x, b.mesh.position.z - playerPos.z))[0] || null;
+      }
+
+      if (!selectedCar) return false;
+      controlledVehicle = selectedCar;
+      syncActiveMode();
+      showMessage('Entered vehicle. Drive with WASD.');
+      selectedCar.inside = true;
+      return true;
+    }
+
+    function handleDriving(dt) {
+      syncActiveMode();
+      if (!controlledVehicle) return;
+      const car = controlledVehicle;
+      const maxSpeedMph = 75;
+      const maxSpeed = (maxSpeedMph / 2.237) * 1.05;
+      car.fuel = Infinity;
+      car.maxFuel = Infinity;
+
+      const turnInput = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
+      if (turnInput !== 0) {
+        car.steer = THREE.MathUtils.clamp(car.steer + turnInput * 0.18, -1.6, 1.6);
+      } else {
+        car.steer *= 0.85;
+      }
+
+      const turnStrength = 1.8 + Math.abs(car.speed) * 0.09;
+      if (turnInput !== 0) {
+        car.mesh.rotation.y += car.steer * turnStrength * dt;
+      }
+      car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+
+      const forward = new THREE.Vector3(Math.sin(car.mesh.rotation.y), 0, Math.cos(car.mesh.rotation.y));
+      const throttle = (driveKeys.forward ? 1 : 0) - (driveKeys.backward ? 1 : 0);
+      const brakeFactor = driveKeys.brake ? 0.55 : 1;
+      car.speed += throttle * 26 * dt * brakeFactor;
+      if (!driveKeys.forward && !driveKeys.backward) car.speed *= 0.96;
+      if (driveKeys.brake) car.speed *= 0.92;
+      car.speed = THREE.MathUtils.clamp(car.speed, -18, maxSpeed);
+
+      let rampBoost = 0;
+      for (const ramp of rampZones) {
+        const dx = car.body.position.x - ramp.x;
+        const dz = car.body.position.z - ramp.z;
+        const forwardDot = (forward.x * dx + forward.z * dz);
+        const distance = Math.hypot(dx, dz);
+        const onRamp = Math.abs(distance) < Math.hypot(ramp.width, ramp.depth) * 0.45 && forwardDot > -ramp.depth * 0.5 && forwardDot < ramp.depth * 0.5;
+        if (onRamp && Math.abs(car.body.position.y - 1.2) < 2.5) {
+          rampBoost = 1.2;
+          car.body.position.y = 1.2 + ramp.height * 0.88;
+        }
+      }
+      if (rampBoost > 0) {
+        car.body.velocity.y = 7 + Math.abs(car.speed) * 0.08;
+      } else {
+        car.body.velocity.y *= 0.92;
+      }
+      car.body.velocity.x = forward.x * car.speed;
+      car.body.velocity.z = forward.z * car.speed;
+      car.body.position.x += car.body.velocity.x * dt;
+      car.body.position.z += car.body.velocity.z * dt;
+      car.body.position.y += car.body.velocity.y * dt * 0.55;
+      car.mesh.position.set(car.body.position.x, car.body.position.y, car.body.position.z);
+      car.body.position.x = THREE.MathUtils.clamp(car.body.position.x, worldBounds.minX, worldBounds.maxX);
+      car.body.position.z = THREE.MathUtils.clamp(car.body.position.z, worldBounds.minZ, worldBounds.maxZ);
+      if (car.body.position.y < 1.2) {
+        car.body.position.y = 1.2;
+        car.body.velocity.y = 0;
+      }
+    }
+
+    function updateSpeedometer() {
+      if (!controlledVehicle) {
+        speedometer.classList.remove('visible');
+        return;
+      }
+      const speedMps = new THREE.Vector3(controlledVehicle.body.velocity.x, 0, controlledVehicle.body.velocity.z).length();
+      const speedMph = Math.min(99, Math.round(speedMps * 2.237));
+      speedReadout.textContent = String(speedMph);
+      speedometer.classList.add('visible');
+    }
+
+    function updatePlayerFromVehicle() {
+      if (!controlledVehicle) {
+        if (document.pointerLockElement === renderer.domElement) {
+          playerState.pointerLocked = true;
+        } else {
+          playerState.pointerLocked = false;
+        }
+
+        camera.position.x = THREE.MathUtils.clamp(playerState.position.x, -170, 170);
+        camera.position.z = THREE.MathUtils.clamp(playerState.position.z, -170, 170);
+        applyPointerLook();
+        return;
+      }
+
+      const vehicle = controlledVehicle.mesh;
+      camera.position.lerp(new THREE.Vector3(vehicle.position.x, vehicle.position.y + 3.4, vehicle.position.z + 6), 0.12);
+      camera.lookAt(vehicle.position.x, vehicle.position.y + 1.2, vehicle.position.z);
+    }
+
+    function updatePushableObjects(dt) {
+      pushableObjects.forEach((crate) => {
+        if (crate.broken) return;
+        const dx = playerState.position.x - crate.mesh.position.x;
+        const dz = playerState.position.z - crate.mesh.position.z;
+        const dist = Math.hypot(dx, dz);
+        const reach = crate.radius + 0.9;
+        if (dist < reach && dist > 0.01) {
+          const moveX = (dx / dist) * 0.22;
+          const moveZ = (dz / dist) * 0.22;
+          crate.mesh.position.x += moveX;
+          crate.mesh.position.z += moveZ;
+        }
+
+        cars.forEach((car) => {
+          if (!car || !car.mesh) return;
+          const dX = car.mesh.position.x - crate.mesh.position.x;
+          const dZ = car.mesh.position.z - crate.mesh.position.z;
+          const d = Math.hypot(dX, dZ);
+          if (d < crate.radius + 1.6 && Math.abs(car.speed) > 3) {
+            const push = (Math.abs(car.speed) * 0.08);
+            crate.mesh.position.x += (dX / (d || 1)) * push;
+            crate.mesh.position.z += (dZ / (d || 1)) * push;
+            crate.health -= 1;
+            crate.hitFlash = 0.2;
+            if (crate.health <= 0) {
+              crate.broken = true;
+              cityRoot.remove(crate.mesh);
+            }
+          }
+        });
+
+        if (crate.hitFlash > 0) {
+          crate.hitFlash = Math.max(0, crate.hitFlash - dt * 2.4);
+          crate.mesh.material.emissive = new THREE.Color(0x3b2f00);
+          crate.mesh.material.emissiveIntensity = crate.hitFlash;
+        } else {
+          crate.mesh.material.emissive = new THREE.Color(0x000000);
+          crate.mesh.material.emissiveIntensity = 0;
+        }
+      });
+    }
+
+    function toggleFlightMode() {
+      flyMode = !flyMode;
+      if (flyMode) {
+        playerState.onGround = false;
+        playerState.velocity.y = 0;
+        showMessage('Flight enabled');
+      } else {
+        playerState.velocity.y = 0;
+        showMessage('Flight disabled');
+      }
+    }
+
+    function updatePlayerControls(dt) {
+      if (playerState.seatedOn) {
+        const bench = playerState.seatedOn;
+        playerState.position.set(bench.x, 1.7, bench.z);
+        applyPointerLook();
+        return;
+      }
+
+      const forwardAmount = (walkKeys.forward ? 1 : 0) - (walkKeys.backward ? 1 : 0);
+      const strafeAmount = (walkKeys.right ? 1 : 0) - (walkKeys.left ? 1 : 0);
+      const moveDirection = new THREE.Vector3();
+
+      if (forwardAmount !== 0 || strafeAmount !== 0) {
+        const forward = new THREE.Vector3(Math.sin(playerState.yaw), 0, Math.cos(playerState.yaw));
+        const right = new THREE.Vector3(Math.cos(playerState.yaw), 0, -Math.sin(playerState.yaw));
+        moveDirection.addScaledVector(forward, forwardAmount);
+        moveDirection.addScaledVector(right, strafeAmount);
+        moveDirection.normalize();
+      }
+
+      const moveSpeed = (walkKeys.sprint && walkKeys.forward) ? 14.5 : playerState.moveSpeed;
+      if (moveDirection.lengthSq() > 0) {
+        const nextX = playerState.position.x + moveDirection.x * moveSpeed * dt;
+        const nextZ = playerState.position.z + moveDirection.z * moveSpeed * dt;
+        const resolved = resolveFootstep(nextX, nextZ, 0.7);
+        if (!resolved.blocked) {
+          playerState.position.x = resolved.x;
+          playerState.position.z = resolved.z;
+        }
+      }
+
+      if (flyMode) {
+        const flightLift = walkKeys.jump ? 7.2 : 0;
+        const flightSink = walkKeys.backward ? 2.8 : 0;
+        playerState.velocity.y = flightLift - flightSink;
+        playerState.position.y += playerState.velocity.y * dt;
+        playerState.onGround = false;
+      } else {
+        if (walkKeys.jump && playerState.onGround) {
+          playerState.velocity.y = 6.8;
+          playerState.onGround = false;
+          walkKeys.jump = false;
+        }
+
+        playerState.velocity.y += -16 * dt;
+        playerState.position.y += playerState.velocity.y * dt;
+        const groundedY = 1.7;
+        if (playerState.position.y < groundedY) {
+          playerState.position.y = groundedY;
+          playerState.velocity.y = 0;
+          playerState.onGround = true;
+        }
+      }
+
+      playerState.position.x = THREE.MathUtils.clamp(playerState.position.x, worldBounds.minX + 1.5, worldBounds.maxX - 1.5);
+      playerState.position.z = THREE.MathUtils.clamp(playerState.position.z, worldBounds.minZ + 1.5, worldBounds.maxZ - 1.5);
+      applyPointerLook();
+    }
+
+    function updateNPCs() {
+      npcCars.forEach((car) => {
+        if (!car.target) return;
+        const dir = new THREE.Vector3(car.target.x - car.body.position.x, 0, car.target.z - car.body.position.z);
+        if (dir.length() < 2) {
+          car.target = new THREE.Vector3((Math.random() - 0.5) * 160, 0, (Math.random() - 0.5) * 160);
+          return;
+        }
+
+        dir.normalize();
+        const targetSpeed = 10 + Math.random() * 8;
+        car.speed += (targetSpeed - car.speed) * 0.025;
+        const desiredYaw = Math.atan2(dir.x, dir.z);
+        car.mesh.rotation.y += (desiredYaw - car.mesh.rotation.y) * 0.08;
+        const forward = new THREE.Vector3(Math.sin(car.mesh.rotation.y), 0, Math.cos(car.mesh.rotation.y));
+        car.body.velocity.x = forward.x * car.speed;
+        car.body.velocity.z = forward.z * car.speed;
+        car.body.position.x += car.body.velocity.x * 0.016;
+        car.body.position.z += car.body.velocity.z * 0.016;
+        car.mesh.position.set(car.body.position.x, car.body.position.y, car.body.position.z);
+        car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+      });
+    }
+
+    function maybeElevatorNearPlayer() {
+      const playerPos = camera.position; let nearest = null; let best = Infinity; buildingElevators.forEach((elev) => { const d = Math.hypot(playerPos.x - elev.x, playerPos.z - elev.z); if (d < best) { best = d; nearest = elev; } }); return best < 12 ? nearest : null;
+    }
+
+    function setElevatorFloor(elevator, targetFloor) {
+      elevator.targetFloor = Math.max(0, Math.min(targetFloor, elevator.maxFloor)); const targetY = elevator.yBase + elevator.targetFloor * 3.1; const startY = elevator.car.position.y; const duration = 1400; const startTime = performance.now();
+      function animate() { const elapsed = performance.now() - startTime; const t = Math.min(elapsed / duration, 1); elevator.car.position.y = THREE.MathUtils.lerp(startY, targetY, t); if (t < 1) requestAnimationFrame(animate); else showMessage('Elevator reached floor ' + (elevator.targetFloor + 1)); }
+      requestAnimationFrame(animate);
+    }
+
+    function handleElevatorSelection() {
+      const elevator = maybeElevatorNearPlayer(); if (!elevator) { showMessage('Move near a building elevator.'); return; }
+      const value = prompt('Enter a floor number from 1 to ' + (elevator.maxFloor + 1), String(elevator.currentFloor + 1)); if (value === null) return; const floor = parseInt(value, 10); if (Number.isNaN(floor) || floor < 1 || floor > elevator.maxFloor + 1) { showMessage('Invalid elevator floor.'); return; }
+      setElevatorFloor(elevator, floor - 1);
+    }
+
+    function createDowntownBlock(centerX, centerZ, blockW, blockD) {
+      const sidewalkPad = 3.8;
+      const blockSidewalk = new THREE.Mesh(
+        new THREE.BoxGeometry(blockW + 8, 0.14, blockD + 8),
+        new THREE.MeshStandardMaterial({ color: 0xdfe5eb, roughness: 0.96 })
+      );
+      blockSidewalk.position.set(centerX, 0.07, centerZ); blockSidewalk.receiveShadow = true; cityRoot.add(blockSidewalk);
+
+      const buildingPlacements = [
+        { x: centerX - 12, z: centerZ - 12, sx: 11, sz: 11, zone: 'office' },
+        { x: centerX + 11, z: centerZ - 11, sx: 10, sz: 10, zone: 'residential' },
+        { x: centerX, z: centerZ + 9, sx: 16, sz: 12, zone: 'commercial' }
+      ];
+
+      buildingPlacements.forEach((spec, idx) => {
+        const floors = 8 + ((idx * 7 + Math.abs(Math.round(centerX)) + Math.abs(Math.round(centerZ))) % 23);
+        const color = new THREE.Color().setHSL((idx / buildingPlacements.length + Math.abs(centerX) / 350) % 1, 0.28, spec.zone === 'residential' ? 0.64 : 0.52).getHex();
+        createBuilding(spec.x, spec.z, spec.sx, spec.sz, floors, color, spec.zone);
+      });
+
+      const edgeTreePositions = [
+        [-blockW / 2 + 4, -blockD / 2 + 4], [blockW / 2 - 4, -blockD / 2 + 4],
+        [-blockW / 2 + 4, blockD / 2 - 4], [blockW / 2 - 4, blockD / 2 - 4],
+        [0, -blockD / 2 + 4], [0, blockD / 2 - 4], [-blockW / 2 + 4, 0], [blockW / 2 - 4, 0]
+      ];
+      edgeTreePositions.forEach(([tx, tz]) => addTree(centerX + tx, centerZ + tz, 1.05));
+      const benchPositions = [
+        { x: centerX - 4, z: centerZ - blockD / 2 + 5, rot: Math.PI / 2 },
+        { x: centerX + 4, z: centerZ + blockD / 2 - 5, rot: -Math.PI / 2 },
+        { x: centerX - blockW / 2 + 6, z: centerZ + 4, rot: 0 },
+        { x: centerX + blockW / 2 - 6, z: centerZ - 4, rot: Math.PI }
+      ];
+      benchPositions.forEach((bench) => addBench(centerX + bench.x * 0.18, centerZ + bench.z * 0.18, bench.rot));
+    }
+
+    function cityLayout() {
+      createGroundPlane(); addPlaza();
+      const sidewalkPoints = [
+        { x: 0, z: 20 }, { x: 0, z: -20 }, { x: -18, z: 20 }, { x: 18, z: 20 }, { x: -24, z: -20 }, { x: 24, z: -20 },
+        { x: -82, z: 20 }, { x: -82, z: -20 }, { x: 82, z: 20 }, { x: 82, z: -20 },
+        { x: 20, z: 82 }, { x: -20, z: 82 }, { x: 20, z: -82 }, { x: -20, z: -82 },
+        { x: 110, z: 30 }, { x: -110, z: 30 }, { x: 110, z: -30 }, { x: -110, z: -30 },
+        { x: 0, z: 110 }, { x: 0, z: -110 }, { x: 110, z: 0 }, { x: -110, z: 0 }
+      ];
+      sidewalkPoints.forEach((p) => {
+        sidewalkTargets.push(new THREE.Vector3(p.x, 0, p.z));
+        pedestrianSpawnPoints.push(new THREE.Vector3(p.x, 0, p.z));
+      });
+      const roads = [
+        { x: -100, z: 0, w: 18, d: 250 },
+        { x: 0, z: 0, w: 18, d: 250 },
+        { x: 100, z: 0, w: 18, d: 250 },
+        { x: 0, z: -100, w: 250, d: 18 },
+        { x: 0, z: 0, w: 250, d: 18 },
+        { x: 0, z: 100, w: 250, d: 18 },
+        { x: 0, z: -180, w: 320, d: 18 },
+        { x: 0, z: 180, w: 320, d: 18 },
+        { x: -180, z: 0, w: 18, d: 320 },
+        { x: 180, z: 0, w: 18, d: 320 }
+      ];
+      roads.forEach((road) => createRoad(road.x, road.z, road.w, road.d));
+
+      const blockCenters = [-110, -35, 35, 110];
+      const blockSets = [];
+      blockCenters.forEach((bx) => {
+        blockCenters.forEach((bz) => {
+          if (Math.abs(bx) < 10 && Math.abs(bz) < 10) return;
+          blockSets.push({ x: bx, z: bz });
+        });
+      });
+      blockSets.forEach((block) => createDowntownBlock(block.x, block.z, 42, 42));
+      const buildingTotal = buildings.length;
+      if (buildingTotal > cityGoals.targetBuildings) {
+        while (buildings.length > cityGoals.targetBuildings) {
+          const last = buildings.pop();
+          if (last && last.elevator) buildingElevators.splice(buildingElevators.indexOf(last.elevator), 1);
+          if (last && last.mesh) cityRoot.remove(last.mesh);
+        }
+      }
+
+      const parkingSpots = [];
+      for (let i = 0; i < cityGoals.targetParkedCars; i++) {
+        const col = i % 6;
+        const row = Math.floor(i / 6);
+        const x = (col - 2.5) * 18 + 12;
+        const z = (row - 1.5) * 22 + 130;
+        parkingSpots.push({ x, z });
+      }
+      parkingSpots.forEach((spot) => {
+        const car = createCar(spot.x, spot.z, (Math.random() * 0xFFFFFF) >>> 0, false, true, 'sedan');
+        car.mesh.rotation.y = Math.PI / 2; car.body.position.set(spot.x, 1.1, spot.z); car.mesh.position.copy(car.body.position);
+      });
+
+      createRamp(0, 128, 12, 8, 1.6, 0);
+      createRamp(-32, 140, 12, 9, 1.7, Math.PI / 3);
+      createRamp(32, 140, 12, 9, 1.7, -Math.PI / 3);
+
+      [
+        { type: 'sedan', x: -18, z: 32 }, { type: 'taxi', x: -8, z: 32 }, { type: 'sports', x: 2, z: 32 }
+      ].forEach((spec, idx) => { const car = createCar(spec.x, spec.z + idx * 6, 0x60a5fa, false, true, spec.type); car.mesh.rotation.y = Math.PI / 2; });
+      [
+        { x: 18, z: -18, size: 1.5 }, { x: -18, z: 18, size: 1.9 }, { x: 36, z: 18, size: 1.7 }, { x: -36, z: -18, size: 1.8 },
+        { x: 10, z: 56, size: 1.6 }, { x: -12, z: -54, size: 1.8 }
+      ].forEach((spec) => createBreakableCrate(spec.x, spec.z, spec.size, 0x8b5d3c, 3));
+      for (let i = 0; i < 14; i++) npcCars.push(createNPCCar());
+      createPeople();
+    }
+
+    function tick() {
+      const dt = 1 / 60; world.step(dt);
+      cars.forEach((car) => { if (car && car.body) { car.mesh.position.set(car.body.position.x, car.body.position.y, car.body.position.z); car.mesh.rotation.y = getQuaternionYaw(car.body.quaternion); } });
+      if (controlledVehicle) {
+        activeMode = 'drive';
+        handleDriving(dt);
+      } else {
+        activeMode = 'walk';
+        updatePlayerControls(dt);
+      }
+      updatePushableObjects(dt);
+      updateNPCs(); updateHumans(dt); updatePlayerFromVehicle(); updatePlayerCharacter(); updateMinimap(); updateSpeedometer(); renderer.render(scene, camera); requestAnimationFrame(tick);
+    }
+
+    function init() {
+      cityLayout(); setMission(0); const saved = loadGameState(); if (!saved) { camera.position.set(0, 6, 28); camera.lookAt(0, 0, 0); }
+      renderDebug(); logDebug('info', 'City Sandbox initialized'); tick();
+    }
+
+    function applyKeyState(eventCode, pressed) {
+      syncActiveMode();
+      const activeInput = controlledVehicle ? driveKeys : walkKeys;
+      if (eventCode === 'Space') {
+        activeInput.jump = pressed && !flyMode;
+      }
+      if (eventCode === 'KeyW' || eventCode === 'ArrowUp') {
+        if (pressed && !controlledVehicle) {
+          const now = performance.now();
+          if (now - lastWPressTime < 260) {
+            walkKeys.sprint = true;
+            showMessage('Sprinting');
+          }
+          lastWPressTime = now;
+        }
+        activeInput.forward = pressed;
+        if (!pressed) {
+          activeInput.sprint = false;
+          walkKeys.sprint = false;
+        }
+      }
+      if (eventCode === 'KeyS' || eventCode === 'ArrowDown') activeInput.backward = pressed;
+      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') activeInput.left = pressed;
+      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') activeInput.right = pressed;
+      if (eventCode === 'ShiftLeft' || eventCode === 'ShiftRight') {
+        if (pressed && controlledVehicle) {
+          controlledVehicle = null;
+          syncActiveMode();
+          clearVehicleKeys();
+          showMessage('Exited vehicle.');
+          return;
+        }
+        if (pressed && playerState.seatedOn) {
+          playerState.seatedOn = null;
+          playerState.position.y = 1.7;
+          showMessage('Left the bench.');
+          return;
+        }
+        activeInput.brake = pressed;
+      }
+      if (eventCode === 'AltLeft' || eventCode === 'AltRight') {
+        if (pressed && !controlledVehicle) {
+          cameraMode = cameraMode === 'first' ? 'third' : 'first';
+          showMessage(cameraMode === 'first' ? 'First-person view' : 'Third-person view');
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Escape') {
+        if (document.pointerLockElement === renderer.domElement) {
+          document.exitPointerLock();
+        }
+        showMenu(true);
+        return;
+      }
+      if (event.code === 'Space' && !event.repeat) {
+        const now = performance.now();
+        if (now - lastSpaceTapTime < 260) {
+          toggleFlightMode();
+        } else if (!controlledVehicle && !flyMode && playerState.onGround) {
+          playerState.velocity.y = 6.8;
+          playerState.onGround = false;
+        }
+        lastSpaceTapTime = now;
+      }
+      if (event.code === 'KeyX') { debugVisible = !debugVisible; renderDebug(); }
+      if (event.code === 'KeyE') {
+        const bench = nearestBenchToPlayer();
+        if (bench && !playerState.seatedOn) {
+          playerState.seatedOn = bench;
+          playerState.position.set(bench.x, 1.7, bench.z);
+          showMessage('Sitting on the bench.');
+          return;
+        }
+        handleElevatorSelection();
+      }
+      if (event.code === 'KeyQ') { if (controlledVehicle) { controlledVehicle = null; syncActiveMode(); clearVehicleKeys(); showMessage('Exited vehicle.'); } }
+      if (event.code === 'KeyG') { const options = ['sedan', 'taxi', 'sports']; const nextIndex = (options.indexOf(currentGarageModel) + 1) % options.length; currentGarageModel = options[nextIndex]; vehicleSelect.value = currentGarageModel; applyGarageSelection(); }
+      if (event.code === 'KeyM') setMission(missionIndex + 1);
+      applyKeyState(event.code, true);
+    });
+
+    document.addEventListener('keyup', (event) => {
+      applyKeyState(event.code, false);
+    });
+
+    document.addEventListener('mousemove', (event) => {
+      if (controlledVehicle) return;
+      if (document.pointerLockElement !== renderer.domElement) return;
+      playerState.yaw -= event.movementX * 0.0023;
+      playerState.pitch -= event.movementY * 0.0018;
+      playerState.pitch = THREE.MathUtils.clamp(playerState.pitch, -1.4, 1.4);
+    });
+
+    document.addEventListener('pointerlockchange', () => {
+      playerState.pointerLocked = document.pointerLockElement === renderer.domElement;
+      document.body.style.cursor = playerState.pointerLocked ? 'none' : 'auto';
+      if (!playerState.pointerLocked && !controlledVehicle && !gameStarted) {
+        showMenu(true);
+      }
+    });
+
+    renderer.domElement.addEventListener('click', () => {
+      if (!menu.classList.contains('hidden')) return;
+      if (!controlledVehicle && gameStarted && document.pointerLockElement !== renderer.domElement) {
+        try {
+          renderer.domElement.requestPointerLock();
+        } catch (error) {
+          console.warn('Pointer lock request failed on click', error);
+        }
+      }
+    });
+
+    document.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      if (!pickCarFromPointer(event)) {
+        maybePunchPersonAtPointer(event);
+      }
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (event.button === 0 && !event.ctrlKey) {
+        pickCarFromPointer(event);
+      }
+      if (event.button === 2) {
+        if (!pickCarFromPointer(event)) {
+          maybePunchPersonAtPointer(event);
+        }
+      }
+    });
+    window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+    function initLights() {
+      const hemi = new THREE.HemisphereLight(0xdfeeff, 0x4d5d3d, 1.15); scene.add(hemi);
+      const sun = new THREE.DirectionalLight(0xfff7d6, 1.3); sun.position.set(30, 70, 40); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.left = -120; sun.shadow.camera.right = 120; sun.shadow.camera.top = 120; sun.shadow.camera.bottom = -120; scene.add(sun);
+    }
+
+    closeGuideButton.addEventListener('click', () => setGuideVisible(false));
+    closeRoutineButton.addEventListener('click', () => setRoutineVisible(false));
+    startButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      gameStarted = true;
+      const garageValue = currentGarageModel || 'sedan';
+      vehicleSelect.value = garageValue;
+      applyGarageSelection();
+      menu.classList.add('hidden');
+      document.body.style.cursor = 'none';
+      saveGameState();
+      try {
+        renderer.domElement.requestPointerLock();
+      } catch (error) {
+        console.warn('Pointer lock request failed on start', error);
+      }
+      showMessage('City online. Explore the plaza and downtown blocks.');
+    });
+    loadButton.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); const saved = loadGameState(); if (saved) { gameStarted = true; showMenu(false); showMessage('Saved city restored.'); } else showMessage('No city save found.'); });
+    garageButton.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); applyGarageSelection(); showMessage('Garage updated.'); });
+    vehicleSelect.addEventListener('change', () => { currentGarageModel = vehicleSelect.value; });
+    colorPicker.addEventListener('input', () => { garageColor = parseInt(colorPicker.value.replace('#', ''), 16); });
+
+    initLights();
+    loadTextures();
+  </script>
+</body>
+</html>
