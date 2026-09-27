@@ -1,11 +1,11 @@
 (function () {
   function makeSessionId() {
-    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
-    if (window.crypto && window.crypto.getRandomValues) {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    if (window.crypto && crypto.getRandomValues) {
       const bytes = new Uint8Array(16);
-      window.crypto.getRandomValues(bytes);
-      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-      return `session-${Date.now()}-${hex}`;
+      crypto.getRandomValues(bytes);
+      const randomHex = Array.from(bytes, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      return `session-${Date.now()}-${randomHex}`;
     }
     return `session-${Date.now()}`;
   }

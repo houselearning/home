@@ -35,7 +35,7 @@
       link.className = 'interactive-video-button';
       link.textContent = 'Interactive Video Lesson';
       link.href = href;
-      link.setAttribute('data-href', href);
+      link._interactiveHref = href;
       link.title = currentUser ? 'Open the interactive video lesson' : 'Sign in to enable this lesson';
       if (!currentUser) {
         link.removeAttribute('href');
@@ -56,7 +56,7 @@
         showPopup();
       };
     } else {
-      button.href = button.getAttribute('data-href');
+      button.href = button._interactiveHref || '#';
       button.setAttribute('aria-disabled', 'false');
       button.title = 'Open the interactive video lesson';
       button.onclick = null;
