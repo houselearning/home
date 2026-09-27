@@ -1,5 +1,6 @@
 (function () {
   var local = location.protocol === "file:" || /^(localhost|127\.0\.0\.1|::1)$/.test(location.hostname);
+  var sourceScript = document.currentScript;
   var features = ["inspect-window moderation", "sign in/sign out", "SafeAI", "Firebase services", "analytics", "cookie preferences", "language and translation tools"];
 
   window.HouseLearningOnlineFeatures = {
@@ -8,6 +9,23 @@
     disabled: local ? features.slice() : [],
     canUse: function () { return !local; }
   };
+
+  var pathParts = location.pathname.split("/").filter(Boolean);
+  var subjectIndex = pathParts.findIndex(function (part) { return ["math", "science", "computerscience"].includes(part); });
+  var lessonFile = pathParts[pathParts.length - 1] || "";
+  var lessonSections = subjectIndex >= 0 ? pathParts.slice(subjectIndex + 1, -1) : [];
+  var isLessonPage = subjectIndex >= 0 && /\.html$/i.test(lessonFile) && lessonFile !== "index.html" && !/-shell\.html$/i.test(lessonFile) && !lessonSections.some(function (part) { return ["games", "bin"].includes(part); });
+  if (isLessonPage && sourceScript) {
+    var loadLessonTools = function () {
+      if (document.querySelector("script[data-houselearning-lesson-tools]")) return;
+      var toolsScript = document.createElement("script");
+      toolsScript.src = new URL("lesson-expansion.js", sourceScript.src).href;
+      toolsScript.dataset.houselearningLessonTools = "true";
+      document.head.appendChild(toolsScript);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", loadLessonTools, { once: true });
+    else loadLessonTools();
+  }
 
   if (!local) return;
   function showNotice() {
