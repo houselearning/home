@@ -133,7 +133,7 @@
       html = html.replace(/_(.+?)_/g, '<em>$1</em>');
 
       const listItems = html.split(/<br>\s*(?=[*-]\s+)/g).map((item) => item.trim()).filter(Boolean);
-      const hasList = listItems.some((item) => /^[-*]\s+/.test(item.replace(/<[^>]+>/g, '')));
+      const hasList = listItems.some((item) => /^[-*]\s+/.test(item.replace(/[<>]/g, '')));
       if (hasList) {
         const items = listItems
           .map((item) => item.replace(/^[-*]\s+/, '').trim())
