@@ -1,0 +1,1 @@
+"""HouseLearning assistant backend package."""
