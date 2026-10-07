@@ -3897,11 +3897,9 @@
       car.maxFuel = Infinity;
 
       const turnInput = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
-      if (turnInput !== 0) {
-        car.steer = THREE.MathUtils.clamp(car.steer + turnInput * 0.18, -1.6, 1.6);
-      } else {
-        car.steer *= 0.85;
-      }
+      const steeringTarget = turnInput * 1.6;
+      const steeringResponse = 1 - Math.exp(-(turnInput ? 12 : 8) * dt);
+      car.steer = THREE.MathUtils.lerp(car.steer, steeringTarget, steeringResponse);
 
       const turnStrength = 1.8 + Math.abs(car.speed) * 0.09;
       if (turnInput !== 0) {
@@ -4686,6 +4684,8 @@
           lastWPressTime = now;
         }
         activeInput.forward = pressed;
+        driveKeys.forward = pressed;
+        walkKeys.forward = pressed;
         if (!pressed) {
           activeInput.sprint = false;
           walkKeys.sprint = false;
@@ -4694,10 +4694,24 @@
       if (eventCode === 'ArrowUp') {
         activeInput.forward = pressed;
         activeInput.up = pressed;
+        driveKeys.forward = pressed;
+        walkKeys.forward = pressed;
       }
-      if (eventCode === 'KeyS' || eventCode === 'ArrowDown') activeInput.backward = pressed;
-      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') activeInput.left = pressed;
-      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') activeInput.right = pressed;
+      if (eventCode === 'KeyS' || eventCode === 'ArrowDown') {
+        activeInput.backward = pressed;
+        driveKeys.backward = pressed;
+        walkKeys.backward = pressed;
+      }
+      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') {
+        activeInput.left = pressed;
+        driveKeys.left = pressed;
+        walkKeys.left = pressed;
+      }
+      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') {
+        activeInput.right = pressed;
+        driveKeys.right = pressed;
+        walkKeys.right = pressed;
+      }
       if (eventCode === 'ShiftLeft' || eventCode === 'ShiftRight') {
         if (pressed && playerState.boat) {
           leaveBoat();
@@ -4750,6 +4764,10 @@
     }
 
     document.addEventListener('keydown', (event) => {
+      if ((controlledVehicle || controlledAirplane) &&
+        ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.code)) {
+        event.preventDefault();
+      }
       if (event.code === 'Escape') {
         if (document.pointerLockElement === renderer.domElement) {
           document.exitPointerLock();
@@ -4806,6 +4824,10 @@
     });
 
     document.addEventListener('keyup', (event) => {
+      if ((controlledVehicle || controlledAirplane) &&
+        ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.code)) {
+        event.preventDefault();
+      }
       applyKeyState(event.code, false);
     });
 
