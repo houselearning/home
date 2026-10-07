@@ -159,11 +159,33 @@ service cloud.firestore {
 
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && request.auth.uid == resource.data.recipientUid;
-      allow create: if canAccessDashboard();
+      allow create: if canAccessDashboard()
+        && request.resource.data.keys().hasOnly([
+          'recipientUid', 'title', 'body', 'images', 'read', 'timestamp'
+        ])
+        && request.resource.data.keys().hasAll([
+          'recipientUid', 'title', 'body', 'read', 'timestamp'
+        ])
+        && request.resource.data.recipientUid is string
+        && request.resource.data.recipientUid.size() > 0
+        && request.resource.data.recipientUid.size() <= 128
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body is string
+        && request.resource.data.body.size() <= 10000
+        && request.resource.data.read is bool
+        && request.resource.data.timestamp is timestamp
+        && (!('images' in request.resource.data.keys())
+          || (request.resource.data.images is list
+            && request.resource.data.images.size() <= 5));
       allow update: if isAuthenticated()
         && request.auth.uid == resource.data.recipientUid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       allow delete: if false;
+    }
+
+    match /notificationMedia/{notificationId} {
+      allow read, write: if false;
     }
 
     match /quizzes/{quizId} {
