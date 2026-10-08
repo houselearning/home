@@ -293,6 +293,7 @@
       X: debug menu<br>
       Esc: menu<br>
       G: garage cycle<br>
+      C: spawn car<br>
       Space: jump / brake
     </div>
     <div id="debug-menu">
@@ -316,6 +317,7 @@
         <div class="teleport-grid">
           <button type="button" class="teleport-option" data-destination="airport">Airport</button>
           <button type="button" class="teleport-option" data-destination="plane">Plane</button>
+          <button type="button" class="teleport-option" data-destination="plow">Debris Plow</button>
           <button type="button" class="teleport-option" data-destination="house">House (random)</button>
           <button type="button" class="teleport-option" data-destination="car">Car (random)</button>
           <button type="button" class="teleport-option" data-destination="building">Building (random)</button>
@@ -510,7 +512,7 @@
       brick: 'textures/brick_red.png',
       brickRed: 'textures/brick_red.png',
       roofTiles: 'textures/roof_tiles.png',
-      border: 'textures/border.png',
+      border: 'textures/border.jpeg',
       metalSilverBright: 'textures/metal_silver_bright.png',
       water: 'textures/water.png',
       waterPool: 'textures/water_pool.png',
@@ -664,6 +666,7 @@
     const cars = [];
     const npcCars = [];
     const people = [];
+    const fallingDrivers = [];
     const boats = [];
     const airplanes = [];
     const asphaltAreas = [];
@@ -801,8 +804,7 @@
     }
     const worldPlacement = new WorldPlacementEngine();
     worldPlacement.reserve(RIVER_X, 0, RIVER_WIDTH + WATERWAY_KEEP_OUT * 2, 1200, 'river', 0);
-    const visibilityRadius = 7;
-    const npcVisibilityRadius = webOptimizer.lowLag ? 95 : 150;
+    const entityVisibilityRadius = () => webOptimizer.lowLag ? 20 : 150;
     const chunkCacheKey = 'citySandboxChunkCache';
     const chunkCache = {};
     let lastVisibilityUpdate = 0;
@@ -977,8 +979,10 @@
           ? controlledAirplane.mesh.position
           : playerState.position;
       const px = visibilityOrigin.x;
+      const py = visibilityOrigin.y === undefined ? playerState.position.y : visibilityOrigin.y;
       const pz = visibilityOrigin.z;
-      const isNear = (entityX, entityZ) => Math.hypot(entityX - px, entityZ - pz) <= visibilityRadius;
+      const radius = entityVisibilityRadius();
+      const isNear = (entityX, entityY, entityZ) => Math.hypot(entityX - px, entityY - py, entityZ - pz) <= radius;
 
       cars.forEach((car) => {
         if (!car || !car.mesh || car.destroyed) return;
@@ -987,17 +991,16 @@
           car.body.wakeUp();
           return;
         }
-        const near = isNear(car.body.position.x, car.body.position.z);
+        const near = isNear(car.body.position.x, car.body.position.y, car.body.position.z);
         car.mesh.visible = near;
-        if (near) car.body.wakeUp();
+        if (near && !car.parked) car.body.wakeUp();
         else car.body.sleep();
       });
 
       npcCars.forEach((car) => {
         if (!car || !car.mesh || car.destroyed) return;
-        const near = gameSettings.npcs &&
-          Math.hypot(car.body.position.x - px, car.body.position.z - pz) <= npcVisibilityRadius;
-        car.mesh.visible = near;
+        const near = gameSettings.npcs && isNear(car.body.position.x, car.body.position.y, car.body.position.z);
+        car.mesh.visible = car === controlledVehicle || near;
         car.active = near;
         if (!near) car.body.sleep();
         else car.body.wakeUp();
@@ -1005,11 +1008,28 @@
 
       people.forEach((person) => {
         if (!person || !person.mesh) return;
-        const near = gameSettings.npcs &&
-          (!!person.wreckageEvent || person.parkActivity || Math.hypot(person.mesh.position.x - px, person.mesh.position.z - pz) <= npcVisibilityRadius);
+        const near = gameSettings.npcs && isNear(person.mesh.position.x, person.mesh.position.y, person.mesh.position.z);
+        if (near && !person.renderAttached) {
+          scene.add(person.mesh);
+          person.renderAttached = true;
+        } else if (!near && person.renderAttached && person.mesh.parent === scene) {
+          scene.remove(person.mesh);
+          person.renderAttached = false;
+        }
         person.mesh.visible = near;
         person.active = near;
         if (person.deviceGroup) person.deviceGroup.visible = near && person.useDevice;
+      });
+
+      boats.forEach((boat) => {
+        if (!boat || !boat.mesh) return;
+        boat.mesh.visible = boat === controlledBoat || isNear(boat.mesh.position.x, boat.mesh.position.y, boat.mesh.position.z);
+      });
+
+      airplanes.forEach((aircraft) => {
+        if (!aircraft || !aircraft.mesh || aircraft.crashed) return;
+        const position = aircraft.mesh.getWorldPosition(new THREE.Vector3());
+        aircraft.mesh.visible = aircraft === controlledAirplane || isNear(position.x, position.y, position.z);
       });
 
       markChunkSeen(px, pz);
@@ -1091,14 +1111,24 @@
       showMessage('Garage updated: ' + currentGarageModel);
     }
 
+    let pointerLockPausedByEscape = false;
+
+    function handlePointerLockFailure() {
+      document.body.style.cursor = 'auto';
+      if (gameStarted && !pointerLockPausedByEscape) {
+        showMessage('Cursor lock was blocked here. Open the game in a top-level browser tab over localhost or HTTPS.');
+      }
+    }
+
     function requestGamePointerLock() {
+      if (!gameStarted || pointerLockPausedByEscape || !menu.classList.contains('hidden') || teleportMenu.classList.contains('visible')) return;
       try {
         const request = renderer.domElement.requestPointerLock();
         if (request && typeof request.catch === 'function') {
-          request.catch(() => { document.body.style.cursor = 'auto'; });
+          request.catch(handlePointerLockFailure);
         }
       } catch (error) {
-        document.body.style.cursor = 'auto';
+        handlePointerLockFailure();
       }
     }
 
@@ -1109,6 +1139,7 @@
         document.body.style.cursor = 'auto';
         if (document.pointerLockElement === renderer.domElement) document.exitPointerLock();
       } else {
+        pointerLockPausedByEscape = false;
         document.body.style.cursor = 'none';
         if (document.pointerLockElement !== renderer.domElement) requestGamePointerLock();
       }
@@ -1157,7 +1188,7 @@
       let planeTarget = null;
       if (destination === 'airport') { x = -450; z = -450; y = 1.7; yaw = Math.PI * 0.7; }
       else if (destination === 'plane') {
-        const nearbyPlanes = airplanes.filter((aircraft) => !aircraft.crashed && aircraft.mesh && aircraft.mesh.visible && aircraft !== controlledAirplane);
+        const nearbyPlanes = airplanes.filter((aircraft) => !aircraft.crashed && aircraft.mesh && aircraft !== controlledAirplane);
         nearbyPlanes.sort((a, b) => {
           const da = Math.hypot(a.mesh.position.x - playerState.position.x, a.mesh.position.z - playerState.position.z);
           const db = Math.hypot(b.mesh.position.x - playerState.position.x, b.mesh.position.z - playerState.position.z);
@@ -1184,8 +1215,14 @@
         const target = houses[Math.floor(Math.random() * houses.length)] || { x: 0, z: 0 };
         x = target.x; z = target.z + 12;
       } else if (destination === 'car') {
-        const targetCar = cars.filter((car) => !car.destroyed && car.mesh.visible)[Math.floor(Math.random() * cars.length)];
+        const availableCars = cars.filter((car) => !car.destroyed && car.mesh);
+        const targetCar = availableCars[Math.floor(Math.random() * availableCars.length)];
         if (targetCar) { x = targetCar.body.position.x; z = targetCar.body.position.z + 4; }
+      } else if (destination === 'plow') {
+        const plow = cars.find((car) => car.isPlow && !car.destroyed);
+        x = plow ? plow.body.position.x : 535;
+        z = plow ? plow.body.position.z - 9 : 531;
+        yaw = Math.PI;
       } else if (destination === 'building') {
         const target = buildings[Math.floor(Math.random() * buildings.length)] || { x: 0, z: 0 };
         x = target.x; z = target.z;
@@ -1471,7 +1508,7 @@
       });
     }
 
-    function createBarrier(x, z, width, depth, height = 1.4, y = height / 2, color = 0xb6b9bb) {
+    function createBarrier(x, z, width, depth, height = 1.4, y = height / 2, color = 0xb6b9bb, breakable = false, kind = 'wall') {
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(width, height, depth),
         new THREE.MeshStandardMaterial({ map: textures.concreteGrey || null, color, roughness: 0.84 })
@@ -1480,43 +1517,68 @@
       const body = new CANNON.Body({ mass: 0 });
       body.addShape(new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)));
       body.position.set(x, y, z); world.addBody(body);
-      worldBarriers.push({ x, z, width, depth, minX: x - width / 2, maxX: x + width / 2, minZ: z - depth / 2, maxZ: z + depth / 2, mesh, body });
+      worldBarriers.push({ x, z, width, depth, height, y, kind, breakable, health: breakable ? (kind === 'airport-wall' ? 90 : 42) : Infinity, minX: x - width / 2, maxX: x + width / 2, minZ: z - depth / 2, maxZ: z + depth / 2, mesh, body });
       return mesh;
     }
 
-    function createParkFenceSegment(x, z, length, horizontal) {
-      const fence = new THREE.Group();
-      const railGeometry = horizontal ? parkFenceHorizontalRailGeometry : parkFenceVerticalRailGeometry;
-      const rails = new THREE.InstancedMesh(railGeometry, parkFenceMaterial, 2);
-      const transform = new THREE.Object3D();
-      [0.38, 0.96].forEach((height) => {
-        transform.position.set(0, height, 0);
-        transform.scale.set(horizontal ? length : 1, 1, horizontal ? 1 : length);
-        transform.updateMatrix();
-        rails.setMatrixAt(height === 0.38 ? 0 : 1, transform.matrix);
-      });
-      const postCount = Math.max(1, Math.ceil(length / 2.8));
-      const posts = new THREE.InstancedMesh(parkFencePostGeometry, parkFenceMaterial, postCount + 1);
-      for (let index = 0; index <= postCount; index++) {
-        const offset = -length / 2 + length * index / postCount;
-        transform.position.set(horizontal ? offset : 0, 0.59, horizontal ? 0 : offset);
-        transform.scale.set(1, 1, 1);
-        transform.updateMatrix();
-        posts.setMatrixAt(index, transform.matrix);
+    function createBreakableBarrierLine(x, z, width, depth, height, y, color, kind = 'airport-wall') {
+      const horizontal = width >= depth;
+      const length = horizontal ? width : depth;
+      const sectionCount = Math.ceil(length / 12);
+      const sectionLength = length / sectionCount;
+      for (let index = 0; index < sectionCount; index++) {
+        const offset = -length / 2 + sectionLength * (index + 0.5);
+        createBarrier(
+          x + (horizontal ? offset : 0),
+          z + (horizontal ? 0 : offset),
+          horizontal ? sectionLength : width,
+          horizontal ? depth : sectionLength,
+          height, y, color, true, kind
+        );
       }
-      rails.instanceMatrix.needsUpdate = true;
-      posts.instanceMatrix.needsUpdate = true;
-      fence.add(rails, posts);
-      fence.position.set(x, 0, z);
-      cityRoot.add(fence);
-      worldBarriers.push({
-        x, z,
-        minX: x - (horizontal ? length / 2 : 0.16),
-        maxX: x + (horizontal ? length / 2 : 0.16),
-        minZ: z - (horizontal ? 0.16 : length / 2),
-        maxZ: z + (horizontal ? 0.16 : length / 2),
-        mesh: fence
-      });
+    }
+
+    function createParkFenceSegment(x, z, length, horizontal) {
+      const sectionCount = Math.ceil(length / 10);
+      const sectionLength = length / sectionCount;
+      const railGeometry = horizontal ? parkFenceHorizontalRailGeometry : parkFenceVerticalRailGeometry;
+      for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
+        const offset = -length / 2 + sectionLength * (sectionIndex + 0.5);
+        const sectionX = x + (horizontal ? offset : 0);
+        const sectionZ = z + (horizontal ? 0 : offset);
+        const fence = new THREE.Group();
+        const rails = new THREE.InstancedMesh(railGeometry, parkFenceMaterial, 2);
+        const transform = new THREE.Object3D();
+        [0.38, 0.96].forEach((railHeight, index) => {
+          transform.position.set(0, railHeight, 0);
+          transform.scale.set(horizontal ? sectionLength : 1, 1, horizontal ? 1 : sectionLength);
+          transform.updateMatrix();
+          rails.setMatrixAt(index, transform.matrix);
+        });
+        const postCount = Math.max(1, Math.ceil(sectionLength / 2.8));
+        const posts = new THREE.InstancedMesh(parkFencePostGeometry, parkFenceMaterial, postCount + 1);
+        for (let index = 0; index <= postCount; index++) {
+          const postOffset = -sectionLength / 2 + sectionLength * index / postCount;
+          transform.position.set(horizontal ? postOffset : 0, 0.59, horizontal ? 0 : postOffset);
+          transform.scale.set(1, 1, 1);
+          transform.updateMatrix();
+          posts.setMatrixAt(index, transform.matrix);
+        }
+        rails.instanceMatrix.needsUpdate = true;
+        posts.instanceMatrix.needsUpdate = true;
+        fence.add(rails, posts);
+        fence.position.set(sectionX, 0, sectionZ);
+        cityRoot.add(fence);
+        worldBarriers.push({
+          x: sectionX, z: sectionZ, width: horizontal ? sectionLength : 0.32, depth: horizontal ? 0.32 : sectionLength,
+          height: 1.18, y: 0.59, kind: 'park-fence', breakable: true, health: 42,
+          minX: sectionX - (horizontal ? sectionLength / 2 : 0.16),
+          maxX: sectionX + (horizontal ? sectionLength / 2 : 0.16),
+          minZ: sectionZ - (horizontal ? 0.16 : sectionLength / 2),
+          maxZ: sectionZ + (horizontal ? 0.16 : sectionLength / 2),
+          mesh: fence
+        });
+      }
     }
 
     function createParkFence(x, z, width, depth, entranceWidth = 6) {
@@ -1691,17 +1753,20 @@
         mesh.rotation.y = route.phase + Math.PI / 2;
         mesh.scale.setScalar(0.72);
         scene.add(mesh);
-        airplanes.push({ mesh, parked: false, ai: true, mass: 8200, speed: 38, heading: route.phase + Math.PI / 2, pitch: 0, verticalSpeed: 0, health: 1000, phase: route.phase, centerX: route.centerX, centerZ: route.centerZ, radius: route.radius, cruiseAltitude: 132 });
+        const driver = createSeatedDriver(mesh, 0, 0.15, 14, 0.42);
+        airplanes.push({ mesh, driver, parked: false, ai: true, mass: 8200, speed: 38, heading: route.phase + Math.PI / 2, pitch: 0, verticalSpeed: 0, health: 1000, phase: route.phase, centerX: route.centerX, centerZ: route.centerZ, radius: route.radius, cruiseAltitude: 132 });
       });
       const fenceMaterial = new THREE.MeshStandardMaterial({ color: 0xd4dad8, metalness: 0.72, roughness: 0.34 });
       for (let x = -140; x <= 140; x += 20) {
         const light = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.18, 7, 8), fenceMaterial);
         light.position.set(x, 3.5, -25); airport.add(light);
       }
-      createBarrier(-450, -475, 300, 1.2, 1.4, 0.7, 0x969d9e);
-      createBarrier(-450, -425, 300, 1.2, 1.4, 0.7, 0x969d9e);
-      createBarrier(-600, -450, 1.2, 50, 1.4, 0.7, 0x969d9e);
-      createBarrier(-300, -450, 1.2, 50, 1.4, 0.7, 0x969d9e);
+      createBreakableBarrierLine(-450, -475, 300, 1.2, 1.4, 0.7, 0x969d9e);
+      createBreakableBarrierLine(-537, -425, 126, 1.2, 1.4, 0.7, 0x969d9e);
+      createBreakableBarrierLine(-363, -425, 126, 1.2, 1.4, 0.7, 0x969d9e);
+      createBreakableBarrierLine(-600, -450, 1.2, 50, 1.4, 0.7, 0x969d9e);
+      createBreakableBarrierLine(-300, -450, 1.2, 50, 1.4, 0.7, 0x969d9e);
+      createRoad(-450, -375, 18, 190);
     }
 
     function createPlaneField() {
@@ -1801,6 +1866,8 @@
       const distance = Math.hypot(playerState.position.x - worldPosition.x, playerState.position.z - worldPosition.z);
       const boardingDistance = aircraft.parked ? 60 : 54;
       if (distance > boardingDistance) return false;
+      if (aircraft.ai && aircraft.driver) ejectAirplaneDriver(aircraft);
+      aircraft.ai = false;
       scene.attach(aircraft.mesh);
       aircraft.parked = false;
       aircraft.heading = Number.isFinite(aircraft.heading) ? aircraft.heading : aircraft.mesh.rotation.y;
@@ -1842,6 +1909,8 @@
         playerState.velocity.set(0, -2.5, 0);
         playerState.yaw = aircraft.heading;
         playerState.airplane = null;
+        playerState.seatedOn = null;
+        playerState.seatedOffset = null;
       }
       controlledAirplane = null;
       clearVehicleKeys();
@@ -2020,7 +2089,61 @@
       const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.82 * scale, 16, 16), new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.9 }));
       leaves.position.y = 2.2 * scale; leaves.castShadow = true;
       const g = new THREE.Group(); g.add(trunk, leaves); g.position.set(x, 0, z); cityRoot.add(g);
-      destructibleProps.push({ mesh: g, x, z, radius: 1.2 * scale, health: 24, destroyed: false });
+      destructibleProps.push({ mesh: g, trunk, leaves, x, z, scale, radius: 1.2 * scale, health: 24, destroyed: false, outcome: null });
+    }
+
+    function collapseTreeIntoBits(prop, car) {
+      prop.destroyed = true;
+      const origin = prop.mesh.position.clone();
+      cityRoot.remove(prop.mesh);
+      for (let index = 0; index < 12; index++) {
+        const isLeaf = index >= 7;
+        const size = isLeaf ? 0.24 + Math.random() * 0.3 : 0.16 + Math.random() * 0.18;
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(size, size * (isLeaf ? 0.75 : 1.8), size),
+          isLeaf ? prop.leaves.material : prop.trunk.material
+        );
+        mesh.position.set(
+          origin.x + (Math.random() - 0.5) * prop.scale * 2.2,
+          0.6 + Math.random() * prop.scale * 2,
+          origin.z + (Math.random() - 0.5) * prop.scale * 2.2
+        );
+        mesh.rotation.set(Math.random(), Math.random() * Math.PI, Math.random());
+        scene.add(mesh);
+        if (vehicleDebris.length >= 80) scene.remove(vehicleDebris.shift().mesh);
+        vehicleDebris.push({
+          mesh,
+          velocity: new THREE.Vector3((Math.random() - 0.5) * 8, 2 + Math.random() * 5, (Math.random() - 0.5) * 8),
+          createdAt: performance.now()
+        });
+      }
+      const now = performance.now();
+      car.smokingUntil = now + 6500;
+      createCrashSmoke(car, now, 6500);
+    }
+
+    function resolveTreeImpact(prop, car, impact, roll = Math.random()) {
+      if (!prop || prop.destroyed || prop.outcome || impact <= 5) return;
+      if (roll < 0.8) {
+        prop.outcome = 'lean';
+        const offsetX = car.body.position.x - prop.x;
+        const offsetZ = car.body.position.z - prop.z;
+        const axis = Math.abs(offsetX) > Math.abs(offsetZ) ? 'z' : 'x';
+        const side = axis === 'z' ? Math.sign(offsetX || 1) : -Math.sign(offsetZ || 1);
+        const from = prop.mesh.rotation[axis];
+        const to = side * THREE.MathUtils.degToRad(20);
+        const startedAt = performance.now();
+        const animateLean = () => {
+          const progress = Math.min((performance.now() - startedAt) / 420, 1);
+          const eased = progress * progress * (3 - 2 * progress);
+          prop.mesh.rotation[axis] = THREE.MathUtils.lerp(from, to, eased);
+          if (progress < 1) requestAnimationFrame(animateLean);
+        };
+        requestAnimationFrame(animateLean);
+      } else {
+        prop.outcome = 'collapse';
+        collapseTreeIntoBits(prop, car);
+      }
     }
 
     function addBench(x, z, rot = 0) {
@@ -2088,11 +2211,14 @@
 
     function createBuilding(x, z, sizeX, sizeZ, floors, color, zone = 'office') {
       if (buildings.length >= cityGoals.targetBuildings) return null;
+      sizeX *= 1.25;
+      sizeZ *= 1.25;
+      floors = Math.ceil(floors * 1.1);
       const placement = worldPlacement.reserveNearest(x, z, sizeX, sizeZ, 'building', 1.2);
       if (!placement) return null;
       x = placement.x;
       z = placement.z;
-      const towerHeight = Math.max(8, floors * 3.1 + 2);
+      const towerHeight = Math.max(8, (floors * 3.1 + 2) * 1.12);
       const building = new THREE.Group(); building.position.set(x, 0, z);
       const palette = {
         commercial: { base: 0x2a3343, roof: 0x9ca3af, trim: 0xdfe7ef, facade: textures.brickRed || textures.concreteGrey || textures.plasterGrey, accent: textures.windowGrid || textures.glassWindowBlue },
@@ -2102,7 +2228,7 @@
       const p = palette[zone] || palette.office;
       const entranceWidth = Math.min(sizeX * 0.32, 6.5);
       const podium = new THREE.Group();
-      const podiumMaterial = new THREE.MeshStandardMaterial({ color: p.base, roughness: 0.9 });
+      const podiumMaterial = new THREE.MeshStandardMaterial({ map: textures.plasterGrey || null, color: p.base, roughness: 0.9 });
       const podiumHeight = 0.9;
       const frontWidth = (sizeX - entranceWidth) / 2;
       const baseFloor = new THREE.Mesh(new THREE.BoxGeometry(sizeX, 0.16, sizeZ), podiumMaterial);
@@ -2216,7 +2342,7 @@
       const matrixObject = new THREE.Object3D();
       const floorPlates = new THREE.InstancedMesh(
         new THREE.BoxGeometry(sizeX * 0.74, 0.16, sizeZ * 0.74),
-        new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.9 }), floorCount
+        new THREE.MeshStandardMaterial({ map: textures.woodFloor || null, color: 0xe5e7eb, roughness: 0.9 }), floorCount
       );
       const floorLights = new THREE.InstancedMesh(
         new THREE.BoxGeometry(sizeX * 0.18, 0.08, sizeZ * 0.18),
@@ -2234,11 +2360,11 @@
       };
       let desks; let chairs; let wallPanels; let apartmentUnits; let apartmentLamps;
       if (zone !== 'residential') {
-        desks = addInstances(new THREE.BoxGeometry(0.9, 0.28, 0.7), new THREE.MeshStandardMaterial({ color: 0x64748b }), floorCount * 3);
-        chairs = addInstances(new THREE.BoxGeometry(0.52, 0.52, 0.52), new THREE.MeshStandardMaterial({ color: 0x334155 }), floorCount * 3);
-        wallPanels = addInstances(new THREE.BoxGeometry(sizeX * 0.14, 1.0, 0.08), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.9 }), floorCount * 3);
+        desks = addInstances(new THREE.BoxGeometry(0.9, 0.28, 0.7), new THREE.MeshStandardMaterial({ map: textures.woodFloor || null, color: 0x64748b }), floorCount * 3);
+        chairs = addInstances(new THREE.BoxGeometry(0.52, 0.52, 0.52), new THREE.MeshStandardMaterial({ map: textures.darkMetal || null, color: 0x334155 }), floorCount * 3);
+        wallPanels = addInstances(new THREE.BoxGeometry(sizeX * 0.14, 1.0, 0.08), new THREE.MeshStandardMaterial({ map: textures.plasterGrey || null, color: 0xcbd5e1, roughness: 0.9 }), floorCount * 3);
       } else {
-        apartmentUnits = addInstances(new THREE.BoxGeometry(1.6, 0.7, 1.2), new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.8 }), floorCount);
+        apartmentUnits = addInstances(new THREE.BoxGeometry(1.6, 0.7, 1.2), new THREE.MeshStandardMaterial({ map: textures.woodFloor || null, color: 0xc4b5fd, roughness: 0.8 }), floorCount);
         apartmentLamps = addInstances(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), new THREE.MeshStandardMaterial({ color: 0xfef3c7, emissive: 0xfacc15, emissiveIntensity: 0.4 }), floorCount);
       }
       const setInstancePosition = (mesh, index, px, py, pz) => {
@@ -2302,7 +2428,7 @@
       const bodyColor = type === 'taxi' ? 0xfacc15 : type === 'sports' ? 0xe11d48 : type === 'plow' ? 0xe6a719 : color;
       const mainBody = new THREE.Mesh(new THREE.BoxGeometry(type === 'sports' ? 2.0 : type === 'plow' ? 3.0 : 2.2, type === 'plow' ? 1.25 : 0.72, type === 'sports' ? 3.8 : type === 'plow' ? 4.8 : 4.2), new THREE.MeshStandardMaterial({ color: bodyColor, metalness: 0.52, roughness: 0.3 }));
       mainBody.position.y = 0.8; group.add(mainBody);
-      const cabin = new THREE.Mesh(new THREE.BoxGeometry(type === 'sports' ? 1.45 : type === 'plow' ? 2.0 : 1.7, 0.58, type === 'sports' ? 2.1 : type === 'plow' ? 2.4 : 2.2), new THREE.MeshStandardMaterial({ color: 0xdfeafc, metalness: 0.7, roughness: 0.2 }));
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(type === 'sports' ? 1.45 : type === 'plow' ? 2.0 : 1.7, 0.58, type === 'sports' ? 2.1 : type === 'plow' ? 2.4 : 2.2), new THREE.MeshStandardMaterial({ color: 0xdfeafc, metalness: 0.7, roughness: 0.2, transparent: true, opacity: 0.42, depthWrite: false }));
       cabin.position.set(0, 1.28, 0.1); group.add(cabin);
       if (type === 'plow') {
         const blade = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.9, 0.6), new THREE.MeshStandardMaterial({ color: 0x8d999b, metalness: 0.82, roughness: 0.28 }));
@@ -2321,9 +2447,18 @@
           wheel.rotation.z = Math.PI / 2; wheel.position.set(side * 1.05, 0.42, zSide); group.add(wheel);
         }
       }
+      const headlightMaterial = new THREE.MeshStandardMaterial({ color: 0x59636e, emissive: 0xfff1c2, emissiveIntensity: 0, roughness: 0.3, metalness: 0.1 });
+      const headlightWidth = type === 'plow' ? 3 : type === 'sports' ? 2 : 2.2;
+      const headlightDepth = type === 'plow' ? 2.42 : type === 'sports' ? 1.9 : 2.08;
+      const headlights = [-1, 1].map((side) => {
+        const headlight = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.08), headlightMaterial);
+        headlight.position.set(side * headlightWidth * 0.31, 0.95, headlightDepth);
+        group.add(headlight);
+        return headlight;
+      });
       const body = new CANNON.Body({ mass: type === 'plow' ? 320 : 100, material: new CANNON.Material('car') });
       body.addShape(new CANNON.Box(new CANNON.Vec3(type === 'sports' ? 1.0 : type === 'plow' ? 1.8 : 1.2, type === 'plow' ? 0.8 : 0.55, type === 'sports' ? 1.9 : type === 'plow' ? 2.6 : 2.1))); body.position.set(0, 1.2, 0); body.linearDamping = 0.18; body.angularDamping = 0.7; world.addBody(body);
-      return { mesh: group, body, type, isPlow: type === 'plow', color, originalBodyColor: new THREE.Color(bodyColor), speed: 0, steer: 0, target: null, npc: false, parked: false, inside: false, canEnter: true, fuel: Infinity, maxFuel: Infinity, rampLift: 0, airborne: false, health: 100, destroyed: false, lastCrashEffectAt: -Infinity, trackDistance: 0, trackPosition: null, onFire: false };
+      return { mesh: group, body, type, isPlow: type === 'plow', color, originalBodyColor: new THREE.Color(bodyColor), speed: 0, steer: 0, target: null, npc: false, parked: false, owner: null, driver: null, headlights, headlightMaterial, crashFlashUntil: 0, treeCollisionGrace: null, inside: false, canEnter: true, fuel: Infinity, maxFuel: Infinity, rampLift: 0, airborne: false, health: 100, destroyed: false, lastCrashEffectAt: -Infinity, trackDistance: 0, trackPosition: null, onFire: false };
     }
 
     function createRamp(x, z, width = 9, depth = 6, height = 1.4, rotation = 0) {
@@ -2348,7 +2483,76 @@
 
     function createCar(x, z, color = 0x60a5fa, isPlayer = false, parked = false, type = 'sedan') {
       const car = createVehicleModel(type, color);
+      car.parked = parked;
+      car.owner = isPlayer ? 'player' : null;
+      if (parked) {
+        car.body.type = CANNON.Body.STATIC;
+        car.body.mass = 0;
+        car.body.updateMassProperties();
+      }
       car.mesh.position.set(x, 0, z); car.body.position.set(x, 1.2, z); scene.add(car.mesh); cars.push(car); return car;
+    }
+
+    function updateCarHeadlights(car, now) {
+      if (!car || car.destroyed || !car.headlightMaterial) return;
+      const flashing = now < car.crashFlashUntil;
+      const moving = !car.parked && Math.abs(car.speed) * 2.237 > 5;
+      const lightsOn = flashing ? Math.floor(now / 180) % 2 === 0 : moving;
+      car.headlightMaterial.color.setHex(lightsOn ? 0xfff5d7 : 0x59636e);
+      car.headlightMaterial.emissiveIntensity = lightsOn ? (flashing ? 2.8 : 1.5) : 0;
+    }
+
+    function createRoadsideParking(count) {
+      const roads = asphaltAreas.filter((area) =>
+        Math.min(area.halfWidth, area.halfDepth) >= 7 &&
+        Math.min(area.halfWidth, area.halfDepth) <= 12 &&
+        Math.max(area.halfWidth, area.halfDepth) >= 70
+      );
+      let parkedCount = 0;
+      let attempts = 0;
+      while (parkedCount < count && attempts < count * 50) {
+        attempts++;
+        const road = roads[Math.floor(Math.random() * roads.length)];
+        if (!road) break;
+        const horizontal = road.halfWidth > road.halfDepth;
+        const roadHalfWidth = horizontal ? road.halfDepth : road.halfWidth;
+        const roadHalfLength = horizontal ? road.halfWidth : road.halfDepth;
+        const along = (Math.random() * 2 - 1) * (roadHalfLength - 8);
+        const side = Math.random() < 0.5 ? -1 : 1;
+        const x = horizontal ? road.x + along : road.x + side * (roadHalfWidth + 3.8);
+        const z = horizontal ? road.z + side * (roadHalfWidth + 3.8) : road.z + along;
+        if (x < worldBounds.minX + 4 || x > worldBounds.maxX - 4 || z < worldBounds.minZ + 4 || z > worldBounds.maxZ - 4) continue;
+        if (overlapsRiverKeepOut(x, z, 4.6, 2.4, 1) || pointIsInsideBuildingRect(x, z, 2.5)) continue;
+        if (cars.some((car) => Math.hypot(car.body.position.x - x, car.body.position.z - z) < 7)) continue;
+        const types = ['sedan', 'taxi', 'sports'];
+        const car = createCar(x, z, (Math.random() * 0xffffff) >>> 0, false, true, types[Math.floor(Math.random() * types.length)]);
+        car.mesh.rotation.y = horizontal ? Math.PI / 2 : 0;
+        car.body.position.set(x, 1.1, z);
+        car.mesh.position.copy(car.body.position);
+        parkedCount++;
+      }
+      return parkedCount;
+    }
+
+    function spawnPlayerCar() {
+      if (!gameStarted || controlledVehicle || controlledAirplane || controlledBoat) return;
+      const origin = playerState.position;
+      const yaw = playerState.yaw;
+      let position = null;
+      for (const distance of [8, 12, 16, 20]) {
+        const x = origin.x + Math.sin(yaw) * distance;
+        const z = origin.z + Math.cos(yaw) * distance;
+        const occupied = cars.some((car) => !car.destroyed && Math.hypot(car.body.position.x - x, car.body.position.z - z) < 6);
+        if (!occupied && !pointIsInsideBuildingRect(x, z, 2)) { position = { x, z }; break; }
+      }
+      if (!position) { showMessage('No room to spawn a car nearby.'); return; }
+      const car = createCar(position.x, position.z, garageColor, true, false, currentGarageModel);
+      car.owner = 'player';
+      car.mesh.rotation.y = yaw;
+      car.body.position.set(position.x, 1.2, position.z);
+      car.body.quaternion.setFromEuler(0, yaw, 0);
+      car.mesh.position.copy(car.body.position);
+      showMessage('Car spawned nearby. Click it to drive.');
     }
 
     function isOnAsphalt(x, z) {
@@ -2503,14 +2707,14 @@
       });
     }
 
-    function createCrashSmoke(car, now) {
+    function createCrashSmoke(car, now, duration = 2200) {
       const emitter = {
         car,
         x: car.body.position.x,
         y: car.body.position.y,
         z: car.body.position.z,
         yaw: car.mesh.rotation.y,
-        expiresAt: now + 2200,
+        expiresAt: now + duration,
         nextEmissionAt: now
       };
       smokeEmitters.push(emitter);
@@ -2639,11 +2843,13 @@
       }
     }
 
-    function handleVehicleCrash(car, now) {
-      if (!car || car.destroyed || Math.abs(car.speed) < 4 || now - car.lastCrashEffectAt < 1200) return;
+    function handleVehicleCrash(car, now, impactSpeed = Math.abs(car.speed), suppressSecondaryDamage = false) {
+      if (!car || car.destroyed || impactSpeed < 4) return;
+      car.crashFlashUntil = Math.max(car.crashFlashUntil || 0, now + 4200);
+      if (now - car.lastCrashEffectAt < 1200) return;
       car.lastCrashEffectAt = now;
       createCrashSmoke(car, now);
-      if (car.onFire) return;
+      if (car.onFire || suppressSecondaryDamage) return;
       const outcome = Math.random();
       if (outcome < 0.05) {
         const x = car.body.position.x;
@@ -3069,8 +3275,47 @@
       return true;
     }
 
+    function breakWorldBarrier(barrier, car, impact) {
+      if (!barrier || !barrier.breakable || !gameSettings.destruction) return false;
+      barrier.health -= Math.max(1, (impact - 3) * (car.isPlow ? 4 : 2));
+      if (barrier.health > 0) return false;
+
+      barrier.destroyed = true;
+      worldBarriers.splice(worldBarriers.indexOf(barrier), 1);
+      if (barrier.body) world.removeBody(barrier.body);
+      cityRoot.remove(barrier.mesh);
+
+      const horizontal = barrier.width > barrier.depth;
+      const sectionLength = horizontal ? barrier.width : barrier.depth;
+      const pieceCount = Math.min(8, Math.max(3, Math.ceil(sectionLength / 2.5)));
+      const material = barrier.kind === 'park-fence' ? parkFenceMaterial : barrier.mesh.material;
+      for (let index = 0; index < pieceCount; index++) {
+        const pieceLength = sectionLength / pieceCount;
+        const offset = -sectionLength / 2 + pieceLength * (index + 0.5);
+        const piece = new THREE.Mesh(
+          new THREE.BoxGeometry(horizontal ? pieceLength : 0.2, barrier.kind === 'park-fence' ? 0.2 : barrier.height * 0.7, horizontal ? 0.2 : pieceLength),
+          material
+        );
+        piece.position.set(
+          barrier.x + (horizontal ? offset : 0),
+          barrier.y + barrier.height * 0.25,
+          barrier.z + (horizontal ? 0 : offset)
+        );
+        scene.add(piece);
+        if (vehicleDebris.length >= 80) scene.remove(vehicleDebris.shift().mesh);
+        vehicleDebris.push({
+          mesh: piece,
+          velocity: new THREE.Vector3((Math.random() - 0.5) * 8, 2 + Math.random() * 4, (Math.random() - 0.5) * 8),
+          createdAt: performance.now()
+        });
+      }
+      showMessage(barrier.kind === 'park-fence' ? 'Fence section smashed open.' : 'Airport wall section smashed open.');
+      return true;
+    }
+
     function resolveVehicleMove(car, nextX, nextZ) {
-      const hitProp = destructibleProps.find((prop) => !prop.destroyed && Math.abs(nextX - prop.x) < prop.radius + 1.25 && Math.abs(nextZ - prop.z) < prop.radius + 2.2);
+      const now = performance.now();
+      const hitProp = destructibleProps.find((prop) => !prop.destroyed && !(car.treeCollisionGrace && car.treeCollisionGrace.prop === prop && now < car.treeCollisionGrace.until) && Math.abs(nextX - prop.x) < prop.radius + 1.25 && Math.abs(nextZ - prop.z) < prop.radius + 2.2);
       const hitBuilding = buildingColliders.find((box) => !box.collapsing && Math.abs(nextX - box.x) < box.sizeX / 2 + 1.25 && Math.abs(nextZ - box.z) < box.sizeZ / 2 + 2.2);
       const hitBarrier = worldBarriers.find((box) => nextX >= box.minX - 1.25 && nextX <= box.maxX + 1.25 && nextZ >= box.minZ - 2.2 && nextZ <= box.maxZ + 2.2);
       const hitCar = cars.find((other) => other !== car && !other.destroyed && Math.hypot(nextX - other.body.position.x, nextZ - other.body.position.z) < 3.2);
@@ -3091,33 +3336,18 @@
         return true;
       }
       const impact = Math.abs(car.speed);
-      car.speed *= -0.16;
-      car.body.velocity.x *= -0.16;
-      car.body.velocity.z *= -0.16;
-      handleVehicleCrash(car, performance.now());
+      if (hitProp && impact > 5) {
+        resolveTreeImpact(hitProp, car, impact);
+        car.treeCollisionGrace = { prop: hitProp, until: now + 850 };
+      }
+      if (hitBarrier && impact > 6) breakWorldBarrier(hitBarrier, car, impact);
+      const rebound = hitProp ? -0.55 : -0.16;
+      car.speed *= rebound;
+      car.body.velocity.x *= rebound;
+      car.body.velocity.z *= rebound;
+      handleVehicleCrash(car, now, impact, !!hitProp);
       if (gameSettings.destruction && hitBuilding && impact > BUILDING_CAVE_IN_MIN_SPEED) {
         createBuildingCaveIn(hitBuilding, nextX, nextZ, impact);
-      }
-      if (gameSettings.destruction && hitProp && impact > 5) {
-        const rating = rateCollision(car.body.mass, impact, 42000, 0.9);
-        if (rating.score >= 8) hitProp.health -= rating.score * 0.55;
-        if (hitProp.health <= 0 && !hitProp.destroyed) {
-          hitProp.destroyed = true;
-          const fallStart = performance.now();
-          const fallTree = () => {
-            const progress = Math.min((performance.now() - fallStart) / 900, 1);
-            hitProp.mesh.rotation.z = progress * 1.35;
-            hitProp.mesh.position.y = -progress * 1.5;
-            if (progress < 1) requestAnimationFrame(fallTree);
-            else {
-              const x = hitProp.mesh.position.x;
-              const z = hitProp.mesh.position.z;
-              cityRoot.remove(hitProp.mesh);
-              createItemWreckage(x, z, Math.max(1.2, hitProp.radius * 1.2), 0x66533c, 'prop');
-            }
-          };
-          requestAnimationFrame(fallTree);
-        }
       }
       if (gameSettings.destruction && hitCar && impact > 4) {
         const otherSpeed = Math.hypot(hitCar.body.velocity.x, hitCar.body.velocity.z);
@@ -3205,6 +3435,7 @@
       const z = horizontal ? fixed : along;
       const car = createCar(x, z, color, false, false, type);
       car.npc = true;
+      car.driver = createSeatedDriver(car.mesh, 0, -0.08, 0.12, 0.58);
       car.route = { horizontal, fixed, direction, min, max };
       car.speed = 8 + Math.random() * 5;
       car.mesh.rotation.y = horizontal ? direction * Math.PI / 2 : direction < 0 ? Math.PI : 0;
@@ -3258,19 +3489,23 @@
       return nearest ? nearest.clone() : getPedestrianSpawnPoint();
     }
 
-    function createHuman(type = 'A', state = 'State_Default') {
+    const humanTorsoGeometry = new THREE.CylinderGeometry(0.28, 0.32, 0.92, 12);
+    const humanHeadGeometry = new THREE.SphereGeometry(0.22, 16, 16);
+    const humanArmGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.52, 8);
+    const humanLegGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.75, 8);
+
+    function createHuman(type = 'A', state = 'State_Default', addToScene = true) {
       const group = new THREE.Group();
       const torsoMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), 0.5, 0.62) });
       const skinMat = new THREE.MeshStandardMaterial({ color: 0xf0c7a5 });
       const pantsMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random() * 0.18, 0.3, 0.45) });
-      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.92, 12), torsoMaterial); torso.position.y = 1.18; torso.castShadow = true; group.add(torso);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), skinMat); head.position.y = 1.9; head.castShadow = true; group.add(head);
+      const torso = new THREE.Mesh(humanTorsoGeometry, torsoMaterial); torso.position.y = 1.18; torso.castShadow = true; group.add(torso);
+      const head = new THREE.Mesh(humanHeadGeometry, skinMat); head.position.y = 1.9; head.castShadow = true; group.add(head);
       const leftArm = new THREE.Group(); const rightArm = new THREE.Group(); const leftLeg = new THREE.Group(); const rightLeg = new THREE.Group();
-      const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.52, 8); const legGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.75, 8);
-      const leftArmMesh = new THREE.Mesh(armGeo, skinMat); leftArmMesh.position.y = -0.28; leftArm.add(leftArmMesh); leftArm.position.set(-0.33, 1.33, 0); group.add(leftArm);
-      const rightArmMesh = new THREE.Mesh(armGeo, skinMat); rightArmMesh.position.y = -0.28; rightArm.add(rightArmMesh); rightArm.position.set(0.33, 1.33, 0); group.add(rightArm);
-      const leftLegMesh = new THREE.Mesh(legGeo, pantsMat); leftLegMesh.position.y = -0.48; leftLeg.add(leftLegMesh); leftLeg.position.set(-0.12, 0.7, 0); group.add(leftLeg);
-      const rightLegMesh = new THREE.Mesh(legGeo, pantsMat); rightLegMesh.position.y = -0.48; rightLeg.add(rightLegMesh); rightLeg.position.set(0.12, 0.7, 0); group.add(rightLeg);
+      const leftArmMesh = new THREE.Mesh(humanArmGeometry, skinMat); leftArmMesh.position.y = -0.28; leftArm.add(leftArmMesh); leftArm.position.set(-0.33, 1.33, 0); group.add(leftArm);
+      const rightArmMesh = new THREE.Mesh(humanArmGeometry, skinMat); rightArmMesh.position.y = -0.28; rightArm.add(rightArmMesh); rightArm.position.set(0.33, 1.33, 0); group.add(rightArm);
+      const leftLegMesh = new THREE.Mesh(humanLegGeometry, pantsMat); leftLegMesh.position.y = -0.48; leftLeg.add(leftLegMesh); leftLeg.position.set(-0.12, 0.7, 0); group.add(leftLeg);
+      const rightLegMesh = new THREE.Mesh(humanLegGeometry, pantsMat); rightLegMesh.position.y = -0.48; rightLeg.add(rightLegMesh); rightLeg.position.set(0.12, 0.7, 0); group.add(rightLeg);
       const start = getPedestrianSpawnPoint(); group.position.copy(start);
       const destination = getPedestrianSpawnPoint();
 
@@ -3330,7 +3565,75 @@
       group.scale.x = type === 'A' ? 1.0 : 0.4;
       group.scale.y = 1.0;
       group.scale.z = 1.0;
-      scene.add(group); people.push(person); return person;
+      if (addToScene) {
+        scene.add(group);
+        person.renderAttached = true;
+      } else {
+        person.renderAttached = false;
+      }
+      people.push(person); return person;
+    }
+
+    function createSeatedDriver(parent, x, y, z, scale) {
+      const driver = createHuman('A');
+      const personIndex = people.indexOf(driver);
+      if (personIndex >= 0) people.splice(personIndex, 1);
+      parent.add(driver.mesh);
+      driver.mesh.position.set(x, y, z);
+      driver.mesh.rotation.set(0, 0, 0);
+      driver.mesh.scale.setScalar(scale);
+      driver.leftLeg.rotation.x = -Math.PI / 2;
+      driver.rightLeg.rotation.x = -Math.PI / 2;
+      driver.leftArm.rotation.x = -0.65;
+      driver.rightArm.rotation.x = -0.65;
+      driver.deviceGroup.visible = false;
+      driver.task = 'driver';
+      driver.active = false;
+      return driver;
+    }
+
+    function restoreDriverToPedestrian(driver, x, z, yaw) {
+      driver.mesh.scale.set(driver.type === 'A' ? 1 : 0.4, 1, 1);
+      driver.mesh.rotation.set(0, yaw, 0);
+      driver.mesh.position.set(x, groundHeightAt(x, z) + 0.03, z);
+      driver.leftLeg.rotation.x = 0;
+      driver.rightLeg.rotation.x = 0;
+      driver.leftArm.rotation.x = 0;
+      driver.rightArm.rotation.x = 0;
+      driver.task = 'walk';
+      driver.bench = null;
+      driver.destination = getNearbyPedestrianDestination(driver.mesh.position);
+      driver.path = [];
+      driver.pathIndex = 0;
+      driver.active = true;
+      driver.knockedDown = false;
+      driver.ridingBoat = null;
+      driver.mesh.visible = true;
+      if (!people.includes(driver)) people.push(driver);
+    }
+
+    function ejectCarDriver(car) {
+      if (!car || !car.driver) return;
+      const driver = car.driver;
+      const yaw = car.mesh.rotation.y;
+      scene.attach(driver.mesh);
+      const x = car.body.position.x + Math.cos(yaw) * 3.2;
+      const z = car.body.position.z - Math.sin(yaw) * 3.2;
+      restoreDriverToPedestrian(driver, x, z, yaw + Math.PI / 2);
+      car.driver = null;
+    }
+
+    function ejectAirplaneDriver(aircraft) {
+      if (!aircraft || !aircraft.driver) return;
+      const driver = aircraft.driver;
+      aircraft.mesh.updateMatrixWorld(true);
+      scene.attach(driver.mesh);
+      driver.mesh.scale.setScalar(0.62);
+      driver.mesh.rotation.x = Math.PI / 2;
+      driver.active = false;
+      driver.mesh.visible = true;
+      fallingDrivers.push({ person: driver, velocity: new THREE.Vector3(0, -1, 0) });
+      aircraft.driver = null;
     }
 
     function buildNavigationGraph() {
@@ -3628,9 +3931,9 @@
     }
 
     function createPeople() {
-      const populationCount = webOptimizer.lowLag
+      const populationCount = (webOptimizer.lowLag
         ? 120 + Math.floor(Math.random() * 21)
-        : 180 + Math.floor(Math.random() * 31);
+        : 180 + Math.floor(Math.random() * 31)) * 10;
       const typeA = Math.floor(populationCount * 0.7);
       const typeB = populationCount - typeA;
       const linkedTargetCount = Math.max(1, Math.round(typeB * 0.1));
@@ -3641,7 +3944,7 @@
       const typeAObjects = [];
       for (let i = 0; i < populationCount; i++) {
         const type = i < typeA ? 'A' : 'B';
-        const person = createHuman(type, 'State_Default');
+        const person = createHuman(type, 'State_Default', false);
         person.mesh.position.set(person.mesh.position.x + (i % 2) * 1.2, 0, person.mesh.position.z + Math.floor(i / 2) * 0.6);
         if (type === 'A') typeAObjects.push(person);
       }
@@ -4026,7 +4329,22 @@
       }
 
       if (!selectedCar) return false;
+      if (selectedCar.npc) {
+        ejectCarDriver(selectedCar);
+        const npcIndex = npcCars.indexOf(selectedCar);
+        if (npcIndex >= 0) npcCars.splice(npcIndex, 1);
+        selectedCar.npc = false;
+        selectedCar.route = null;
+      }
+      if (selectedCar.parked) {
+        selectedCar.body.type = CANNON.Body.DYNAMIC;
+        selectedCar.body.mass = selectedCar.isPlow ? 320 : 100;
+        selectedCar.body.updateMassProperties();
+        selectedCar.parked = false;
+      }
       controlledVehicle = selectedCar;
+      selectedCar.owner = 'player';
+      selectedCar.body.wakeUp();
       syncActiveMode();
       showMessage('Entered vehicle. Drive with WASD.');
       selectedCar.inside = true;
@@ -4290,9 +4608,20 @@
         playerState.position.y = THREE.MathUtils.clamp(playerState.position.y + verticalMove * 6 * dt, 4, 28);
         playerState.velocity.y = 0;
         playerState.onGround = false;
+      } else if (isRiverPosition(playerState.position.x, playerState.position.z)) {
+        if (!playerState.inRiver) showMessage('Swimming. Hold Space to rise; hold S to dive.');
+        playerState.inRiver = true;
+        playerState.riverJumpBoost = 0;
+        const verticalInput = (walkKeys.jump ? 1 : 0) - (walkKeys.backward ? 1 : 0);
+        const swimTarget = RIVER_SURFACE_Y - 0.65 + verticalInput * 1.25;
+        const swimAcceleration = (swimTarget - playerState.position.y) * 9 - playerState.velocity.y * 3.5;
+        playerState.velocity.y += swimAcceleration * dt;
+        playerState.position.y += playerState.velocity.y * dt;
+        playerState.position.y = THREE.MathUtils.clamp(playerState.position.y, RIVER_SURFACE_Y - 4.2, RIVER_SURFACE_Y + 0.3);
+        playerState.onGround = false;
       } else {
+        playerState.inRiver = false;
         const standingY = groundHeightAt(playerState.position.x, playerState.position.z) + 1.7;
-        playerState.inRiver = standingY < 0;
         if (walkKeys.jump && playerState.onGround) {
           const jumpStrength = isRiverPosition(playerState.position.x, playerState.position.z) ? 9.2 : 6.8;
           playerState.velocity.y = jumpStrength;
@@ -4346,6 +4675,22 @@
       });
     }
 
+    function updateFallingDrivers(dt) {
+      for (let index = fallingDrivers.length - 1; index >= 0; index--) {
+        const falling = fallingDrivers[index];
+        const person = falling.person;
+        const position = person.mesh.position;
+        falling.velocity.y -= 16 * dt;
+        position.addScaledVector(falling.velocity, dt);
+        const distance = Math.hypot(position.x - playerState.position.x, position.y - playerState.position.y, position.z - playerState.position.z);
+        person.mesh.visible = !webOptimizer.lowLag || distance <= entityVisibilityRadius();
+        const floorY = groundHeightAt(position.x, position.z) + 0.03;
+        if (position.y > floorY) continue;
+        restoreDriverToPedestrian(person, position.x, position.z, person.mesh.rotation.y);
+        fallingDrivers.splice(index, 1);
+      }
+    }
+
     function maybeElevatorNearPlayer() {
       const playerPos = camera.position; let nearest = null; let best = Infinity; buildingElevators.forEach((elev) => { const d = Math.hypot(playerPos.x - elev.x, playerPos.z - elev.z); if (d < best) { best = d; nearest = elev; } }); return best < 12 ? nearest : null;
     }
@@ -4366,10 +4711,10 @@
       if (overlapsRiverKeepOut(centerX, centerZ, blockW + 8, blockD + 8)) return;
       const sidewalkPad = 3.8;
       registerSidewalkArea(centerX, centerZ, blockW + 8, blockD + 8);
-      const sidewalkTexture = createSurfaceTexture('sidewalk', blockW + 8, blockD + 8, 8);
+      const sidewalkTexture = createSurfaceTexture('roofTiles', blockW + 8, blockD + 8, 8);
       const blockSidewalk = new THREE.Mesh(
         new THREE.BoxGeometry(blockW + 8, 0.14, blockD + 8),
-        new THREE.MeshStandardMaterial({ map: sidewalkTexture, color: 0xdfe5eb, roughness: 0.96 })
+        new THREE.MeshStandardMaterial({ map: sidewalkTexture, color: 0xffffff, roughness: 0.96 })
       );
       blockSidewalk.position.set(centerX, 0.07, centerZ); blockSidewalk.receiveShadow = true; cityRoot.add(blockSidewalk);
 
@@ -4404,10 +4749,10 @@
     function createResidentialNeighborhood(centerX, centerZ, blockW = 52, blockD = 48) {
       if (overlapsRiverKeepOut(centerX, centerZ, blockW + 6, blockD + 6)) return;
       registerSidewalkArea(centerX, centerZ, blockW + 6, blockD + 6);
-      const sidewalkTexture = createSurfaceTexture('sidewalk', blockW + 6, blockD + 6, 8);
+      const sidewalkTexture = createSurfaceTexture('roofTiles', blockW + 6, blockD + 6, 8);
       const blockPad = new THREE.Mesh(
         new THREE.BoxGeometry(blockW + 6, 0.12, blockD + 6),
-        new THREE.MeshStandardMaterial({ map: sidewalkTexture, color: 0xe3e7eb, roughness: 0.96 })
+        new THREE.MeshStandardMaterial({ map: sidewalkTexture, color: 0xffffff, roughness: 0.96 })
       );
       blockPad.position.set(centerX, 0.06, centerZ); blockPad.receiveShadow = true; cityRoot.add(blockPad);
 
@@ -4743,6 +5088,7 @@
           }
         });
       });
+      createRoadsideParking(486);
 
       createRamp(0, 128, 12, 8, 1.6, 0);
       createRamp(-32, 140, 12, 9, 1.7, Math.PI / 3);
@@ -4761,7 +5107,7 @@
         { x: 18, z: -18, size: 1.5 }, { x: -18, z: 18, size: 1.9 }, { x: 36, z: 18, size: 1.7 }, { x: -36, z: -18, size: 1.8 },
         { x: 10, z: 56, size: 1.6 }, { x: -12, z: -54, size: 1.8 }
       ].forEach((spec) => createBreakableCrate(spec.x, spec.z, spec.size, 0x8b5d3c, 3));
-      const trafficCount = webOptimizer.lowLag ? 14 : 24;
+      const trafficCount = (webOptimizer.lowLag ? 14 : 24) * 10;
       for (let i = 0; i < trafficCount; i++) npcCars.push(createNPCCar());
       addBoundaryZones();
       createPeople();
@@ -4782,6 +5128,7 @@
       world.step(1 / 60, dt, 3);
       updateBuildingDebris();
       updateVehicleDebris(dt);
+      updateFallingDrivers(dt);
       fpsFrameCount++;
       const fpsNow = performance.now();
       if (fpsNow - fpsSampleTime >= 1000) {
@@ -4791,7 +5138,12 @@
         fpsFrameCount = 0;
         fpsSampleTime = fpsNow;
       }
-      cars.forEach((car) => { if (car && car.body && !car.destroyed) { car.mesh.position.set(car.body.position.x, car.body.position.y, car.body.position.z); car.mesh.rotation.y = getQuaternionYaw(car.body.quaternion); } });
+      cars.forEach((car) => {
+        if (!car || !car.body || car.destroyed) return;
+        car.mesh.position.set(car.body.position.x, car.body.position.y, car.body.position.z);
+        car.mesh.rotation.y = getQuaternionYaw(car.body.quaternion);
+        updateCarHeadlights(car, frameTime);
+      });
       updateBoats(dt);
       updateAirplanes(dt);
       if (controlledVehicle) {
@@ -4855,15 +5207,18 @@
         driveKeys.backward = pressed;
         walkKeys.backward = pressed;
       }
-      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') {
-        activeInput.left = pressed;
-        driveKeys.left = pressed;
-        walkKeys.left = pressed;
+      if ((eventCode === 'Digit0' || eventCode === 'Numpad0') && controlledAirplane) {
+        driveKeys.backward = pressed;
       }
-      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') {
+      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') {
         activeInput.right = pressed;
         driveKeys.right = pressed;
         walkKeys.right = pressed;
+      }
+      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') {
+        activeInput.left = pressed;
+        driveKeys.left = pressed;
+        walkKeys.left = pressed;
       }
       if (eventCode === 'ShiftLeft' || eventCode === 'ShiftRight') {
         if (pressed && playerState.boat) {
@@ -4922,9 +5277,8 @@
         event.preventDefault();
       }
       if (event.code === 'Escape') {
-        if (document.pointerLockElement === renderer.domElement) {
-          document.exitPointerLock();
-        }
+        pointerLockPausedByEscape = true;
+        if (teleportMenu.classList.contains('visible')) showTeleportMenu(false);
         showMenu(true);
         return;
       }
@@ -4965,6 +5319,7 @@
         activeInput.jump = true;
       }
       if (event.code === 'KeyG') { const options = ['sedan', 'taxi', 'sports', 'plow']; const nextIndex = (options.indexOf(currentGarageModel) + 1) % options.length; currentGarageModel = options[nextIndex]; vehicleSelect.value = currentGarageModel; applyGarageSelection(); }
+      if (event.code === 'KeyC' && !event.repeat) spawnPlayerCar();
       if (event.code === 'KeyM') setMission(missionIndex + 1);
       if (event.code === 'KeyP' && !event.repeat) {
         spawnAirportPlane();
@@ -5006,14 +5361,17 @@
     document.addEventListener('pointerlockchange', () => {
       playerState.pointerLocked = document.pointerLockElement === renderer.domElement;
       document.body.style.cursor = playerState.pointerLocked ? 'none' : 'auto';
-      if (!playerState.pointerLocked && !controlledVehicle && !gameStarted) {
+      if (playerState.pointerLocked) return;
+      if (!gameStarted) {
         showMenu(true);
+        return;
       }
+      if (pointerLockPausedByEscape || !menu.classList.contains('hidden') || teleportMenu.classList.contains('visible')) return;
+      requestGamePointerLock();
     });
 
     renderer.domElement.addEventListener('click', () => {
-      if (!menu.classList.contains('hidden')) return;
-      if (!controlledVehicle && gameStarted && document.pointerLockElement !== renderer.domElement) {
+      if (gameStarted && menu.classList.contains('hidden') && !teleportMenu.classList.contains('visible') && document.pointerLockElement !== renderer.domElement) {
         requestGamePointerLock();
       }
     });
@@ -5092,6 +5450,7 @@
       event.stopPropagation();
       applyGameSettings();
       gameStarted = true;
+      pointerLockPausedByEscape = false;
       const garageValue = currentGarageModel || 'sedan';
       vehicleSelect.value = garageValue;
       applyGarageSelection();

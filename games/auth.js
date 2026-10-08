@@ -1,7 +1,4 @@
 
-/*
-// 1. **REPLACE WITH YOUR FIREBASE CONFIGURATION**
-// Get this from your Firebase project settings
 const firebaseConfig = {
     apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
     authDomain: "contract-center-llc-10.firebaseapp.com",
@@ -11,24 +8,11 @@ const firebaseConfig = {
     appId: "1:323221512767:web:6421260f875997dbf64e8a",
 };
 
-// Initialize Firebase
 if (!firebase.apps.length) {
-    // Initialization is needed, so we proceed
-    try {
-        firebase.initializeApp(firebaseConfig);
-        console.log("Firebase initialized successfully with provided firebaseConfig.");
-    } catch (error) {
-        // Catches errors during the initialization process
-        console.error("Firebase initialization failed:", error);
-    }
-} else {
-    // Initialization is NOT needed (firebase.apps.length is > 0)
-    console.log("firebaseConfig not needed, already initialized in another script.", 
-                "Existing app count:", firebase.apps.length, 
-                "App name:", firebase.apps[0].name); 
+    firebase.initializeApp(firebaseConfig);
 }
 
-const auth = firebase.auth();*/
+const auth = firebase.auth();
 
 // Elements
 const memberGamesContainer = document.getElementById('memberGames');
