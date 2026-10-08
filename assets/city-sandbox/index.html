@@ -717,7 +717,13 @@
     });
     const RIVER_X = 190;
     const RIVER_WIDTH = 34;
+    const WATERWAY_KEEP_OUT = 3;
+    const riverBridgeCenters = [-480, -320, 0, 320, 480];
     const RIVER_SURFACE_Y = -9.14;
+    function overlapsRiverKeepOut(x, z, width, depth, clearance = 0) {
+      return Math.abs(x - RIVER_X) < width / 2 + clearance + RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT &&
+        Math.abs(z) < depth / 2 + clearance + 600;
+    }
     const buildingElevators = [];
     const sidewalkTargets = [];
     const pedestrianSpawnPoints = [];
@@ -755,6 +761,7 @@
       isAreaClear(x, z, width, depth, clearance = 0.8) {
         const halfWidth = width / 2 + clearance;
         const halfDepth = depth / 2 + clearance;
+        if (overlapsRiverKeepOut(x, z, width, depth, clearance)) return false;
         const nearby = new Set();
         this.getBucketKeys(x, z, halfWidth, halfDepth).forEach((key) => {
           const bucket = this.buckets.get(key);
@@ -792,7 +799,7 @@
       }
     }
     const worldPlacement = new WorldPlacementEngine();
-    worldPlacement.reserve(190, 0, 40, 1200, 'river', 0);
+    worldPlacement.reserve(RIVER_X, 0, RIVER_WIDTH + WATERWAY_KEEP_OUT * 2, 1200, 'river', 0);
     const visibilityRadius = 7;
     const npcVisibilityRadius = webOptimizer.lowLag ? 95 : 150;
     const chunkCacheKey = 'citySandboxChunkCache';
@@ -1295,9 +1302,8 @@
     }
 
     function isRiverPosition(x, z) {
-      const bridgeCenters = [-480, -320, 0, 320, 480];
       const bridgeWidth = 34;
-      const onBridge = bridgeCenters.some((bridgeZ) => Math.abs(z - bridgeZ) <= 11 && Math.abs(x - RIVER_X) <= bridgeWidth / 2 + 2);
+      const onBridge = riverBridgeCenters.some((bridgeZ) => Math.abs(z - bridgeZ) <= 11 && Math.abs(x - RIVER_X) <= bridgeWidth / 2 + 2);
       return !onBridge && Math.abs(x - RIVER_X) <= RIVER_WIDTH / 2 && Math.abs(z) <= 600;
     }
 
@@ -1531,8 +1537,7 @@
       );
       water.rotation.x = -Math.PI / 2; water.position.set(RIVER_X, RIVER_SURFACE_Y, 0); cityRoot.add(water);
 
-      const bridgeCenters = [-480, -320, 0, 320, 480];
-      const bankOpenings = bridgeCenters.map((center) => [center - 12, center + 12]).concat([[232, 256]]).sort((a, b) => a[0] - b[0]);
+      const bankOpenings = riverBridgeCenters.map((center) => [center - 12, center + 12]).concat([[232, 256]]).sort((a, b) => a[0] - b[0]);
       const bankSegments = [];
       let bankStart = -600;
       bankOpenings.forEach(([openingStart, openingEnd]) => {
@@ -1545,7 +1550,7 @@
         bankSegments.forEach(([start, end]) => createBarrier(bankX, (start + end) / 2, 2.4, end - start, 10.5, -4.5, 0x777f82));
       }
 
-      bridgeCenters.forEach((z) => {
+      riverBridgeCenters.forEach((z) => {
         const bridge = new THREE.Mesh(new THREE.BoxGeometry(RIVER_WIDTH + 13, 0.7, 22), new THREE.MeshStandardMaterial({ map: textures.asphalt || null, color: 0x8b9294, roughness: 0.82 }));
         bridge.position.set(RIVER_X, 0.05, z); bridge.receiveShadow = true; cityRoot.add(bridge);
         const bridgeBody = new CANNON.Body({ mass: 0 });
@@ -1900,17 +1905,40 @@
     }
 
     function createRoad(x, z, width, depth) {
-      worldPlacement.reserve(x, z, width, depth, 'road', 0);
-      asphaltAreas.push({ x, z, halfWidth: width / 2, halfDepth: depth / 2 });
-      const asphaltTexture = createSurfaceTexture('asphalt', width, depth, 12) || makeProceduralGroundTexture('#4b5563', '#2b3440');
-      const road = new THREE.Mesh(new THREE.BoxGeometry(width, 0.08, depth), new THREE.MeshStandardMaterial(withTexture(asphaltTexture, { color: 0xffffff, roughness: 0.9 })));
-      road.position.set(x, 0.04, z); road.receiveShadow = true; cityRoot.add(road);
-      const roadBody = new CANNON.Body({ mass: 0 }); roadBody.addShape(new CANNON.Box(new CANNON.Vec3(width/2, 0.04, depth/2))); roadBody.position.set(x, 0.04, z); world.addBody(roadBody); solids.push({ mesh: road, body: roadBody });
+      if (depth > width && Math.abs(x - RIVER_X) < width / 2 + RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT) {
+        x = x < RIVER_X
+          ? RIVER_X - RIVER_WIDTH / 2 - WATERWAY_KEEP_OUT - width / 2
+          : RIVER_X + RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT + width / 2;
+      }
+      const roadStartX = x - width / 2;
+      const roadEndX = x + width / 2;
+      const riverStartX = RIVER_X - RIVER_WIDTH / 2 - WATERWAY_KEEP_OUT;
+      const riverEndX = RIVER_X + RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT;
+      const crossesRiver = width > depth && roadStartX < riverEndX && roadEndX > riverStartX;
+      const hasBridge = riverBridgeCenters.some((center) => Math.abs(z - center) <= depth / 2 + 11);
+      let roadSegments = [{ x, width }];
+      if (crossesRiver && !hasBridge) {
+        roadSegments = [
+          { x: (roadStartX + Math.min(roadEndX, riverStartX)) / 2, width: Math.max(0, Math.min(roadEndX, riverStartX) - roadStartX) },
+          { x: (Math.max(roadStartX, riverEndX) + roadEndX) / 2, width: Math.max(0, roadEndX - Math.max(roadStartX, riverEndX)) }
+        ].filter((segment) => segment.width > 0.1);
+      }
+      roadSegments.forEach((segment) => {
+        worldPlacement.reserve(segment.x, z, segment.width, depth, 'road', 0);
+        asphaltAreas.push({ x: segment.x, z, halfWidth: segment.width / 2, halfDepth: depth / 2 });
+        const asphaltTexture = createSurfaceTexture('asphalt', segment.width, depth, 12) || makeProceduralGroundTexture('#4b5563', '#2b3440');
+        const road = new THREE.Mesh(new THREE.BoxGeometry(segment.width, 0.08, depth), new THREE.MeshStandardMaterial(withTexture(asphaltTexture, { color: 0xffffff, roughness: 0.9 })));
+        road.position.set(segment.x, 0.04, z); road.receiveShadow = true; cityRoot.add(road);
+        const roadBody = new CANNON.Body({ mass: 0 });
+        roadBody.addShape(new CANNON.Box(new CANNON.Vec3(segment.width / 2, 0.04, depth / 2)));
+        roadBody.position.set(segment.x, 0.04, z); world.addBody(roadBody); solids.push({ mesh: road, body: roadBody });
+      });
       const laneMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4 });
       const halfWidth = Math.max(width, depth) / 2;
       for (let offset = -halfWidth + 8; offset < halfWidth; offset += 14) {
         const dash = new THREE.Mesh(new THREE.BoxGeometry(width > depth ? 7 : 1.2, 0.02, width > depth ? 1.2 : 7), laneMat);
         if (width > depth) dash.position.set(x + offset, 0.11, z); else dash.position.set(x, 0.11, z + offset);
+        if (crossesRiver && !hasBridge && width > depth && Math.abs(dash.position.x - RIVER_X) < RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT + 3) continue;
         cityRoot.add(dash);
       }
       const edgeOffset = width > depth ? width / 2 + 1.8 : depth / 2 + 1.8;
@@ -1930,6 +1958,7 @@
             return [x - edgeOffset, z + step];
           }));
       axisPoints.forEach(([px, pz]) => {
+        if (crossesRiver && !hasBridge && Math.abs(px - RIVER_X) < RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT + 2) return;
         sidewalkTargets.push(new THREE.Vector3(px, 0, pz));
         pedestrianSpawnPoints.push(new THREE.Vector3(px, 0, pz));
       });
@@ -1940,6 +1969,7 @@
     }
 
     function createSidewalk(x, z, width, depth) {
+      if (overlapsRiverKeepOut(x, z, width, depth)) return;
       registerSidewalkArea(x, z, width, depth);
       const sidewalkTexture = createSurfaceTexture('sidewalk', width, depth, 8);
       const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(width, 0.12, depth), new THREE.MeshStandardMaterial({ map: sidewalkTexture, color: 0xd9dde2, roughness: 0.95 }));
@@ -1947,7 +1977,10 @@
     }
 
     function createParkingBay(x, z, orientation = 'horizontal') {
-      const bay = new THREE.Mesh(new THREE.BoxGeometry(orientation === 'horizontal' ? 4.8 : 2.5, 0.06, orientation === 'horizontal' ? 2.5 : 4.8), new THREE.MeshStandardMaterial({ color: 0xdfe7ef, roughness: 0.9 }));
+      const width = orientation === 'horizontal' ? 4.8 : 2.5;
+      const depth = orientation === 'horizontal' ? 2.5 : 4.8;
+      if (overlapsRiverKeepOut(x, z, width, depth)) return;
+      const bay = new THREE.Mesh(new THREE.BoxGeometry(width, 0.06, depth), new THREE.MeshStandardMaterial({ color: 0xdfe7ef, roughness: 0.9 }));
       bay.position.set(x, 0.08, z); cityRoot.add(bay);
     }
 
@@ -2268,6 +2301,7 @@
     }
 
     function createRamp(x, z, width = 9, depth = 6, height = 1.4, rotation = 0) {
+      if (overlapsRiverKeepOut(x, z, width, depth)) return;
       const ramp = new THREE.Mesh(
         new THREE.BoxGeometry(width, height, depth),
         new THREE.MeshStandardMaterial({ color: 0x8b9bb7, roughness: 0.8, metalness: 0.12 })
@@ -2913,6 +2947,102 @@
       requestAnimationFrame(collapse);
     }
 
+    const BUILDING_CAVE_IN_MIN_SPEED = 40 / 2.237;
+    const buildingCaveRecessMaterial = new THREE.MeshBasicMaterial({ color: 0x171a1c, side: THREE.DoubleSide });
+    function createBuildingCaveIn(box, impactX, impactZ, impactSpeed) {
+      if (!box || box.collapsing || impactSpeed <= BUILDING_CAVE_IN_MIN_SPEED) return false;
+      const dx = (impactX - box.x) / box.sizeX;
+      const dz = (impactZ - box.z) / box.sizeZ;
+      const onXFace = Math.abs(dx) > Math.abs(dz);
+      const side = onXFace ? (dx >= 0 ? 'east' : 'west') : (dz >= 0 ? 'front' : 'back');
+      const sideLength = onXFace ? box.sizeZ : box.sizeX;
+      const impactAlongFace = onXFace ? impactZ - box.z : impactX - box.x;
+      const caveWidth = Math.min(4.2, Math.max(1.8, sideLength * 0.62));
+      const caveSection = Math.floor((impactAlongFace + sideLength / 2) / caveWidth);
+      const sectionKey = `${side}:${caveSection}`;
+      if (!box.caveInSections) box.caveInSections = new Set();
+      if (box.caveInSections.has(sectionKey) || box.caveInSections.size >= 4) return false;
+      box.caveInSections.add(sectionKey);
+
+      const caveHeight = Math.min(3.2, Math.max(2, box.height * 0.16));
+      const caveY = Math.min(2.2, box.height - caveHeight / 2 - 0.2);
+      const caveX = onXFace
+        ? (side === 'east' ? box.sizeX / 2 + 0.12 : -box.sizeX / 2 - 0.12)
+        : THREE.MathUtils.clamp(impactX - box.x, -box.sizeX / 2 + caveWidth / 2, box.sizeX / 2 - caveWidth / 2);
+      const caveZ = onXFace
+        ? THREE.MathUtils.clamp(impactZ - box.z, -box.sizeZ / 2 + caveWidth / 2, box.sizeZ / 2 - caveWidth / 2)
+        : (side === 'front' ? box.sizeZ / 2 + 0.12 : -box.sizeZ / 2 - 0.12);
+
+      const cave = new THREE.Group();
+      cave.position.set(caveX, caveY, caveZ);
+      if (side === 'east') cave.rotation.y = Math.PI / 2;
+      else if (side === 'west') cave.rotation.y = -Math.PI / 2;
+      else if (side === 'back') cave.rotation.y = Math.PI;
+      const recess = new THREE.Mesh(
+        new THREE.PlaneGeometry(caveWidth, caveHeight),
+        buildingCaveRecessMaterial
+      );
+      recess.position.z = -0.04;
+      cave.add(recess);
+
+      const tileWidth = caveWidth / 2;
+      const tileHeight = caveHeight / 2;
+      const fragments = [];
+      for (let row = 0; row < 2; row++) {
+        for (let column = 0; column < 2; column++) {
+          const fragment = new THREE.Mesh(
+            new THREE.BoxGeometry(tileWidth * 0.96, tileHeight * 0.96, 0.28),
+            box.facadeMaterial
+          );
+          const initialPosition = new THREE.Vector3(
+            (column - 0.5) * tileWidth,
+            (row - 0.5) * tileHeight,
+            0.12
+          );
+          fragment.position.copy(initialPosition);
+          fragment.castShadow = true;
+          fragment.receiveShadow = true;
+          cave.add(fragment);
+          fragments.push({
+            mesh: fragment,
+            initialPosition,
+            fallDistance: 1.6 + Math.random() * 1.2,
+            rotationX: (Math.random() - 0.5) * 0.8,
+            rotationY: (Math.random() - 0.5) * 0.8,
+            rotationZ: (Math.random() - 0.5) * 0.8
+          });
+        }
+      }
+      box.mesh.add(cave);
+      box.caveInCount = (box.caveInCount || 0) + 1;
+
+      const startedAt = performance.now();
+      const animateCaveIn = (now) => {
+        const progress = Math.min((now - startedAt) / 900, 1);
+        fragments.forEach((fragment) => {
+          const eased = progress * progress;
+          fragment.mesh.position.copy(fragment.initialPosition);
+          fragment.mesh.position.y -= eased * fragment.fallDistance;
+          fragment.mesh.position.z -= progress * 0.7;
+          fragment.mesh.rotation.set(
+            progress * fragment.rotationX,
+            progress * fragment.rotationY,
+            progress * fragment.rotationZ
+          );
+        });
+        if (progress < 1) {
+          requestAnimationFrame(animateCaveIn);
+          return;
+        }
+        fragments.forEach(({ mesh }) => {
+          cave.remove(mesh);
+          mesh.geometry.dispose();
+        });
+      };
+      requestAnimationFrame(animateCaveIn);
+      return true;
+    }
+
     function resolveVehicleMove(car, nextX, nextZ) {
       const hitProp = destructibleProps.find((prop) => !prop.destroyed && Math.abs(nextX - prop.x) < prop.radius + 1.25 && Math.abs(nextZ - prop.z) < prop.radius + 2.2);
       const hitBuilding = buildingColliders.find((box) => !box.collapsing && Math.abs(nextX - box.x) < box.sizeX / 2 + 1.25 && Math.abs(nextZ - box.z) < box.sizeZ / 2 + 2.2);
@@ -2939,12 +3069,8 @@
       car.body.velocity.x *= -0.16;
       car.body.velocity.z *= -0.16;
       handleVehicleCrash(car, performance.now());
-      if (gameSettings.destruction && hitBuilding && impact > 5) {
-        const rating = rateCollision(car.body.mass, impact, hitBuilding.impactResistance, 0.82);
-        if (rating.score >= 8) hitBuilding.health -= rating.score * 0.06;
-        const damageRatio = THREE.MathUtils.clamp(1 - hitBuilding.health / hitBuilding.maxHealth, 0, 1);
-        hitBuilding.facadeMaterial.color.setRGB(1, 1 - damageRatio * 0.36, 1 - damageRatio * 0.36);
-        if (rating.destroys || hitBuilding.health <= 0) collapseBuilding(hitBuilding, nextX < hitBuilding.x ? -1 : 1, rating.destroys, impact);
+      if (gameSettings.destruction && hitBuilding && impact > BUILDING_CAVE_IN_MIN_SPEED) {
+        createBuildingCaveIn(hitBuilding, nextX, nextZ, impact);
       }
       if (gameSettings.destruction && hitProp && impact > 5) {
         const rating = rateCollision(car.body.mass, impact, 42000, 0.9);
@@ -3897,11 +4023,9 @@
       car.maxFuel = Infinity;
 
       const turnInput = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
-      if (turnInput !== 0) {
-        car.steer = THREE.MathUtils.clamp(car.steer + turnInput * 0.18, -1.6, 1.6);
-      } else {
-        car.steer *= 0.85;
-      }
+      const steeringTarget = turnInput * 1.6;
+      const steeringResponse = 1 - Math.exp(-(turnInput ? 12 : 8) * dt);
+      car.steer = THREE.MathUtils.lerp(car.steer, steeringTarget, steeringResponse);
 
       const turnStrength = 1.8 + Math.abs(car.speed) * 0.09;
       if (turnInput !== 0) {
@@ -4219,6 +4343,7 @@
     }
 
     function createDowntownBlock(centerX, centerZ, blockW, blockD) {
+      if (overlapsRiverKeepOut(centerX, centerZ, blockW + 8, blockD + 8)) return;
       const sidewalkPad = 3.8;
       registerSidewalkArea(centerX, centerZ, blockW + 8, blockD + 8);
       const sidewalkTexture = createSurfaceTexture('sidewalk', blockW + 8, blockD + 8, 8);
@@ -4257,6 +4382,7 @@
     }
 
     function createResidentialNeighborhood(centerX, centerZ, blockW = 52, blockD = 48) {
+      if (overlapsRiverKeepOut(centerX, centerZ, blockW + 6, blockD + 6)) return;
       registerSidewalkArea(centerX, centerZ, blockW + 6, blockD + 6);
       const sidewalkTexture = createSurfaceTexture('sidewalk', blockW + 6, blockD + 6, 8);
       const blockPad = new THREE.Mesh(
@@ -4293,6 +4419,7 @@
     }
 
     function createCivicDistrict(centerX, centerZ, blockW = 64, blockD = 58) {
+      if (overlapsRiverKeepOut(centerX, centerZ, blockW + 10, blockD + 10)) return;
       registerSidewalkArea(centerX, centerZ, blockW + 10, blockD + 10);
       const sidewalkTexture = createSurfaceTexture('sidewalk', blockW + 10, blockD + 10, 8);
       const districtPad = new THREE.Mesh(
@@ -4411,6 +4538,7 @@
     }
 
     function createIndustrialDistrict(centerX, centerZ) {
+      if (overlapsRiverKeepOut(centerX, centerZ, 120, 92)) return;
       registerSidewalkArea(centerX, centerZ, 120, 92);
       const sidewalkTexture = createSurfaceTexture('sidewalk', 120, 92, 8);
       const pad = new THREE.Mesh(
@@ -4449,11 +4577,12 @@
         [-330, -190], [-150, -190], [30, -190], [210, -190],
         [-330, 190], [-150, 190], [30, 190], [210, 190],
         [-190, -330], [-190, -70], [-190, 150], [-190, 310],
-        [190, -330], [190, -70], [190, 150], [190, 310],
+        [238, -330], [238, -70], [238, 150], [238, 310],
         [0, -520], [0, 520], [-520, 0], [520, 0]
       ];
 
       parkCenters.forEach(([x, z], index) => {
+        if (overlapsRiverKeepOut(x, z, 52, 46)) return;
         parkActivityAreas.push({
           x,
           z,
@@ -4686,6 +4815,8 @@
           lastWPressTime = now;
         }
         activeInput.forward = pressed;
+        driveKeys.forward = pressed;
+        walkKeys.forward = pressed;
         if (!pressed) {
           activeInput.sprint = false;
           walkKeys.sprint = false;
@@ -4694,10 +4825,24 @@
       if (eventCode === 'ArrowUp') {
         activeInput.forward = pressed;
         activeInput.up = pressed;
+        driveKeys.forward = pressed;
+        walkKeys.forward = pressed;
       }
-      if (eventCode === 'KeyS' || eventCode === 'ArrowDown') activeInput.backward = pressed;
-      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') activeInput.left = pressed;
-      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') activeInput.right = pressed;
+      if (eventCode === 'KeyS' || eventCode === 'ArrowDown') {
+        activeInput.backward = pressed;
+        driveKeys.backward = pressed;
+        walkKeys.backward = pressed;
+      }
+      if (eventCode === 'KeyA' || eventCode === 'ArrowLeft') {
+        activeInput.left = pressed;
+        driveKeys.left = pressed;
+        walkKeys.left = pressed;
+      }
+      if (eventCode === 'KeyD' || eventCode === 'ArrowRight') {
+        activeInput.right = pressed;
+        driveKeys.right = pressed;
+        walkKeys.right = pressed;
+      }
       if (eventCode === 'ShiftLeft' || eventCode === 'ShiftRight') {
         if (pressed && playerState.boat) {
           leaveBoat();
@@ -4750,6 +4895,10 @@
     }
 
     document.addEventListener('keydown', (event) => {
+      if ((controlledVehicle || controlledAirplane) &&
+        ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.code)) {
+        event.preventDefault();
+      }
       if (event.code === 'Escape') {
         if (document.pointerLockElement === renderer.domElement) {
           document.exitPointerLock();
@@ -4806,6 +4955,10 @@
     });
 
     document.addEventListener('keyup', (event) => {
+      if ((controlledVehicle || controlledAirplane) &&
+        ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.code)) {
+        event.preventDefault();
+      }
       applyKeyState(event.code, false);
     });
 
