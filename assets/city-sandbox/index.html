@@ -510,6 +510,7 @@
       brick: 'textures/brick_red.png',
       brickRed: 'textures/brick_red.png',
       roofTiles: 'textures/roof_tiles.png',
+      border: 'textures/border.png',
       metalSilverBright: 'textures/metal_silver_bright.png',
       water: 'textures/water.png',
       waterPool: 'textures/water_pool.png',
@@ -617,7 +618,7 @@
     }
 
     const walkKeys = { forward: false, backward: false, left: false, right: false, brake: false, jump: false, sprint: false };
-    const driveKeys = { forward: false, backward: false, left: false, right: false, brake: false, jump: false, sprint: false, up: false };
+    const driveKeys = { forward: false, backward: false, left: false, right: false, brake: false, jump: false, sprint: false, up: false, down: false };
     let activeMode = 'walk';
     let cameraMode = 'third';
     let cameraViewOffset = new THREE.Vector3(0, 1.8, 4.8);
@@ -1445,6 +1446,31 @@
       });
     }
 
+    function createWorldEdgeBackdrop() {
+      const width = worldBounds.maxX - worldBounds.minX + 60;
+      const height = 712;
+      const geometry = new THREE.PlaneGeometry(width, height);
+      const material = new THREE.MeshBasicMaterial({
+        map: textures.border || null,
+        color: 0xffffff,
+        side: THREE.DoubleSide
+      });
+      const centerX = (worldBounds.minX + worldBounds.maxX) / 2;
+      const centerZ = (worldBounds.minZ + worldBounds.maxZ) / 2;
+      const edgeOffset = 32;
+      [
+        { x: centerX, z: worldBounds.minZ - edgeOffset, rotationY: 0 },
+        { x: centerX, z: worldBounds.maxZ + edgeOffset, rotationY: Math.PI },
+        { x: worldBounds.minX - edgeOffset, z: centerZ, rotationY: Math.PI / 2 },
+        { x: worldBounds.maxX + edgeOffset, z: centerZ, rotationY: -Math.PI / 2 }
+      ].forEach(({ x, z, rotationY }) => {
+        const backdrop = new THREE.Mesh(geometry, material);
+        backdrop.position.set(x, -144, z);
+        backdrop.rotation.y = rotationY;
+        scene.add(backdrop);
+      });
+    }
+
     function createBarrier(x, z, width, depth, height = 1.4, y = height / 2, color = 0xb6b9bb) {
       const mesh = new THREE.Mesh(
         new THREE.BoxGeometry(width, height, depth),
@@ -1839,7 +1865,7 @@
         } else if (controlledAirplane === aircraft) {
           const turn = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
           const throttle = (driveKeys.forward ? 1 : 0) - (driveKeys.backward ? 1 : 0);
-          const climb = driveKeys.up ? 1 : 0;
+          const climb = (driveKeys.up ? 1 : 0) - (driveKeys.down ? 1 : 0);
           aircraft.speed = THREE.MathUtils.clamp(aircraft.speed + throttle * 18 * dt, 0, 62);
           aircraft.heading += turn * (0.35 + aircraft.speed * 0.008) * dt;
           aircraft.pitch = THREE.MathUtils.clamp(aircraft.pitch + (throttle * 0.3 + climb * 0.6) * dt, -0.3, 0.7);
@@ -3350,44 +3376,36 @@
       if (!navigationNodes.length) return [];
       const startNode = getNearestNavigationNode(startPosition);
       const endNode = getNearestNavigationNode(endPosition);
-      const open = new Map([[`${startNode.x},${startNode.z}`, { node: startNode, g: 0, f: Math.hypot(startNode.x - endNode.x, startNode.z - endNode.z) }]]);
-      const closed = new Set();
+      const startKey = `${startNode.x},${startNode.z}`;
+      const endKey = `${endNode.x},${endNode.z}`;
+      const queue = [startNode];
+      const visited = new Set([startKey]);
       const parents = new Map();
-      while (open.size) {
-        let currentKey = null;
-        let current = null;
-        open.forEach((entry, key) => {
-          if (!current || entry.f < current.f) {
-            currentKey = key;
-            current = entry;
-          }
-        });
-        if (currentKey === `${endNode.x},${endNode.z}`) break;
-        open.delete(currentKey);
-        closed.add(currentKey);
-        current.node.neighbors.forEach((neighbor) => {
+      let queueIndex = 0;
+      while (queueIndex < queue.length && !visited.has(endKey)) {
+        const current = queue[queueIndex++];
+        const currentKey = `${current.x},${current.z}`;
+        const neighbors = navigationEdges.get(currentKey) || [];
+        neighbors.forEach((neighbor) => {
           const neighborKey = `${neighbor.x},${neighbor.z}`;
-          if (closed.has(neighborKey)) return;
-          const nextG = current.g + Math.hypot(neighbor.x - current.node.x, neighbor.z - current.node.z);
-          const existing = open.get(neighborKey);
-          if (!existing || nextG < existing.g) {
-            parents.set(neighborKey, currentKey);
-            const h = Math.hypot(neighbor.x - endNode.x, neighbor.z - endNode.z);
-            open.set(neighborKey, { node: { x: neighbor.x, z: neighbor.z }, g: nextG, f: nextG + h });
-          }
+          if (visited.has(neighborKey)) return;
+          visited.add(neighborKey);
+          parents.set(neighborKey, currentKey);
+          queue.push({ x: neighbor.x, z: neighbor.z });
         });
       }
       const path = [];
-      let currentKey = `${endNode.x},${endNode.z}`;
-      if (!open.has(currentKey) && !closed.has(currentKey) && `${startNode.x},${startNode.z}` !== `${endNode.x},${endNode.z}`) {
+      let currentKey = endKey;
+      if (!visited.has(endKey)) {
         return [endPosition.clone()];
       }
-      while (currentKey) {
+      while (currentKey !== startKey) {
         const match = currentKey.match(/^(-?\d+),(-?\d+)$/);
         if (!match) break;
         path.unshift(new THREE.Vector3(Number(match[1]), 0, Number(match[2])));
-        currentKey = parents.get(currentKey) || null;
+        currentKey = parents.get(currentKey);
       }
+      path.unshift(new THREE.Vector3(startNode.x, 0, startNode.z));
       if (!path.length) path.push(endPosition.clone());
       return path;
     }
@@ -4613,7 +4631,7 @@
     }
 
     function cityLayout() {
-      createGroundPlane(); addPlaza(); createRiver(); createAirport(); createPlaneField();
+      createGroundPlane(); createWorldEdgeBackdrop(); addPlaza(); createRiver(); createAirport(); createPlaneField();
       const sidewalkPoints = [
         { x: 0, z: 20 }, { x: 0, z: -20 }, { x: -18, z: 20 }, { x: 18, z: 20 }, { x: -24, z: -20 }, { x: 24, z: -20 },
         { x: -82, z: 20 }, { x: -82, z: -20 }, { x: 82, z: 20 }, { x: 82, z: -20 },
@@ -4830,7 +4848,9 @@
         driveKeys.forward = pressed;
         walkKeys.forward = pressed;
       }
-      if (eventCode === 'KeyS' || eventCode === 'ArrowDown') {
+      if (eventCode === 'ArrowDown' && controlledAirplane) {
+        activeInput.down = pressed;
+      } else if (eventCode === 'KeyS' || eventCode === 'ArrowDown') {
         activeInput.backward = pressed;
         driveKeys.backward = pressed;
         walkKeys.backward = pressed;
