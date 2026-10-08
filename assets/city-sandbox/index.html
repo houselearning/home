@@ -1005,7 +1005,7 @@
       people.forEach((person) => {
         if (!person || !person.mesh) return;
         const near = gameSettings.npcs &&
-          (!!person.wreckageEvent || Math.hypot(person.mesh.position.x - px, person.mesh.position.z - pz) <= npcVisibilityRadius);
+          (!!person.wreckageEvent || person.parkActivity || Math.hypot(person.mesh.position.x - px, person.mesh.position.z - pz) <= npcVisibilityRadius);
         person.mesh.visible = near;
         person.active = near;
         if (person.deviceGroup) person.deviceGroup.visible = near && person.useDevice;
@@ -3206,7 +3206,7 @@
     function getPedestrianSpawnPoint() {
       const source = pedestrianSpawnPoints.length ? pedestrianSpawnPoints : sidewalkTargets;
       if (!source.length) return new THREE.Vector3(0, 0, 0);
-      if (Math.random() < 0.7) {
+      if (Math.random() < 0.55) {
         for (let attempt = 0; attempt < 12; attempt++) {
           const candidate = source[Math.floor(Math.random() * source.length)];
           if (Math.hypot(candidate.x, candidate.z) <= 260) return candidate.clone();
@@ -3611,8 +3611,8 @@
 
     function createPeople() {
       const populationCount = webOptimizer.lowLag
-        ? 64 + Math.floor(Math.random() * 17)
-        : 100 + Math.floor(Math.random() * 31);
+        ? 120 + Math.floor(Math.random() * 21)
+        : 180 + Math.floor(Math.random() * 31);
       const typeA = Math.floor(populationCount * 0.7);
       const typeB = populationCount - typeA;
       const linkedTargetCount = Math.max(1, Math.round(typeB * 0.1));
@@ -3690,6 +3690,7 @@
         );
         person.parkPauseUntil = 0;
         person.speed = 2.1 + Math.random() * 0.7;
+        person.parkActivity = true;
         person.mesh.scale.set(0.7, 0.68, 0.7);
         person.walkPhase = Math.random() * Math.PI * 2;
         addParkChildAccessories(person);
@@ -3708,6 +3709,7 @@
         person.parkRadius = 30 + Math.random() * 2;
         person.parkAngle = Math.random() * Math.PI * 2;
         person.parkLapSpeed = (0.75 + Math.random() * 0.2) * (Math.random() < 0.5 ? -1 : 1);
+        person.parkActivity = true;
         person.mesh.position.set(
           park.x + Math.cos(person.parkAngle) * person.parkRadius,
           0,
