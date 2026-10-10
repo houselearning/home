@@ -33,6 +33,7 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.shadowMap.needsUpdate = true;
         scene.traverse((object) => {
+          if (object.userData && object.userData.lowLagOnly) object.visible = lowLag;
           if (!object.isMesh) return;
           object.castShadow = shadowsEnabled;
           object.receiveShadow = shadowsEnabled;
@@ -342,14 +343,42 @@
     }
     const cars = [];
     const npcCars = [];
+    const jobVehicleRespawns = [];
+    const jobAircraftRespawns = [];
+    const JOB_VEHICLE_GARAGE = { x: 0, z: 28 };
+    let nextJobVehicleGarageBay = 0;
     const people = [];
     const criminals = [];
+    const janitors = [];
+    const billionaireState = {
+      mansion: null,
+      billionaire: null,
+      escorts: [],
+      mansionGuards: [],
+      maid: null,
+      luxuryCars: [],
+      drive: null,
+      theft: null,
+      nextDriveAt: 0,
+      nextCarIndex: 0
+    };
     const policeUnits = [];
     const prisonInmates = [];
+    const prisonOfficers = [];
+    const prisonEncounters = [];
+    let playerWasInsidePrison = false;
     let prisonFacility = null;
+    const raceCars = [];
+    let raceTrack = null;
+    let debrisPlowVehicle = null;
+    const birds = [];
+    const birdFlocks = [];
+    const birdsByType = [[], [], [], []];
+    const birdRenderers = [];
+    const birdTransform = new THREE.Object3D();
     const buildingWorkers = [];
     const fallingDrivers = [];
-    const medicalRescueState = { active: false, ambulance: null, medics: [], startedAt: 0, patientLoaded: false };
+    const medicalRescueState = { active: false, ambulance: null, medics: [], startedAt: 0, patientLoaded: false, dispatching: false, awaitingAmbulance: false, patientPosition: null };
     const boats = [];
     const airplanes = [];
     const asphaltAreas = [];
@@ -407,6 +436,10 @@
     const RIVER_X = 190;
     const RIVER_WIDTH = 34;
     const WATERWAY_KEEP_OUT = 3;
+    const RIVER_BRIDGE_DECK_WIDTH = RIVER_WIDTH + 13;
+    const RIVER_BRIDGE_DECK_DEPTH = 22;
+    const RIVER_BRIDGE_ARCH_HEIGHT = 4.2;
+    let riverFenceMaterial = null;
     const riverBridgeCenters = [-480, -320, 0, 320, 480];
     const RIVER_SURFACE_Y = -9.14;
     const roadAxisXValues = new Set();
@@ -705,7 +738,7 @@
 
       people.forEach((person) => {
         if (!person || !person.mesh) return;
-        const near = gameSettings.npcs && isNear(person.mesh.position.x, person.mesh.position.y, person.mesh.position.z);
+        const near = gameSettings.npcs && (person.task === 'race-angry' || isNear(person.mesh.position.x, person.mesh.position.y, person.mesh.position.z));
         if (near && !person.renderAttached) {
           scene.add(person.mesh);
           person.renderAttached = true;
@@ -916,9 +949,23 @@
         const targetCar = availableCars[Math.floor(Math.random() * availableCars.length)];
         if (targetCar) { x = targetCar.body.position.x; z = targetCar.body.position.z + 4; }
       } else if (destination === 'plow') {
-        const plow = cars.find((car) => car.isPlow && !car.destroyed);
+        const plow = debrisPlowVehicle && !debrisPlowVehicle.destroyed && debrisPlowVehicle.jobPhase !== 'dispatching'
+          ? debrisPlowVehicle
+          : null;
         x = plow ? plow.body.position.x : 535;
         z = plow ? plow.body.position.z - 9 : 531;
+        yaw = Math.PI;
+      } else if (destination === 'racetrack' && raceTrack) {
+        x = raceTrack.center.x;
+        z = raceTrack.center.z + 15;
+        yaw = 0;
+      } else if (destination === 'prison' && prisonFacility) {
+        x = prisonFacility.x;
+        z = prisonFacility.z + prisonFacility.depth / 2 + 5;
+        yaw = Math.PI;
+      } else if (destination === 'mansion' && billionaireState.mansion) {
+        x = billionaireState.mansion.x;
+        z = billionaireState.mansion.z + billionaireState.mansion.depth / 2 + 5;
         yaw = Math.PI;
       } else if (destination === 'building') {
         const target = buildings[Math.floor(Math.random() * buildings.length)] || { x: 0, z: 0 };
@@ -1036,13 +1083,22 @@
       );
     }
 
+    function isOnRiverBridge(x, z) {
+      return Math.abs(x - RIVER_X) <= RIVER_BRIDGE_DECK_WIDTH / 2 &&
+        riverBridgeCenters.some((bridgeZ) => Math.abs(z - bridgeZ) <= RIVER_BRIDGE_DECK_DEPTH / 2);
+    }
+
+    function riverBridgeSurfaceHeight(x) {
+      const normalizedX = THREE.MathUtils.clamp((x - RIVER_X) / (RIVER_BRIDGE_DECK_WIDTH / 2), -1, 1);
+      return 0.05 + RIVER_BRIDGE_ARCH_HEIGHT * (1 - normalizedX * normalizedX);
+    }
+
     function isRiverPosition(x, z) {
-      const bridgeWidth = 34;
-      const onBridge = riverBridgeCenters.some((bridgeZ) => Math.abs(z - bridgeZ) <= 11 && Math.abs(x - RIVER_X) <= bridgeWidth / 2 + 2);
-      return !onBridge && Math.abs(x - RIVER_X) <= RIVER_WIDTH / 2 && Math.abs(z) <= 600;
+      return !isOnRiverBridge(x, z) && Math.abs(x - RIVER_X) <= RIVER_WIDTH / 2 && Math.abs(z) <= 600;
     }
 
     function groundHeightAt(x, z) {
+      if (isOnRiverBridge(x, z)) return riverBridgeSurfaceHeight(x);
       if (Math.abs(z) <= 11) return 0;
       if (z >= 241.4 && z <= 246.6 && x >= 155 && x <= RIVER_X - RIVER_WIDTH / 2) {
         return RIVER_SURFACE_Y * (x - 155) / (RIVER_X - RIVER_WIDTH / 2 - 155);
@@ -1060,6 +1116,106 @@
       }
 
       return { x: proposedX, z: proposedZ, blocked: false };
+    }
+
+    function resolvePlayerFootstep(x, z, radius = 0.7) {
+      const resolved = resolveFootstep(x, z, radius);
+      if (resolved.blocked || flyMode || controllerVerticalTracking) return resolved;
+      const candidateGround = groundHeightAt(resolved.x, resolved.z);
+      for (const person of people) {
+        if (!person || !person.active || !person.mesh.visible || person.ridingBoat) continue;
+        if (Math.abs(person.mesh.position.y - candidateGround) > 1.7) continue;
+        const candidateDistance = Math.hypot(person.mesh.position.x - resolved.x, person.mesh.position.z - resolved.z);
+        if (candidateDistance >= 1.05) continue;
+        const currentDistance = Math.hypot(person.mesh.position.x - playerState.position.x, person.mesh.position.z - playerState.position.z);
+        if (currentDistance < 1.05 && candidateDistance > currentDistance) continue;
+        return { x: playerState.position.x, z: playerState.position.z, blocked: true };
+      }
+      return resolved;
+    }
+
+    function resolveCharacterOverlaps() {
+      const characters = people.filter((person) =>
+        person && person.active && person.mesh.visible && !person.ridingBoat
+      );
+      const cellSize = 2;
+      const minimumDistance = 1.05;
+      const isStationary = (person) => person.task === 'police-officer' || person.task === 'mansion-guard' ||
+        person.task === 'bench' ||
+        (person.task === 'prison-inmate' && person.prisonRoutine === 'cell' && !person.prisonReturnHome) ||
+        !!person.knockedDown;
+      const moveCharacter = (person, dx, dz) => {
+        const resolved = resolveFootstep(person.mesh.position.x + dx, person.mesh.position.z + dz, 0.55);
+        if (resolved.blocked) return false;
+        person.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+        return true;
+      };
+
+      for (let pass = 0; pass < 2; pass++) {
+        const grid = new Map();
+        characters.forEach((person, index) => {
+          const cellX = Math.floor(person.mesh.position.x / cellSize);
+          const cellZ = Math.floor(person.mesh.position.z / cellSize);
+          const key = cellX + ',' + cellZ;
+          if (!grid.has(key)) grid.set(key, []);
+          grid.get(key).push(index);
+        });
+
+        characters.forEach((first, firstIndex) => {
+          const cellX = Math.floor(first.mesh.position.x / cellSize);
+          const cellZ = Math.floor(first.mesh.position.z / cellSize);
+          for (let offsetX = -1; offsetX <= 1; offsetX++) {
+            for (let offsetZ = -1; offsetZ <= 1; offsetZ++) {
+              const neighbors = grid.get((cellX + offsetX) + ',' + (cellZ + offsetZ)) || [];
+              neighbors.forEach((secondIndex) => {
+                if (secondIndex <= firstIndex) return;
+                const second = characters[secondIndex];
+                if (Math.abs(first.mesh.position.y - second.mesh.position.y) > 1.7) return;
+                let dx = second.mesh.position.x - first.mesh.position.x;
+                let dz = second.mesh.position.z - first.mesh.position.z;
+                let distance = Math.hypot(dx, dz);
+                if (distance >= minimumDistance) return;
+                if (distance < 0.001) {
+                  dx = firstIndex % 2 ? 1 : -1;
+                  dz = secondIndex % 2 ? 1 : -1;
+                  distance = Math.hypot(dx, dz);
+                }
+                const overlap = minimumDistance - distance + 0.01;
+                dx /= distance;
+                dz /= distance;
+                const firstStatic = isStationary(first);
+                const secondStatic = isStationary(second);
+                if (firstStatic && secondStatic) return;
+                if (firstStatic) {
+                  moveCharacter(second, dx * overlap, dz * overlap);
+                } else if (secondStatic) {
+                  moveCharacter(first, -dx * overlap, -dz * overlap);
+                } else {
+                  const movedSecond = moveCharacter(second, dx * overlap * 0.5, dz * overlap * 0.5);
+                  const movedFirst = moveCharacter(first, -dx * overlap * 0.5, -dz * overlap * 0.5);
+                  if (!movedFirst && movedSecond) moveCharacter(second, dx * overlap * 0.5, dz * overlap * 0.5);
+                }
+              });
+            }
+          }
+        });
+      }
+
+      if (controlledVehicle || controlledAirplane || controlledBoat || playerState.seatedOn || flyMode) return;
+      const playerGround = playerState.position.y - 1.7;
+      characters.forEach((person) => {
+        if (Math.abs(person.mesh.position.y - playerGround) > 1.7) return;
+        let dx = person.mesh.position.x - playerState.position.x;
+        let dz = person.mesh.position.z - playerState.position.z;
+        let distance = Math.hypot(dx, dz);
+        if (distance >= minimumDistance) return;
+        if (distance < 0.001) {
+          dx = 1;
+          dz = 0;
+          distance = 1;
+        }
+        moveCharacter(person, dx / distance * (minimumDistance - distance + 0.01), dz / distance * (minimumDistance - distance + 0.01));
+      });
     }
 
     function updatePlayerCharacter() {
@@ -1206,22 +1362,62 @@
     }
 
     function createBarrier(x, z, width, depth, height = 1.4, y = height / 2, color = 0xb6b9bb, breakable = false, kind = 'wall') {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(width, height, depth),
-        new THREE.MeshStandardMaterial({ map: textures.concreteGrey || null, color, roughness: 0.84 })
-      );
-      mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; cityRoot.add(mesh);
+      let mesh;
+      if (kind === 'river-fence') {
+        if (!riverFenceMaterial) riverFenceMaterial = new THREE.MeshStandardMaterial({ color: 0x78888b, metalness: 0.62, roughness: 0.42 });
+        mesh = new THREE.Group();
+        const horizontal = width >= depth;
+        const length = horizontal ? width : depth;
+        const railGeometry = horizontal
+          ? new THREE.BoxGeometry(width, 0.12, 0.12)
+          : new THREE.BoxGeometry(0.12, 0.12, depth);
+        const rails = new THREE.InstancedMesh(railGeometry, riverFenceMaterial, 2);
+        const transform = new THREE.Object3D();
+        [0.42, 1.02].forEach((railY, index) => {
+          transform.position.set(0, railY, 0);
+          transform.rotation.set(0, 0, 0);
+          transform.updateMatrix();
+          rails.setMatrixAt(index, transform.matrix);
+        });
+        rails.instanceMatrix.needsUpdate = true;
+        mesh.add(rails);
+        const postCount = Math.max(1, Math.ceil(length / 3));
+        const posts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.14, height, 0.14), riverFenceMaterial, postCount + 1);
+        for (let postIndex = 0; postIndex <= postCount; postIndex++) {
+          const offset = -length / 2 + length * postIndex / postCount;
+          transform.position.set(horizontal ? offset : 0, height / 2, horizontal ? 0 : offset);
+          transform.updateMatrix();
+          posts.setMatrixAt(postIndex, transform.matrix);
+        }
+        posts.instanceMatrix.needsUpdate = true;
+        mesh.add(posts);
+        mesh.position.set(x, y - height / 2, z);
+        mesh.traverse((part) => {
+          if (!part.isMesh) return;
+          part.castShadow = true;
+          part.receiveShadow = true;
+        });
+      } else {
+        mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(width, height, depth),
+          new THREE.MeshStandardMaterial({ map: textures.concreteGrey || null, color, roughness: 0.84 })
+        );
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+      cityRoot.add(mesh);
       const body = new CANNON.Body({ mass: 0 });
       body.addShape(new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)));
       body.position.set(x, y, z); world.addBody(body);
-      worldBarriers.push({ x, z, width, depth, height, y, kind, breakable, health: breakable ? (kind === 'airport-wall' ? 90 : 42) : Infinity, minX: x - width / 2, maxX: x + width / 2, minZ: z - depth / 2, maxZ: z + depth / 2, mesh, body });
+      worldBarriers.push({ x, z, width, depth, height, y, kind, breakable, health: breakable ? (kind === 'airport-wall' ? 90 : 42) : Infinity, minX: x - width / 2, maxX: x + width / 2, minZ: z - depth / 2, maxZ: z + depth / 2, mesh, body, material: kind === 'river-fence' ? riverFenceMaterial : mesh.material });
       return mesh;
     }
 
     function createBreakableBarrierLine(x, z, width, depth, height, y, color, kind = 'airport-wall') {
       const horizontal = width >= depth;
       const length = horizontal ? width : depth;
-      const sectionCount = Math.ceil(length / 12);
+      const sectionCount = Math.ceil(length / (kind === 'river-fence' ? 24 : 12));
       const sectionLength = length / sectionCount;
       for (let index = 0; index < sectionCount; index++) {
         const offset = -length / 2 + sectionLength * (index + 0.5);
@@ -1332,15 +1528,69 @@
       if (bankStart < 600) bankSegments.push([bankStart, 600]);
       for (const side of [-1, 1]) {
         const bankX = RIVER_X + side * (RIVER_WIDTH / 2 + 1.2);
-        bankSegments.forEach(([start, end]) => createBarrier(bankX, (start + end) / 2, 2.4, end - start, 10.5, -4.5, 0x777f82));
+        bankSegments.forEach(([start, end]) => createBreakableBarrierLine(bankX, (start + end) / 2, 0.28, end - start, 1.3, 0.65, 0x78888b, 'river-fence'));
       }
 
+      const bridgeDeckMaterial = new THREE.MeshStandardMaterial({ map: textures.asphalt || null, color: 0x777f82, roughness: 0.82 });
+      const bridgeArchMaterial = new THREE.MeshStandardMaterial({ color: 0x68777b, metalness: 0.46, roughness: 0.5 });
+      const bridgeRailMaterial = new THREE.MeshStandardMaterial({ color: 0xc6cdcd, metalness: 0.62, roughness: 0.38 });
       riverBridgeCenters.forEach((z) => {
-        const bridge = new THREE.Mesh(new THREE.BoxGeometry(RIVER_WIDTH + 13, 0.7, 22), new THREE.MeshStandardMaterial({ map: textures.asphalt || null, color: 0x8b9294, roughness: 0.82 }));
-        bridge.position.set(RIVER_X, 0.05, z); bridge.receiveShadow = true; cityRoot.add(bridge);
-        const bridgeBody = new CANNON.Body({ mass: 0 });
-        bridgeBody.addShape(new CANNON.Box(new CANNON.Vec3((RIVER_WIDTH + 13) / 2, 0.35, 11)));
-        bridgeBody.position.copy(bridge.position); world.addBody(bridgeBody);
+        const segmentCount = 32;
+        const segmentLength = RIVER_BRIDGE_DECK_WIDTH / segmentCount;
+        const deckThickness = 0.55;
+        const deck = new THREE.InstancedMesh(new THREE.BoxGeometry(segmentLength + 0.06, deckThickness, RIVER_BRIDGE_DECK_DEPTH), bridgeDeckMaterial, segmentCount);
+        const deckTransform = new THREE.Object3D();
+        for (let segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++) {
+          const x = RIVER_X - RIVER_BRIDGE_DECK_WIDTH / 2 + (segmentIndex + 0.5) * segmentLength;
+          const normalizedX = (x - RIVER_X) / (RIVER_BRIDGE_DECK_WIDTH / 2);
+          const surfaceY = riverBridgeSurfaceHeight(x);
+          const slope = -2 * RIVER_BRIDGE_ARCH_HEIGHT * normalizedX / (RIVER_BRIDGE_DECK_WIDTH / 2);
+          const rotationZ = Math.atan(slope);
+          deckTransform.position.set(x, surfaceY - deckThickness / 2, z);
+          deckTransform.rotation.set(0, 0, rotationZ);
+          deckTransform.updateMatrix();
+          deck.setMatrixAt(segmentIndex, deckTransform.matrix);
+          const deckBody = new CANNON.Body({ mass: 0 });
+          deckBody.addShape(new CANNON.Box(new CANNON.Vec3((segmentLength + 0.06) / 2, deckThickness / 2, RIVER_BRIDGE_DECK_DEPTH / 2)));
+          deckBody.position.set(x, surfaceY - deckThickness / 2, z);
+          deckBody.quaternion.setFromEuler(0, 0, rotationZ);
+          world.addBody(deckBody);
+        }
+        deck.instanceMatrix.needsUpdate = true;
+        deck.receiveShadow = true;
+        deck.castShadow = true;
+        cityRoot.add(deck);
+
+        const railingPosts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.14, 1.1, 0.14), bridgeRailMaterial, 34);
+        const postTransform = new THREE.Object3D();
+        [-1, 1].forEach((side, sideIndex) => {
+          const archPoints = [];
+          const railPoints = [];
+          for (let pointIndex = 0; pointIndex <= 24; pointIndex++) {
+            const x = RIVER_X - RIVER_BRIDGE_DECK_WIDTH / 2 + RIVER_BRIDGE_DECK_WIDTH * pointIndex / 24;
+            const surfaceY = riverBridgeSurfaceHeight(x);
+            archPoints.push(new THREE.Vector3(x, surfaceY - 1.2, z + side * (RIVER_BRIDGE_DECK_DEPTH / 2 - 1.2)));
+            railPoints.push(new THREE.Vector3(x, surfaceY + 0.56, z + side * (RIVER_BRIDGE_DECK_DEPTH / 2 - 1.2)));
+          }
+          const arch = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(archPoints), 64, 0.38, 8, false), bridgeArchMaterial);
+          arch.castShadow = true;
+          cityRoot.add(arch);
+          const rail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPoints), 64, 0.09, 8, false), bridgeRailMaterial);
+          rail.castShadow = true;
+          cityRoot.add(rail);
+          for (let postIndex = 0; postIndex <= 16; postIndex++) {
+            const x = RIVER_X - RIVER_BRIDGE_DECK_WIDTH / 2 + RIVER_BRIDGE_DECK_WIDTH * postIndex / 16;
+            const surfaceY = riverBridgeSurfaceHeight(x);
+            const slope = -2 * RIVER_BRIDGE_ARCH_HEIGHT * ((x - RIVER_X) / (RIVER_BRIDGE_DECK_WIDTH / 2)) / (RIVER_BRIDGE_DECK_WIDTH / 2);
+            postTransform.position.set(x, surfaceY + 0.28, z + side * (RIVER_BRIDGE_DECK_DEPTH / 2 - 1.2));
+            postTransform.rotation.set(0, 0, Math.atan(slope));
+            postTransform.updateMatrix();
+            railingPosts.setMatrixAt(sideIndex * 17 + postIndex, postTransform.matrix);
+          }
+        });
+        railingPosts.instanceMatrix.needsUpdate = true;
+        railingPosts.castShadow = true;
+        cityRoot.add(railingPosts);
       });
 
       for (let step = 0; step < 18; step++) {
@@ -1444,14 +1694,16 @@
       [
         { centerX: 0, centerZ: 0, radius: 285, phase: -0.42 },
         { centerX: 40, centerZ: 0, radius: 330, phase: 2.25 }
-      ].forEach((route) => {
+      ].forEach((route, index) => {
         const mesh = plane.clone(true);
         mesh.position.set(route.centerX + Math.sin(route.phase) * route.radius, 132, route.centerZ + Math.cos(route.phase) * route.radius);
         mesh.rotation.y = route.phase + Math.PI / 2;
         mesh.scale.setScalar(0.72);
         scene.add(mesh);
         const driver = createSeatedDriver(mesh, 0, 0.15, 14, 0.42);
-        airplanes.push({ mesh, driver, parked: false, ai: true, mass: 8200, speed: 38, heading: route.phase + Math.PI / 2, pitch: 0, verticalSpeed: 0, health: 1000, phase: route.phase, centerX: route.centerX, centerZ: route.centerZ, radius: route.radius, cruiseAltitude: 132 });
+        applyPilotUniform(driver);
+        driver.task = 'pilot';
+        airplanes.push({ mesh, driver, parked: false, ai: true, jobRole: 'ai-aircraft', jobIndex: index, jobPhase: 'route', mass: 8200, speed: 38, heading: route.phase + Math.PI / 2, pitch: 0, verticalSpeed: 0, health: 1000, phase: route.phase, centerX: route.centerX, centerZ: route.centerZ, radius: route.radius, cruiseAltitude: 132 });
       });
       const fenceMaterial = new THREE.MeshStandardMaterial({ color: 0xd4dad8, metalness: 0.72, roughness: 0.34 });
       for (let x = -140; x <= 140; x += 20) {
@@ -1621,13 +1873,32 @@
       airplanes.forEach((aircraft) => {
         if (aircraft.parked || aircraft.crashed) return;
         if (aircraft.ai) {
-          aircraft.phase += aircraft.speed / aircraft.radius * dt;
-          aircraft.heading = aircraft.phase + Math.PI / 2;
-          aircraft.mesh.position.set(
-            aircraft.centerX + Math.sin(aircraft.phase) * aircraft.radius,
-            aircraft.cruiseAltitude + Math.sin(now * 0.22 + aircraft.phase) * 4,
-            aircraft.centerZ + Math.cos(aircraft.phase) * aircraft.radius
-          );
+          if (aircraft.jobPhase === 'dispatching') {
+            const target = new THREE.Vector3(
+              aircraft.centerX + Math.sin(aircraft.phase) * aircraft.radius,
+              aircraft.cruiseAltitude,
+              aircraft.centerZ + Math.cos(aircraft.phase) * aircraft.radius
+            );
+            const direction = target.clone().sub(aircraft.mesh.position);
+            const distance = direction.length();
+            if (distance <= 12) {
+              aircraft.mesh.position.copy(target);
+              aircraft.jobPhase = 'route';
+            } else {
+              direction.normalize();
+              aircraft.mesh.position.addScaledVector(direction, Math.min(distance - 12, aircraft.speed * dt));
+              aircraft.heading = Math.atan2(direction.x, direction.z);
+              aircraft.mesh.rotation.x = Math.atan2(direction.y, Math.hypot(direction.x, direction.z));
+            }
+          } else {
+            aircraft.phase += aircraft.speed / aircraft.radius * dt;
+            aircraft.heading = aircraft.phase + Math.PI / 2;
+            aircraft.mesh.position.set(
+              aircraft.centerX + Math.sin(aircraft.phase) * aircraft.radius,
+              aircraft.cruiseAltitude + Math.sin(now * 0.22 + aircraft.phase) * 4,
+              aircraft.centerZ + Math.cos(aircraft.phase) * aircraft.radius
+            );
+          }
         } else if (controlledAirplane === aircraft) {
           const turn = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
           const throttle = (driveKeys.forward ? 1 : 0) - (driveKeys.backward ? 1 : 0);
@@ -1661,6 +1932,7 @@
             if (rating.destroys || hitBuilding.health <= 0) collapseBuilding(hitBuilding, aircraft.mesh.position.x < hitBuilding.x ? -1 : 1, true, aircraft.speed);
           }
           const wasControlled = controlledAirplane === aircraft;
+          scheduleJobAircraftRespawn(aircraft);
           aircraft.crashed = true;
           if (wasControlled) leaveAirplane(true);
           aircraft.mesh.updateMatrixWorld(true);
@@ -1696,6 +1968,48 @@
       });
     }
 
+    function scheduleJobAircraftRespawn(aircraft) {
+      if (!aircraft || !aircraft.ai || aircraft.jobRole !== 'ai-aircraft' || aircraft.jobRespawnScheduled) return;
+      aircraft.jobRespawnScheduled = true;
+      jobAircraftRespawns.push({ source: aircraft, readyAt: performance.now() + 1400 });
+    }
+
+    function updateJobAircraftRespawns(now) {
+      for (let index = jobAircraftRespawns.length - 1; index >= 0; index--) {
+        const entry = jobAircraftRespawns[index];
+        if (now < entry.readyAt) continue;
+        const source = entry.source;
+        const mesh = airportPlaneTemplate.children[0].clone(true);
+        mesh.position.set(JOB_VEHICLE_GARAGE.x, 132, JOB_VEHICLE_GARAGE.z);
+        mesh.scale.setScalar(0.72);
+        scene.add(mesh);
+        const driver = createSeatedDriver(mesh, 0, 0.15, 14, 0.42);
+        applyPilotUniform(driver);
+        driver.task = 'pilot';
+        airplanes.push({
+          mesh,
+          driver,
+          parked: false,
+          ai: true,
+          jobRole: 'ai-aircraft',
+          jobIndex: source.jobIndex,
+          jobPhase: 'dispatching',
+          mass: source.mass,
+          speed: source.speed,
+          heading: source.heading,
+          pitch: 0,
+          verticalSpeed: 0,
+          health: 1000,
+          phase: source.phase,
+          centerX: source.centerX,
+          centerZ: source.centerZ,
+          radius: source.radius,
+          cruiseAltitude: source.cruiseAltitude
+        });
+        jobAircraftRespawns.splice(index, 1);
+      }
+    }
+
     function createRoad(x, z, width, depth) {
       if (depth > width && Math.abs(x - RIVER_X) < width / 2 + RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT) {
         x = x < RIVER_X
@@ -1707,12 +2021,14 @@
       const riverStartX = RIVER_X - RIVER_WIDTH / 2 - WATERWAY_KEEP_OUT;
       const riverEndX = RIVER_X + RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT;
       const crossesRiver = width > depth && roadStartX < riverEndX && roadEndX > riverStartX;
-      const hasBridge = riverBridgeCenters.some((center) => Math.abs(z - center) <= depth / 2 + 11);
+      const hasBridge = riverBridgeCenters.some((center) => Math.abs(z - center) <= depth / 2 + RIVER_BRIDGE_DECK_DEPTH / 2);
       let roadSegments = [{ x, width }];
-      if (crossesRiver && !hasBridge) {
+      if (crossesRiver) {
+        const crossingStart = hasBridge ? RIVER_X - RIVER_BRIDGE_DECK_WIDTH / 2 : riverStartX;
+        const crossingEnd = hasBridge ? RIVER_X + RIVER_BRIDGE_DECK_WIDTH / 2 : riverEndX;
         roadSegments = [
-          { x: (roadStartX + Math.min(roadEndX, riverStartX)) / 2, width: Math.max(0, Math.min(roadEndX, riverStartX) - roadStartX) },
-          { x: (Math.max(roadStartX, riverEndX) + roadEndX) / 2, width: Math.max(0, roadEndX - Math.max(roadStartX, riverEndX)) }
+          { x: (roadStartX + Math.min(roadEndX, crossingStart)) / 2, width: Math.max(0, Math.min(roadEndX, crossingStart) - roadStartX) },
+          { x: (Math.max(roadStartX, crossingEnd) + roadEndX) / 2, width: Math.max(0, roadEndX - Math.max(roadStartX, crossingEnd)) }
         ].filter((segment) => segment.width > 0.1);
       }
       roadSegments.forEach((segment) => {
@@ -1732,7 +2048,8 @@
       for (let offset = -halfWidth + 8; offset < halfWidth; offset += 14) {
         const dash = new THREE.Mesh(new THREE.BoxGeometry(width > depth ? 7 : 1.2, 0.02, width > depth ? 1.2 : 7), laneMat);
         if (width > depth) dash.position.set(x + offset, 0.11, z); else dash.position.set(x, 0.11, z + offset);
-        if (crossesRiver && !hasBridge && width > depth && Math.abs(dash.position.x - RIVER_X) < RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT + 3) continue;
+        const roadGapHalfWidth = hasBridge ? RIVER_BRIDGE_DECK_WIDTH / 2 : RIVER_WIDTH / 2 + WATERWAY_KEEP_OUT + 3;
+        if (crossesRiver && width > depth && Math.abs(dash.position.x - RIVER_X) < roadGapHalfWidth) continue;
         cityRoot.add(dash);
       }
       const edgeOffset = width > depth ? width / 2 + 1.8 : depth / 2 + 1.8;
@@ -2385,7 +2702,7 @@
     }
 
     function setVehicleVisualMode(car, regularMode) {
-      if (!car || !car.mainBody || !car.profile) return;
+      if (!car || car.isMotorcycle || !car.mainBody || !car.profile) return;
       if (regularMode) {
         if (!car.regularBodyGeometry) car.regularBodyGeometry = createRoundedVehicleGeometry(car.profile.width, car.profile.height, car.profile.length);
         if (!car.regularCabinGeometry) car.regularCabinGeometry = createRoundedVehicleGeometry(car.profile.cabinWidth, car.profile.cabinHeight, car.profile.cabinLength);
@@ -2426,7 +2743,146 @@
       });
     }
 
+    function createMotorcycleModel(color) {
+      if (!createMotorcycleModel.shared) {
+        createMotorcycleModel.shared = {
+          tireGeometry: new THREE.TorusGeometry(0.34, 0.09, 8, 18),
+          rimGeometry: new THREE.TorusGeometry(0.22, 0.025, 6, 16),
+          tireMaterial: new THREE.MeshStandardMaterial({ color: 0x171b1f, roughness: 0.92 }),
+          metalMaterial: new THREE.MeshStandardMaterial({ color: 0x9da8ac, metalness: 0.84, roughness: 0.3 }),
+          frameMaterial: new THREE.MeshStandardMaterial({ color: 0x303940, metalness: 0.68, roughness: 0.38 }),
+          engineMaterial: new THREE.MeshStandardMaterial({ color: 0x697378, metalness: 0.82, roughness: 0.34 }),
+          seatMaterial: new THREE.MeshStandardMaterial({ color: 0x202428, roughness: 0.74 })
+        };
+      }
+      const shared = createMotorcycleModel.shared;
+      const group = new THREE.Group();
+      const bodyMaterial = new THREE.MeshStandardMaterial({ color, metalness: 0.72, roughness: 0.25 });
+      const mainBody = new THREE.Mesh(new THREE.SphereGeometry(0.36, 16, 12), bodyMaterial);
+      mainBody.position.set(0, 1.22, 0.08);
+      mainBody.scale.set(0.9, 0.56, 1.22);
+      mainBody.castShadow = true;
+      group.add(mainBody);
+
+      const tires = new THREE.InstancedMesh(shared.tireGeometry, shared.tireMaterial, 2);
+      const rims = new THREE.InstancedMesh(shared.rimGeometry, shared.metalMaterial, 2);
+      const wheelTransform = new THREE.Object3D();
+      [-0.78, 0.78].forEach((wheelZ, index) => {
+        wheelTransform.position.set(0, 0.42, wheelZ);
+        wheelTransform.rotation.set(0, Math.PI / 2, 0);
+        wheelTransform.updateMatrix();
+        tires.setMatrixAt(index, wheelTransform.matrix);
+        rims.setMatrixAt(index, wheelTransform.matrix);
+      });
+      tires.instanceMatrix.needsUpdate = true;
+      rims.instanceMatrix.needsUpdate = true;
+      group.add(tires, rims);
+
+      const engine = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.4, 0.5), shared.engineMaterial);
+      engine.position.set(0, 0.76, -0.08);
+      group.add(engine);
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.15, 0.66), shared.seatMaterial);
+      seat.position.set(0, 1.12, -0.48);
+      group.add(seat);
+      const tank = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), bodyMaterial);
+      tank.position.set(0, 1.32, 0.18);
+      tank.scale.set(0.78, 0.66, 1.1);
+      group.add(tank);
+
+      const frameGeometry = new THREE.CylinderGeometry(0.035, 0.035, 1, 7);
+      const addFrameBar = (start, end, material = shared.frameMaterial, radius = 0.035) => {
+        const direction = new THREE.Vector3(end[0] - start[0], end[1] - start[1], end[2] - start[2]);
+        const bar = new THREE.Mesh(radius === 0.035 ? frameGeometry : new THREE.CylinderGeometry(radius, radius, 1, 7), material);
+        bar.position.set((start[0] + end[0]) / 2, (start[1] + end[1]) / 2, (start[2] + end[2]) / 2);
+        bar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+        bar.scale.y = direction.length();
+        bar.castShadow = true;
+        group.add(bar);
+      };
+      [-1, 1].forEach((side) => {
+        addFrameBar([side * 0.14, 0.5, -0.78], [side * 0.14, 0.78, -0.08]);
+        addFrameBar([side * 0.14, 0.78, -0.08], [side * 0.14, 1.22, 0.72]);
+        addFrameBar([side * 0.14, 0.5, 0.72], [side * 0.14, 1.22, 0.72], shared.metalMaterial, 0.045);
+      });
+      addFrameBar([-0.18, 0.8, -0.08], [0.18, 0.8, -0.08]);
+
+      const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.92, 10), shared.metalMaterial);
+      exhaust.rotation.x = Math.PI / 2;
+      exhaust.position.set(0.27, 0.58, -0.55);
+      group.add(exhaust);
+      const handleBar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.92, 8), shared.frameMaterial);
+      handleBar.rotation.z = Math.PI / 2;
+      handleBar.position.set(0, 1.31, 0.82);
+      group.add(handleBar);
+      [-1, 1].forEach((side) => {
+        const mirrorArm = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.38, 6), shared.frameMaterial);
+        mirrorArm.position.set(side * 0.28, 1.51, 0.84);
+        mirrorArm.rotation.z = side * 0.72;
+        group.add(mirrorArm);
+        const mirror = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), shared.metalMaterial);
+        mirror.position.set(side * 0.46, 1.68, 0.92);
+        mirror.scale.set(1.2, 0.7, 0.4);
+        group.add(mirror);
+      });
+
+      const headlightMaterial = new THREE.MeshStandardMaterial({ color: 0x59636e, emissive: 0xfff1c2, emissiveIntensity: 0, roughness: 0.25, metalness: 0.18 });
+      const lampHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.14, 20), shared.frameMaterial);
+      lampHousing.rotation.x = Math.PI / 2;
+      lampHousing.position.set(0, 1.25, 0.99);
+      group.add(lampHousing);
+      const headlight = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), headlightMaterial);
+      headlight.position.set(0, 1.25, 1.075);
+      group.add(headlight);
+      const rearLightMaterial = new THREE.MeshStandardMaterial({ color: 0x451116, emissive: 0xff1d2d, emissiveIntensity: 0.3, roughness: 0.3 });
+      const rearLight = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.13, 0.08), rearLightMaterial);
+      rearLight.position.set(0, 0.92, -1.0);
+      group.add(rearLight);
+
+      const plateText = Array.from({ length: 2 }, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]).join('') + '-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+      const plateCanvas = document.createElement('canvas');
+      plateCanvas.width = 320;
+      plateCanvas.height = 112;
+      const plateContext = plateCanvas.getContext('2d');
+      plateContext.fillStyle = '#f0f1eb';
+      plateContext.fillRect(0, 0, plateCanvas.width, plateCanvas.height);
+      plateContext.strokeStyle = '#202a30';
+      plateContext.lineWidth = 8;
+      plateContext.strokeRect(4, 4, plateCanvas.width - 8, plateCanvas.height - 8);
+      plateContext.fillStyle = '#18232a';
+      plateContext.font = 'bold 64px monospace';
+      plateContext.textAlign = 'center';
+      plateContext.textBaseline = 'middle';
+      plateContext.fillText(plateText, plateCanvas.width / 2, plateCanvas.height / 2);
+      const plateTexture = new THREE.CanvasTexture(plateCanvas);
+      plateTexture.encoding = THREE.sRGBEncoding;
+      const plateGroup = new THREE.Group();
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.2), new THREE.MeshStandardMaterial({ map: plateTexture, roughness: 0.64 }));
+      plate.position.y = 0.72;
+      plate.rotation.y = Math.PI;
+      plateGroup.add(plate);
+      plateGroup.position.set(0, 0, -1.15);
+      group.add(plateGroup);
+
+      const profile = { width: 0.9, height: 1.35, length: 2.5, cabinWidth: 0, cabinHeight: 0, cabinLength: 0, cabinY: 0, wheelX: 0.4, wheelZ: 0.78, mass: 58 };
+      const body = new CANNON.Body({ mass: profile.mass, material: new CANNON.Material('car') });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(0.42, 0.52, 1.18)));
+      body.position.set(0, 1.2, 0);
+      body.linearDamping = 0.12;
+      body.angularDamping = 0.48;
+      world.addBody(body);
+      return {
+        mesh: group, body, type: 'motorcycle', profile, mainBody, cabin: null, detailGroup: new THREE.Group(),
+        baseBodyGeometry: mainBody.geometry, baseCabinGeometry: null, regularBodyGeometry: null, regularCabinGeometry: null,
+        isPlow: false, isMotorcycle: true, color, originalBodyColor: new THREE.Color(color), speed: 0, steer: 0,
+        target: null, npc: false, parked: false, owner: null, driver: null, headlights: [headlight], headlightMaterial,
+        rearLights: [rearLight], rearLightMaterial, licensePlate: plateText, plateGroup, plateDropped: false, plateTexture,
+        crashFlashUntil: 0, treeCollisionGrace: null, inside: false, canEnter: true, fuel: Infinity, maxFuel: Infinity,
+        rampLift: 0, airborne: false, health: 100, destroyed: false, lastCrashEffectAt: -Infinity, trackDistance: 0, trackPosition: null, onFire: false
+      };
+    }
+
     function createVehicleModel(type, color) {
+      if (type === 'motorcycle') return createMotorcycleModel(color);
       const group = new THREE.Group();
       const profiles = {
         sedan: { width: 2.2, height: 0.72, length: 4.2, cabinWidth: 1.7, cabinHeight: 0.58, cabinLength: 2.2, cabinY: 1.28, wheelX: 1.05, wheelZ: 1.2, mass: 100 },
@@ -2440,7 +2896,7 @@
         ambulance: { width: 2.4, height: 1.02, length: 4.9, cabinWidth: 2.08, cabinHeight: 0.98, cabinLength: 3.0, cabinY: 1.57, wheelX: 1.08, wheelZ: 1.48, mass: 180 }
       };
       const profile = profiles[type] || profiles.sedan;
-      const bodyColor = type === 'taxi' ? 0xfacc15 : type === 'sports' ? 0xe11d48 : type === 'plow' ? 0xe6a719 : color;
+      const bodyColor = type === 'taxi' ? 0xfacc15 : type === 'plow' ? 0xe6a719 : color;
       const baseBodyGeometry = new THREE.BoxGeometry(profile.width, profile.height, profile.length);
       const mainBody = new THREE.Mesh(baseBodyGeometry, new THREE.MeshStandardMaterial({ color: bodyColor, metalness: 0.52, roughness: 0.3 }));
       mainBody.position.y = 0.8; group.add(mainBody);
@@ -2555,6 +3011,64 @@
       return car;
     }
 
+    function addRaceCarVisuals(car, index) {
+      const raceAccents = [0xf4f5f2, 0xe34243, 0xf4d24a, 0x101820, 0x42d5c7];
+      const accentColor = raceAccents[index % raceAccents.length];
+      const group = new THREE.Group();
+      const carbon = new THREE.MeshStandardMaterial({ color: 0x151b1e, metalness: 0.34, roughness: 0.68 });
+      const accent = new THREE.MeshStandardMaterial({ color: accentColor, metalness: 0.2, roughness: 0.48 });
+      const addBox = (width, height, depth, material, x, y, z) => {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = !webOptimizer.lowLag;
+        mesh.receiveShadow = !webOptimizer.lowLag;
+        group.add(mesh);
+        return mesh;
+      };
+
+      addBox(2.18, 0.075, 0.48, carbon, 0, 0.49, 2.02);
+      [-1, 1].forEach((side) => {
+        addBox(0.11, 0.13, 2.35, carbon, side * 1.0, 0.55, 0.02);
+        addBox(0.13, 0.035, 1.52, accent, side * 0.25, 1.12, 0.94);
+        addBox(0.065, 0.16, 0.08, carbon, side * 0.68, 1.48, -1.56);
+        addBox(0.035, 0.055, 2.25, accent, side * 1.012, 1.0, -0.18);
+      });
+      addBox(2.16, 0.12, 0.32, accent, 0, 1.66, -1.62);
+      addBox(0.34, 0.035, 0.4, carbon, 0, 1.13, 1.18);
+
+      const numberCanvas = document.createElement('canvas');
+      numberCanvas.width = 256;
+      numberCanvas.height = 192;
+      const numberContext = numberCanvas.getContext('2d');
+      numberContext.fillStyle = '#f5f5f1';
+      numberContext.fillRect(8, 8, 240, 176);
+      numberContext.strokeStyle = '#' + accentColor.toString(16).padStart(6, '0');
+      numberContext.lineWidth = 14;
+      numberContext.strokeRect(14, 14, 228, 164);
+      numberContext.fillStyle = '#101820';
+      numberContext.font = '900 132px Arial';
+      numberContext.textAlign = 'center';
+      numberContext.textBaseline = 'middle';
+      numberContext.fillText(String(index + 1).padStart(2, '0'), 128, 98);
+      const numberTexture = new THREE.CanvasTexture(numberCanvas);
+      const numberMaterial = new THREE.MeshBasicMaterial({ map: numberTexture, side: THREE.DoubleSide, toneMapped: false });
+      [-1, 1].forEach((side) => {
+        const numberPanel = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.5), numberMaterial);
+        numberPanel.position.set(side * 1.035, 0.98, 0.24);
+        numberPanel.rotation.y = side * Math.PI / 2;
+        group.add(numberPanel);
+      });
+      group.traverse((part) => {
+        if (!part.isMesh) return;
+        part.castShadow = !webOptimizer.lowLag;
+        part.receiveShadow = !webOptimizer.lowLag;
+      });
+      car.mesh.add(group);
+      car.raceVisuals = group;
+      car.raceNumber = index + 1;
+      car.raceAccent = accentColor;
+    }
+
     const randomCivilianCarTypes = ['sedan', 'taxi', 'sports', 'hatchback', 'suv', 'pickup', 'van'];
     const randomCivilianCarColors = [0x2563eb, 0xf97316, 0x16a34a, 0xfacc15, 0xdc2626, 0xe5e7eb, 0x111827, 0x0891b2, 0xf472b6];
 
@@ -2603,6 +3117,17 @@
 
     function updateCarHeadlights(car, now) {
       if (!car || car.destroyed || !car.headlightMaterial) return;
+      if (car.isMotorcycle) {
+        const damaged = car.health < 100;
+        const blinking = damaged || now < car.crashFlashUntil;
+        const blinkOn = Math.floor(now / 180) % 2 === 0;
+        const movingFastEnough = Math.abs(car.speed) * 2.237 > 10;
+        const headlightOn = blinking ? blinkOn : movingFastEnough;
+        car.headlightMaterial.color.setHex(headlightOn ? 0xfff1c2 : 0x59636e);
+        car.headlightMaterial.emissiveIntensity = headlightOn ? (blinking ? 3.2 : 1.8) : 0;
+        car.rearLightMaterial.emissiveIntensity = blinking ? (blinkOn ? 2.8 : 0.1) : 0.45;
+        return;
+      }
       if (car.isPolice && car.policeLights) {
         const flashPhase = Math.floor(now / 180) % 2;
         car.policeLights[0].material.emissiveIntensity = car.sirenActive && flashPhase === 0 ? 3.5 : 0.15;
@@ -2660,7 +3185,6 @@
       while (parkedCount < count && attempts < count * 50) {
         attempts++;
         const road = roads[Math.floor(Math.random() * roads.length)];
-        if (!road) break;
         const horizontal = road.halfWidth > road.halfDepth;
         const roadHalfWidth = horizontal ? road.halfDepth : road.halfWidth;
         const roadHalfLength = horizontal ? road.halfWidth : road.halfDepth;
@@ -2701,6 +3225,60 @@
       car.body.quaternion.setFromEuler(0, yaw, 0);
       car.mesh.position.copy(car.body.position);
       showMessage('Car spawned nearby. Click it to drive.');
+    }
+
+    function spawnPlayerMotorcycle() {
+      if (!gameStarted || controlledVehicle || controlledAirplane || controlledBoat) return;
+      const origin = playerState.position;
+      const yaw = playerState.yaw;
+      let position = null;
+      for (const distance of [5, 7, 9, 12]) {
+        const x = origin.x + Math.sin(yaw) * distance;
+        const z = origin.z + Math.cos(yaw) * distance;
+        const occupied = cars.some((car) => !car.destroyed && Math.hypot(car.body.position.x - x, car.body.position.z - z) < 4.2);
+        if (!occupied && !pointIsInsideBuildingRect(x, z, 1.2)) { position = { x, z }; break; }
+      }
+      if (!position) {
+        showMessage('No room to spawn a motorcycle nearby.');
+        return;
+      }
+      const color = [0xd32f2f, 0x1565c0, 0x1f783e, 0x33383e, 0xe6a823][Math.floor(Math.random() * 5)];
+      const motorcycle = createCar(position.x, position.z, color, true, false, 'motorcycle');
+      motorcycle.owner = 'player';
+      motorcycle.mesh.rotation.y = yaw;
+      motorcycle.body.position.set(position.x, 1.2, position.z);
+      motorcycle.body.quaternion.setFromEuler(0, yaw, 0);
+      motorcycle.mesh.position.copy(motorcycle.body.position);
+      showMessage('Motorcycle spawned. Click it to ride.');
+    }
+
+    function createParkedMotorcycles(count = 25) {
+      const routeCandidates = asphaltAreas.filter((area) =>
+        Math.min(area.halfWidth, area.halfDepth) >= 7 &&
+        Math.min(area.halfWidth, area.halfDepth) <= 11 &&
+        Math.max(area.halfWidth, area.halfDepth) >= 70
+      );
+      const colors = [0xc62828, 0x225ca8, 0x277446, 0x303940, 0xdd9e18, 0x8d3e7b];
+      let created = 0;
+      for (let attempt = 0; attempt < count * 12 && created < count; attempt++) {
+        const area = routeCandidates[Math.floor(Math.random() * routeCandidates.length)];
+        if (!area) break;
+        const horizontal = area.halfWidth > area.halfDepth;
+        const along = (Math.random() * 2 - 1) * Math.max(0, (horizontal ? area.halfWidth : area.halfDepth) - 14);
+        const side = Math.random() < 0.5 ? -1 : 1;
+        const offset = (horizontal ? area.halfDepth : area.halfWidth) + 2.8;
+        const x = horizontal ? area.x + along : area.x + side * offset;
+        const z = horizontal ? area.z + side * offset : area.z + along;
+        if (pointIsInsideBuildingRect(x, z, 1.4) || cars.some((car) => !car.destroyed && Math.hypot(car.body.position.x - x, car.body.position.z - z) < 4.5)) continue;
+        const color = colors[created % colors.length];
+        const bike = createCar(x, z, color, false, true, 'motorcycle');
+        bike.mesh.rotation.y = horizontal ? (side < 0 ? Math.PI / 2 : -Math.PI / 2) : (side < 0 ? 0 : Math.PI);
+        bike.body.position.set(x, 1.2, z);
+        bike.body.quaternion.setFromEuler(0, bike.mesh.rotation.y, 0);
+        bike.mesh.position.copy(bike.body.position);
+        created++;
+      }
+      return created;
     }
 
     function isOnAsphalt(x, z) {
@@ -2873,18 +3451,27 @@
         scene.remove(oldest.mesh);
         oldest.mesh.material.dispose();
       }
+      const smokeColors = [0x343638, 0x4b4e50, 0x686966, 0x817d74];
+      const baseOpacity = 0.32 + Math.random() * 0.22;
       const mesh = new THREE.Mesh(
         smokeParticleGeometry,
-        new THREE.MeshBasicMaterial({ color: 0x62686a, transparent: true, opacity: 0.56, depthWrite: false })
+        new THREE.MeshBasicMaterial({
+          color: smokeColors[Math.floor(Math.random() * smokeColors.length)],
+          transparent: true,
+          opacity: baseOpacity,
+          depthWrite: false
+        })
       );
       mesh.position.set(x, y, z);
-      mesh.scale.setScalar(0.7 + Math.random() * 0.45);
+      const scale = 0.65 + Math.random() * 0.7;
+      mesh.scale.set(scale, scale * (1.1 + Math.random() * 0.45), scale);
       scene.add(mesh);
       smokeParticles.push({
         mesh,
-        velocity: new THREE.Vector3((Math.random() - 0.5) * 0.8, 1.1 + Math.random() * 1.2, (Math.random() - 0.5) * 0.8),
+        velocity: new THREE.Vector3((Math.random() - 0.5) * 1.2, 0.85 + Math.random() * 1.15, (Math.random() - 0.5) * 1.2),
         createdAt: performance.now(),
-        lifetime: 900 + Math.random() * 550
+        lifetime: 1600 + Math.random() * 900,
+        baseOpacity
       });
     }
 
@@ -2931,16 +3518,33 @@
       }
     }
 
+    function addFlickeringFlame(group, mesh) {
+      if (!group.userData.flames) group.userData.flames = [];
+      group.userData.flames.push({
+        mesh,
+        basePosition: mesh.position.clone(),
+        baseScale: mesh.scale.clone(),
+        baseRotation: mesh.rotation.clone(),
+        phase: Math.random() * Math.PI * 2
+      });
+      group.add(mesh);
+    }
+
     function createFireEffect(car, x, z, lifetime) {
       const group = new THREE.Group();
       const outer = new THREE.Mesh(fireOuterGeometry, fireMaterial);
       outer.position.y = 1.05;
       const inner = new THREE.Mesh(fireInnerGeometry, innerFireMaterial);
       inner.position.y = 0.72;
-      group.add(outer, inner);
+      const sideTongue = new THREE.Mesh(fireOuterGeometry, fireMaterial);
+      sideTongue.position.set(0.28, 0.56, -0.08);
+      sideTongue.scale.setScalar(0.56);
+      addFlickeringFlame(group, outer);
+      addFlickeringFlame(group, inner);
+      addFlickeringFlame(group, sideTongue);
       group.position.set(x, 0, z);
       scene.add(group);
-      fireEffects.push({ group, car, x, y: 0, z, smokeOffset: 1.8, smokeInterval: 190, createdAt: performance.now(), lifetime, nextSmokeAt: 0, flickerAt: 0 });
+      fireEffects.push({ group, flames: group.userData.flames, car, x, y: 0, z, smokeOffset: 1.8, smokeInterval: 190, createdAt: performance.now(), lifetime, nextSmokeAt: 0, flickerAt: 0 });
       if (car) car.onFire = true;
     }
 
@@ -2953,7 +3557,8 @@
         const inner = new THREE.Mesh(fireInnerGeometry, innerFireMaterial);
         inner.position.set(x, y + 0.72 * size, z);
         inner.scale.setScalar(size);
-        group.add(outer, inner);
+        addFlickeringFlame(group, outer);
+        addFlickeringFlame(group, inner);
       };
 
       if (engulfed) {
@@ -2988,6 +3593,7 @@
       scene.add(group);
       fireEffects.push({
         group,
+        flames: group.userData.flames,
         car: null,
         x: box.x,
         y: 0,
@@ -3035,7 +3641,7 @@
         particle.velocity.y += 0.35 * dt;
         particle.mesh.position.addScaledVector(particle.velocity, dt);
         particle.mesh.scale.multiplyScalar(1 + dt * 0.65);
-        particle.mesh.material.opacity = 0.56 * (1 - age / particle.lifetime);
+        particle.mesh.material.opacity = particle.baseOpacity * (1 - age / particle.lifetime);
       }
 
       for (let index = fireEffects.length - 1; index >= 0; index--) {
@@ -3056,9 +3662,28 @@
         }
         fire.group.position.set(fire.x, fire.y || 0, fire.z);
         if (now >= fire.flickerAt) {
-          fire.flickerAt = now + 75;
-          fire.group.scale.set(0.82 + Math.random() * 0.35, 0.85 + Math.random() * 0.5, 0.82 + Math.random() * 0.35);
-          fire.group.rotation.y += (Math.random() - 0.5) * 0.4;
+          fire.flickerAt = now + 45;
+          fire.group.rotation.y = Math.sin(now * 0.002) * 0.045;
+          (fire.flames || []).forEach((flame) => {
+            const wave = now * 0.012 + flame.phase;
+            const widthPulse = 0.88 + Math.sin(wave) * 0.14;
+            const heightPulse = 0.84 + (Math.sin(wave * 1.43) + 1) * 0.16;
+            flame.mesh.scale.set(
+              flame.baseScale.x * widthPulse,
+              flame.baseScale.y * heightPulse,
+              flame.baseScale.z * widthPulse
+            );
+            flame.mesh.position.set(
+              flame.basePosition.x + Math.sin(wave * 0.73) * 0.055,
+              flame.basePosition.y + Math.max(0, Math.sin(wave * 1.61)) * 0.09,
+              flame.basePosition.z + Math.cos(wave) * 0.035
+            );
+            flame.mesh.rotation.set(
+              flame.baseRotation.x,
+              flame.baseRotation.y,
+              flame.baseRotation.z + Math.sin(wave) * 0.075
+            );
+          });
         }
         if (now >= fire.nextSmokeAt) {
           fire.nextSmokeAt = now + (fire.smokeInterval || 190);
@@ -3112,6 +3737,7 @@
         Math.hypot(fire.x - wreckX, fire.z - wreckZ) < 2 &&
         performance.now() - fire.createdAt < fire.lifetime
       );
+      scheduleJobVehicleRespawn(car);
       car.destroyed = true;
       world.removeBody(car.body);
       if (gameSettings.destruction) {
@@ -3141,6 +3767,171 @@
         syncActiveMode();
       }
       showMessage('Vehicle wrecked.');
+    }
+
+    function scheduleJobVehicleRespawn(car) {
+      if (!car || !car.jobRole || car.jobRespawnScheduled) return;
+      car.jobRespawnScheduled = true;
+      jobVehicleRespawns.push({
+        sourceCar: car,
+        role: car.jobRole,
+        readyAt: performance.now() + 1400,
+        replacement: null,
+        hadRaceDriver: !!car.driver
+      });
+      if (car.isRaceCar && raceTrack && raceTrack.stolenCar === car) {
+        raceTrack.phase = 'racing';
+        raceTrack.stolenCar = null;
+        raceTrack.recoveryCar = null;
+        raceTrack.recoveryAgent = null;
+        raceTrack.canTrigger = false;
+      }
+    }
+
+    function moveJobVehicleToTarget(car, target, dt, speed = 22) {
+      const direction = new THREE.Vector3(target.x - car.body.position.x, 0, target.z - car.body.position.z);
+      const distance = direction.length();
+      if (distance <= 4) {
+        car.body.velocity.set(0, 0, 0);
+        car.speed = 0;
+        return true;
+      }
+      direction.normalize();
+      const step = Math.min(distance - 4, speed * dt);
+      car.body.position.x += direction.x * step;
+      car.body.position.z += direction.z * step;
+      car.body.position.y = 1.2;
+      car.mesh.position.copy(car.body.position);
+      car.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+      car.body.velocity.set(0, 0, 0);
+      car.speed = speed;
+      return false;
+    }
+
+    function createJobVehicleReplacement(entry) {
+      const sourceCar = entry.sourceCar;
+      let type = sourceCar.type;
+      let color = sourceCar.color;
+      if (entry.role === 'race-car') color = sourceCar.jobColor;
+      if (entry.role === 'police') { type = 'suv'; color = 0x142b42; }
+      if (entry.role === 'ambulance') { type = 'ambulance'; color = 0xf8fafc; }
+      if (entry.role === 'debris-plow') { type = 'plow'; color = 0xe6a719; }
+      const garageBay = nextJobVehicleGarageBay++ % 8;
+      const garageX = JOB_VEHICLE_GARAGE.x + (garageBay % 4 - 1.5) * 3.5;
+      const garageZ = JOB_VEHICLE_GARAGE.z + Math.floor(garageBay / 4) * 4.5;
+      const car = createCar(garageX, garageZ, color, false, false, type);
+      car.jobRole = entry.role;
+      car.jobPhase = 'dispatching';
+      car.jobRespawnScheduled = false;
+
+      if (entry.role === 'race-car') {
+        car.isRaceCar = true;
+        car.jobIndex = sourceCar.jobIndex;
+        car.jobColor = sourceCar.jobColor;
+        sourceCar.jobReplacement = car;
+        car.raceAngle = sourceCar.raceGridAngle;
+        car.raceGridAngle = sourceCar.raceGridAngle;
+        car.raceLaneRadius = sourceCar.raceLaneRadius;
+        car.raceDirection = sourceCar.raceDirection;
+        car.raceSpeedMph = sourceCar.raceSpeedMph;
+        addRaceCarVisuals(car, car.jobIndex);
+        if (sourceCar.driver) {
+          seatRaceDriverInCar(car, sourceCar.driver);
+        } else if (entry.hadRaceDriver || !raceTrack || raceTrack.phase !== 'confrontation') {
+          car.driver = createSeatedDriver(car.mesh, 0, -0.08, 0.12, 0.58);
+          applyRacingUniform(car.driver, car.jobIndex);
+        }
+        world.removeBody(car.body);
+      } else if (entry.role === 'police') {
+        configurePoliceCar(car);
+        const unit = sourceCar.policeUnit;
+        car.policeUnit = unit;
+        if (unit) {
+          const previousCarIndex = npcCars.indexOf(sourceCar);
+          if (previousCarIndex >= 0) npcCars.splice(previousCarIndex, 1);
+          unit.car = car;
+          unit.resumePhase = unit.resumePhase || unit.phase;
+          unit.phase = 'respawning';
+          unit.path = [];
+          npcCars.push(car);
+        }
+      } else if (entry.role === 'ambulance') {
+        attachAmbulanceLights(car);
+        car.isAmbulance = true;
+        car.medicalLights = true;
+        car.owner = 'medical';
+        car.body.mass = 220;
+        car.body.updateMassProperties();
+        medicalRescueState.ambulance = car;
+        medicalRescueState.dispatching = true;
+        medicalRescueState.patientLoaded = false;
+        medicalRescueState.awaitingAmbulance = false;
+      } else if (entry.role === 'debris-plow') {
+        car.isPlow = true;
+        car.jobHome = sourceCar.jobHome || { x: 535, z: 540 };
+        debrisPlowVehicle = car;
+      }
+      entry.replacement = car;
+      return car;
+    }
+
+    function updateJobVehicleRespawns(dt, now) {
+      updateJobAircraftRespawns(now);
+      for (let index = jobVehicleRespawns.length - 1; index >= 0; index--) {
+        const entry = jobVehicleRespawns[index];
+        if (now < entry.readyAt) continue;
+        if (entry.replacement && entry.replacement.destroyed) {
+          jobVehicleRespawns.splice(index, 1);
+          continue;
+        }
+        const car = entry.replacement || createJobVehicleReplacement(entry);
+        if (entry.role === 'police') {
+          jobVehicleRespawns.splice(index, 1);
+          continue;
+        }
+
+        let target;
+        if (entry.role === 'race-car') {
+          target = {
+            x: raceTrack.center.x + Math.cos(car.raceGridAngle) * car.raceLaneRadius,
+            z: raceTrack.center.z + Math.sin(car.raceGridAngle) * car.raceLaneRadius
+          };
+        } else if (entry.role === 'ambulance') {
+          target = medicalRescueState.patientPosition || playerState.position;
+        } else {
+          target = car.jobHome;
+        }
+
+        if (!moveJobVehicleToTarget(car, target, dt, entry.role === 'race-car' ? 32 : 22)) continue;
+
+        if (entry.role === 'race-car') {
+          const angle = car.raceGridAngle;
+          car.body.position.set(target.x, 1.2, target.z);
+          car.mesh.position.copy(car.body.position);
+          car.mesh.rotation.y = Math.atan2(-Math.sin(angle), Math.cos(angle));
+          car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+          car.raceAngle = angle;
+          car.speed = Math.min(car.raceSpeedMph, raceTrack.maxSpeedMph) / 2.237;
+          car.jobPhase = 'racing';
+          raceCars[car.jobIndex] = car;
+          raceTrack.angryDrivers.forEach((driver) => {
+            if (driver.raceCar === entry.sourceCar) driver.raceCar = car;
+          });
+        } else if (entry.role === 'ambulance') {
+          car.jobPhase = 'responding';
+          car.body.position.set(target.x, 1.2, target.z);
+          car.mesh.position.copy(car.body.position);
+          medicalRescueState.dispatching = false;
+        } else if (entry.role === 'debris-plow') {
+          car.jobPhase = 'ready';
+          car.parked = true;
+          car.body.type = CANNON.Body.STATIC;
+          car.body.mass = 0;
+          car.body.updateMassProperties();
+        }
+        jobVehicleRespawns.splice(index, 1);
+      }
     }
 
     function updateVehicleDebris(dt) {
@@ -3436,14 +4227,20 @@
       box.collapsing = true;
       world.removeBody(box.body);
       createWreckageEvent(box.x, box.z, 'building', true);
-      if (makeRubble) createBuildingDebris(box, tiltDirection, impactSpeed);
       const collapseStart = performance.now();
       const collapse = () => {
-        const progress = Math.min((performance.now() - collapseStart) / (makeRubble ? 850 : 1500), 1);
+        const progress = Math.min((performance.now() - collapseStart) / (makeRubble ? 2600 : 2200), 1);
         const easedProgress = progress * progress * (3 - 2 * progress);
-        box.mesh.rotation.z = easedProgress * tiltDirection * (makeRubble ? 0.42 : 0.22);
-        box.mesh.position.y = -easedProgress * (makeRubble ? 1.2 : 5);
-        if (progress < 1) requestAnimationFrame(collapse); else cityRoot.remove(box.mesh);
+        box.mesh.rotation.z = easedProgress * Math.sign(tiltDirection || 1) * Math.PI * 0.49;
+        box.mesh.updateMatrixWorld(true);
+        const worldBounds = new THREE.Box3().setFromObject(box.mesh);
+        if (worldBounds.min.y < 0) box.mesh.position.y -= worldBounds.min.y;
+        if (progress < 1) {
+          requestAnimationFrame(collapse);
+        } else {
+          box.fallen = true;
+          box.fallenAt = performance.now();
+        }
       };
       requestAnimationFrame(collapse);
     }
@@ -3483,6 +4280,8 @@
         new THREE.PlaneGeometry(caveWidth, caveHeight),
         buildingCaveRecessMaterial
       );
+      recess.userData.lowLagOnly = true;
+      recess.visible = webOptimizer.lowLag;
       recess.position.z = -0.04;
       cave.add(recess);
 
@@ -3580,7 +4379,7 @@
       const horizontal = barrier.width > barrier.depth;
       const sectionLength = horizontal ? barrier.width : barrier.depth;
       const pieceCount = Math.min(8, Math.max(3, Math.ceil(sectionLength / 2.5)));
-      const material = barrier.kind === 'park-fence' ? parkFenceMaterial : barrier.mesh.material;
+      const material = barrier.kind === 'park-fence' ? parkFenceMaterial : barrier.material || barrier.mesh.material;
       for (let index = 0; index < pieceCount; index++) {
         const pieceLength = sectionLength / pieceCount;
         const offset = -sectionLength / 2 + pieceLength * (index + 0.5);
@@ -3602,7 +4401,8 @@
           lifetime: getDebrisLifetime()
         });
       }
-      showMessage(barrier.kind === 'park-fence' ? 'Fence section smashed open.' : 'Airport wall section smashed open.');
+      const message = barrier.kind === 'river-fence' ? 'River fence section smashed open.' : barrier.kind === 'park-fence' ? 'Fence section smashed open.' : 'Airport wall section smashed open.';
+      showMessage(message);
       return true;
     }
 
@@ -3686,8 +4486,11 @@
       return crate;
     }
 
-    function createNPCCar() {
-      const style = getRandomCivilianCarStyle();
+    function createNPCCar(typeOverride = null) {
+      const motorcycleColors = [0xc62828, 0x225ca8, 0x277446, 0x303940, 0xdd9e18, 0x8d3e7b];
+      const style = typeOverride === 'motorcycle'
+        ? { type: 'motorcycle', color: motorcycleColors[Math.floor(Math.random() * motorcycleColors.length)] }
+        : getRandomCivilianCarStyle();
       const direction = Math.random() < 0.5 ? -1 : 1;
       const routeCandidates = asphaltAreas.filter((area) =>
         Math.min(area.halfWidth, area.halfDepth) >= 7 &&
@@ -3726,14 +4529,26 @@
       const car = createCar(x, z, style.color, false, false, style.type);
       car.npc = true;
       car.driver = createSeatedDriver(car.mesh, 0, -0.08, 0.12, 0.58);
+      if (car.isMotorcycle) addMotorcycleRiderHelmet(car.driver);
       car.route = { horizontal, fixed, direction, min, max };
-      car.speed = 8 + Math.random() * 5;
+      car.speed = car.isMotorcycle ? (26 + Math.random() * 8) : 8 + Math.random() * 5;
       car.mesh.rotation.y = horizontal ? direction * Math.PI / 2 : direction < 0 ? Math.PI : 0;
       car.body.position.set(x, 1.2, z);
       car.body.velocity.set(0, 0, 0);
       car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
       car.mesh.position.copy(car.body.position);
       return car;
+    }
+
+    function addMotorcycleRiderHelmet(driver) {
+      const helmet = new THREE.Group();
+      const shell = new THREE.Mesh(new THREE.SphereGeometry(0.27, 12, 10), new THREE.MeshStandardMaterial({ color: 0x26313a, metalness: 0.34, roughness: 0.3 }));
+      shell.position.set(0, 2.02, 0.025);
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.11, 0.22), new THREE.MeshStandardMaterial({ color: 0x687a82, metalness: 0.42, roughness: 0.22, transparent: true, opacity: 0.8 }));
+      visor.position.set(0, 1.99, 0.2);
+      helmet.add(shell, visor);
+      driver.mesh.add(helmet);
+      driver.helmet = helmet;
     }
 
     function getNearestRoadPosition(x, z) {
@@ -3751,10 +4566,9 @@
       return nearest || { x, z };
     }
 
-    function createPoliceUnit(x, z) {
-      const roadPosition = getNearestRoadPosition(x, z);
-      const car = createCar(roadPosition.x, roadPosition.z, 0x142b42, false, false, 'suv');
+    function configurePoliceCar(car) {
       car.isPolice = true;
+      car.jobRole = 'police';
       car.sirenActive = false;
       car.mainBody.material.color.setHex(0x142b42);
       const stripeMaterial = new THREE.MeshStandardMaterial({ color: 0xe5edf2, roughness: 0.68 });
@@ -3778,10 +4592,17 @@
       lightBar.add(redLight, blueLight);
       car.mesh.add(lightBar);
       car.policeLights = [redLight, blueLight];
+    }
+
+    function createPoliceUnit(x, z) {
+      const roadPosition = getNearestRoadPosition(x, z);
+      const car = createCar(roadPosition.x, roadPosition.z, 0x142b42, false, false, 'suv');
+      configurePoliceCar(car);
       car.body.position.set(roadPosition.x, 1.2, roadPosition.z);
       car.mesh.position.copy(car.body.position);
       car.body.velocity.set(0, 0, 0);
       const unit = { car, target: null, officer: null, phase: 'patrol', path: [], pathIndex: 0, pathTimer: 0, arrestAt: 0, patrolTarget: null };
+      car.policeUnit = unit;
       policeUnits.push(unit);
       npcCars.push(car);
       return unit;
@@ -3800,6 +4621,546 @@
       officer.mesh.rotation.y = unit.car.mesh.rotation.y;
       unit.officer = officer;
       return officer;
+    }
+
+    function createPrisonGuards(count = 12) {
+      const guardPositions = [
+        [-27, -22], [-27, 0], [-27, 22], [27, -22], [27, 0], [27, 22],
+        [-15.5, -18], [15.5, -18], [-15.5, -8], [15.5, -8], [-8, 24], [8, 24]
+      ];
+      for (let index = 0; index < count; index++) {
+        const officer = createHuman('A', 'State_Default', true);
+        applyPoliceUniform(officer);
+        officer.task = 'police-officer';
+        officer.state = 'State_Officer';
+        officer.useDevice = false;
+        officer.deviceGroup.visible = false;
+        officer.active = true;
+        officer.isPrisonGuard = true;
+        const [offsetX, offsetZ] = guardPositions[index % guardPositions.length];
+        officer.mesh.position.set(prisonFacility.x + offsetX, 0, prisonFacility.z + offsetZ);
+        officer.mesh.rotation.y = Math.atan2(-offsetX, -offsetZ);
+        officer.speed = 5.6;
+        officer.prisonGuardHome = officer.mesh.position.clone();
+        officer.prisonResponseTo = null;
+        officer.destination.copy(officer.mesh.position);
+        prisonOfficers.push(officer);
+      }
+    }
+
+    function createRaceTrack() {
+      const venueSize = 72;
+      const placement = worldPlacement.reserveNearest(-268, 368, venueSize, venueSize, 'race-track', 0.2) ||
+        worldPlacement.reserve(-268, 368, venueSize, venueSize, 'race-track', 0.2);
+      const center = new THREE.Vector3(placement.x, 0, placement.z);
+      const innerRadius = 21;
+      const outerRadius = 31;
+      const wallRadius = 35.5;
+      const venue = new THREE.Group();
+      venue.position.set(center.x, 0, center.z);
+
+      const asphalt = new THREE.Mesh(new THREE.RingGeometry(innerRadius, outerRadius, 128), new THREE.MeshStandardMaterial({ color: 0x353a3d, roughness: 0.96 }));
+      asphalt.rotation.x = -Math.PI / 2;
+      asphalt.position.y = 0.045;
+      asphalt.receiveShadow = true;
+      venue.add(asphalt);
+      const innerCurb = new THREE.Mesh(new THREE.RingGeometry(20.4, 21.1, 128), new THREE.MeshStandardMaterial({ color: 0xe8ecee, roughness: 0.72 }));
+      innerCurb.rotation.x = -Math.PI / 2;
+      innerCurb.position.y = 0.08;
+      venue.add(innerCurb);
+      const outerCurb = new THREE.Mesh(new THREE.RingGeometry(30.9, 31.6, 128), new THREE.MeshStandardMaterial({ color: 0xd93d38, roughness: 0.72 }));
+      outerCurb.rotation.x = -Math.PI / 2;
+      outerCurb.position.y = 0.085;
+      venue.add(outerCurb);
+
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x40484d, roughness: 0.82, metalness: 0.16 });
+      const wallCount = 64;
+      const wallHeight = 2.4;
+      const wallThickness = 0.7;
+      const wallSegmentLength = Math.PI * 2 * wallRadius / wallCount + 0.28;
+      const gateAngle = Math.PI / 2;
+      const gateHalfAngle = 0.12;
+      for (let wallIndex = 0; wallIndex < wallCount; wallIndex++) {
+        const angle = wallIndex / wallCount * Math.PI * 2;
+        const gateDistance = Math.atan2(Math.sin(angle - gateAngle), Math.cos(angle - gateAngle));
+        if (Math.abs(gateDistance) < gateHalfAngle) continue;
+        const localWallX = Math.cos(angle) * wallRadius;
+        const localWallZ = Math.sin(angle) * wallRadius;
+        const wallX = center.x + localWallX;
+        const wallZ = center.z + localWallZ;
+        const rotationY = angle + Math.PI / 2;
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(wallSegmentLength, wallHeight, wallThickness), wallMaterial);
+        mesh.position.set(localWallX, wallHeight / 2, localWallZ);
+        mesh.rotation.y = rotationY;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        venue.add(mesh);
+        const body = new CANNON.Body({ mass: 0 });
+        body.addShape(new CANNON.Box(new CANNON.Vec3(wallSegmentLength / 2, wallHeight / 2, wallThickness / 2)));
+        body.position.set(wallX, wallHeight / 2, wallZ);
+        body.quaternion.setFromEuler(0, rotationY, 0);
+        world.addBody(body);
+        const halfX = Math.abs(Math.cos(rotationY)) * wallSegmentLength / 2 + Math.abs(Math.sin(rotationY)) * wallThickness / 2;
+        const halfZ = Math.abs(Math.sin(rotationY)) * wallSegmentLength / 2 + Math.abs(Math.cos(rotationY)) * wallThickness / 2;
+        worldBarriers.push({
+          x: wallX, z: wallZ, width: halfX * 2, depth: halfZ * 2, height: wallHeight, y: wallHeight / 2,
+          kind: 'race-track-wall', breakable: false, health: Infinity,
+          minX: wallX - halfX, maxX: wallX + halfX, minZ: wallZ - halfZ, maxZ: wallZ + halfZ,
+          mesh, body
+        });
+      }
+
+      const gatePosts = new THREE.MeshStandardMaterial({ color: 0xf1f3f4, roughness: 0.7 });
+      [-5, 5].forEach((offset) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.8, 3.8, 1.0), gatePosts);
+        post.position.set(offset, 1.9, wallRadius);
+        venue.add(post);
+      });
+
+      const lobby = new THREE.Group();
+      const lobbyWall = new THREE.MeshStandardMaterial({ color: 0xd5d0c4, roughness: 0.86 });
+      const lobbyRoofMaterial = new THREE.MeshStandardMaterial({ color: 0x37434a, roughness: 0.78 });
+      const lobbyBody = new THREE.Mesh(new THREE.BoxGeometry(12, 4.2, 8), lobbyWall);
+      lobbyBody.position.set(0, 2.1, 8);
+      lobby.add(lobbyBody);
+      const lobbyRoof = new THREE.Mesh(new THREE.BoxGeometry(13, 0.6, 9), lobbyRoofMaterial);
+      lobbyRoof.position.set(0, 4.5, 8);
+      lobby.add(lobbyRoof);
+      const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: 0x8ec7d8, metalness: 0.22, roughness: 0.24, transparent: true, opacity: 0.72 }));
+      frontGlass.position.set(0, 2.4, 12.05);
+      lobby.add(frontGlass);
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.25, 2.5, 0.18), new THREE.MeshStandardMaterial({ color: 0x4d3829, roughness: 0.8 }));
+      door.position.set(0, 1.32, 12.12);
+      lobby.add(door);
+      const lobbySign = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.85, 0.25), lobbyRoofMaterial);
+      lobbySign.position.set(0, 4.2, 12.17);
+      lobby.add(lobbySign);
+      venue.add(lobby);
+      const entryWalk = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.1, 17), new THREE.MeshStandardMaterial({ color: 0x777c7c, roughness: 0.94 }));
+      entryWalk.position.set(0, 0.07, 24.2);
+      venue.add(entryWalk);
+      cityRoot.add(venue);
+
+      const laneRadii = [23, 24.5, 26, 27.5, 29, 30.5];
+      const raceColors = [0xc72e34, 0xe9ecef, 0x1573b8, 0xf4c542, 0x28a879, 0xe05f2a];
+      raceTrack = {
+        center,
+        innerRadius,
+        outerRadius,
+        wallRadius,
+        laneRadii,
+        phase: 'racing',
+        angryDrivers: [],
+        confrontationEndsAt: 0,
+        canTrigger: true,
+        nextYellAt: 0,
+        maxSpeedMph: 140
+      };
+      laneRadii.forEach((laneRadius, index) => {
+        const angle = index / laneRadii.length * Math.PI * 2;
+        const car = createCar(center.x + Math.cos(angle) * laneRadius, center.z + Math.sin(angle) * laneRadius, raceColors[index], false, false, 'sports');
+        car.isRaceCar = true;
+        car.jobRole = 'race-car';
+        car.jobIndex = index;
+        car.jobColor = raceColors[index];
+        addRaceCarVisuals(car, index);
+        car.raceAngle = angle;
+        car.raceGridAngle = angle;
+        car.raceLaneRadius = laneRadius;
+        car.raceDirection = 1;
+        car.raceSpeedMph = 115 + index * 5;
+        car.speed = car.raceSpeedMph / 2.237;
+        world.removeBody(car.body);
+        car.body.position.set(center.x + Math.cos(angle) * laneRadius, 1.2, center.z + Math.sin(angle) * laneRadius);
+        car.mesh.position.copy(car.body.position);
+        car.mesh.rotation.y = Math.atan2(-Math.sin(angle), Math.cos(angle));
+        car.driver = createSeatedDriver(car.mesh, 0, -0.08, 0.12, 0.58);
+        applyRacingUniform(car.driver, index);
+        raceCars.push(car);
+      });
+      return raceTrack;
+    }
+
+    function startRaceInterference(now, cause = 'track-intrusion') {
+      if (!raceTrack || raceTrack.phase !== 'racing') return;
+      raceTrack.phase = 'confrontation';
+      raceTrack.confrontationCause = cause;
+      raceTrack.confrontationEndsAt = now + 15000;
+      raceTrack.nextYellAt = now;
+      raceTrack.angryDrivers.length = 0;
+      raceCars.forEach((car) => {
+        if (!car || car.destroyed) return;
+        car.speed = 0;
+        car.body.velocity.set(0, 0, 0);
+        const driver = car.driver;
+        if (!driver) return;
+        car.driver = null;
+        const yaw = car.mesh.rotation.y;
+        const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+        const side = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+        scene.attach(driver.mesh);
+        const exitPosition = new THREE.Vector3(car.body.position.x, car.body.position.y, car.body.position.z)
+          .addScaledVector(forward, 2.2)
+          .addScaledVector(side, raceTrack.angryDrivers.length % 2 ? 1.1 : -1.1);
+        restoreDriverToPedestrian(driver, exitPosition.x, exitPosition.z, yaw);
+        driver.task = 'race-angry';
+        driver.raceCar = car;
+        driver.raceAngryUntil = raceTrack.confrontationEndsAt;
+        driver.nextRacePunchAt = now + 900 + Math.random() * 500;
+        driver.raceRunSpeed = 15 / 2.237;
+        raceTrack.angryDrivers.push(driver);
+      });
+      const message = cause === 'npc-hit'
+        ? 'A race car hit a pedestrian. The race drivers are furious!'
+        : cause === 'player-hit'
+          ? 'A race car hit you. The drivers have stopped the race!'
+          : cause === 'race-car-entry'
+            ? 'You took a race car. The race drivers are coming for you!'
+            : 'Race drivers yell: "Get off the track!"';
+      showMessage(message);
+    }
+
+    function seatRaceDriverInCar(car, driver) {
+      const previousCar = car;
+      if (car && car.destroyed && car.jobReplacement && !car.jobReplacement.destroyed) car = car.jobReplacement;
+      if (!car || !driver) return;
+      if (previousCar !== car && previousCar.driver === driver) previousCar.driver = null;
+      const personIndex = people.indexOf(driver);
+      if (personIndex >= 0) people.splice(personIndex, 1);
+      if (driver.mesh.parent) driver.mesh.parent.remove(driver.mesh);
+      car.mesh.add(driver.mesh);
+      driver.mesh.position.set(0, -0.08, 0.12);
+      driver.mesh.rotation.set(0, 0, 0);
+      driver.mesh.scale.setScalar(0.58);
+      driver.leftLeg.rotation.x = -Math.PI / 2;
+      driver.rightLeg.rotation.x = -Math.PI / 2;
+      driver.leftArm.rotation.x = -0.65;
+      driver.rightArm.rotation.x = -0.65;
+      driver.task = 'driver';
+      driver.active = false;
+      driver.raceCar = null;
+      driver.isPunching = false;
+      car.driver = driver;
+    }
+
+    function startRaceCarTheft(now, stolenCar) {
+      if (!raceTrack || !stolenCar || !stolenCar.isRaceCar || raceTrack.phase === 'stolen-chase' || raceTrack.phase.startsWith('recovery-')) return;
+      const wasConfrontation = raceTrack.phase === 'confrontation';
+      const angryDrivers = wasConfrontation ? raceTrack.angryDrivers.slice() : [];
+      raceTrack.angryDrivers.length = 0;
+
+      if (wasConfrontation) {
+        angryDrivers.forEach((driver) => {
+          const driverCar = driver.raceCar;
+          if (driverCar && driverCar.destroyed && driverCar.jobReplacement) driver.raceCar = driverCar.jobReplacement;
+          if (driverCar === stolenCar) {
+            const personIndex = people.indexOf(driver);
+            if (personIndex >= 0) people.splice(personIndex, 1);
+            if (driver.mesh.parent) driver.mesh.parent.remove(driver.mesh);
+            driver.active = false;
+            return;
+          }
+          seatRaceDriverInCar(driverCar, driver);
+        });
+      } else if (stolenCar.driver) {
+        const formerDriver = stolenCar.driver;
+        if (formerDriver.mesh.parent) formerDriver.mesh.parent.remove(formerDriver.mesh);
+        formerDriver.active = false;
+        stolenCar.driver = null;
+      }
+
+      raceTrack.phase = 'stolen-chase';
+      raceTrack.stolenCar = stolenCar;
+      raceTrack.stolenAt = now;
+      raceTrack.recoveryCar = raceCars.find((car) => car && !car.destroyed && car !== stolenCar && car.driver) || null;
+      raceTrack.recoveryAgent = null;
+      raceTrack.canTrigger = false;
+      raceCars.forEach((car) => {
+        if (!car || car.destroyed) return;
+        car.speed = car === stolenCar ? 0 : Math.min(car.raceSpeedMph, raceTrack.maxSpeedMph) / 2.237;
+        car.chasingStolenCar = car !== stolenCar;
+      });
+      showMessage('You stole a race car! The other racers are chasing you.');
+    }
+
+    function moveRaceCarToTarget(car, target, dt, speed) {
+      const direction = new THREE.Vector3(target.x - car.body.position.x, 0, target.z - car.body.position.z);
+      const distance = direction.length();
+      const arrivalRadius = 2.5;
+      if (distance <= arrivalRadius) return true;
+      direction.normalize();
+      const step = Math.min(distance - arrivalRadius, speed * dt);
+      car.body.position.x += direction.x * step;
+      car.body.position.z += direction.z * step;
+      car.mesh.position.set(car.body.position.x, car.body.position.y, car.body.position.z);
+      car.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+      car.speed = speed;
+      return false;
+    }
+
+    function beginRaceCarRecovery(now) {
+      raceTrack.phase = 'recovery-approach';
+      raceTrack.recoveryStartedAt = now;
+      raceCars.forEach((car) => { car.speed = 0; });
+      if (!raceTrack.recoveryCar || raceTrack.recoveryCar.destroyed || !raceTrack.recoveryCar.driver) {
+        raceTrack.recoveryCar = raceCars.find((car) => car && !car.destroyed && car !== raceTrack.stolenCar && car.driver) || null;
+      }
+      if (!raceTrack.recoveryCar) {
+        finishRaceCarRecovery();
+        return;
+      }
+      showMessage('A race driver is going to recover the stolen car.');
+    }
+
+    function finishRaceCarRecovery() {
+      const stolenCar = raceTrack.stolenCar;
+      if (!stolenCar || stolenCar.destroyed) return;
+      raceCars.forEach((car) => {
+        if (!car || car.destroyed) return;
+        car.raceAngle = car.raceGridAngle;
+        car.body.position.set(
+          raceTrack.center.x + Math.cos(car.raceAngle) * car.raceLaneRadius,
+          1.2,
+          raceTrack.center.z + Math.sin(car.raceAngle) * car.raceLaneRadius
+        );
+        car.mesh.position.copy(car.body.position);
+        car.mesh.rotation.y = Math.atan2(-Math.sin(car.raceAngle), Math.cos(car.raceAngle));
+        car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+        car.speed = Math.min(car.raceSpeedMph, raceTrack.maxSpeedMph) / 2.237;
+        car.chasingStolenCar = false;
+      });
+      raceTrack.phase = 'racing';
+      raceTrack.stolenCar = null;
+      raceTrack.recoveryCar = null;
+      raceTrack.recoveryAgent = null;
+      raceTrack.canTrigger = false;
+      showMessage('The stolen car is back. The race has reset.');
+    }
+
+    function updateRaceCarTheft(dt, now) {
+      const stolenCar = raceTrack.stolenCar;
+      if (!stolenCar || stolenCar.destroyed) {
+        raceTrack.phase = 'racing';
+        raceTrack.stolenCar = null;
+        raceTrack.recoveryCar = null;
+        raceTrack.recoveryAgent = null;
+        return;
+      }
+      if (raceTrack.phase === 'stolen-chase') {
+        if (controlledVehicle !== stolenCar) {
+          beginRaceCarRecovery(now);
+          return;
+        }
+        const forward = new THREE.Vector3(Math.sin(stolenCar.mesh.rotation.y), 0, Math.cos(stolenCar.mesh.rotation.y));
+        const lateral = new THREE.Vector3(forward.z, 0, -forward.x);
+        raceCars.forEach((car, index) => {
+          if (!car || car.destroyed || car === stolenCar) return;
+          const row = Math.floor(index / 2);
+          const side = index % 2 === 0 ? -1 : 1;
+          const target = new THREE.Vector3(stolenCar.body.position.x, 1.2, stolenCar.body.position.z)
+            .addScaledVector(forward, -(6 + row * 6))
+            .addScaledVector(lateral, side * 4);
+          moveRaceCarToTarget(car, target, dt, raceTrack.maxSpeedMph / 2.237);
+        });
+        return;
+      }
+
+      if (raceTrack.phase === 'recovery-approach') {
+        const recoveryCar = raceTrack.recoveryCar;
+        if (!recoveryCar) {
+          finishRaceCarRecovery();
+          return;
+        }
+        const target = new THREE.Vector3(stolenCar.body.position.x, 1.2, stolenCar.body.position.z);
+        if (moveRaceCarToTarget(recoveryCar, target, dt, 18)) {
+          const driver = recoveryCar.driver;
+          if (!driver) {
+            finishRaceCarRecovery();
+            return;
+          }
+          recoveryCar.driver = null;
+          const yaw = recoveryCar.mesh.rotation.y;
+          const exitPosition = new THREE.Vector3(recoveryCar.body.position.x, 0, recoveryCar.body.position.z)
+            .add(new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw)).multiplyScalar(2));
+          scene.attach(driver.mesh);
+          restoreDriverToPedestrian(driver, exitPosition.x, exitPosition.z, yaw);
+          driver.task = 'race-recovery';
+          driver.speed = 6;
+          driver.raceCar = recoveryCar;
+          raceTrack.recoveryAgent = driver;
+          raceTrack.phase = 'recovery-walk';
+        }
+        return;
+      }
+
+      if (raceTrack.phase === 'recovery-walk') {
+        const driver = raceTrack.recoveryAgent;
+        if (!driver) {
+          finishRaceCarRecovery();
+          return;
+        }
+        const direction = new THREE.Vector3(
+          stolenCar.body.position.x - driver.mesh.position.x,
+          0,
+          stolenCar.body.position.z - driver.mesh.position.z
+        );
+        const distance = direction.length();
+        if (distance <= 2.4) {
+          const personIndex = people.indexOf(driver);
+          if (personIndex >= 0) people.splice(personIndex, 1);
+          if (driver.mesh.parent) driver.mesh.parent.remove(driver.mesh);
+          seatRaceDriverInCar(stolenCar, driver);
+          raceTrack.phase = 'recovery-drive';
+          return;
+        }
+        direction.normalize();
+        const next = driver.mesh.position.clone().addScaledVector(direction, Math.min(distance, driver.speed * dt));
+        const resolved = resolveFootstep(next.x, next.z, 0.55);
+        if (!resolved.blocked) driver.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+        driver.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+        return;
+      }
+
+      if (raceTrack.phase === 'recovery-drive') {
+        const target = new THREE.Vector3(
+          raceTrack.center.x + Math.cos(stolenCar.raceGridAngle) * stolenCar.raceLaneRadius,
+          1.2,
+          raceTrack.center.z + Math.sin(stolenCar.raceGridAngle) * stolenCar.raceLaneRadius
+        );
+        if (moveRaceCarToTarget(stolenCar, target, dt, 16)) finishRaceCarRecovery();
+      }
+    }
+
+    function resetRaceTrack(now) {
+      if (controlledVehicle && controlledVehicle.isRaceCar) {
+        const stolenCar = controlledVehicle;
+        const exitDirection = new THREE.Vector3(
+          stolenCar.body.position.x - raceTrack.center.x,
+          0,
+          stolenCar.body.position.z - raceTrack.center.z
+        ).normalize();
+        controlledVehicle = null;
+        stolenCar.owner = null;
+        stolenCar.inside = false;
+        clearVehicleKeys();
+        setSafePlayerPosition(
+          raceTrack.center.x + exitDirection.x * (raceTrack.wallRadius + 5),
+          groundHeightAt(raceTrack.center.x + exitDirection.x * (raceTrack.wallRadius + 5), raceTrack.center.z + exitDirection.z * (raceTrack.wallRadius + 5)) + 1.7,
+          raceTrack.center.z + exitDirection.z * (raceTrack.wallRadius + 5)
+        );
+        playerState.velocity.set(0, 0, 0);
+        syncActiveMode();
+      }
+      raceTrack.angryDrivers.forEach((driver) => {
+        const car = driver.raceCar;
+        seatRaceDriverInCar(car, driver);
+      });
+      raceTrack.phase = 'racing';
+      raceTrack.angryDrivers.length = 0;
+      raceTrack.canTrigger = false;
+      raceTrack.resetAt = now;
+      raceCars.forEach((car) => {
+        if (!car || car.destroyed) return;
+        car.speed = Math.min(car.raceSpeedMph, raceTrack.maxSpeedMph) / 2.237;
+        car.body.position.y = 1.2;
+        car.mesh.position.copy(car.body.position);
+      });
+      showMessage('The race is back on.');
+    }
+
+    function updateRaceAngryDriver(person, dt, now) {
+      if (!raceTrack || raceTrack.phase !== 'confrontation' || now >= person.raceAngryUntil) return;
+      if (person.isPunching && now < person.punchUntil) {
+        person.leftArm.rotation.x = -1.6;
+        person.rightArm.rotation.x = 1.2;
+        person.leftLeg.rotation.x = 0.3;
+        person.rightLeg.rotation.x = -0.3;
+        return;
+      }
+      person.isPunching = false;
+      const target = controlledVehicle ? controlledVehicle.body.position : playerState.position;
+      const direction = new THREE.Vector3(target.x - person.mesh.position.x, 0, target.z - person.mesh.position.z);
+      const distance = direction.length();
+      if (distance <= 1.65 && now >= person.nextRacePunchAt) {
+        person.isPunching = true;
+        person.punchUntil = now + 420;
+        person.nextRacePunchAt = now + 950;
+        if (now >= raceTrack.nextYellAt) {
+          showMessage('Race driver yells: "You ruined the race!"');
+          raceTrack.nextYellAt = now + 1800;
+        }
+        playerInputActive = false;
+        playerStunUntil = Math.max(playerStunUntil, now + 480);
+        return;
+      }
+      if (distance > 1.15) {
+        direction.normalize();
+        const step = Math.min(distance - 1.05, Math.min(person.raceRunSpeed, 15 / 2.237) * dt);
+        const next = person.mesh.position.clone().addScaledVector(direction, step);
+        const resolved = resolveFootstep(next.x, next.z, 0.55);
+        if (!resolved.blocked) person.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+      }
+      person.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      person.walkPhase += dt * 14;
+      const swing = webOptimizer.lowLag ? 0 : Math.sin(person.walkPhase) * 1.1;
+      person.leftArm.rotation.x = swing - 0.35;
+      person.rightArm.rotation.x = -swing - 0.35;
+      person.leftLeg.rotation.x = -swing;
+      person.rightLeg.rotation.x = swing;
+    }
+
+    function updateRaceTrack(dt, now) {
+      if (!raceTrack || raceCars.length !== 6) return;
+      const playerPosition = controlledVehicle ? controlledVehicle.body.position : playerState.position;
+      const distanceFromCenter = Math.hypot(playerPosition.x - raceTrack.center.x, playerPosition.z - raceTrack.center.z);
+
+      if (raceTrack.phase === 'stolen-chase' || raceTrack.phase.startsWith('recovery-')) {
+        updateRaceCarTheft(dt, now);
+        return;
+      }
+      if (raceTrack.phase === 'confrontation') {
+        if (now >= raceTrack.confrontationEndsAt) resetRaceTrack(now);
+        return;
+      }
+      if (raceTrack.phase !== 'racing') return;
+
+      if (raceTrack.phase === 'racing') {
+        if (!raceTrack.canTrigger && distanceFromCenter > raceTrack.wallRadius + 7) raceTrack.canTrigger = true;
+        raceCars.forEach((car) => {
+          if (!car || car.destroyed) return;
+          car.speed = Math.min(car.raceSpeedMph, raceTrack.maxSpeedMph) / 2.237;
+          car.raceAngle = (car.raceAngle + car.raceDirection * car.speed / car.raceLaneRadius * dt + Math.PI * 2) % (Math.PI * 2);
+          const x = raceTrack.center.x + Math.cos(car.raceAngle) * car.raceLaneRadius;
+          const z = raceTrack.center.z + Math.sin(car.raceAngle) * car.raceLaneRadius;
+          const tangentX = -Math.sin(car.raceAngle) * car.raceDirection;
+          const tangentZ = Math.cos(car.raceAngle) * car.raceDirection;
+          car.body.position.set(x, 1.2, z);
+          car.mesh.position.copy(car.body.position);
+          car.mesh.rotation.y = Math.atan2(tangentX, tangentZ);
+          car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+        });
+        const onTrack = distanceFromCenter >= raceTrack.innerRadius - 1.5 && distanceFromCenter <= raceTrack.outerRadius + 1.5;
+        const hitPlayer = raceCars.some((car) => car && !car.destroyed && Math.hypot(playerPosition.x - car.body.position.x, playerPosition.z - car.body.position.z) < 3.5);
+        const hitPerson = people.find((person) =>
+          person && person.active && !person.isMedic && person.task !== 'race-angry' && !person.ridingBoat &&
+          raceCars.some((car) => car && !car.destroyed && Math.hypot(person.mesh.position.x - car.body.position.x, person.mesh.position.z - car.body.position.z) < 2.1)
+        );
+        if (raceTrack.canTrigger && hitPerson) {
+          hitPerson.knockedDown = { getUp: true, until: now + 1800 };
+          hitPerson.nextImpactAt = now + 2500;
+          hitPerson.mesh.rotation.z = 1.45;
+          startRaceInterference(now, 'npc-hit');
+        } else if (raceTrack.canTrigger && hitPlayer) {
+          playerInputActive = false;
+          playerStunUntil = Math.max(playerStunUntil, now + 900);
+          startRaceInterference(now, 'player-hit');
+        } else if (raceTrack.canTrigger && onTrack) {
+          startRaceInterference(now);
+        }
+        return;
+      }
+
     }
 
     function getQuaternionYaw(quaternion) {
@@ -3919,6 +5280,102 @@
       person.isPoliceOfficer = true;
     }
 
+    function applyRoleClothing(person, shirtColor, pantsColor) {
+      if (!person || !person.torso) return;
+      const shirt = new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.8 });
+      const pants = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.86 });
+      person.torso.material = shirt;
+      person.leftArm.children[0].material = shirt;
+      person.rightArm.children[0].material = shirt;
+      person.leftLeg.children[0].material = pants;
+      person.rightLeg.children[0].material = pants;
+    }
+
+    function addRoleCap(person, crownColor, brimColor, bandColor = null) {
+      const cap = new THREE.Group();
+      const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.21, 0.16, 12), new THREE.MeshStandardMaterial({ color: crownColor, roughness: 0.72 }));
+      crown.position.y = 2.08;
+      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.045, 0.2), new THREE.MeshStandardMaterial({ color: brimColor, roughness: 0.76 }));
+      brim.position.set(0, 2.03, 0.15);
+      cap.add(crown, brim);
+      if (bandColor !== null) {
+        const band = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.045, 0.19), new THREE.MeshStandardMaterial({ color: bandColor, metalness: 0.35, roughness: 0.48 }));
+        band.position.set(0, 2.08, 0.01);
+        cap.add(band);
+      }
+      person.mesh.add(cap);
+      person.uniformHeadwear = cap;
+    }
+
+    function applyPilotUniform(person) {
+      applyRoleClothing(person, 0x244b72, 0xe8ecef);
+      addRoleCap(person, 0xf3f4ef, 0x244b72, 0xd4aa45);
+      person.isPilot = true;
+    }
+
+    function applyBoatUniform(person) {
+      applyRoleClothing(person, 0x147b83, 0xe2d7bd);
+      addRoleCap(person, 0x183c55, 0x183c55);
+      person.isBoatCaptain = true;
+    }
+
+    function applyRacingUniform(person, index) {
+      const suitColors = [0xc72e34, 0x1573b8, 0xd6a716, 0x23825e, 0x29343d, 0xe05f2a];
+      const suitColor = suitColors[index % suitColors.length];
+      applyRoleClothing(person, suitColor, 0x23292d);
+      const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.38, metalness: 0.12 }));
+      helmet.position.set(0, 1.92, 0.015);
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.11, 0.12), new THREE.MeshStandardMaterial({ color: 0x27343a, metalness: 0.38, roughness: 0.24 }));
+      visor.position.set(0, 1.93, 0.22);
+      person.mesh.add(helmet, visor);
+      person.isRaceDriver = true;
+    }
+
+    function applyBillionaireUniform(person) {
+      applyRoleClothing(person, 0x111722, 0x1b2029);
+      const tie = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.48, 0.045), new THREE.MeshStandardMaterial({ color: 0xc6a653, metalness: 0.32, roughness: 0.34 }));
+      tie.position.set(0, 1.38, 0.29);
+      person.mesh.add(tie);
+      person.isBillionaire = true;
+    }
+
+    function applyBodyguardUniform(person) {
+      applyRoleClothing(person, 0x17202a, 0x242a32);
+      const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.075, 0.06), new THREE.MeshStandardMaterial({ color: 0x111820, metalness: 0.18, roughness: 0.26 }));
+      glasses.position.set(0, 1.98, 0.19);
+      person.mesh.add(glasses);
+      person.isBodyguard = true;
+    }
+
+    function applyMaidUniform(person) {
+      applyRoleClothing(person, 0x20242b, 0x242930);
+      const apron = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.62, 0.08), new THREE.MeshStandardMaterial({ color: 0xf1eee4, roughness: 0.88 }));
+      apron.position.set(0, 1.15, 0.28);
+      person.mesh.add(apron);
+      addRoleCap(person, 0xf5f2e9, 0xf5f2e9);
+      person.isMaid = true;
+      attachBroom(person);
+    }
+
+    function applyJanitorUniform(person) {
+      applyRoleClothing(person, 0xe86b20, 0xb94c19);
+      addRoleCap(person, 0xf2d12e, 0xf2d12e);
+      person.isJanitor = true;
+      attachBroom(person);
+    }
+
+    function attachBroom(person) {
+      const broom = new THREE.Group();
+      const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 1.08, 7), new THREE.MeshStandardMaterial({ color: 0x805a35, roughness: 0.84 }));
+      handle.position.y = -0.42;
+      const bristles = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.16), new THREE.MeshStandardMaterial({ color: 0xd4b65e, roughness: 0.9 }));
+      bristles.position.y = -0.95;
+      broom.add(handle, bristles);
+      broom.position.set(0, -0.42, 0.1);
+      person.rightArm.add(broom);
+      person.broom = broom;
+    }
+
     function generateClothingOutfit() {
       const outfits = [
         { shirt: 0x256d85, pants: 0x26354d, skin: 0xf0c7a5 },
@@ -3935,10 +5392,12 @@
     }
 
     function createBuildingWorker(building, x, z) {
-      const outfit = generateClothingOutfit();
+      const outfit = { ...generateClothingOutfit(), shirt: 0xd2e53c, pants: 0x344653, role: 'construction-worker' };
       const skin = new THREE.MeshStandardMaterial({ color: outfit.skin, roughness: 0.88 });
       const shirt = new THREE.MeshStandardMaterial({ color: outfit.shirt, roughness: 0.78 });
       const pants = new THREE.MeshStandardMaterial({ color: outfit.pants, roughness: 0.82 });
+      const vestMaterial = new THREE.MeshStandardMaterial({ color: 0xf0782e, roughness: 0.7 });
+      const reflectiveMaterial = new THREE.MeshStandardMaterial({ color: 0xe8f0dd, metalness: 0.18, roughness: 0.4 });
       const worker = new THREE.Group();
       const torso = new THREE.Mesh(humanTorsoGeometry, shirt);
       torso.position.y = 1.18;
@@ -3958,7 +5417,16 @@
       const rightLeg = new THREE.Mesh(humanLegGeometry, pants);
       leftLeg.position.set(-0.13, 0.33, 0);
       rightLeg.position.set(0.13, 0.33, 0);
-      worker.add(torso, head, leftArm, rightArm, leftLeg, rightLeg);
+      const vest = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.58, 0.24), vestMaterial);
+      vest.position.set(0, 1.2, 0.2);
+      const vestStripes = [1.03, 1.36].map((height) => {
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.51, 0.065, 0.25), reflectiveMaterial);
+        stripe.position.set(0, height, 0.21);
+        return stripe;
+      });
+      const hardHat = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.14, 12), new THREE.MeshStandardMaterial({ color: 0xf4cf36, roughness: 0.56 }));
+      hardHat.position.set(0, 2.08, 0);
+      worker.add(torso, head, leftArm, rightArm, leftLeg, rightLeg, vest, hardHat, ...vestStripes);
       worker.position.set(x, 0.12, z);
       worker.rotation.y = Math.PI;
       worker.traverse((part) => {
@@ -3976,6 +5444,477 @@
         worker.leftArm.rotation.x = -0.75 + workMotion;
         worker.rightArm.rotation.x = -0.75 - workMotion;
         worker.mesh.rotation.y = Math.PI + Math.sin(now * 0.0005 + worker.phase) * 0.08;
+      });
+    }
+
+    function createLuxuryCarDetails(car, accentColor) {
+      const trim = new THREE.MeshStandardMaterial({ color: accentColor, metalness: 0.86, roughness: 0.24 });
+      const hoodStripe = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.035, 3.4), trim);
+      hoodStripe.position.set(0, 1.06, 0.16);
+      car.mesh.add(hoodStripe);
+      [-1, 1].forEach((side) => {
+        const sideTrim = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.08, 2.5), trim);
+        sideTrim.position.set(side * 1.06, 0.72, 0.02);
+        car.mesh.add(sideTrim);
+      });
+      car.isBillionaireCar = true;
+    }
+
+    function createBillionaireEstate() {
+      const placement = worldPlacement.reserveNearest(-490, 490, 88, 80, 'billionaire-estate', 2) ||
+        worldPlacement.reserve(-490, 490, 88, 80, 'billionaire-estate', 2);
+      const x = placement.x;
+      const z = placement.z;
+      const property = new THREE.Group();
+      property.position.set(x, 0, z);
+      const lawn = new THREE.Mesh(new THREE.BoxGeometry(88, 0.1, 80), new THREE.MeshStandardMaterial({ color: 0x526c45, roughness: 0.96 }));
+      lawn.position.set(0, 0.05, 0);
+      lawn.receiveShadow = true;
+      property.add(lawn);
+      const stone = new THREE.MeshStandardMaterial({ color: 0xc6c4bc, roughness: 0.78 });
+      const roofMaterial = new THREE.MeshStandardMaterial({ color: 0x29343d, metalness: 0.28, roughness: 0.54 });
+      const glass = new THREE.MeshStandardMaterial({ color: 0x668a98, metalness: 0.26, roughness: 0.2, transparent: true, opacity: 0.82 });
+      const mainHouse = new THREE.Mesh(new THREE.BoxGeometry(46, 7, 30), stone);
+      mainHouse.position.set(0, 3.5, -5);
+      mainHouse.castShadow = true;
+      mainHouse.receiveShadow = true;
+      property.add(mainHouse);
+      const upperFloor = new THREE.Mesh(new THREE.BoxGeometry(34, 5, 22), stone);
+      upperFloor.position.set(0, 9.5, -5);
+      upperFloor.castShadow = true;
+      property.add(upperFloor);
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(37, 0.8, 25), roofMaterial);
+      roof.position.set(0, 12.4, -5);
+      property.add(roof);
+      const portico = new THREE.Mesh(new THREE.BoxGeometry(20, 0.65, 9), roofMaterial);
+      portico.position.set(0, 6.2, 13);
+      property.add(portico);
+      [-8, -2.7, 2.7, 8].forEach((columnX) => {
+        const column = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 5.5, 12), stone);
+        column.position.set(columnX, 2.75, 15.8);
+        column.castShadow = true;
+        property.add(column);
+      });
+      [-15, -7.5, 7.5, 15].forEach((windowX) => {
+        [-17, -8, 1].forEach((windowZ) => {
+          const window = new THREE.Mesh(new THREE.BoxGeometry(3.8, 2.4, 0.18), glass);
+          window.position.set(windowX, windowZ > -10 ? 4.1 : 4.6, windowZ);
+          property.add(window);
+        });
+      });
+      [-11, 0, 11].forEach((windowX) => {
+        const window = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.3, 0.16), glass);
+        window.position.set(windowX, 9.4, 6.1);
+        property.add(window);
+      });
+      const door = new THREE.Mesh(new THREE.BoxGeometry(2.3, 4.3, 0.3), new THREE.MeshStandardMaterial({ color: 0x503a28, roughness: 0.8 }));
+      door.position.set(0, 2.15, 10.15);
+      property.add(door);
+      const driveway = new THREE.Mesh(new THREE.BoxGeometry(18, 0.12, 29), new THREE.MeshStandardMaterial({ color: 0x4b5052, roughness: 0.92 }));
+      driveway.position.set(0, 0.09, 30);
+      property.add(driveway);
+      const gatePosts = new THREE.MeshStandardMaterial({ color: 0x4c5253, metalness: 0.55, roughness: 0.45 });
+      [-12, 12].forEach((postX) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.8, 3.4, 0.8), stone);
+        post.position.set(postX, 1.7, 42);
+        property.add(post);
+      });
+      const gate = new THREE.Mesh(new THREE.BoxGeometry(22, 1.5, 0.22), gatePosts);
+      gate.position.set(0, 1.25, 42);
+      property.add(gate);
+      cityRoot.add(property);
+
+      const mansionCollider = createBarrier(x, z - 5, 46, 30, 12, 6, 0x111111, false, 'mansion-shell');
+      mansionCollider.visible = false;
+      billionaireState.mansion = { x, z, width: 88, depth: 80, group: property };
+      billionaireState.homePosition = new THREE.Vector3(x, 0, z + 18);
+      billionaireState.cityStop = getNearestRoadPosition(0, 28);
+      billionaireState.maidRoute = [
+        new THREE.Vector3(x - 29, 0, z + 20), new THREE.Vector3(x + 29, 0, z + 20),
+        new THREE.Vector3(x + 29, 0, z - 22), new THREE.Vector3(x - 29, 0, z - 22),
+        new THREE.Vector3(x, 0, z + 36)
+      ];
+
+      const mansion = createHuman('A', 'State_Default', true);
+      applyBillionaireUniform(mansion);
+      mansion.task = 'billionaire';
+      mansion.active = true;
+      mansion.speed = 1.1;
+      mansion.mesh.position.copy(billionaireState.homePosition);
+      mansion.destination.copy(mansion.mesh.position);
+      billionaireState.billionaire = mansion;
+
+      const escortOffsets = [[-3, 1], [3, 1], [-3, -3], [3, -3]];
+      escortOffsets.forEach(([offsetX, offsetZ], index) => {
+        const guard = createHuman('A', 'State_Default', true);
+        applyBodyguardUniform(guard);
+        guard.task = 'billionaire-escort';
+        guard.isBillionaireEscort = true;
+        guard.escortIndex = index;
+        guard.active = true;
+        guard.speed = 7.5;
+        guard.mesh.position.set(x + offsetX, 0, z + 16 + offsetZ);
+        guard.destination.copy(guard.mesh.position);
+        billionaireState.escorts.push(guard);
+      });
+
+      const mansionGuardOffsets = [[-36, 31], [36, 31], [-36, -29], [36, -29]];
+      mansionGuardOffsets.forEach(([offsetX, offsetZ]) => {
+        const guard = createHuman('A', 'State_Default', true);
+        applyBodyguardUniform(guard);
+        guard.task = 'mansion-guard';
+        guard.isMansionGuard = true;
+        guard.active = true;
+        guard.mesh.position.set(x + offsetX, 0, z + offsetZ);
+        guard.destination.copy(guard.mesh.position);
+        billionaireState.mansionGuards.push(guard);
+      });
+
+      const maid = createHuman('A', 'State_Default', true);
+      applyMaidUniform(maid);
+      maid.task = 'mansion-maid';
+      maid.active = true;
+      maid.speed = 1.45;
+      maid.cleaningRouteIndex = 0;
+      maid.mesh.position.set(x - 29, 0, z + 20);
+      maid.destination.copy(maid.mesh.position);
+      billionaireState.maid = maid;
+
+      const carSpecs = [
+        { color: 0x111820, accent: 0xc6a653, xOffset: -7 },
+        { color: 0x144d67, accent: 0xe5e2d8, xOffset: 7 }
+      ];
+      carSpecs.forEach((spec, index) => {
+        const homePosition = { x: x + spec.xOffset, z: z + 29 };
+        const car = createCar(homePosition.x, homePosition.z, spec.color, false, true, 'sports');
+        createLuxuryCarDetails(car, spec.accent);
+        car.owner = 'billionaire';
+        car.billionaireCarIndex = index;
+        car.mansionHomePosition = { ...homePosition };
+        car.mesh.rotation.y = Math.atan2(billionaireState.cityStop.x - homePosition.x, billionaireState.cityStop.z - homePosition.z);
+        car.body.position.set(homePosition.x, 1.2, homePosition.z);
+        car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+        car.mesh.position.copy(car.body.position);
+        billionaireState.luxuryCars.push(car);
+      });
+      billionaireState.nextDriveAt = 0;
+    }
+
+    function createJanitors(count = 14) {
+      for (let index = 0; index < count; index++) {
+        const janitor = createHuman('A', 'State_Default', true);
+        applyJanitorUniform(janitor);
+        janitor.task = 'janitor';
+        janitor.active = true;
+        janitor.speed = 1.6;
+        janitor.cleaningTarget = getNearbyPedestrianDestination(janitor.mesh.position);
+        janitor.nextCleanTargetAt = 0;
+        janitors.push(janitor);
+      }
+    }
+
+    function updateCleaningWorker(person, dt, now) {
+      const distance = person.destination.distanceTo(person.mesh.position);
+      if (!person.destination || distance < 1.3 || now >= (person.nextCleanTargetAt || 0)) {
+        if (person.task === 'mansion-maid' && billionaireState.maidRoute.length) {
+          person.cleaningRouteIndex = (person.cleaningRouteIndex + 1) % billionaireState.maidRoute.length;
+          person.destination = billionaireState.maidRoute[person.cleaningRouteIndex].clone();
+        } else {
+          person.destination = getNearbyPedestrianDestination(person.mesh.position);
+        }
+        person.nextCleanTargetAt = now + 7000 + Math.random() * 5000;
+      }
+      const direction = person.destination.clone().sub(person.mesh.position).setY(0);
+      if (direction.length() > 0.01) {
+        direction.normalize();
+        const next = person.mesh.position.clone().addScaledVector(direction, person.speed * dt);
+        const resolved = resolveFootstep(next.x, next.z, 0.55);
+        if (!resolved.blocked) person.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+        person.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+        person.walkPhase += dt * 8;
+      }
+      const sweep = webOptimizer.lowLag ? 0 : Math.sin(now * 0.012 + person.walkPhase) * 0.48;
+      person.leftArm.rotation.x = -0.5 - sweep * 0.25;
+      person.rightArm.rotation.x = -0.85 + sweep;
+      person.leftLeg.rotation.x = -sweep * 0.2;
+      person.rightLeg.rotation.x = sweep * 0.2;
+      if (person.broom) person.broom.rotation.z = sweep * 0.35;
+    }
+
+    function seatEstateDriver(car, person, task) {
+      const personIndex = people.indexOf(person);
+      if (personIndex >= 0) people.splice(personIndex, 1);
+      if (person.mesh.parent) person.mesh.parent.remove(person.mesh);
+      car.mesh.add(person.mesh);
+      person.mesh.position.set(0, -0.08, 0.12);
+      person.mesh.rotation.set(0, 0, 0);
+      person.mesh.scale.setScalar(0.58);
+      person.leftLeg.rotation.x = -Math.PI / 2;
+      person.rightLeg.rotation.x = -Math.PI / 2;
+      person.leftArm.rotation.x = -0.65;
+      person.rightArm.rotation.x = -0.65;
+      person.task = task;
+      person.active = false;
+      car.driver = person;
+    }
+
+    function releaseEstatePerson(person, x, z, task) {
+      if (person.mesh.parent) scene.attach(person.mesh);
+      else scene.add(person.mesh);
+      person.mesh.scale.set(1, 1, 1);
+      person.mesh.rotation.set(0, 0, 0);
+      person.mesh.position.set(x, groundHeightAt(x, z) + 0.03, z);
+      person.leftLeg.rotation.x = 0;
+      person.rightLeg.rotation.x = 0;
+      person.leftArm.rotation.x = 0;
+      person.rightArm.rotation.x = 0;
+      person.task = task;
+      person.active = true;
+      person.destination.set(x, 0, z);
+      if (!people.includes(person)) people.push(person);
+    }
+
+    function setEstateCarParked(car, position) {
+      car.body.position.set(position.x, 1.2, position.z);
+      car.mesh.position.copy(car.body.position);
+      car.speed = 0;
+      car.body.velocity.set(0, 0, 0);
+      car.body.type = CANNON.Body.STATIC;
+      car.body.mass = 0;
+      car.body.updateMassProperties();
+      car.parked = true;
+      car.jobPhase = 'parked';
+      car.owner = 'billionaire';
+    }
+
+    function moveEstateCar(car, target, dt, remainingSeconds) {
+      const direction = new THREE.Vector3(target.x - car.body.position.x, 0, target.z - car.body.position.z);
+      const distance = direction.length();
+      if (distance <= 2) {
+        car.body.position.x = target.x;
+        car.body.position.z = target.z;
+        car.body.position.y = 1.2;
+        car.mesh.position.copy(car.body.position);
+        car.speed = 0;
+        car.body.velocity.set(0, 0, 0);
+        return true;
+      }
+      direction.normalize();
+      const speed = Math.min(34, distance / Math.max(0.1, remainingSeconds));
+      const step = Math.min(distance - 2, speed * dt);
+      car.body.position.x += direction.x * step;
+      car.body.position.z += direction.z * step;
+      car.body.position.y = 1.2;
+      car.mesh.position.copy(car.body.position);
+      car.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
+      car.body.velocity.set(0, 0, 0);
+      car.speed = speed;
+      return false;
+    }
+
+    function startBillionaireDrive(now) {
+      const carCount = billionaireState.luxuryCars.length;
+      let car = null;
+      for (let attempt = 0; attempt < carCount; attempt++) {
+        const index = (billionaireState.nextCarIndex + attempt) % carCount;
+        const candidate = billionaireState.luxuryCars[index];
+        if (candidate && !candidate.destroyed && !candidate.billionaireStolen && controlledVehicle !== candidate) {
+          car = candidate;
+          billionaireState.nextCarIndex = (index + 1) % carCount;
+          break;
+        }
+      }
+      if (!car) {
+        billionaireState.nextDriveAt = now + 10000;
+        return;
+      }
+      car.body.type = CANNON.Body.DYNAMIC;
+      car.body.mass = 180;
+      car.body.updateMassProperties();
+      car.parked = false;
+      car.owner = 'billionaire';
+      car.jobPhase = 'city-drive-outbound';
+      seatEstateDriver(car, billionaireState.billionaire, 'billionaire-driver');
+      billionaireState.drive = { car, phase: 'outbound', segmentEndsAt: now + 25000 };
+      billionaireState.nextDriveAt = now + 30000;
+    }
+
+    function startBillionaireCarTheft(car, now) {
+      if (!car || !car.isBillionaireCar) return false;
+      if (billionaireState.theft && billionaireState.theft.car !== car) {
+        showMessage('The bodyguards are already recovering the other car.');
+        return false;
+      }
+      if (billionaireState.theft && billionaireState.theft.car === car && billionaireState.theft.phase === 'returning') {
+        const recoveryGuard = billionaireState.theft.recoveryGuard;
+        if (recoveryGuard && car.driver === recoveryGuard) {
+          car.driver = null;
+          releaseEstatePerson(recoveryGuard, car.body.position.x, car.body.position.z + 3, 'billionaire-escort');
+        }
+      }
+      if (billionaireState.drive && billionaireState.drive.car === car) {
+        billionaireState.drive = null;
+        if (car.driver === billionaireState.billionaire) {
+          car.driver = null;
+          releaseEstatePerson(billionaireState.billionaire, billionaireState.homePosition.x, billionaireState.homePosition.z, 'billionaire');
+        }
+      }
+      car.billionaireStolen = true;
+      billionaireState.theft = { car, phase: 'pursuit', startedAt: now, recoveryGuard: null };
+      showMessage('The billionaire’s bodyguards are pursuing the stolen car!');
+      return true;
+    }
+
+    function forcePlayerOutOfBillionaireCar(car) {
+      if (controlledVehicle !== car) return;
+      const yaw = car.mesh.rotation.y;
+      const side = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+      controlledVehicle = null;
+      car.owner = 'billionaire';
+      car.inside = false;
+      clearVehicleKeys();
+      const x = car.body.position.x + side.x * 3.1;
+      const z = car.body.position.z + side.z * 3.1;
+      setSafePlayerPosition(x, groundHeightAt(x, z) + 1.7, z);
+      playerState.velocity.set(0, 0, 0);
+      playerInputActive = true;
+      playerStunUntil = 0;
+      syncActiveMode();
+      showMessage('A bodyguard caught you and pulled you out of the car.');
+    }
+
+    function beginBillionaireCarRecovery(theft, now) {
+      const car = theft.car;
+      if (controlledVehicle === car) forcePlayerOutOfBillionaireCar(car);
+      const guard = billionaireState.escorts
+        .filter((person) => person.active && person.task === 'billionaire-escort')
+        .sort((a, b) => Math.hypot(a.mesh.position.x - car.body.position.x, a.mesh.position.z - car.body.position.z) - Math.hypot(b.mesh.position.x - car.body.position.x, b.mesh.position.z - car.body.position.z))[0] || null;
+      theft.phase = 'returning';
+      theft.recoveryGuard = guard;
+      if (guard) seatEstateDriver(car, guard, 'billionaire-car-driver');
+      car.owner = 'billionaire';
+      car.body.type = CANNON.Body.DYNAMIC;
+      car.body.mass = 180;
+      car.body.updateMassProperties();
+      car.parked = false;
+      car.jobPhase = 'billionaire-car-returning';
+      theft.returnStartedAt = now;
+      showMessage(guard ? 'A bodyguard is driving the car back to the mansion.' : 'The stolen car is returning to the mansion.');
+    }
+
+    function updateBillionaireEscort(guard, target, dt, speed = 7.5) {
+      const direction = new THREE.Vector3(target.x - guard.mesh.position.x, 0, target.z - guard.mesh.position.z);
+      const distance = direction.length();
+      if (distance > 1.25) {
+        direction.normalize();
+        const next = guard.mesh.position.clone().addScaledVector(direction, Math.min(distance - 0.9, speed * dt));
+        const resolved = resolveFootstep(next.x, next.z, 0.55);
+        if (!resolved.blocked) guard.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+        else guard.mesh.position.set(next.x, groundHeightAt(next.x, next.z), next.z);
+        guard.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+        guard.walkPhase += dt * 10;
+        const swing = webOptimizer.lowLag ? 0 : Math.sin(guard.walkPhase) * 0.7;
+        guard.leftArm.rotation.x = swing - 0.25;
+        guard.rightArm.rotation.x = -swing - 0.25;
+        guard.leftLeg.rotation.x = -swing;
+        guard.rightLeg.rotation.x = swing;
+      }
+    }
+
+    function updateBillionaireEstate(dt, now) {
+      if (!billionaireState.mansion || !gameStarted || !gameSettings.npcs) return;
+      if (!billionaireState.nextDriveAt) billionaireState.nextDriveAt = now + 30000;
+      const mansion = billionaireState.mansion;
+      const home = billionaireState.homePosition;
+      const theft = billionaireState.theft;
+
+      if (theft) {
+        const car = theft.car;
+        if (!car || car.destroyed) {
+          billionaireState.theft = null;
+          billionaireState.nextDriveAt = now + 30000;
+        } else if (theft.phase === 'pursuit') {
+          if (controlledVehicle !== car) {
+            beginBillionaireCarRecovery(theft, now);
+          } else {
+            let caught = false;
+            billionaireState.escorts.forEach((guard) => {
+              const distance = Math.hypot(guard.mesh.position.x - car.body.position.x, guard.mesh.position.z - car.body.position.z);
+              if (distance <= 3.5) caught = true;
+              updateBillionaireEscort(guard, car.body.position, dt, Math.max(16, Math.abs(car.speed) + 5));
+            });
+            if (caught) {
+              forcePlayerOutOfBillionaireCar(car);
+              beginBillionaireCarRecovery(theft, now);
+            }
+          }
+        }
+        if (theft.phase === 'returning' && car && !car.destroyed) {
+          const arrived = moveEstateCar(car, car.mansionHomePosition, dt, 22);
+          if (arrived || now - theft.returnStartedAt > 45_000) {
+            setEstateCarParked(car, car.mansionHomePosition);
+            if (theft.recoveryGuard && car.driver === theft.recoveryGuard) {
+              car.driver = null;
+              const guardIndex = billionaireState.escorts.indexOf(theft.recoveryGuard);
+              releaseEstatePerson(theft.recoveryGuard, home.x + (guardIndex % 2 ? 3 : -3), home.z - 2, 'billionaire-escort');
+            }
+            car.billionaireStolen = false;
+            billionaireState.theft = null;
+            billionaireState.nextDriveAt = now + 30000;
+            showMessage('The luxury car is back at the mansion.');
+          }
+        }
+      } else if (billionaireState.drive) {
+        const drive = billionaireState.drive;
+        const car = drive.car;
+        if (!car || car.destroyed || car.billionaireStolen) {
+          if (car && car.driver === billionaireState.billionaire) {
+            car.driver = null;
+            releaseEstatePerson(billionaireState.billionaire, home.x, home.z, 'billionaire');
+          }
+          billionaireState.drive = null;
+        } else {
+          const target = drive.phase === 'outbound' ? billionaireState.cityStop : car.mansionHomePosition;
+          moveEstateCar(car, target, dt, Math.max(0.1, (drive.segmentEndsAt - now) / 1000));
+          car.jobPhase = drive.phase === 'outbound' ? 'city-drive-outbound' : 'city-drive-returning';
+          if (now >= drive.segmentEndsAt) {
+            if (drive.phase === 'outbound') {
+              drive.phase = 'returning';
+              drive.segmentEndsAt = now + 25000;
+            } else {
+              setEstateCarParked(car, car.mansionHomePosition);
+              car.driver = null;
+              releaseEstatePerson(billionaireState.billionaire, home.x, home.z, 'billionaire');
+              billionaireState.drive = null;
+              showMessage('The billionaire returned from the city.');
+            }
+          }
+        }
+      } else if (now >= billionaireState.nextDriveAt) {
+        startBillionaireDrive(now);
+      }
+
+      const activeDriveCar = billionaireState.drive && billionaireState.drive.car;
+      billionaireState.escorts.forEach((guard, index) => {
+        if (!guard.active) return;
+        if (billionaireState.theft && billionaireState.theft.phase === 'pursuit') return;
+        if (activeDriveCar && !billionaireState.theft) {
+          const offsets = [[-2.7, 2.6], [2.7, 2.6], [-2.7, -2.6], [2.7, -2.6]][index];
+          const yaw = activeDriveCar.mesh.rotation.y;
+          const targetX = activeDriveCar.body.position.x + offsets[0] * Math.cos(yaw) + offsets[1] * Math.sin(yaw);
+          const targetZ = activeDriveCar.body.position.z - offsets[0] * Math.sin(yaw) + offsets[1] * Math.cos(yaw);
+          guard.mesh.position.set(targetX, groundHeightAt(targetX, targetZ), targetZ);
+          guard.mesh.rotation.y = yaw;
+        } else if (!billionaireState.theft && billionaireState.billionaire) {
+          const offsets = [[-2.4, 1.8], [2.4, 1.8], [-2.4, -2.3], [2.4, -2.3]][index];
+          const yaw = billionaireState.billionaire.mesh.rotation.y;
+          const targetX = billionaireState.billionaire.mesh.position.x + offsets[0] * Math.cos(yaw) + offsets[1] * Math.sin(yaw);
+          const targetZ = billionaireState.billionaire.mesh.position.z - offsets[0] * Math.sin(yaw) + offsets[1] * Math.cos(yaw);
+          updateBillionaireEscort(guard, { x: targetX, z: targetZ }, dt);
+        } else if (billionaireState.theft && billionaireState.theft.phase === 'returning' && billionaireState.billionaire) {
+          updateBillionaireEscort(guard, billionaireState.billionaire.mesh.position, dt);
+        }
       });
     }
 
@@ -4086,7 +6025,7 @@
     }
 
     function getNearestRescueCar(position) {
-      const candidates = cars.filter((car) => !car.destroyed && car.body && car.mesh && !car.isAmbulance);
+      const candidates = cars.filter((car) => !car.destroyed && car.body && car.mesh && !car.jobRole && !car.isAmbulance);
       if (!candidates.length) return null;
       candidates.sort((a, b) => {
         const da = Math.hypot(a.body.position.x - position.x, a.body.position.z - position.z);
@@ -4101,6 +6040,7 @@
       const ambulance = getNearestRescueCar(playerState.position) || createCar(playerState.position.x + 8, playerState.position.z + 7, 0xf8fafc, false, false, 'ambulance');
       attachAmbulanceLights(ambulance);
       ambulance.isAmbulance = true;
+      ambulance.jobRole = 'ambulance';
       ambulance.medicalLights = true;
       ambulance.parked = false;
       ambulance.owner = 'medical';
@@ -4125,6 +6065,9 @@
       medicalRescueState.medics = medics;
       medicalRescueState.startedAt = performance.now();
       medicalRescueState.patientLoaded = false;
+      medicalRescueState.patientPosition = playerState.position.clone();
+      medicalRescueState.dispatching = false;
+      medicalRescueState.awaitingAmbulance = false;
       playerInputActive = false;
       playerState.velocity.set(0, 0, 0);
       playerCharacter.visible = false;
@@ -4155,7 +6098,7 @@
       const ambulance = rescue.ambulance;
       const medics = rescue.medics || [];
       if (!ambulance || ambulance.destroyed || !ambulance.body || !ambulance.mesh) {
-        medicalRescueState.active = false;
+        rescue.awaitingAmbulance = true;
         return;
       }
 
@@ -4176,7 +6119,7 @@
           const target = patientPosition.clone().add(new THREE.Vector3(index === 0 ? -0.9 : 0.9, 0, 1.2));
           return medic.mesh.position.distanceTo(target) < 0.8;
         });
-        if (closeEnough) {
+        if (closeEnough && !rescue.dispatching) {
           rescue.patientLoaded = true;
         }
       } else {
@@ -4190,6 +6133,10 @@
           const index = cars.indexOf(ambulance);
           if (index >= 0) cars.splice(index, 1);
           medicalRescueState.active = false;
+          medicalRescueState.dispatching = false;
+          medicalRescueState.awaitingAmbulance = false;
+          medicalRescueState.ambulance = null;
+          medicalRescueState.patientPosition = null;
           playerCharacter.visible = true;
           setSafePlayerPosition(playerState.position.x + 10, 1.7, playerState.position.z + 10);
           playerInputActive = true;
@@ -4468,11 +6415,14 @@
       const crewCount = 2 + Math.floor(Math.random() * 2);
       for (let i = 0; i < crewCount; i++) {
         const person = createHuman();
-        person.task = 'boat';
+        person.task = i === 0 ? 'boat-captain' : 'boat-passenger';
         person.bench = null;
         person.ridingBoat = boat;
         boat.crew.push(person);
-        if (i === 0) boat.paddler = person;
+        if (i === 0) {
+          boat.paddler = person;
+          applyBoatUniform(person);
+        }
       }
       const paddle = new THREE.Group();
       const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 2.8, 8), new THREE.MeshStandardMaterial({ color: 0x66452e, roughness: 0.72 }));
@@ -4590,6 +6540,257 @@
       entityPopulation = people.slice();
     }
 
+    const birdTypes = [
+      { name: 'sparrow', body: 0x8b6845, belly: 0xe0cda8, wing: 0x5f4934, beak: 0xd59a48, scale: 0.66 },
+      { name: 'cardinal', body: 0xc83d3a, belly: 0xe99380, wing: 0x9f292b, beak: 0xe3ad3d, scale: 0.88 },
+      { name: 'blue jay', body: 0x4c83bd, belly: 0xdde8ee, wing: 0x244c78, beak: 0x252b30, scale: 0.86 },
+      { name: 'pigeon', body: 0x858d90, belly: 0xb8c0c1, wing: 0x596366, beak: 0x9f8057, scale: 0.94 }
+    ];
+    const birdFormationOffsets = [
+      { x: 0, y: 0, z: 0 },
+      { x: -2.8, y: -0.15, z: -3.2 },
+      { x: 2.8, y: -0.15, z: -3.2 },
+      { x: -5.6, y: -0.35, z: -6.4 },
+      { x: 5.6, y: -0.35, z: -6.4 }
+    ];
+    const birdBodyGeometry = new THREE.SphereGeometry(1, 8, 6);
+    const birdWingGeometry = new THREE.BoxGeometry(0.9, 0.08, 0.42);
+    const birdBeakGeometry = new THREE.ConeGeometry(0.09, 0.24, 5);
+    const birdTailGeometry = new THREE.ConeGeometry(0.14, 0.42, 5);
+
+    function getBirdFormationPosition(flock, slot) {
+      const offset = birdFormationOffsets[slot];
+      const cosine = Math.cos(flock.heading);
+      const sine = Math.sin(flock.heading);
+      return new THREE.Vector3(
+        flock.leader.position.x + offset.x * cosine + offset.z * sine,
+        flock.leader.position.y + offset.y,
+        flock.leader.position.z - offset.x * sine + offset.z * cosine
+      );
+    }
+
+    function createBirdPart(geometry, color, count, typeIndex, partName) {
+      const mesh = new THREE.InstancedMesh(
+        geometry,
+        new THREE.MeshStandardMaterial({ color, roughness: 0.82, flatShading: true }),
+        count
+      );
+      mesh.userData.birdTypeIndex = typeIndex;
+      mesh.userData.birdPart = partName;
+      mesh.frustumCulled = false;
+      mesh.castShadow = !webOptimizer.lowLag;
+      mesh.receiveShadow = false;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      scene.add(mesh);
+      return mesh;
+    }
+
+    function setBirdInstance(mesh, instanceIndex, bird, offsetX, offsetY, offsetZ, scaleX, scaleY, scaleZ, rotationX = 0, rotationZ = 0) {
+      const cosine = Math.cos(bird.heading);
+      const sine = Math.sin(bird.heading);
+      birdTransform.position.set(
+        bird.position.x + offsetX * cosine + offsetZ * sine,
+        bird.position.y + offsetY,
+        bird.position.z - offsetX * sine + offsetZ * cosine
+      );
+      birdTransform.rotation.order = 'YXZ';
+      birdTransform.rotation.set(rotationX, bird.heading, rotationZ);
+      birdTransform.scale.set(scaleX, scaleY, scaleZ);
+      birdTransform.updateMatrix();
+      mesh.setMatrixAt(instanceIndex, birdTransform.matrix);
+    }
+
+    function createBirdPopulation(count = 150) {
+      if (birds.length) return;
+      const flockCount = Math.ceil(count / birdFormationOffsets.length);
+      for (let flockIndex = 0; flockIndex < flockCount; flockIndex++) {
+        const closeToPlayer = flockIndex < 6;
+        const centerX = closeToPlayer ? (Math.random() - 0.5) * 180 : THREE.MathUtils.randFloat(worldBounds.minX + 30, worldBounds.maxX - 30);
+        const centerZ = closeToPlayer ? 20 + (Math.random() - 0.5) * 180 : THREE.MathUtils.randFloat(worldBounds.minZ + 30, worldBounds.maxZ - 30);
+        const heading = Math.random() * Math.PI * 2;
+        const leaderPosition = new THREE.Vector3(
+          centerX,
+          closeToPlayer ? 4.5 + Math.random() * 4 : 14 + Math.random() * 22,
+          centerZ
+        );
+        const flock = {
+          leader: null,
+          heading,
+          speed: 4 + Math.random() * 2.8,
+          destination: new THREE.Vector3(
+            THREE.MathUtils.clamp(centerX + (Math.random() - 0.5) * 140, worldBounds.minX + 18, worldBounds.maxX - 18),
+            10 + Math.random() * 26,
+            THREE.MathUtils.clamp(centerZ + (Math.random() - 0.5) * 140, worldBounds.minZ + 18, worldBounds.maxZ - 18)
+          ),
+          birds: []
+        };
+        birdFlocks.push(flock);
+        for (let slot = 0; slot < birdFormationOffsets.length && birds.length < count; slot++) {
+          const typeIndex = birds.length % birdTypes.length;
+          const bird = {
+            typeIndex,
+            flock,
+            formationSlot: slot,
+            position: new THREE.Vector3(),
+            destination: flock.destination,
+            velocity: new THREE.Vector3(),
+            heading,
+            speed: flock.speed,
+            wingPhase: Math.random() * Math.PI * 2,
+            state: 'flying',
+            knockedUntil: 0,
+            recoverAt: 0
+          };
+          if (slot === 0) {
+            bird.position.copy(leaderPosition);
+            flock.leader = bird;
+          } else {
+            bird.position.copy(getBirdFormationPosition(flock, slot));
+          }
+          flock.birds.push(bird);
+          birds.push(bird);
+          birdsByType[typeIndex].push(bird);
+        }
+      }
+
+      birdTypes.forEach((type, typeIndex) => {
+        const typedBirds = birdsByType[typeIndex];
+        const renderSet = {
+          body: createBirdPart(birdBodyGeometry, type.body, typedBirds.length, typeIndex, 'body'),
+          belly: createBirdPart(birdBodyGeometry, type.belly, typedBirds.length, typeIndex, 'belly'),
+          head: createBirdPart(birdBodyGeometry, type.body, typedBirds.length, typeIndex, 'head'),
+          beak: createBirdPart(birdBeakGeometry, type.beak, typedBirds.length, typeIndex, 'beak'),
+          tail: createBirdPart(birdTailGeometry, type.wing, typedBirds.length, typeIndex, 'tail'),
+          leftWing: createBirdPart(birdWingGeometry, type.wing, typedBirds.length, typeIndex, 'leftWing'),
+          rightWing: createBirdPart(birdWingGeometry, type.wing, typedBirds.length, typeIndex, 'rightWing')
+        };
+        birdRenderers.push(renderSet);
+      });
+      updateBirdRenderers();
+    }
+
+    function updateBirdRenderers() {
+      birdTypes.forEach((type, typeIndex) => {
+        const typedBirds = birdsByType[typeIndex];
+        const renderSet = birdRenderers[typeIndex];
+        if (!renderSet) return;
+        typedBirds.forEach((bird, instanceIndex) => {
+          const size = type.scale;
+          const wingFlap = bird.state === 'flying' ? Math.sin(bird.wingPhase) * 0.62 : bird.state === 'takeoff' ? Math.sin(bird.wingPhase) * 0.85 : 0;
+          const bodyPitch = bird.state === 'grounded' ? Math.PI / 2 : 0;
+          setBirdInstance(renderSet.body, instanceIndex, bird, 0, 0, 0, 0.34 * size, 0.3 * size, 0.52 * size, bodyPitch);
+          setBirdInstance(renderSet.belly, instanceIndex, bird, 0, -0.12 * size, 0.04 * size, 0.24 * size, 0.16 * size, 0.35 * size, bodyPitch);
+          setBirdInstance(renderSet.head, instanceIndex, bird, 0, 0.15 * size, 0.31 * size, 0.2 * size, 0.19 * size, 0.2 * size, bodyPitch);
+          setBirdInstance(renderSet.beak, instanceIndex, bird, 0, 0.12 * size, 0.49 * size, 0.08 * size, 0.1 * size, 0.1 * size, Math.PI / 2 + bodyPitch);
+          setBirdInstance(renderSet.tail, instanceIndex, bird, 0, -0.03 * size, -0.43 * size, 0.72 * size, 0.62 * size, 0.56 * size, -Math.PI / 2 + bodyPitch);
+          setBirdInstance(renderSet.leftWing, instanceIndex, bird, -0.28 * size, 0.03 * size, -0.02 * size, size, size, size, bodyPitch, -wingFlap);
+          setBirdInstance(renderSet.rightWing, instanceIndex, bird, 0.28 * size, 0.03 * size, -0.02 * size, size, size, size, bodyPitch, wingFlap);
+        });
+        Object.values(renderSet).forEach((mesh) => { mesh.instanceMatrix.needsUpdate = true; });
+      });
+    }
+
+    function updateBirdFlocks(dt) {
+      birdFlocks.forEach((flock) => {
+        const flyingBirds = flock.birds.filter((bird) => bird.state === 'flying');
+        if (!flyingBirds.length) return;
+        if (!flyingBirds.includes(flock.leader)) flock.leader = flyingBirds[0];
+        flock.leader.formationSlot = 0;
+        let followerSlot = 1;
+        flyingBirds.forEach((bird) => {
+          if (bird !== flock.leader) bird.formationSlot = followerSlot++;
+        });
+
+        const leader = flock.leader;
+        let route = flock.destination.clone().sub(leader.position);
+        if (route.lengthSq() < 1600) {
+          flock.destination.set(
+            THREE.MathUtils.clamp(leader.position.x + (Math.random() - 0.5) * 150, worldBounds.minX + 20, worldBounds.maxX - 20),
+            12 + Math.random() * 22,
+            THREE.MathUtils.clamp(leader.position.z + (Math.random() - 0.5) * 150, worldBounds.minZ + 20, worldBounds.maxZ - 20)
+          );
+          route = flock.destination.clone().sub(leader.position);
+        }
+        const desiredHeading = Math.atan2(route.x, route.z);
+        const headingDelta = Math.atan2(Math.sin(desiredHeading - flock.heading), Math.cos(desiredHeading - flock.heading));
+        flock.heading += THREE.MathUtils.clamp(headingDelta, -0.72 * dt, 0.72 * dt);
+        const forwardX = Math.sin(flock.heading);
+        const forwardZ = Math.cos(flock.heading);
+        leader.position.x += forwardX * flock.speed * dt;
+        leader.position.z += forwardZ * flock.speed * dt;
+        leader.position.y += (flock.destination.y - leader.position.y) * Math.min(1, dt * 0.2);
+        leader.heading = flock.heading;
+        leader.velocity.set(forwardX * flock.speed, 0, forwardZ * flock.speed);
+        leader.wingPhase += dt * (13 + flock.speed * 0.45);
+
+        flyingBirds.forEach((bird) => {
+          if (bird === leader) return;
+          const formationPosition = getBirdFormationPosition(flock, bird.formationSlot);
+          bird.position.lerp(formationPosition, Math.min(1, dt * 8));
+          bird.heading = flock.heading;
+          bird.velocity.set(leader.velocity.x, 0, leader.velocity.z);
+          bird.wingPhase += dt * (13 + flock.speed * 0.45);
+        });
+      });
+    }
+
+    function updateBirds(dt, now) {
+      updateBirdFlocks(dt);
+      birds.forEach((bird) => {
+        if (bird.state === 'flying') return;
+        if (bird.state === 'falling') {
+          bird.velocity.y -= 12 * dt;
+          bird.position.addScaledVector(bird.velocity, dt);
+          bird.wingPhase += dt * 18;
+          const groundY = groundHeightAt(bird.position.x, bird.position.z) + 0.28;
+          if (bird.position.y <= groundY) {
+            bird.position.y = groundY;
+            bird.velocity.set(0, 0, 0);
+            bird.state = 'grounded';
+            bird.recoverAt = now + 3000;
+          }
+        } else if (bird.state === 'grounded' && now >= bird.recoverAt) {
+          bird.state = 'takeoff';
+          bird.velocity.set(0, 5.2, 0);
+          bird.destination.set(
+            THREE.MathUtils.clamp(bird.position.x + (Math.random() - 0.5) * 60, worldBounds.minX + 12, worldBounds.maxX - 12),
+            14 + Math.random() * 20,
+            THREE.MathUtils.clamp(bird.position.z + (Math.random() - 0.5) * 60, worldBounds.minZ + 12, worldBounds.maxZ - 12)
+          );
+        } else if (bird.state === 'takeoff') {
+          bird.position.addScaledVector(bird.velocity, dt);
+          bird.wingPhase += dt * 20;
+          if (bird.position.y >= groundHeightAt(bird.position.x, bird.position.z) + 4.5) {
+            bird.state = 'flying';
+            bird.velocity.set(0, 0, 0);
+          }
+        }
+      });
+      updateBirdRenderers();
+    }
+
+    function maybePunchBirdAtPointer(event) {
+      if (!gameStarted || controlledVehicle || playerState.boat || !birdRenderers.length) return false;
+      const raycaster = getPointerRaycaster(event);
+      const birdMeshes = birdRenderers.map((renderSet) => renderSet.body);
+      const hits = raycaster.intersectObjects(birdMeshes, false);
+      if (!hits.length) return false;
+      const hit = hits[0];
+      const typeIndex = hit.object.userData.birdTypeIndex;
+      const bird = birdsByType[typeIndex] && birdsByType[typeIndex][hit.instanceId];
+      if (!bird) return false;
+      const playerPosition = playerState.position;
+      if (bird.position.distanceTo(playerPosition) > 6) {
+        showMessage('Move closer to punch the bird.');
+        return true;
+      }
+      if (bird.state !== 'flying') return true;
+      bird.state = 'falling';
+      bird.velocity.set(0, -1.2, 0);
+      showMessage('Bird knocked down.');
+      return true;
+    }
+
     function createPrison() {
       let placement = worldPlacement.reserveNearest(460, -360, 64, 58, 'prison', 2);
       if (!placement) placement = worldPlacement.reserveNearest(-460, 360, 64, 58, 'prison', 2);
@@ -4615,11 +6816,37 @@
       createBarrier(x - 18, z + halfDepth, 28, 0.8, 4.2, 2.1, 0x596269, false, 'prison-wall');
       createBarrier(x + 18, z + halfDepth, 28, 0.8, 4.2, 2.1, 0x596269, false, 'prison-wall');
 
-      const cellBlock = new THREE.Mesh(new THREE.BoxGeometry(26, 7, 17), concrete);
-      cellBlock.position.set(0, 3.5, -13);
-      cellBlock.castShadow = true;
-      cellBlock.receiveShadow = true;
-      group.add(cellBlock);
+      const cellFloor = new THREE.Mesh(new THREE.BoxGeometry(26, 0.35, 17), concrete);
+      cellFloor.position.set(0, 0.175, -13);
+      cellFloor.receiveShadow = true;
+      group.add(cellFloor);
+      const cellWalls = [
+        { size: [26, 7, 0.6], position: [0, 3.5, -21.2] },
+        { size: [0.6, 7, 17], position: [-12.7, 3.5, -13] },
+        { size: [0.6, 7, 17], position: [12.7, 3.5, -13] }
+      ];
+      cellWalls.forEach((wall) => {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(...wall.size), concrete);
+        mesh.position.set(...wall.position);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+      });
+      for (let barIndex = 0; barIndex <= 32; barIndex++) {
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 6.6, 0.08), darkMetal);
+        bar.position.set(-12.4 + barIndex * 0.775, 3.3, -4.55);
+        group.add(bar);
+      }
+      [0.2, 3.3, 6.4].forEach((height) => {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(26, 0.16, 0.16), darkMetal);
+        rail.position.set(0, height, -4.55);
+        group.add(rail);
+      });
+      for (let dividerIndex = 0; dividerIndex < 5; dividerIndex++) {
+        const divider = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.6, 16.4), concrete);
+        divider.position.set(-8.6 + dividerIndex * 4.3, 1.3, -13);
+        group.add(divider);
+      }
       const roof = new THREE.Mesh(new THREE.BoxGeometry(27, 0.6, 18), darkMetal);
       roof.position.set(0, 7.3, -13);
       group.add(roof);
@@ -4675,28 +6902,38 @@
       cityRoot.add(group);
 
       const inmatePositions = [];
-      for (let index = 0; index < 30; index++) {
+      for (let index = 0; index < 6; index++) {
+        inmatePositions.push(new THREE.Vector3(x + (index - 2.5) * 4.3, 0, z - 12));
+      }
+      for (let index = 0; index < 24; index++) {
         const column = index % 6;
         const row = Math.floor(index / 6);
         inmatePositions.push(new THREE.Vector3(x + (column - 2.5) * 4.2, 0, z + 7 + row * 3.2));
       }
-      prisonFacility = { x, z, width, depth, group, inmatePositions, nextSlot: 0 };
+      prisonFacility = { x, z, width, depth, group, inmatePositions, nextSlot: 0, nextEscapeAt: 0 };
       return prisonFacility;
     }
 
-    function createEscapedPrisoners(count = 30) {
-      for (let index = 0; index < count; index++) {
-        const prisoner = createHuman('A', 'State_Default', false);
+    function createPrisonPopulation(count = 18) {
+      for (let index = 0; index < Math.min(count, prisonFacility.inmatePositions.length); index++) {
+        const prisoner = createHuman('A', 'State_Default', true);
         applyPrisonerUniform(prisoner);
         prisoner.isCriminal = true;
-        prisoner.criminalStatus = 'fugitive';
-        prisoner.task = 'criminal';
-        prisoner.speed = 2.4 + Math.random() * 0.65;
-        prisoner.mesh.position.copy(getPedestrianSpawnPoint());
-        prisoner.destination.copy(getNearbyPedestrianDestination(prisoner.mesh.position));
-        prisoner.nextEscapeDecisionAt = performance.now() + Math.random() * 4000;
+        prisoner.criminalStatus = 'incarcerated';
+        prisoner.state = 'State_Imprisoned';
+        prisoner.task = 'prison-inmate';
+        prisoner.speed = 0.75;
+        prisoner.prisonSlotIndex = index;
+        prisoner.prisonRoutine = index < 6 ? 'cell' : 'exercise';
+        prisoner.active = true;
+        prisoner.mesh.position.copy(prisonFacility.inmatePositions[index]);
+        prisoner.prisonHomePosition = prisonFacility.inmatePositions[index].clone();
+        prisoner.destination = prisoner.mesh.position.clone();
+        prisonInmates.push(prisoner);
         criminals.push(prisoner);
       }
+      prisonFacility.nextSlot = prisonInmates.length;
+      prisonFacility.nextEscapeAt = performance.now() + 45000 + Math.random() * 45000;
     }
 
     function addParkChildAccessories(person) {
@@ -4789,6 +7026,24 @@
         if (person.deviceGroup) person.deviceGroup.visible = person.useDevice && person.task !== 'walk' ? true : person.useDevice;
 
         if (person.ridingBoat) return;
+        if (person.task === 'prison-attacker') {
+          updatePrisonAttacker(person, dt, now);
+          return;
+        }
+        if (person.task === 'prison-guard-response') {
+          updatePrisonGuardResponse(person, dt, now);
+          return;
+        }
+        if (person.task === 'janitor' || person.task === 'mansion-maid') {
+          updateCleaningWorker(person, dt, now);
+          return;
+        }
+        if (person.task === 'billionaire' || person.task === 'billionaire-escort' || person.task === 'mansion-guard' || person.task === 'billionaire-driver' || person.task === 'billionaire-car-driver') return;
+        if (person.task === 'race-angry') {
+          updateRaceAngryDriver(person, dt, now);
+          return;
+        }
+        if (person.task === 'race-recovery') return;
         if (person.task === 'police-officer') return;
         if (person.task === 'prison-inmate') {
           updatePrisonInmate(person, dt);
@@ -4813,7 +7068,7 @@
             return;
           }
         }
-        if (now > (person.nextImpactAt || 0)) {
+        if (!person.isMedic && now > (person.nextImpactAt || 0)) {
           const impactCar = cars.find((car) => !car.destroyed && Math.abs(car.speed) > 6 && Math.hypot(car.mesh.position.x - person.mesh.position.x, car.mesh.position.z - person.mesh.position.z) < 2.2);
           const playerMoving = !controlledVehicle && (walkKeys.forward || walkKeys.backward || walkKeys.left || walkKeys.right);
           const playerDistance = Math.hypot(playerState.position.x - person.mesh.position.x, playerState.position.z - person.mesh.position.z);
@@ -4993,6 +7248,7 @@
           person.deviceMesh.rotation.y = Math.PI * 0.16;
         }
       });
+      resolveCharacterOverlaps();
     }
 
     function nearestBenchToPlayer() {
@@ -5024,7 +7280,7 @@
       const hits = raycaster.intersectObjects(people.map((p) => p.mesh), true);
       if (!hits.length) return;
       const hit = hits[0].object; const person = people.find((p) => p.mesh === hit || p.mesh.children.includes(hit) || p.mesh === hit.parent || p.mesh === hit.parent?.parent);
-      if (!person) return;
+      if (!person || person.isMedic) return;
       person.isPunching = true; person.punchUntil = performance.now() + 3000; showMessage('Punch landed!');
     }
 
@@ -5035,7 +7291,7 @@
       if (!hits.length) return;
       const hitObject = hits[0].object;
       const hitPerson = people.find((person) => person.mesh === hitObject || person.mesh.children.includes(hitObject) || person.mesh === hitObject.parent || person.mesh === hitObject.parent?.parent);
-      if (!hitPerson || event.button !== 0) return;
+      if (!hitPerson || hitPerson.isMedic || event.button !== 0) return;
       const hitNormal = hits[0].face ? hits[0].face.normal.clone().transformDirection(hitObject.matrixWorld) : new THREE.Vector3(0, 1, 0);
       const pushDirection = hitNormal.clone().setY(0).normalize();
       if (pushDirection.lengthSq() === 0) pushDirection.set(0, 0, 1);
@@ -5085,6 +7341,10 @@
       }
 
       if (!selectedCar) return false;
+      if (selectedCar.isBillionaireCar && !startBillionaireCarTheft(selectedCar, performance.now())) return false;
+      if (selectedCar.isRaceCar && raceTrack && (raceTrack.phase === 'racing' || raceTrack.phase === 'confrontation')) {
+        startRaceCarTheft(performance.now(), selectedCar);
+      }
       if (selectedCar.npc) {
         ejectCarDriver(selectedCar);
         const npcIndex = npcCars.indexOf(selectedCar);
@@ -5102,7 +7362,7 @@
       selectedCar.owner = 'player';
       selectedCar.body.wakeUp();
       syncActiveMode();
-      showMessage('Entered vehicle. Drive with WASD.');
+      showMessage(selectedCar.isBillionaireCar ? 'You took a billionaire’s car. The bodyguards are following!' : 'Entered vehicle. Drive with WASD.');
       selectedCar.inside = true;
       return true;
     }
@@ -5111,8 +7371,8 @@
       syncActiveMode();
       if (!controlledVehicle) return;
       const car = controlledVehicle;
-      const maxSpeedMph = 75;
-      const maxSpeed = (maxSpeedMph / 2.237) * 1.05;
+      const maxSpeedMph = car.isRaceCar && raceTrack ? raceTrack.maxSpeedMph : car.isMotorcycle ? 80 : 75;
+      const maxSpeed = maxSpeedMph / 2.237;
       car.fuel = Infinity;
       car.maxFuel = Infinity;
 
@@ -5121,10 +7381,11 @@
       const steeringResponse = 1 - Math.exp(-(turnInput ? 12 : 8) * dt);
       car.steer = THREE.MathUtils.lerp(car.steer, steeringTarget, steeringResponse);
 
-      const turnStrength = 1.8 + Math.abs(car.speed) * 0.09;
+      const turnStrength = car.isMotorcycle ? 0.85 + Math.abs(car.speed) * 0.035 : 1.8 + Math.abs(car.speed) * 0.09;
       if (turnInput !== 0) {
         car.mesh.rotation.y += car.steer * turnStrength * dt;
       }
+      if (car.isMotorcycle) car.mesh.rotation.z = -car.steer * Math.min(0.3, Math.abs(car.speed) * 0.008);
       car.body.quaternion.setFromEuler(0, car.mesh.rotation.y, 0);
 
       const forward = new THREE.Vector3(Math.sin(car.mesh.rotation.y), 0, Math.cos(car.mesh.rotation.y));
@@ -5173,7 +7434,8 @@
         return;
       }
       const speedMps = new THREE.Vector3(controlledVehicle.body.velocity.x, 0, controlledVehicle.body.velocity.z).length();
-      const speedMph = Math.min(99, Math.round(speedMps * 2.237));
+      const displayLimitMph = controlledVehicle.isRaceCar && raceTrack ? raceTrack.maxSpeedMph : controlledVehicle.isMotorcycle ? 80 : 99;
+      const speedMph = Math.min(displayLimitMph, Math.round(speedMps * 2.237));
       speedReadout.textContent = String(speedMph);
       speedometer.classList.add('visible');
     }
@@ -5346,7 +7608,7 @@
       if (moveDirection.lengthSq() > 0) {
         const nextX = playerState.position.x + moveDirection.x * moveSpeed * dt;
         const nextZ = playerState.position.z + moveDirection.z * moveSpeed * dt;
-        const resolved = resolveFootstep(nextX, nextZ, 0.7);
+        const resolved = resolvePlayerFootstep(nextX, nextZ, 0.7);
         if (!resolved.blocked) {
           playerState.position.x = resolved.x;
           playerState.position.z = resolved.z;
@@ -5438,7 +7700,8 @@
         : unit && unit.car && unit.phase === 'pursuit'
           ? unit.car.body.position
           : null;
-      if (threat && now >= (person.nextFleeAt || 0)) {
+      const closeThreat = threat && Math.hypot(threat.x - person.mesh.position.x, threat.z - person.mesh.position.z) < 32;
+      if (closeThreat && now >= (person.nextFleeAt || 0)) {
         const escapeDirection = person.mesh.position.clone().sub(threat).setY(0);
         if (escapeDirection.lengthSq() < 0.01) escapeDirection.set(Math.random() - 0.5, 0, Math.random() - 0.5);
         escapeDirection.normalize();
@@ -5451,7 +7714,44 @@
           person.destination.y = 0;
         }
         person.nextFleeAt = now + 700;
-      } else if (!threat && (now >= person.nextEscapeDecisionAt || person.mesh.position.distanceTo(person.destination) < 1.5)) {
+      } else if (person.isPrisonEscape && !person.escapedPrison) {
+        if (person.mesh.position.distanceTo(person.escapeGate) < 2.5) {
+          person.escapedPrison = true;
+          person.escapedPrisonAt = now;
+          person.policeResponseAt = now + 7000;
+          person.nextEscapeDecisionAt = now;
+          if (Math.hypot(playerState.position.x - person.mesh.position.x, playerState.position.z - person.mesh.position.z) < 90) {
+            showMessage('An escaped inmate is threatening pedestrians!');
+          }
+        } else {
+          person.destination.copy(person.escapeGate);
+        }
+      } else if (person.isPrisonEscape && person.escapedPrison && !closeThreat) {
+        let target = person.publicThreatTarget;
+        if (!target || !target.active || now >= person.nextEscapeDecisionAt) {
+          target = people
+            .filter((candidate) => candidate && candidate !== person && candidate.active && !candidate.isCriminal && !candidate.isPoliceOfficer && !candidate.isPrisoner && !candidate.isMedic)
+            .map((candidate) => ({ person: candidate, distance: Math.hypot(candidate.mesh.position.x - person.mesh.position.x, candidate.mesh.position.z - person.mesh.position.z) }))
+            .filter((candidate) => candidate.distance < 28)
+            .sort((a, b) => a.distance - b.distance)[0]?.person || null;
+          person.publicThreatTarget = target;
+          person.nextEscapeDecisionAt = now + 1200;
+        }
+        if (target) {
+          const distance = Math.hypot(target.mesh.position.x - person.mesh.position.x, target.mesh.position.z - person.mesh.position.z);
+          person.destination.copy(target.mesh.position);
+          if (distance <= 1.5 && now >= (person.nextPublicThreatAt || 0)) {
+            target.knockedDown = { getUp: true, until: now + 2200 };
+            target.nextImpactAt = now + 2800;
+            target.mesh.rotation.z = 1.45;
+            person.publicThreatTarget = null;
+            person.nextPublicThreatAt = now + 6500;
+          }
+        } else if (now >= person.nextEscapeDecisionAt) {
+          person.destination.copy(getNearbyPedestrianDestination(person.mesh.position));
+          person.nextEscapeDecisionAt = now + 1200;
+        }
+      } else if (!closeThreat && (now >= person.nextEscapeDecisionAt || person.mesh.position.distanceTo(person.destination) < 1.5)) {
         person.destination.copy(getNearbyPedestrianDestination(person.mesh.position));
         person.nextEscapeDecisionAt = now + 2200 + Math.random() * 3800;
       }
@@ -5475,6 +7775,26 @@
 
     function updatePrisonInmate(person, dt) {
       if (!prisonFacility) return;
+      if (person.prisonReturnHome) {
+        const returnDirection = person.prisonReturnHome.clone().sub(person.mesh.position).setY(0);
+        if (returnDirection.length() < 1.4) {
+          person.mesh.position.copy(person.prisonReturnHome);
+          person.prisonReturnHome = null;
+        } else {
+          returnDirection.normalize();
+          const nextPosition = person.mesh.position.clone().addScaledVector(returnDirection, 2.8 * dt);
+          const resolved = resolveFootstep(nextPosition.x, nextPosition.z, 0.5);
+          if (!resolved.blocked) person.mesh.position.set(resolved.x, 0, resolved.z);
+          person.mesh.rotation.y = Math.atan2(returnDirection.x, returnDirection.z);
+          return;
+        }
+      }
+      if (person.prisonRoutine === 'cell') {
+        const idleMotion = webOptimizer.lowLag ? 0 : Math.sin(performance.now() * 0.0015 + person.walkPhase) * 0.08;
+        person.leftArm.rotation.x = idleMotion;
+        person.rightArm.rotation.x = -idleMotion;
+        return;
+      }
       if (!person.destination || person.mesh.position.distanceTo(person.destination) < 1.4) {
         person.destination = new THREE.Vector3(
           prisonFacility.x + (Math.random() - 0.5) * 38,
@@ -5490,6 +7810,191 @@
       if (!resolved.blocked) person.mesh.position.set(resolved.x, 0, resolved.z);
       else person.destination.set(prisonFacility.x, 0, prisonFacility.z + 10);
       person.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+    }
+
+    function isInsidePrison(position) {
+      return !!prisonFacility &&
+        Math.abs(position.x - prisonFacility.x) < prisonFacility.width / 2 - 1.2 &&
+        Math.abs(position.z - prisonFacility.z) < prisonFacility.depth / 2 - 1.2;
+    }
+
+    function tryStartPrisonEncounter(victim, targetPlayer, now) {
+      if (Math.random() >= 0.3) return;
+      const availableInmates = prisonInmates.filter((person) =>
+        person.criminalStatus === 'incarcerated' && person.task === 'prison-inmate' && !person.prisonEncounter
+      );
+      if (!availableInmates.length) return;
+      const attacker = availableInmates[Math.floor(Math.random() * availableInmates.length)];
+      const encounter = {
+        attacker,
+        victim: targetPlayer ? null : victim,
+        targetPlayer,
+        phase: 'attack',
+        startedAt: now,
+        endsAt: now + 10000,
+        guard: null
+      };
+      attacker.prisonEncounter = encounter;
+      attacker.nextPrisonAttackAt = now + 350;
+      attacker.task = 'prison-attacker';
+      prisonEncounters.push(encounter);
+      if (targetPlayer || Math.hypot(playerState.position.x - victim.mesh.position.x, playerState.position.z - victim.mesh.position.z) < 70) {
+        showMessage(targetPlayer ? 'An inmate is attacking you!' : 'An inmate is attacking a civilian!');
+      }
+    }
+
+    function updatePrisonAttacker(person, dt, now) {
+      const encounter = person.prisonEncounter;
+      if (!encounter || encounter.phase !== 'attack') {
+        person.isPunching = false;
+        return;
+      }
+      const target = encounter.targetPlayer ? playerState.position : encounter.victim.mesh.position;
+      const direction = new THREE.Vector3(target.x - person.mesh.position.x, 0, target.z - person.mesh.position.z);
+      const distance = direction.length();
+      if (distance > 1.25) {
+        direction.normalize();
+        const nextPosition = person.mesh.position.clone().addScaledVector(direction, Math.min(distance - 1.05, 4.8 * dt));
+        const resolved = resolveFootstep(nextPosition.x, nextPosition.z, 0.55);
+        if (!resolved.blocked) person.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+        person.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+        person.walkPhase += dt * 12;
+        const swing = webOptimizer.lowLag ? 0 : Math.sin(person.walkPhase) * 1.0;
+        person.leftArm.rotation.x = swing - 0.5;
+        person.rightArm.rotation.x = -swing - 0.5;
+        return;
+      }
+      person.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      if (now >= person.nextPrisonAttackAt) {
+        person.isPunching = true;
+        person.punchUntil = now + 360;
+        person.nextPrisonAttackAt = now + 900;
+        if (encounter.targetPlayer) {
+          playerInputActive = false;
+          playerStunUntil = Math.max(playerStunUntil, now + 400);
+        } else if (encounter.victim && encounter.victim.active) {
+          encounter.victim.knockedDown = { getUp: true, until: now + 1500 };
+          encounter.victim.nextImpactAt = now + 1700;
+          encounter.victim.mesh.rotation.z = 1.45;
+        }
+      }
+      if (person.isPunching && now < person.punchUntil) {
+        person.leftArm.rotation.x = -1.55;
+        person.rightArm.rotation.x = 1.1;
+      } else {
+        person.isPunching = false;
+      }
+    }
+
+    function finishPrisonEncounter(encounter, now) {
+      const attacker = encounter.attacker;
+      if (attacker) {
+        attacker.task = 'prison-inmate';
+        attacker.prisonEncounter = null;
+        attacker.isPunching = false;
+        attacker.punchUntil = 0;
+        attacker.prisonReturnHome = attacker.prisonHomePosition && attacker.prisonHomePosition.clone();
+        attacker.destination = attacker.prisonHomePosition ? attacker.prisonHomePosition.clone() : attacker.mesh.position.clone();
+      }
+      if (encounter.guard) {
+        encounter.guard.task = 'police-officer';
+        encounter.guard.prisonResponseTo = null;
+      }
+      const encounterIndex = prisonEncounters.indexOf(encounter);
+      if (encounterIndex >= 0) prisonEncounters.splice(encounterIndex, 1);
+      if (Math.hypot(playerState.position.x - (attacker ? attacker.mesh.position.x : playerState.position.x), playerState.position.z - (attacker ? attacker.mesh.position.z : playerState.position.z)) < 80) {
+        showMessage('A prison guard broke up the attack.');
+      }
+    }
+
+    function updatePrisonGuardResponse(guard, dt, now) {
+      const encounter = guard.prisonResponseTo;
+      if (!encounter || !encounter.attacker || !encounter.attacker.active) {
+        guard.task = 'police-officer';
+        guard.prisonResponseTo = null;
+        return;
+      }
+      const direction = encounter.attacker.mesh.position.clone().sub(guard.mesh.position).setY(0);
+      const distance = direction.length();
+      if (distance <= 1.4) {
+        finishPrisonEncounter(encounter, now);
+        return;
+      }
+      direction.normalize();
+      const nextPosition = guard.mesh.position.clone().addScaledVector(direction, Math.min(distance - 1.2, guard.speed * dt));
+      const resolved = resolveFootstep(nextPosition.x, nextPosition.z, 0.55);
+      if (!resolved.blocked) guard.mesh.position.set(resolved.x, groundHeightAt(resolved.x, resolved.z), resolved.z);
+      guard.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      guard.leftArm.rotation.x = -0.55;
+      guard.rightArm.rotation.x = -0.55;
+    }
+
+    function updatePrisonEncounters(now) {
+      if (!prisonFacility || !gameSettings.npcs) return;
+      people.forEach((person) => {
+        if (!person || !person.active || !person.mesh.visible || person.ridingBoat) return;
+        const inside = isInsidePrison(person.mesh.position);
+        const isCivilian = !person.isCriminal && !person.isPoliceOfficer && !person.isPrisoner && !person.isMedic && !person.isBoatCaptain && !person.isRaceDriver;
+        if (inside && !person.wasInsidePrison && isCivilian) tryStartPrisonEncounter(person, false, now);
+        person.wasInsidePrison = inside;
+      });
+      const playerCanBeAttacked = !controlledVehicle && !controlledAirplane && !controlledBoat && !playerState.seatedOn;
+      const playerInside = playerCanBeAttacked && isInsidePrison(playerState.position);
+      if (playerInside && !playerWasInsidePrison) tryStartPrisonEncounter(null, true, now);
+      playerWasInsidePrison = playerInside;
+
+      for (let index = prisonEncounters.length - 1; index >= 0; index--) {
+        const encounter = prisonEncounters[index];
+        if (encounter.phase !== 'attack' || now < encounter.endsAt) continue;
+        encounter.phase = 'guard-response';
+        const guard = prisonOfficers
+          .filter((officer) => officer.active && officer.task === 'police-officer' && !officer.prisonResponseTo)
+          .sort((a, b) => a.mesh.position.distanceTo(encounter.attacker.mesh.position) - b.mesh.position.distanceTo(encounter.attacker.mesh.position))[0];
+        if (!guard) {
+          finishPrisonEncounter(encounter, now);
+          continue;
+        }
+        encounter.guard = guard;
+        guard.prisonResponseTo = encounter;
+        guard.task = 'prison-guard-response';
+        if (Math.hypot(playerState.position.x - encounter.attacker.mesh.position.x, playerState.position.z - encounter.attacker.mesh.position.z) < 100) {
+          showMessage('A prison guard is coming to break up the fight.');
+        }
+      }
+    }
+
+    function startPrisonerEscape(prisoner, now) {
+      const inmateIndex = prisonInmates.indexOf(prisoner);
+      if (inmateIndex >= 0) prisonInmates.splice(inmateIndex, 1);
+      prisoner.criminalStatus = 'fugitive';
+      prisoner.task = 'criminal';
+      prisoner.speed = 2.6 + Math.random() * 0.5;
+      prisoner.isPrisonEscape = true;
+      prisoner.escapedPrison = false;
+      prisoner.pursuedBy = null;
+      prisoner.publicThreatTarget = null;
+      prisoner.escapeGate = new THREE.Vector3(
+        prisonFacility.x + (Math.random() - 0.5) * 4,
+        0,
+        prisonFacility.z + prisonFacility.depth / 2 + 8
+      );
+      prisoner.destination.copy(prisoner.escapeGate);
+      prisoner.nextEscapeDecisionAt = now;
+      prisoner.knockedDown = null;
+      prisonFacility.nextEscapeAt = Infinity;
+    }
+
+    function updatePrisonEscapeSystem(now) {
+      if (!prisonFacility || now < prisonFacility.nextEscapeAt) return;
+      const activeEscape = criminals.some((person) => person.isPrisonEscape && person.criminalStatus === 'fugitive');
+      if (activeEscape) return;
+      const eligibleInmates = prisonInmates.filter((person) => person.criminalStatus === 'incarcerated');
+      if (!eligibleInmates.length) {
+        prisonFacility.nextEscapeAt = now + 15000;
+        return;
+      }
+      const escapee = eligibleInmates[Math.floor(Math.random() * eligibleInmates.length)];
+      startPrisonerEscape(escapee, now);
     }
 
     function movePoliceCar(unit, targetPosition, dt, now, speed) {
@@ -5520,13 +8025,26 @@
     function finishCriminalArrest(unit, now) {
       const inmate = unit.target;
       if (!inmate || !prisonFacility) return;
-      const slot = prisonFacility.inmatePositions[prisonFacility.nextSlot % prisonFacility.inmatePositions.length];
-      prisonFacility.nextSlot++;
+      const occupiedSlots = new Set(prisonInmates.map((person) => person.prisonSlotIndex));
+      let slotIndex = Number.isInteger(inmate.prisonSlotIndex) && !occupiedSlots.has(inmate.prisonSlotIndex)
+        ? inmate.prisonSlotIndex
+        : prisonFacility.inmatePositions.findIndex((_, index) => !occupiedSlots.has(index));
+      if (slotIndex < 0) slotIndex = prisonFacility.nextSlot % prisonFacility.inmatePositions.length;
+      const slot = prisonFacility.inmatePositions[slotIndex];
+      prisonFacility.nextSlot = slotIndex + 1;
       inmate.mesh.position.copy(slot);
       inmate.mesh.rotation.set(0, 0, 0);
       inmate.criminalStatus = 'incarcerated';
       inmate.state = 'State_Imprisoned';
       inmate.task = 'prison-inmate';
+      inmate.prisonSlotIndex = slotIndex;
+      inmate.prisonRoutine = slotIndex < 6 ? 'cell' : 'exercise';
+      inmate.prisonHomePosition = slot.clone();
+      const wasPrisonEscape = inmate.isPrisonEscape;
+      inmate.isPrisonEscape = false;
+      inmate.escapedPrison = false;
+      inmate.publicThreatTarget = null;
+      inmate.escapeGate = null;
       inmate.knockedDown = null;
       inmate.speed = 0.75;
       inmate.destination = slot.clone();
@@ -5547,14 +8065,20 @@
       unit.car.sirenActive = false;
       unit.patrolTarget = null;
       unit.arrestAt = now;
+      if (wasPrisonEscape) prisonFacility.nextEscapeAt = now + 45000 + Math.random() * 60000;
     }
 
     function updatePoliceAI(dt, now) {
       if (!gameSettings.npcs) return;
+      updatePrisonEscapeSystem(now);
       if (!policeUnits.length) createPoliceUnit(playerState.position.x, playerState.position.z);
       const responseRadius = Math.min(110, Math.max(16, entityVisibilityRadius() - 4));
       const nearbyFugitives = criminals
-        .filter((person) => person.criminalStatus === 'fugitive' && Math.hypot(person.mesh.position.x - playerState.position.x, person.mesh.position.z - playerState.position.z) <= responseRadius)
+        .filter((person) => person.criminalStatus === 'fugitive' && (
+          person.isPrisonEscape
+            ? person.escapedPrison && now >= person.policeResponseAt
+            : Math.hypot(person.mesh.position.x - playerState.position.x, person.mesh.position.z - playerState.position.z) <= responseRadius
+        ))
         .sort((a, b) => Math.hypot(a.mesh.position.x - playerState.position.x, a.mesh.position.z - playerState.position.z) - Math.hypot(b.mesh.position.x - playerState.position.x, b.mesh.position.z - playerState.position.z));
 
       nearbyFugitives.forEach((fugitive) => {
@@ -5570,8 +8094,22 @@
 
       policeUnits.forEach((unit) => {
         const car = unit.car;
+        if (!car || car.destroyed) return;
         car.body.wakeUp();
-        car.sirenActive = unit.phase === 'pursuit' || unit.phase === 'approach' || unit.phase === 'arresting';
+        car.sirenActive = ['pursuit', 'approach', 'arresting'].includes(unit.phase) ||
+          (unit.phase === 'respawning' && ['pursuit', 'approach', 'arresting'].includes(unit.resumePhase));
+        if (unit.phase === 'respawning') {
+          const target = unit.target ? unit.target.mesh.position : unit.patrolTarget || getNearestRoadPosition(JOB_VEHICLE_GARAGE.x, JOB_VEHICLE_GARAGE.z);
+          const distance = Math.hypot(target.x - car.body.position.x, target.z - car.body.position.z);
+          if (distance > 4) {
+            movePoliceCar(unit, target, dt, now, 20);
+          } else {
+            unit.phase = unit.resumePhase || 'patrol';
+            unit.resumePhase = null;
+            car.body.velocity.set(0, 0, 0);
+          }
+          return;
+        }
         if (unit.phase === 'patrol') {
           if (!unit.patrolTarget || Math.hypot(unit.patrolTarget.x - car.body.position.x, unit.patrolTarget.z - car.body.position.z) < 4) {
             unit.patrolTarget = getNearestRoadPosition(
@@ -5592,7 +8130,7 @@
           return;
         }
         const playerDistance = Math.hypot(fugitive.mesh.position.x - playerState.position.x, fugitive.mesh.position.z - playerState.position.z);
-        if (playerDistance > responseRadius * 1.5 && unit.phase !== 'arresting') {
+        if (!fugitive.isPrisonEscape && playerDistance > responseRadius * 1.5 && unit.phase !== 'arresting') {
           fugitive.pursuedBy = null;
           unit.target = null;
           unit.phase = 'patrol';
@@ -6080,17 +8618,22 @@
         });
       });
       createRoadsideParking(486);
+      createParkedMotorcycles(25);
 
       createRamp(0, 128, 12, 8, 1.6, 0);
       createRamp(-32, 140, 12, 9, 1.7, Math.PI / 3);
       createRamp(32, 140, 12, 9, 1.7, -Math.PI / 3);
       createRoad(535, 540, 58, 34);
-      const debrisPlow = createCar(535, 540, 0xe6a719, false, true, 'plow');
-      debrisPlow.mesh.rotation.y = Math.PI;
-      debrisPlow.body.position.set(535, 1.2, 540);
-      debrisPlow.mesh.position.copy(debrisPlow.body.position);
+      debrisPlowVehicle = createCar(535, 540, 0xe6a719, false, true, 'plow');
+      debrisPlowVehicle.jobRole = 'debris-plow';
+      debrisPlowVehicle.jobHome = { x: 535, z: 540 };
+      debrisPlowVehicle.jobPhase = 'ready';
+      debrisPlowVehicle.mesh.rotation.y = Math.PI;
+      debrisPlowVehicle.body.position.set(535, 1.2, 540);
+      debrisPlowVehicle.mesh.position.copy(debrisPlowVehicle.body.position);
       buildNavigationGraph();
       createIntersectionSignage();
+      createRaceTrack();
 
       [
         { type: 'sedan', x: -8, z: 22 }, { type: 'taxi', x: 0, z: 22 }, { type: 'sports', x: 8, z: 22 }
@@ -6101,11 +8644,16 @@
       ].forEach((spec) => createBreakableCrate(spec.x, spec.z, spec.size, 0x8b5d3c, 3));
       const trafficCount = (webOptimizer.lowLag ? 14 : 24) * 10;
       for (let i = 0; i < trafficCount; i++) npcCars.push(createNPCCar());
+      for (let i = 0; i < 14; i++) npcCars.push(createNPCCar('motorcycle'));
       addBoundaryZones();
       createPeople();
-      createEscapedPrisoners(30);
+      createPrisonPopulation(18);
+      createPrisonGuards(12);
+      createBillionaireEstate();
+      createJanitors(14);
       entityPopulation = people.slice();
       createBoats();
+      createBirdPopulation(150);
     }
 
     function tick(timestamp) {
@@ -6142,6 +8690,7 @@
       });
       updateBoats(dt);
       updateAirplanes(dt);
+      updateBirds(dt, frameTime);
       if (controlledVehicle) {
         activeMode = 'drive';
         handleDriving(dt);
@@ -6154,7 +8703,7 @@
       updatePushableObjects(dt);
       updateWreckageCrowds(frameTime);
       updateVisibleEntities();
-      updateNPCs(dt); updatePoliceAI(dt, frameTime); updateTireTracks(frameTime); updateCrashEffects(dt, frameTime); updateHumans(dt); updateBuildingWorkers(frameTime); updateFootprints(frameTime); triggerInputConflict(); updatePlayerFromVehicle(); updatePlayerCharacter(); if (gameSettings.cornerMap) updateMinimap(); updateSpeedometer(); updateMobileControls(); renderer.render(scene, camera); requestAnimationFrame(tick);
+      updateJobVehicleRespawns(dt, frameTime); updateNPCs(dt); updatePoliceAI(dt, frameTime); updateRaceTrack(dt, frameTime); updateTireTracks(frameTime); updateCrashEffects(dt, frameTime); updateHumans(dt); updatePrisonEncounters(frameTime); updateBillionaireEstate(dt, frameTime); updateBuildingWorkers(frameTime); updateFootprints(frameTime); triggerInputConflict(); updatePlayerFromVehicle(); updatePlayerCharacter(); if (gameSettings.cornerMap) updateMinimap(); updateSpeedometer(); updateMobileControls(); renderer.render(scene, camera); requestAnimationFrame(tick);
     }
 
     function init() {
@@ -6316,7 +8865,7 @@
       }
       if (event.code === 'KeyG') { const options = ['sedan', 'taxi', 'sports', 'hatchback', 'suv', 'pickup', 'van', 'ambulance', 'plow']; const nextIndex = (options.indexOf(currentGarageModel) + 1) % options.length; currentGarageModel = options[nextIndex]; vehicleSelect.value = currentGarageModel; applyGarageSelection(); }
       if (event.code === 'KeyC' && !event.repeat) spawnPlayerCar();
-      if (event.code === 'KeyM') setMission(missionIndex + 1);
+      if (event.code === 'KeyM' && !event.repeat) spawnPlayerMotorcycle();
       if (event.code === 'KeyP' && !event.repeat) {
         spawnAirportPlane();
       }
@@ -6375,7 +8924,7 @@
     document.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       if (!tryBoardBoat(event) && !pickCarFromPointer(event)) {
-        handleLinkedEntitySelection(event);
+        if (!maybePunchBirdAtPointer(event)) handleLinkedEntitySelection(event);
       }
     });
 
@@ -6423,7 +8972,7 @@
       }
       if (event.button === 2) {
         if (!tryBoardBoat(event) && !pickCarFromPointer(event)) {
-          handleLinkedEntitySelection(event);
+          if (!maybePunchBirdAtPointer(event)) handleLinkedEntitySelection(event);
         }
       }
     });
