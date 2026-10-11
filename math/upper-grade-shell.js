@@ -23,6 +23,10 @@
   const topic = safeTitle.toLowerCase();
   const exampleAnswer = grade === '12' ? 12 : grade === '11' ? 10 : grade === '10' ? 8 : 6;
   const videoByLesson = {
+    '1:2d-shapes': 'UPVxzFXt0bg', '1:3d-shapes': '3TqeQcdYegw', '1:add-within-20': 'vr53TbhG-ls', '1:measurement': 'fZyiKIFStuM', '1:money-coins': 'npn6UjQjS0U', '1:numbers-to-100': 'fj8UiSdObv8', '1:place-value': 'GXr5vfObAOM', '1:subtract-within-20': 'mBAzHJ9LG08', '1:time-hour': 'vtlOvVg7rnY', '1:word-problems': '_MtJ5AOG3Tc',
+    '2:fractions-basics': '7GSWn6VUQ2Q', '2:intro-division': 'GsX1mrggcxI', '2:intro-multiplication': 'el5hLD6r_PQ', '2:measurement': '6myP0IdVc-o', '2:numbers-to-1000': 'jDnD9iiymS0', '2:place-value-hto': 'J2flOKUblQE', '2:time-quarter-half': 'Ck4aO829uy4', '2:two-digit-addition': 'F2_D7_YClWk', '2:two-digit-subtraction': 'UCNpeN7E6j0', '2:word-problems-as': 'plbIoav9bN0',
+    '3:area-perimeter-rectangles': 'CgcI2PolFtU', '3:bar-graphs': '63X4vNENMYc', '3:decimals-tenths': 'z4wfZ3_Qlqs', '3:division-facts': 'VqOGRhLzYu0', '3:equivalent-fractions': 'MRevlnBUskQ', '3:multiplication-facts': '2JQL_1zwBgs', '3:rounding': '-AY1gAFbjPQ',
+    '4:division-remainders': 'SGpTyQmtU4s', '4:fractions-add-subtract': 'Y_h7wsp726k', '4:multidigit-as': 'twe6elDRYuw', '4:multiplication-2-3-digit': '3SLeoGk75V4',
     'circles-area-circumference': 'jyLRpr2P0MQ', 'inequalities': 'FZ2APP6-grU', 'linear-relationships-intro': 'rgvysb9emcQ', 'one-step-equations': 'kbqO0YTUyAY', 'percent-applications': '79HS3N1IBt8', 'probability-simple': 'tXlcE_K_C-Y', 'proportional-relationships': 'qYjiVWwefto', 'sampling-distributions': 'z0Ry_3_qhDw', 'surface-area': 'mtMNvnm71Z0', 'two-step-equations': '_y_Q3_B2Vh8',
     'exponents': 'zM_p7tfWvLU', 'functions-graphs': 'rgvysb9emcQ', 'intro-quadratics': 'JnpqlXN9Whw', 'multi-step-equations': 'vkhYFml0w6c', 'probability-compound': 'uzkc-qNVoOk', 'pythagorean-theorem': 'AA6RfgP-AHU', 'scientific-notation': 'trdbaV4TaAo', 'system-of-equations': 'SkMNREAMNvc', 'transformations': 'XiAoUDfrar0', 'volume-cones-spheres-cylinders': 'hC6zx9WAiC4',
     'applications-modeling': 'W3flX500w5g', 'exponential-functions': '6WMZ7J0wwMI', 'expressions-polynomials': 'ZGl2ExHwdak', 'factoring-quadratics': 'D3a8NnpQ2vU', 'functions-relations': '3SO1BQQ9_1E', 'graphing-linear-quadratic': 'uk7gS3cZVp4', 'inequalities-absolute': 'iI_2Piwn_og', 'radicals-rational': 'jO4wOQQiVZg', 'solving-quadratics': 'i7idZfS8t8w', 'systems-linear': 'Y6JsEja15Vk',
@@ -30,7 +34,7 @@
     'complex-numbers': 'ysVcAYo7UPI', 'exponential-logarithmic': 'mQTWzLpCcW0', 'intro-limits': 'riXcZT2ICjA', 'law-of-sines-cosines': 'VjmFKle7xIw', 'polynomial-functions': 'Vm7H0VTlIco', 'probability-statistics': 'hgtMWR3TFnY', 'rational-functions': 'P0ZgqB44Do4', 'sequences-series': '_cooC3yG_p0', 'transformations-of-functions': 'XiAoUDfrar0', 'trig-ratios-graphs': 'vHYI93UV5Kg',
     'applications-derivatives': 'hIgnece9ins', 'area-under-curve': 'wQXYtsyfbqg', 'derivatives-basics': 'N2PpRnFqnqY', 'integrals-basics': '__Uw1SXPW7s', 'intro-differential-equations': '6o7b9yyhH7k', 'inverse-trig': 'JGU74wbZMLg', 'parametric-equations': 'm6c6dlmUT1c', 'polar-coordinates': 'jexMSlSDubM', 'trig-identities': '4OEeVLo5V1o', 'vectors-intro': 'br7tS1t2SFE'
   };
-  const lessonVideoId = videoByLesson[slug];
+  const lessonVideoId = videoByLesson[`${grade}:${slug}`] || videoByLesson[slug];
   const profile = /quadratic|factoring|polynomial|equation|inequalit|linear|radical|exponent|logarithm|function|sequence|series/i.test(slug)
     ? { concept: 'Algebra connects quantities with symbols, operations, and relationships. Define the variable, preserve equality, and use equivalent forms to expose structure.', model: 'Represent the relationship with a table, graph, equation, or function rule. Check inputs, outputs, domain, and units.', example: 'For an equation or function, identify the operation affecting the variable, apply the inverse or rule, and verify by substitution.', mistake: 'A common error is changing one side of an equation without making the same change to the other side.' }
     : /probability|statistics|sampling/i.test(slug)
@@ -50,7 +54,10 @@
   const firebaseConfig = { apiKey: 'AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw', authDomain: 'contract-center-llc-10.firebaseapp.com', projectId: 'contract-center-llc-10', storageBucket: 'contract-center-llc-10.firebasestorage.app', messagingSenderId: '323221512767', appId: '1:323221512767:web:6421260f875997dbf64e8a' };
 
   function renderKhanNote() {
-    return '<footer class="lesson-footer"><strong>Note:</strong> All Khan Academy content is available for free at <a href="https://www.khanacademy.org" target="_blank" rel="noopener">www.khanacademy.org</a></footer>';
+    const sourceNote = Number(grade) >= 1 && Number(grade) <= 4
+      ? '<strong>Video sources:</strong> HouseLearning <a href="https://youtube.com/@safelibrary" target="_blank" rel="noopener">Safe Library</a> and <a href="https://www.khanacademy.org" target="_blank" rel="noopener">Khan Academy</a>.'
+      : '<strong>Note:</strong> All Khan Academy content is available for free at <a href="https://www.khanacademy.org" target="_blank" rel="noopener">www.khanacademy.org</a>';
+    return `<footer class="lesson-footer">${sourceNote}</footer>`;
   }
 
   const link = document.createElement('link');
