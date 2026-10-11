@@ -10312,7 +10312,7 @@
       context.fillStyle = '#ed695e';
       context.fillText(String(field.score[1]), 367, 157);
       context.fillStyle = '#f5f4e9';
-      context.font = 'bold 48px sans-serif';
+      context.font = 'bold 48px s-serif';
       context.fillText('-', 256, 156);
       context.font = '24px sans-serif';
       context.fillText('sponsored by HouseLearning.org', 256, 211);
