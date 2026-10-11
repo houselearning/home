@@ -31,7 +31,7 @@
   const minutes = [2, 3, 3, 4, 3, 3, 4, 3, 3, 2];
   const safeTitle = title.replace(/[<>]/g, '');
   const scienceVideoByLesson = {
-    'animal-habitats': '0cdteShyjh8', 'body-parts': 'YE2peDF4Zqg', 'day-night-sky': 'WXSHQK56Bfs', 'simple-machines': 'obSJFsodXVk', 'states-of-matter': 'We7Kd4D0S90',
+    'animal-habitats': '0cdteShyjh8', 'body-parts': 'YE2peDF4Zqg', 'day-night-sky': 'WXSHQK56Bfs', 'simple-machines': 'obSJFsodXVk', 'states-of-matter': 'We7Kd4D0S90', 'human-anatomy': 'YE2peDF4Zqg',
     'acids-bases-salts': 'EDvtwQLJzEg', 'chemical-bonding': 'kS5iU4v0QZk', 'chemical-reactions': 'a9RJZqG9qJo', 'gases-laws': 'qObcdZj8YTM', 'stoichiometry': 'Bl6jlgZ8aaM',
     'electricity-magnetism': '8Y4JSp5U82I', 'kinematics': 'pfTTHx9kCHk', 'newtons-laws-motion': 'rjkQcfw5fkM', 'thermodynamics': '7jAPitc0bkY', 'waves-sound': 'nGKffdaI4Pg',
     'astronomy': 'GZx3U0dbASg', 'earths-systems': 'w29jGmncSxI', 'ecology-biomes': 'A495e31cDdE', 'environmental-issues': 'k6jUaaQNY28', 'hydrology-oceanography': 'jFjI6y46QRk',
