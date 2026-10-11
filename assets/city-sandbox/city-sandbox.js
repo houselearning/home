@@ -10315,7 +10315,7 @@
       context.font = 'bold 48px sans-serif';
       context.fillText('-', 256, 156);
       context.font = '24px sans-serif';
-      context.fillText('AUTO GOAL EVERY 96-118 SEC', 256, 211);
+      context.fillText('sponsored by HouseLearning.org', 256, 211);
       field.scoreTexture.needsUpdate = true;
     }
 
