@@ -1,9 +1,5 @@
 // main.js
 
-if (window.HouseLearningOnlineFeatures && window.HouseLearningOnlineFeatures.isLocal) {
-    console.info('[HouseLearning] Online features disabled for local preview.');
-} else {
-
 // 🚨 FIREBASE CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
@@ -15,20 +11,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase App
-let auth = null;
+let auth;
 let db = null;
 try {
-    if (window.firebase) {
-        firebase.initializeApp(firebaseConfig);
-        auth = firebase.auth();
-        if (typeof firebase.firestore === 'function') {
-            db = firebase.firestore();
-        } else {
-            console.warn('Firestore SDK is not loaded; notifications are disabled.');
-        }
-    } else {
-        console.warn('Firebase SDK not found; notifications are disabled.');
-    }
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
 } catch (error) {
     console.error("Firebase initialization failed:", error);
 }
@@ -37,7 +25,9 @@ try {
 let notificationsUnsubscribe = null;
 let latestNotifications = []; 
 let notifReminderTimer = null; 
+let notificationImageObjectUrls = [];
 const NOTIF_REMINDER_DISMISS_KEY = 'houselearning_notif_reminder_dismissed_at'; 
+const NOTIFICATION_IMAGE_FUNCTION_URL = 'https://us-central1-contract-center-llc-10.cloudfunctions.net/getNotificationImage';
 
 // Dynamic Element References
 let profileContainer = null;
@@ -50,266 +40,12 @@ const POPUP_DISMISS_KEY = 'houselearning_popup_dismissed';
 const AUTH_PAGE_URL = 'https://houselearning.org/auth/';
 const GITHUB_URL = 'https://github.com/houselearning'; 
 
-
 // ====================================================================
 // 1. DYNAMIC CSS INJECTION
 // ====================================================================
 function injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
-        :root {
-            --hl-bg: #f3f6fb;
-            --hl-bg-strong: #edf4ff;
-            --hl-surface: #ffffff;
-            --hl-surface-strong: #f8fbff;
-            --hl-surface-alt: #f4f8ff;
-            --hl-text: #1f2937;
-            --hl-text-soft: #5b6b7d;
-            --hl-border: rgba(31, 41, 55, 0.12);
-            --hl-primary: #facc15;
-            --hl-primary-strong: #f9d342;
-            --hl-primary-deep: #d9a300;
-            --hl-secondary: #61dafb;
-            --hl-secondary-strong: #2bb7eb;
-            --hl-secondary-deep: #1b5bb8;
-            --hl-navbar: #20232a;
-            --hl-navbar-soft: #2a3140;
-            --hl-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
-            --hl-shadow-strong: 0 18px 42px rgba(15, 23, 42, 0.22);
-            --hl-button-text: #111827;
-        }
-
-        body {
-            background: linear-gradient(180deg, var(--hl-bg-strong), var(--hl-bg));
-            color: var(--hl-text);
-        }
-
-        body.dark-mode {
-            --hl-bg: #0d1320;
-            --hl-bg-strong: #101827;
-            --hl-surface: #171f2d;
-            --hl-surface-strong: #1d2940;
-            --hl-surface-alt: #101a2b;
-            --hl-text: #edf3ff;
-            --hl-text-soft: #a7b6ce;
-            --hl-border: rgba(148, 163, 184, 0.18);
-            --hl-primary: #facc15;
-            --hl-primary-strong: #f9d342;
-            --hl-primary-deep: #efb500;
-            --hl-secondary: #61dafb;
-            --hl-secondary-strong: #40c4ff;
-            --hl-secondary-deep: #a7dcff;
-            --hl-navbar: #121a24;
-            --hl-navbar-soft: #1d2a3a;
-            --hl-shadow: 0 18px 32px rgba(2, 6, 23, 0.36);
-            --hl-shadow-strong: 0 20px 42px rgba(2, 6, 23, 0.48);
-            --hl-button-text: #111827;
-        }
-
-        body,
-        .section,
-        .card,
-        .lesson-card,
-        .game-card,
-        .games-layout,
-        .games,
-        .sidebar,
-        .lesson-panel,
-        .container,
-        .container > * {
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        body,
-        .section,
-        .card,
-        .lesson-card,
-        .game-card,
-        .games,
-        .games-layout,
-        .sidebar,
-        .lesson-panel,
-        .content-wrapper,
-        .main-content,
-        .search-bar input,
-        .warped-search,
-        .search-input {
-            background-color: var(--hl-surface);
-            color: var(--hl-text);
-        }
-
-        .navbar,
-        .navbar-inner,
-        header,
-        .navbar-content {
-            background-color: var(--hl-navbar);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .navbar a,
-        .navbar-content a,
-        .navbar-inner a,
-        .navbar a:visited,
-        .games a,
-        .section a,
-        .lesson-card a,
-        .game-card a,
-        .card a,
-        .hl-button,
-        .menu-link,
-        .games-layout a,
-        .games a:visited {
-            color: var(--hl-secondary-deep);
-        }
-
-        .navbar a:hover,
-        .navbar a:focus,
-        .games a:hover,
-        .section a:hover,
-        .lesson-card a:hover,
-        .game-card a:hover,
-        .card a:hover,
-        .hl-button:hover,
-        .games-layout a:hover {
-            color: var(--hl-button-text);
-        }
-
-        .navbar a,
-        .navbar-content a,
-        .navbar-inner a,
-        .games a,
-        .section a,
-        .lesson-card a,
-        .game-card a,
-        .card a,
-        .hl-button,
-        .games-layout a {
-            text-decoration: none;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .navbar a:hover,
-        .navbar a:focus,
-        .games a:hover,
-        .section a:hover,
-        .lesson-card a:hover,
-        .game-card a:hover,
-        .card a:hover,
-        .hl-button:hover,
-        .games-layout a:hover {
-            background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
-            border-color: rgba(17, 24, 39, 0.08);
-            transform: translateY(-1px);
-        }
-
-        .card,
-        .game-card,
-        .lesson-card,
-        .section,
-        .games,
-        .games-layout,
-        .sidebar,
-        .lesson-panel,
-        .search-bar input,
-        .search-bar,
-        .game-card,
-        .lesson-card,
-        .card {
-            border: 1px solid var(--hl-border);
-            box-shadow: var(--hl-shadow);
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            color: var(--hl-text);
-        }
-
-        .section h2,
-        .games-layout h1,
-        .games h2,
-        .games h3,
-        .lesson-card h3,
-        .game-card h3,
-        .card h2,
-        .card h3 {
-            color: var(--hl-secondary-deep);
-            border-color: var(--hl-primary);
-        }
-
-        body.dark-mode .section h2,
-        body.dark-mode .games-layout h1,
-        body.dark-mode .games h2,
-        body.dark-mode .lesson-card h3,
-        body.dark-mode .game-card h3,
-        body.dark-mode .card h2,
-        body.dark-mode .card h3 {
-            color: var(--hl-secondary);
-        }
-
-        .theme-switch-wrapper {
-            position: fixed;
-            right: 18px;
-            bottom: 18px;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(10px);
-            padding: 6px 8px;
-            border-radius: 999px;
-            border: 1px solid var(--hl-border);
-            box-shadow: var(--hl-shadow-strong);
-        }
-
-        body.dark-mode .theme-switch-wrapper {
-            background: rgba(17, 24, 39, 0.82);
-        }
-
-        .theme-switch-wrapper button {
-            border: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: transparent;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: transform 0.15s ease, background 0.15s ease;
-            color: var(--hl-text);
-        }
-
-        .theme-switch-wrapper button:hover,
-        .theme-switch-wrapper button:focus-visible {
-            background: rgba(97, 218, 251, 0.15);
-            outline: none;
-            transform: translateY(-1px);
-        }
-
-        .theme-switch-wrapper button[aria-pressed="true"] {
-            background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
-            color: var(--hl-button-text);
-            box-shadow: inset 0 -2px 0 rgba(17, 24, 39, 0.12);
-        }
-
-        .search-bar input,
-        .search-bar {
-            border: 1px solid var(--hl-border);
-            background: var(--hl-surface);
-            color: var(--hl-text);
-        }
-
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--hl-secondary);
-            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.16);
-        }
-
         /* PFP & Sign Up Button */
         .profile-container { position: fixed; top: 15px; right: 20px; z-index: 2000; display: none; }
         #sign-up-btn { position: fixed; top: 18px; right: 20px; z-index: 2000; display: none; background-color: #61dafb; color: #20232a; padding: 8px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
@@ -328,83 +64,6 @@ function injectStyles() {
         .menu-link:hover { background-color: #f0f8ff; color: #007bff; }
         .logout-container { padding: 15px 25px; border-top: 1px solid #f0f0f0; }
         #logout-dropdown-btn { background-color: #f8f8f8; color: #333; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid #ccc; width: 100%; }
-
-        .safeai-setting-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 10px 25px;
-            color: #555;
-            font-weight: 500;
-            font-size: 15px;
-        }
-        .safeai-progress-row {
-            display: none;
-            padding: 0 25px 12px;
-            color: #555;
-            font-size: 13px;
-        }
-        .safeai-progress-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-        .safeai-progress-track {
-            width: 100%;
-            height: 10px;
-            border-radius: 999px;
-            background: #e5e7eb;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        .safeai-progress-fill {
-            display: block;
-            height: 100%;
-            width: 0%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, #22c55e, #61dafb);
-            transition: width 0.2s ease;
-        }
-        .safeai-toggle {
-            position: relative;
-            width: 42px;
-            height: 24px;
-            display: inline-block;
-        }
-        .safeai-toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-            position: absolute;
-        }
-        .safeai-toggle .slider {
-            position: absolute;
-            inset: 0;
-            border-radius: 999px;
-            background: #d1d5db;
-            transition: background 0.2s ease;
-        }
-        .safeai-toggle .slider::before {
-            content: "";
-            position: absolute;
-            width: 18px;
-            height: 18px;
-            left: 3px;
-            top: 3px;
-            border-radius: 50%;
-            background: white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            transition: transform 0.2s ease;
-        }
-        .safeai-toggle input:checked + .slider {
-            background: #34d399;
-        }
-        .safeai-toggle input:checked + .slider::before {
-            transform: translateX(18px);
-        }
 
         /* Notifications */
         .notif-badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #ff3b30; color: white; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
@@ -425,109 +84,6 @@ function injectStyles() {
         #notif-reminder-popup.show { display: block; }
     `;
     document.head.appendChild(style);
-}
-
-function injectAssistantWidget() {
-    if (document.querySelector('[data-hl-assistant-script]')) return;
-
-    const currentPath = (window.location.pathname || '/').toLowerCase();
-    const siteOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? window.location.origin
-        : 'https://houselearning.org';
-
-    const assetBase = currentPath.includes('/home')
-        ? `${siteOrigin}/home/assistant`
-        : `${siteOrigin}/assistant`;
-
-    const assistantAssetVersion = '1.1.4';
-    const cssUrl = `${assetBase}/assistant.css?v=${assistantAssetVersion}`;
-    if (!document.querySelector(`link[href="${cssUrl}"]`)) {
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = cssUrl;
-        cssLink.setAttribute('data-hl-assistant-script', 'true');
-        document.head.appendChild(cssLink);
-    }
-
-    const script = document.createElement('script');
-    script.src = `${assetBase}/assistant.js?v=${assistantAssetVersion}`;
-    script.defer = true;
-    script.setAttribute('data-hl-assistant-script', 'true');
-    document.head.appendChild(script);
-}
-
-function initThemeToggle() {
-    if (document.querySelector('.theme-switch-wrapper')) return;
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'theme-switch-wrapper';
-    wrapper.setAttribute('role', 'toolbar');
-    wrapper.setAttribute('aria-label', 'Theme switcher');
-    wrapper.innerHTML = `
-        <button type="button" data-theme="light" aria-pressed="false" title="Use light mode">☀️</button>
-        <button type="button" data-theme="dark" aria-pressed="false" title="Use dark mode">🌙</button>
-    `;
-
-    const buttons = wrapper.querySelectorAll('button');
-    const themeKey = 'houselearning_theme';
-
-    function applyTheme(theme) {
-        const isDark = theme === 'dark';
-        document.body.classList.toggle('dark-mode', isDark);
-        buttons.forEach((btn) => {
-            const selected = btn.dataset.theme === theme;
-            btn.setAttribute('aria-pressed', String(selected));
-        });
-    }
-
-    function readTheme() {
-        try {
-            return localStorage.getItem(themeKey) === 'dark' ? 'dark' : 'light';
-        } catch (error) {
-            return 'light';
-        }
-    }
-
-    buttons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const nextTheme = btn.dataset.theme;
-            try {
-                localStorage.setItem(themeKey, nextTheme);
-            } catch (error) {}
-            applyTheme(nextTheme);
-        });
-    });
-
-    document.body.appendChild(wrapper);
-    applyTheme(readTheme());
-}
-
-function initSharedSiteBootstrap() {
-    initThemeToggle();
-    injectAssistantWidget();
-
-    const bodyTarget = document.body || document.documentElement;
-    if (bodyTarget && !bodyTarget.dataset.hlAssistantObserver) {
-        bodyTarget.dataset.hlAssistantObserver = 'true';
-        const observer = new MutationObserver(() => {
-            if (!document.querySelector('.hl-assistant')) {
-                injectAssistantWidget();
-            }
-        });
-        observer.observe(bodyTarget, { childList: true, subtree: true });
-    }
-
-    window.setTimeout(() => {
-        if (!document.querySelector('.hl-assistant')) {
-            injectAssistantWidget();
-        }
-    }, 1500);
-}
-
-if (document.readyState === 'loading') {
-    window.addEventListener('DOMContentLoaded', initSharedSiteBootstrap, { once: true });
-} else {
-    initSharedSiteBootstrap();
 }
 
 // ====================================================================
@@ -564,57 +120,10 @@ function createProfileUI(userPhotoURL, userName) {
                 <span class="dropdown-username">${userName}</span>
             </div>
             <a href="https://houselearning.org/auth/dashboard" class="menu-link">Dashboard</a>
-            <div class="safeai-setting-row">
-                <span>SafeAI</span>
-                <label class="safeai-toggle" aria-label="Toggle SafeAI">
-                    <input id="safeai-toggle" type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div id="safeai-progress-row" class="safeai-progress-row" aria-live="polite">
-                <div class="safeai-progress-meta">
-                    <span>Daily SafeAI</span>
-                    <span id="safeai-progress-text">0/40</span>
-                </div>
-                <div class="safeai-progress-track" aria-label="SafeAI daily usage">
-                    <div id="safeai-progress-bar" class="safeai-progress-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
-                </div>
-            </div>
             <a href="#" id="notifications-btn" class="menu-link">Notifications <span id="notif-count-inline" class="notif-badge" style="display:none; margin-left:8px;">0</span></a>
             <div class="logout-container"><button id="logout-dropdown-btn">Sign out</button></div>
         </div>
     `;
-
-    const safeAiToggle = container.querySelector('#safeai-toggle');
-    const safeAiKey = 'houselearning_safeai_enabled';
-
-    function readSafeAiPreference() {
-        try {
-            const value = localStorage.getItem(safeAiKey);
-            if (value === null) return true;
-            return value !== 'false';
-        } catch (_error) {
-            return true;
-        }
-    }
-
-    function writeSafeAiPreference(enabled) {
-        try {
-            localStorage.setItem(safeAiKey, String(enabled));
-        } catch (_error) {
-            // ignore storage failures
-        }
-        if (window.HLAssistantSafeAI && typeof window.HLAssistantSafeAI.setEnabled === 'function') {
-            window.HLAssistantSafeAI.setEnabled(Boolean(enabled));
-        }
-    }
-
-    if (safeAiToggle) {
-        safeAiToggle.checked = readSafeAiPreference();
-        safeAiToggle.addEventListener('change', () => {
-            writeSafeAiPreference(safeAiToggle.checked);
-        });
-    }
 
     const modal = document.createElement('div');
     modal.id = 'notifications-modal-overlay';
@@ -695,39 +204,10 @@ function initNotificationsListener(uid) {
 
 // Function to update 'read' status
 window.markAsRead = (id) => {
-    if (!db || !id) return;
     db.collection('notifications').doc(id).update({ 
         read: true 
     }).catch(err => console.error("Error marking as read:", err));
 };
-
-function updateSafeAiProgressUI() {
-    const row = document.getElementById('safeai-progress-row');
-    const bar = document.getElementById('safeai-progress-bar');
-    const text = document.getElementById('safeai-progress-text');
-    if (!row || !bar || !text) return;
-
-    const signedIn = Boolean(
-        (window.HouseLearningAuth && window.HouseLearningAuth.user && window.HouseLearningAuth.user.signedIn) ||
-        (window.houselearningAuth && window.houselearningAuth.user && window.houselearningAuth.user.signedIn) ||
-        (window.firebase && window.firebase.auth && window.firebase.auth().currentUser)
-    );
-
-    row.style.display = signedIn ? 'block' : 'none';
-
-    let usage = { used: 0, limit: 40, percent: 0 };
-    if (window.HLAssistantSafeAI && typeof window.HLAssistantSafeAI.getDailyUsage === 'function') {
-        usage = window.HLAssistantSafeAI.getDailyUsage();
-    }
-
-    const limit = Number(usage.limit) > 0 ? Number(usage.limit) : 40;
-    const used = Math.max(0, Math.min(Number(usage.used) || 0, limit));
-    const percent = Math.min(100, (used / limit) * 100);
-
-    text.textContent = `${used}/${limit}`;
-    bar.style.width = `${percent}%`;
-    bar.setAttribute('aria-valuenow', String(Math.round(percent)));
-}
 
 function updateBadges(count) {
     const badge = document.querySelector('#notif-count');
@@ -745,6 +225,8 @@ function renderNotifications(docs) {
     const empty = document.querySelector('#no-notifs-msg');
     if (!list) return;
 
+    notificationImageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    notificationImageObjectUrls = [];
     list.innerHTML = '';
     if (docs.length === 0) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
@@ -752,14 +234,70 @@ function renderNotifications(docs) {
     docs.forEach(n => {
         const li = document.createElement('li');
         li.className = `notification-item ${n.read ? '' : 'unread'}`;
-        li.innerHTML = `
-            <div style="font-weight:bold;">${n.title}</div>
-            <div style="font-size:13px; color:#444;">${n.body}</div>
-            <div style="margin-top:8px; display:flex; gap:8px;">
-                ${!n.read ? `<button class="notif-small-btn" onclick="markAsRead('${n.id}')">Mark Read</button>` : ''}
-                ${n.url ? `<button class="notif-small-btn" onclick="window.open('${n.url}')">Open</button>` : ''}
-            </div>
-        `;
+        const title = document.createElement('div');
+        title.style.fontWeight = 'bold';
+        title.textContent = typeof n.title === 'string' ? n.title : '';
+        li.appendChild(title);
+
+        const body = document.createElement('div');
+        body.style.cssText = 'font-size:13px; color:#444; white-space:pre-wrap;';
+        body.textContent = typeof n.body === 'string' ? n.body : '';
+        li.appendChild(body);
+
+        if (Array.isArray(n.images)) {
+            n.images.forEach((image, imageIndex) => {
+                if (!image || typeof image.storagePath !== 'string') return;
+
+                const img = document.createElement('img');
+                img.alt = typeof image.fileName === 'string' ? image.fileName : 'Notification image';
+                img.loading = 'lazy';
+                img.style.cssText = 'display:block; max-width:100%; max-height:320px; object-fit:contain; margin-top:8px;';
+                li.appendChild(img);
+
+                const currentUser = auth && auth.currentUser;
+                if (!currentUser) return;
+                currentUser.getIdToken().then(token => fetch(
+                    `${NOTIFICATION_IMAGE_FUNCTION_URL}?notificationId=${encodeURIComponent(n.id)}&imageIndex=${imageIndex}`,
+                    { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+                )).then(response => {
+                    if (!response.ok) throw new Error(`Image request failed (${response.status})`);
+                    return response.blob();
+                }).then(blob => {
+                    const objectUrl = URL.createObjectURL(blob);
+                    if (!img.isConnected) {
+                        URL.revokeObjectURL(objectUrl);
+                        return;
+                    }
+                    notificationImageObjectUrls.push(objectUrl);
+                    img.src = objectUrl;
+                }).catch(error => console.error('Notification image error:', error));
+            });
+        }
+
+        const actions = document.createElement('div');
+        actions.style.cssText = 'margin-top:8px; display:flex; gap:8px;';
+        if (!n.read) {
+            const markRead = document.createElement('button');
+            markRead.className = 'notif-small-btn';
+            markRead.textContent = 'Mark Read';
+            markRead.addEventListener('click', () => window.markAsRead(n.id));
+            actions.appendChild(markRead);
+        }
+        if (typeof n.url === 'string') {
+            try {
+                const notificationUrl = new URL(n.url);
+                if (notificationUrl.protocol === 'https:') {
+                    const open = document.createElement('button');
+                    open.className = 'notif-small-btn';
+                    open.textContent = 'Open';
+                    open.addEventListener('click', () => window.open(notificationUrl.href, '_blank', 'noopener'));
+                    actions.appendChild(open);
+                }
+            } catch (error) {
+                // Ignore malformed notification links.
+            }
+        }
+        if (actions.childElementCount) li.appendChild(actions);
         list.appendChild(li);
     });
 }
@@ -782,14 +320,7 @@ function checkReminder(notifications) {
 // ====================================================================
 document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
-    if (!document.querySelector('[data-hl-assistant-script]')) {
-        injectAssistantWidget();
-    }
     signUpButton = createAuthUI();
-
-    if (!auth) {
-        return;
-    }
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -802,7 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ui.modal.querySelector('#notifications-modal-close').onclick = () => ui.modal.classList.remove('show');
                 
                 ui.modal.querySelector('#notif-mark-all-read-modal').onclick = async () => {
-                    if (!db || latestNotifications.length === 0) return;
                     const batch = db.batch();
                     latestNotifications.filter(n => !n.read).forEach(n => batch.update(db.collection('notifications').doc(n.id), { read: true }));
                     await batch.commit();
@@ -818,16 +348,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             profileContainer.style.display = 'block';
             signUpButton.style.display = 'none';
-            updateSafeAiProgressUI();
             initNotificationsListener(user.uid);
         } else {
             if (profileContainer) profileContainer.style.display = 'none';
             signUpButton.style.display = 'block';
-            if (document.getElementById('safeai-progress-row')) {
-                document.getElementById('safeai-progress-row').style.display = 'none';
-            }
             if (notificationsUnsubscribe) notificationsUnsubscribe();
         }
     });
 });
-}

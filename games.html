@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script src="offline-features.js"></script>
+<head>
   <script src="https://houselearning.org/cookiebanner.js"></script>
   <script src="https://houselearning.org/home/main.js"></script>
   <script src="/feedback.js"></script>
@@ -8,80 +8,48 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Play free educational games from HouseLearning covering math, logic, strategy, and problem-solving for kids and students.">
-  <meta name="keywords" content="free educational games, math games, logic games, learning games, HouseLearning games, student games">
-  <meta name="author" content="HouseLearning">
-  <meta name="robots" content="index,follow">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="HouseLearning Games">
-  <meta property="og:description" content="Explore a collection of educational games to make learning fun and interactive.">
-  <meta property="og:url" content="https://houselearning.org/games.html">
-  <meta property="og:image" content="https://houselearning.org/games/snapshots/alge-blast.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="HouseLearning Games">
-  <meta name="twitter:description" content="Interactive educational games for students to practice math, logic, and problem-solving.">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
   <title>CoolMathTime - Random Games</title>
   <style>
-    :root {
-      --hl-bg: #f5f8ff;
-      --hl-surface: #ffffff;
-      --hl-text: #1f2937;
-      --hl-muted: #5a6779;
-      --hl-primary: #facc15;
-      --hl-primary-strong: #f9d342;
-      --hl-secondary: #1b75d0;
-      --hl-secondary-soft: #61dafb;
-      --hl-navbar: #1d2430;
-      --hl-border: rgba(27, 117, 208, 0.12);
-      --hl-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-    }
-
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(180deg, #f9fbff 0%, #edf4ff 100%);
-      color: var(--hl-text);
+      background: #f9f9f9;
+      color: #333;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
     header {
-      background: linear-gradient(180deg, var(--hl-navbar), #141c2b);
-      color: #f8fbff;
+      background: #20232a;
+      color: #61dafb;
       padding: 20px;
       font-size: 28px;
       text-align: center;
-      font-weight: 800;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-      border-bottom: 1px solid rgba(250, 204, 21, 0.2);
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .navbar {
-      background: linear-gradient(180deg, var(--hl-navbar), #141c2b);
+      background-color: #20232a;
       padding: 12px 20px;
       display: flex;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       overflow-x: auto;
       white-space: nowrap;
-      border-bottom: 1px solid rgba(250, 204, 21, 0.2);
     }
     .navbar a {
-      color: #e9f6ff;
+      color: #61dafb;
       text-decoration: none;
       padding: 10px 18px;
-      font-weight: 700;
+      font-weight: 600;
       font-size: 14px;
-      border-radius: 8px;
-      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      border-radius: 6px;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     .navbar a:hover {
-      background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
-      color: #111827;
-      transform: translateY(-1px);
+      background-color: #61dafb;
+      color: #20232a;
     }
     
     /* ADDED STYLES FOR SEARCH BAR AND CONTAINER PADDING */
@@ -138,21 +106,21 @@
     }
     .game-card p {
       margin-top: 10px;
-      color: var(--hl-secondary);
-      font-weight: 700;
+      color: #20232a;
+      font-weight: 600;
       font-size: 16px;
     }
     .game-card a {
       text-decoration: none;
-      color: #111827;
-      font-weight: 700;
+      color: #61dafb;
+      font-weight: 600;
       padding: 8px 12px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
+      border-radius: 6px;
+      background: #20232a;
       display: inline-block;
-      transition: transform 0.2s ease;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
-    .game-card a:hover { transform: translateY(-1px); }
+    .game-card a:hover { background: #61dafb; color: #20232a; }
 
     /* New/Modified Styles */
     .disabled-game {
@@ -232,9 +200,8 @@
       color: #856404;
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
 <header>CoolMathTime - Random Games</header>
@@ -393,13 +360,9 @@
             <img src="games/snapshots/ampler-launcher.png" alt="Ampler Launcher">
             <p>Ampler Launcher</p>
           </a>-->
-          <a class="game-card" href="assets/house-explorer/index.html">
-            <img src="games/snapshots/house-explorer.png" alt="House Explorer">
+          <a class="game-card disabled-game" href="https://houselearning.org/home/assets/house-explorer/index.html">
+            <img src="games/snapshots/house-explorer.png" alt="Calculus Crusade">
             <p>House Explorer</p>
-          </a>
-          <a class="game-card" href="assets/city-sandbox/index.html">
-            <img src="assets/city-sandbox/thumb.png" alt="City Sandbox">
-            <p>City Sandbox</p>
           </a>
           <a class="game-card disabled-game" href="https://houselearning.org/home/assets/hike-adventure">
             <img src="https://houselearning.org/home/assets/hike-adventure/images/thumbnail.png" alt="Absolute Adventure">
@@ -463,6 +426,8 @@
 
     // Existing script (auth.js content should be here or linked)
 </script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="games/auth.js"></script>
   <script src="https://houselearning.org/home/main.js"></script>
 

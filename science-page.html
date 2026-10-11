@@ -1,26 +1,12 @@
 <!doctype html>
 <html lang="en">
-<head><script src="offline-features.js"></script>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="Browse engaging K–12 science lessons, experiments, and educational activities covering biology, earth science, chemistry, and more.">
-    <meta name="keywords" content="science lessons, K-12 science, biology, chemistry, earth science, STEM education, science experiments">
-    <meta name="author" content="HouseLearning">
-    <meta name="robots" content="index,follow">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="HouseLearning Science Lessons">
-    <meta property="og:description" content="Interactive science lessons and activities for curious students and classrooms.">
-    <meta property="og:url" content="https://houselearning.org/science-page.html">
-    <meta property="og:image" content="https://houselearning.org/games/snapshots/house-explorer.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
     <title>K–12 Science Lessons | CoolScienceTime</title>
 <script src="https://houselearning.org/cookiebanner.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://houselearning.org/home/main.js"></script>
     <script type="module" src="also.js"></script>
 
@@ -30,39 +16,24 @@
         /* ---------------- base resets ---------------- */
         * { box-sizing: border-box; }
         html, body { height: 100%; }
-        :root {
-            --hl-bg: #f5f8ff;
-            --hl-surface: #ffffff;
-            --hl-surface-strong: #edf4ff;
-            --hl-text: #1f2937;
-            --hl-muted: #5b6b7d;
-            --hl-primary: #facc15;
-            --hl-primary-strong: #f9d342;
-            --hl-secondary: #1b75d0;
-            --hl-secondary-soft: #61dafb;
-            --hl-navbar: #1d2430;
-            --hl-border: rgba(27, 117, 208, 0.12);
-            --hl-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-        }
-
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-            background: linear-gradient(180deg, #f9fbff 0%, #edf4ff 100%);
-            color: var(--hl-text);
+            background: #f7f8fa;
+            color: #222;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             transition: background 0.25s, color 0.25s;
         }
         body.dark-mode {
-            background: #0d1320;
-            color: #edf3ff;
+            background: #0f1113;
+            color: #eaeaea;
         }
 
         /* ---------------- navbar ---------------- */
         .navbar {
-            background: linear-gradient(180deg, var(--hl-navbar), #141c2b);
+            background-color: #1e2a1e;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,7 +41,6 @@
             padding: 12px 12px;
             gap: 8px;
             box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
-            border-bottom: 1px solid rgba(250, 204, 21, 0.2);
         }
         body.dark-mode .navbar {
             background-color: #151515;
@@ -83,21 +53,17 @@
             padding: 0 6px;
         }
         .navbar a {
-            color: #edf6ff;
+            color: #2ecc71;
             text-decoration: none;
             padding: 10px 14px;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 14px;
             border-radius: 8px;
             flex-shrink: 0;
             transition: background 0.15s, color 0.15s, transform 0.06s;
         }
-        .navbar a:hover {
-            transform: translateY(-2px);
-            background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
-            color: #111827;
-        }
-        .navbar a:focus { outline: 3px solid rgba(97, 218, 251, 0.22); }
+        .navbar a:hover { transform: translateY(-2px); }
+        .navbar a:focus { outline: 3px solid rgba(46, 204, 113, 0.2); }
 
         /* ---------------- layout containers ---------------- */
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
@@ -125,17 +91,17 @@
 
         h2 {
             font-weight: 700;
-            color: var(--hl-secondary);
-            border-bottom: 3px solid var(--hl-primary);
+            color: #28b463;
+            border-bottom: 3px solid #2ecc71;
             padding-bottom: 8px;
             margin: 0 0 14px 0;
         }
-        body.dark-mode h2 { color: var(--hl-secondary-soft); }
+        body.dark-mode h2 { color: #58d68d; }
         
         h1 {
-            color: var(--hl-secondary);
+            color: #28b463;
         }
-        body.dark-mode h1 { color: var(--hl-secondary-soft); }
+        body.dark-mode h1 { color: #58d68d; }
 
         /* ---------------- grid of cards ---------------- */
         .grid {
@@ -145,12 +111,11 @@
         }
 
         .lesson-card, .game-card {
-            background: var(--hl-surface);
-            border-radius: 12px;
+            background: #fff;
+            border-radius: 10px;
             padding: 14px;
             text-align: center;
-            box-shadow: var(--hl-shadow);
-            border: 1px solid var(--hl-border);
+            box-shadow: 2px 6px 16px rgba(2, 8, 23, 0.06);
             transition: transform 0.12s, box-shadow 0.12s;
             display: flex;
             flex-direction: column;
@@ -164,24 +129,24 @@
         }
 
         .lesson-card h3, .game-card h3 {
-            color: var(--hl-secondary);
+            color: #28b463;
             font-size: 16px;
             margin: 6px 0 8px 0;
         }
-        body.dark-mode .lesson-card h3, body.dark-mode .game-card h3 { color: var(--hl-secondary-soft); }
+        body.dark-mode .lesson-card h3, body.dark-mode .game-card h3 { color: #58d68d; }
 
         .lesson-card a, .game-card a {
             text-decoration: none;
-            color: #111827;
-            background: linear-gradient(135deg, var(--hl-primary), var(--hl-primary-strong));
+            color: white;
+            background: #28b463;
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             display: inline-block;
             margin-top: auto;
             align-self: center;
-            font-weight: 700;
+            font-weight: 600;
         }
-        .lesson-card a:hover, .game-card a:hover { filter: brightness(0.98); }
+        .lesson-card a:hover, .game-card a:hover { background: #1e8449; }
 
         /* ---------------- theme switcher (floating) ---------------- */
         .theme-switch-wrapper {
@@ -314,9 +279,6 @@
     </style>
 </head>
 <body>
-    <div style="padding: 18px 20px 0;">
-        <a href="https://www.houselearning.org/home/houselearning-for-mac.html" style="display: inline-block; background: linear-gradient(135deg, #facc15, #f9d342); color: #111827; text-decoration: none; padding: 10px 16px; border-radius: 999px; font-weight: 800;">⬇ Download for Mac</a>
-    </div>
     <div class="navbar">
         <div class="navbar-inner">
                   <a href="https://houselearning.org/home/">Home</a>

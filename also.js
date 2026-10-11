@@ -1,5 +1,8 @@
 // also.js — FULL PLUGIN
 
+/* ==============================
+   📦 FIREBASE IMPORTS
+   ============================== */
 import {
   initializeApp,
   getApps,
@@ -14,14 +17,8 @@ import {
 import {
   getDatabase,
   ref,
-  push,
-  get
+  push
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-if (window.HouseLearningOnlineFeatures && window.HouseLearningOnlineFeatures.isLocal || location.protocol === "file:") {
-  window.openLanguageModal = () => {};
-  console.info("[ALSO] Disabled for local file preview to avoid launcher UI conflicts.");
-} else {
 
 /* ==============================
    🔥 FALLBACK FIREBASE CONFIG
@@ -49,10 +46,7 @@ const state = {
    ============================== */
 let app;
 
-if (window.firebase && window.firebase.apps && window.firebase.apps.length) {
-  app = window.firebase.app();
-  console.log("[ALSO] Reusing existing Firebase app from the global scope");
-} else if (getApps().length > 0) {
+if (getApps().length > 0) {
   app = getApp();
   console.log("[ALSO] Using existing Firebase app");
 } else {
@@ -173,13 +167,10 @@ function openLanguageModal() {
         <h2>Language Settings</h2>
         <select id="also-lang-select" style="width:100%;padding:6px;">
           <option value="en">English</option>
-          <option value="es">Español</option>
-          <option value="fr">Français</option>
-          <option value="de">Deutsch</option>
-          <option value="zh-CN">中文</option>
-          <option value="tr">Türkçe</option>
-          <option value="pt">Português</option>
-          <option value="ja">日本語</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="zh-CN">Chinese</option>
         </select>
         <button id="also-save" style="
           margin-top:12px;
@@ -200,22 +191,12 @@ function openLanguageModal() {
     applyTranslation(lang);
     modal.remove();
   };
-
-  const saved = localStorage.getItem("also-lang");
-  if (saved) {
-    const select = document.getElementById("also-lang-select");
-    if (select) select.value = saved;
-  }
 }
-
-window.openLanguageModal = openLanguageModal;
 
 /* ==============================
    🌐 FULL PAGE GOOGLE TRANSLATE + TAB
    ============================== */
 function applyTranslation(lang) {
-  document.documentElement.lang = lang || "en";
-
   if (lang === "en") {
     removeTranslationTab();
     return;
@@ -296,21 +277,23 @@ function removeTranslationTab() {
 function logPageOnce() {
   try {
     const pageURL = window.location.href;
-    const pageKey = "log-" + btoa(pageURL).replace(/=/g, "");
+    // create a key-safe ID for this page
+    const pageKey = "log-" + btoa(pageURL).replace(/=/g, ""); // base64 encode + remove =
+
     const pageRef = ref(db, "AlsoJsPageLogs/" + pageKey);
 
-    get(pageRef)
-      .then((snapshot) => {
-        if (!snapshot.exists()) {
-          push(ref(db, "AlsoJsPageLogs/" + pageKey), {
-            pageURL: pageURL,
-            dateLogged: new Date().toISOString()
-          });
-        }
-      })
-      .catch((e) => {
-        console.warn("[ALSO] Failed to log page once", e);
-      });
+    // Check if it already exists
+    pageRef.get
+      ? pageRef.get().then((snapshot) => {
+          if (!snapshot.exists()) {
+            // Page not logged yet → log it
+            push(ref(db, "AlsoJsPageLogs/" + pageKey), {
+              pageURL: pageURL,
+              dateLogged: new Date().toISOString()
+            });
+          }
+        })
+      : console.warn("[ALSO] Your Firebase SDK might not support get() in this way");
   } catch (e) {
     console.warn("[ALSO] Failed to log page once", e);
   }
@@ -324,5 +307,3 @@ logPageOnce();
    ============================== */
 const savedLang = localStorage.getItem("also-lang");
 if (savedLang) applyTranslation(savedLang);
-
-}

@@ -24,6 +24,12 @@ Welcome to **HouseLearning Lessons Page** — a fun and interactive learning web
 - **JavaScript**
 - **Firebase API**
 
+## Email Notifications
+
+`receivePushNotificationEmail` accepts SendGrid Inbound Parse multipart webhooks. Create the `PUSH_EMAIL_WEBHOOK_SECRET` Firebase Functions secret, then deploy with `firebase deploy --only firestore:rules` and `firebase deploy --only functions:receivePushNotificationEmail,functions:getNotificationImage`. Configure the SendGrid Parse URL as the deployed function URL with `?token=` followed by that secret. Keep the secret in Firebase Secret Manager and the mail-provider configuration; never put it in `firestore.rules` or frontend code. Route `push-notifications@houselearning.org` to SendGrid Inbound Parse through the domain's existing email provider; do not replace domain-wide MX records unless that is intentional.
+
+Only messages whose parsed sender is `cajm23331@gmail.com` are accepted. Subjects must be exactly `@everyone`, `@admins-only`, `@students`, `@teachers`, or `@user user@example.com`. Accounts without an admin or teacher role are treated as students. Text is rendered as plain text; PNG, JPEG, GIF, and WebP attachments are accepted, while other attachments are rejected. Image files are served only after verifying the signed-in user's access to the notification.
+
 ## 📸 Screenshots
 
 Here’s a preview of the HouseLearning Home website (*subject to change*):

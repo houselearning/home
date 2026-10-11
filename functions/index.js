@@ -1,8 +1,23 @@
 const functions = require('firebase-functions');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const admin = require('firebase-admin');
+const Busboy = require('busboy');
+const { Readable } = require('stream');
+const { randomUUID, timingSafeEqual } = require('crypto');
+const {
+  detectImageContentType,
+  parseNotificationTarget,
+  plainTextFromHtml,
+  selectRecipients
+} = require('./push-notification-email');
 
-if (!admin.apps.length) admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp({ storageBucket: 'contract-center-llc-10.firebasestorage.app' });
+}
+
+const MAX_EMAIL_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+const MAX_TEXT_LENGTH = 10000;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,6 +34,289 @@ function isSafeAiAdmin(context) {
     || auth.uid === '2nuzhsYAXiaMhm4RhRWksNLIBcJ3'
   );
 }
+
+function matchesSecret(received, expected) {
+  if (!received || !expected) return false;
+  const receivedBuffer = Buffer.from(String(received));
+  const expectedBuffer = Buffer.from(String(expected));
+  return receivedBuffer.length === expectedBuffer.length
+    && timingSafeEqual(receivedBuffer, expectedBuffer);
+}
+
+function invalidEmailError(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function parseInboundEmail(req) {
+  return new Promise((resolve, reject) => {
+    const parser = Busboy({
+      headers: req.headers,
+      limits: {
+        fields: 20,
+        fieldSize: MAX_TEXT_LENGTH * 2,
+        files: 5,
+        fileSize: MAX_IMAGE_BYTES
+      }
+    });
+    const fields = {};
+    const attachments = [];
+    let parseError = null;
+
+    parser.on('field', (name, value, info) => {
+      if (info.valueTruncated) parseError = invalidEmailError('Email field is too large.');
+      fields[name] = value;
+    });
+
+    parser.on('file', (name, stream, info) => {
+      const chunks = [];
+      let size = 0;
+      stream.on('data', chunk => {
+        size += chunk.length;
+        chunks.push(chunk);
+      });
+      stream.on('limit', () => {
+        parseError = invalidEmailError('Image attachment is too large.');
+      });
+      stream.on('error', error => {
+        parseError = error;
+      });
+      stream.on('end', () => {
+        attachments.push({
+          filename: info.filename || 'image',
+          mimeType: info.mimeType || '',
+          buffer: Buffer.concat(chunks, size)
+        });
+      });
+    });
+
+    parser.on('fieldsLimit', () => { parseError = invalidEmailError('Too many email fields.'); });
+    parser.on('filesLimit', () => { parseError = invalidEmailError('Too many attachments.'); });
+    parser.on('error', error => {
+      error.statusCode = 400;
+      reject(error);
+    });
+    parser.on('finish', () => {
+      if (parseError) reject(parseError);
+      else resolve({ fields, attachments });
+    });
+
+    Readable.from([req.rawBody]).pipe(parser);
+  });
+}
+
+function validateAttachments(attachments) {
+  return attachments.map(attachment => {
+    const contentType = detectImageContentType(attachment.buffer);
+    const declaredType = attachment.mimeType.toLowerCase();
+    if (!contentType || (declaredType !== contentType && declaredType !== 'application/octet-stream')) {
+      throw invalidEmailError('Only PNG, JPEG, GIF, and WebP image attachments are accepted.');
+    }
+    if (attachment.buffer.length > MAX_IMAGE_BYTES) {
+      throw invalidEmailError('Image attachment is too large.');
+    }
+    return { ...attachment, contentType };
+  });
+}
+
+async function getPushRecipients(target) {
+  const authUsers = [];
+  let pageToken;
+  do {
+    const page = await admin.auth().listUsers(1000, pageToken);
+    authUsers.push(...page.users);
+    pageToken = page.pageToken;
+  } while (pageToken);
+
+  const roleSnapshot = await admin.firestore().collection('cookbook_users').get();
+  const rolesByUid = new Map(roleSnapshot.docs.map(doc => [doc.id, doc.data().role]));
+  return selectRecipients(authUsers, rolesByUid, target);
+}
+
+async function saveNotificationImages(attachments, campaignId) {
+  if (!attachments.length) return [];
+  const bucket = admin.storage().bucket();
+  return Promise.all(attachments.map(async (attachment, index) => {
+    const filename = attachment.filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100) || `image-${index + 1}`;
+    const objectPath = `push-notifications/${campaignId}/${index + 1}-${filename}`;
+    await bucket.file(objectPath).save(attachment.buffer, {
+      resumable: false,
+      metadata: {
+        contentType: attachment.contentType,
+        cacheControl: 'private, no-store'
+      }
+    });
+    return {
+      fileName: filename,
+      contentType: attachment.contentType,
+      storagePath: objectPath
+    };
+  }));
+}
+
+exports.receivePushNotificationEmail = functions.runWith({
+  timeoutSeconds: 540,
+  memory: '1GB',
+  secrets: ['PUSH_EMAIL_WEBHOOK_SECRET']
+}).https.onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method not allowed');
+    return;
+  }
+
+  if (!matchesSecret(req.query.token, process.env.PUSH_EMAIL_WEBHOOK_SECRET)) {
+    res.status(401).send('Unauthorized');
+    return;
+  }
+
+  if (!String(req.headers['content-type'] || '').startsWith('multipart/form-data')) {
+    res.status(415).send('Expected a multipart email payload');
+    return;
+  }
+  if (!Buffer.isBuffer(req.rawBody) || req.rawBody.length > MAX_EMAIL_BYTES) {
+    res.status(413).send('Email payload is too large');
+    return;
+  }
+
+  try {
+    const email = await parseInboundEmail(req);
+    const sender = String(email.fields.from || '').match(/<([^<>]+)>/)?.[1] || email.fields.from || '';
+    if (String(sender).trim().toLowerCase() !== 'cajm23331@gmail.com') {
+      res.status(403).send('Sender not allowed');
+      return;
+    }
+
+    const target = parseNotificationTarget(email.fields.subject);
+    if (!target) {
+      res.status(400).send('Invalid notification subject');
+      return;
+    }
+
+    const attachments = validateAttachments(email.attachments);
+    const body = String(email.fields.text || plainTextFromHtml(email.fields.html || '')).trim();
+    if (body.length > MAX_TEXT_LENGTH || (!body && !attachments.length)) {
+      res.status(400).send('Email must contain text or image content within the size limit');
+      return;
+    }
+
+    const recipients = await getPushRecipients(target);
+    if (target.type === 'user' && recipients.length === 0) {
+      res.status(404).send('User account not found');
+      return;
+    }
+    if (recipients.length === 0) {
+      res.status(200).json({ ok: true, recipientCount: 0 });
+      return;
+    }
+
+    const campaignId = randomUUID();
+    const storedImages = await saveNotificationImages(attachments, campaignId);
+    const firestore = admin.firestore();
+    const writer = firestore.bulkWriter();
+    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    const writes = recipients.flatMap(user => {
+      const notificationRef = firestore.collection('notifications').doc();
+      const notification = {
+        recipientUid: user.uid,
+        title: 'HouseLearning Update',
+        body,
+        images: storedImages.map(({ fileName, contentType }) => ({ fileName, contentType })),
+        read: false,
+        timestamp
+      };
+      const recipientWrites = [writer.create(notificationRef, notification)];
+      if (storedImages.length) {
+        recipientWrites.push(writer.create(
+          firestore.collection('notificationMedia').doc(notificationRef.id),
+          { recipientUid: user.uid, images: storedImages }
+        ));
+      }
+      return recipientWrites;
+    });
+    await Promise.all(writes);
+    await writer.close();
+
+    res.status(200).json({ ok: true, recipientCount: recipients.length });
+  } catch (error) {
+    console.error('push notification email error', error);
+    const status = error.statusCode || 500;
+    res.status(status).send(status < 500 ? error.message : 'Could not process notification email');
+  }
+});
+
+exports.getNotificationImage = functions.https.onRequest(async (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization',
+    'Access-Control-Max-Age': '3600',
+    'Cache-Control': 'private, no-store',
+    'X-Content-Type-Options': 'nosniff'
+  });
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  if (req.method !== 'GET') {
+    res.status(405).send('Method not allowed');
+    return;
+  }
+
+  const tokenMatch = String(req.headers.authorization || '').match(/^Bearer\s+(.+)$/i);
+  if (!tokenMatch) {
+    res.status(401).send('Authentication required');
+    return;
+  }
+
+  let decodedToken;
+  try {
+    decodedToken = await admin.auth().verifyIdToken(tokenMatch[1]);
+  } catch (error) {
+    res.status(401).send('Could not authorize image request');
+    return;
+  }
+
+  try {
+    const notificationId = String(req.query.notificationId || '');
+    const imageIndex = Number(req.query.imageIndex);
+    if (!/^[A-Za-z0-9_-]{1,1500}$/.test(notificationId)
+      || !Number.isInteger(imageIndex)
+      || imageIndex < 0
+      || imageIndex > 4) {
+      res.status(400).send('Invalid image request');
+      return;
+    }
+
+    const notification = await admin.firestore().collection('notifications').doc(notificationId).get();
+    const data = notification.data();
+    if (!data || data.recipientUid !== decodedToken.uid) {
+      res.status(404).send('Image not found');
+      return;
+    }
+
+    const mediaDocument = await admin.firestore().collection('notificationMedia').doc(notificationId).get();
+    const mediaData = mediaDocument.data();
+    if (!mediaData || mediaData.recipientUid !== decodedToken.uid) {
+      res.status(404).send('Image not found');
+      return;
+    }
+
+    const image = Array.isArray(mediaData.images) ? mediaData.images[imageIndex] : null;
+    if (!image
+      || !/^push-notifications\/[A-Za-z0-9-]+\/[0-9]+-[A-Za-z0-9._-]+$/.test(image.storagePath || '')
+      || !['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(image.contentType)) {
+      res.status(404).send('Image not found');
+      return;
+    }
+
+    const [buffer] = await admin.storage().bucket().file(image.storagePath).download();
+    res.set('Content-Type', image.contentType).status(200).send(buffer);
+  } catch (error) {
+    console.error('notification image request error', error);
+    res.status(500).send('Could not load notification image');
+  }
+});
 
 exports.safeAiAdminCommand = functions.https.onCall(async (data, context) => {
   if (!isSafeAiAdmin(context)) {
