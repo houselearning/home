@@ -1,3 +1,4 @@
+  document.body.innerHTML = `<nav><div class="nav-header"><strong style="font-size:18px;">SCIENCE LAB - ${gradeLabel}</strong><small id="science-percent">Syncing Progress...</small><div class="progress-track" aria-label="Lesson progress"><div id="science-progress-fill" class="progress-fill"></div></div><a class="lesson-catalog-link" href="/home/science-page.html">All Science Lessons</a></div><div class="nav-container" id="science-nav"></div></nav><main><div id="science-content" class="content-card"></div></main>`;
 (function () {
   const ensureSharedLessonScripts = () => {
     const scripts = [
