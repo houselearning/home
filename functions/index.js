@@ -3,13 +3,21 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const admin = require('firebase-admin');
 const Busboy = require('busboy');
 const { Readable } = require('stream');
-const { randomUUID, timingSafeEqual } = require('crypto');
+const { randomInt, randomUUID, timingSafeEqual } = require('crypto');
 const {
   detectImageContentType,
   parseNotificationTarget,
   plainTextFromHtml,
   selectRecipients
 } = require('./push-notification-email');
+const { responseLanguageInstruction } = require('./assistant-language');
+const {
+  normalizeClassInput,
+  normalizeCoTeacherEmails,
+  normalizeJoinCode,
+  hasTeacherAccess,
+  isValidUserId
+} = require('./teacher-domain');
 
 if (!admin.apps.length) {
   admin.initializeApp({ storageBucket: 'contract-center-llc-10.firebasestorage.app' });
@@ -350,6 +358,305 @@ exports.safeAiAdminCommand = functions.https.onCall(async (data, context) => {
   return { ok: true, command, action, minutes };
 });
 
+function requireTeacherOrAdmin(context) {
+  if (!context || !context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Sign in to use teacher tools.');
+  }
+  if (!hasTeacherAccess(context.auth.token, isSafeAiAdmin(context))) {
+    throw new functions.https.HttpsError('permission-denied', 'Teacher access must be approved by an administrator.');
+  }
+}
+
+exports.reviewTeacherApplication = functions.https.onCall(async (data, context) => {
+  if (!isSafeAiAdmin(context)) {
+    throw new functions.https.HttpsError('permission-denied', 'Administrator access is required.');
+  }
+  const userId = String(data && data.userId || '').trim();
+  const decision = String(data && data.decision || '').trim();
+  if (!isValidUserId(userId) || !['approve', 'reject'].includes(decision)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Choose a valid application and decision.');
+  }
+
+  const applicationRef = admin.firestore().collection('teacherApplications').doc(userId);
+  const application = await applicationRef.get();
+  if (!application.exists || application.data().status !== 'pending') {
+    throw new functions.https.HttpsError('failed-precondition', 'This application is no longer pending.');
+  }
+
+  let previousClaims = null;
+  if (decision === 'approve') {
+    const user = await admin.auth().getUser(userId);
+    previousClaims = user.customClaims || {};
+    await admin.auth().setCustomUserClaims(userId, { ...previousClaims, role: 'teacher' });
+  }
+  try {
+    await applicationRef.update({
+      status: decision === 'approve' ? 'approved' : 'rejected',
+      reviewedBy: context.auth.uid,
+      reviewedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    if (previousClaims) await admin.auth().setCustomUserClaims(userId, previousClaims);
+    throw error;
+  }
+  return { ok: true, userId, status: decision === 'approve' ? 'approved' : 'rejected' };
+});
+
+exports.createTeacherClass = functions.https.onCall(async (data, context) => {
+  requireTeacherOrAdmin(context);
+  let classInput;
+  try {
+    classInput = normalizeClassInput(data);
+  } catch (error) {
+    throw new functions.https.HttpsError('invalid-argument', error.message);
+  }
+
+  const firestore = admin.firestore();
+  const classRef = firestore.collection('classes').doc();
+  let joinCode = '';
+  let created = false;
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  for (let attempt = 0; attempt < 8 && !created; attempt += 1) {
+    joinCode = Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join('');
+    const inviteRef = firestore.collection('teacherClassInvites').doc(joinCode);
+    created = await firestore.runTransaction(async transaction => {
+      const existingInvite = await transaction.get(inviteRef);
+      if (existingInvite.exists) return false;
+      transaction.create(classRef, {
+        ...classInput,
+        teacherId: context.auth.uid,
+        teacherName: context.auth.token.name || context.auth.token.email || 'Teacher',
+        coTeacherIds: [],
+        archived: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      transaction.create(inviteRef, {
+        classId: classRef.id,
+        teacherId: context.auth.uid,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      return true;
+    });
+  }
+  if (!created) throw new functions.https.HttpsError('resource-exhausted', 'Could not allocate a class code. Try again.');
+  return { classId: classRef.id, joinCode };
+});
+
+async function reserveTeacherJoinAttempt(uid) {
+  const firestore = admin.firestore();
+  const ref = firestore.collection('teacherJoinRateLimits').doc(uid);
+  const now = Date.now();
+  return firestore.runTransaction(async transaction => {
+    const snapshot = await transaction.get(ref);
+    const data = snapshot.exists ? snapshot.data() : {};
+    const startedAt = data.windowStartedAt?.toMillis?.() || 0;
+    const inWindow = startedAt > 0 && now - startedAt < 60_000;
+    const attempts = inWindow ? Number(data.attempts || 0) : 0;
+    if (attempts >= 10) return false;
+    transaction.set(ref, {
+      windowStartedAt: inWindow ? data.windowStartedAt : new Date(now),
+      attempts: attempts + 1
+    });
+    return true;
+  });
+}
+
+exports.getTeacherClassCode = functions.https.onCall(async (data, context) => {
+  requireTeacherOrAdmin(context);
+  const classId = String(data && data.classId || '').trim();
+  if (!isValidUserId(classId)) throw new functions.https.HttpsError('invalid-argument', 'Choose a valid class.');
+  const firestore = admin.firestore();
+  const classSnapshot = await firestore.collection('classes').doc(classId).get();
+  if (!classSnapshot.exists) throw new functions.https.HttpsError('not-found', 'Class not found.');
+  const classData = classSnapshot.data();
+  const isCoTeacher = Array.isArray(classData.coTeacherIds) && classData.coTeacherIds.includes(context.auth.uid);
+  if (!isSafeAiAdmin(context) && classData.teacherId !== context.auth.uid && !isCoTeacher) {
+    throw new functions.https.HttpsError('permission-denied', 'You do not teach this class.');
+  }
+  const invites = await firestore.collection('teacherClassInvites')
+    .where('classId', '==', classId)
+    .limit(1)
+    .get();
+  if (invites.empty) throw new functions.https.HttpsError('not-found', 'This class has no active invite code.');
+  return { joinCode: invites.docs[0].id };
+});
+
+exports.joinTeacherClass = functions.https.onCall(async (data, context) => {
+  if (!context || !context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Sign in before joining a class.');
+  }
+  if (context.auth.token.email_verified !== true) {
+    throw new functions.https.HttpsError('permission-denied', 'Verify your email before joining a class.');
+  }
+  if (!await reserveTeacherJoinAttempt(context.auth.uid)) {
+    throw new functions.https.HttpsError('resource-exhausted', 'Too many class-code attempts. Wait one minute and try again.');
+  }
+  let joinCode;
+  try {
+    joinCode = normalizeJoinCode(data && data.joinCode);
+  } catch (error) {
+    throw new functions.https.HttpsError('invalid-argument', error.message);
+  }
+
+  const firestore = admin.firestore();
+  const inviteRef = firestore.collection('teacherClassInvites').doc(joinCode);
+  const invite = await inviteRef.get();
+  if (!invite.exists) throw new functions.https.HttpsError('not-found', 'That class code was not found.');
+  const classRef = firestore.collection('classes').doc(invite.data().classId);
+  const memberRef = classRef.collection('members').doc(context.auth.uid);
+  let className = '';
+  await firestore.runTransaction(async transaction => {
+    const classSnapshot = await transaction.get(classRef);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!classSnapshot.exists || classSnapshot.data().archived === true) {
+      throw new functions.https.HttpsError('not-found', 'That class is no longer accepting students.');
+    }
+    if (classSnapshot.data().teacherId === context.auth.uid) {
+      throw new functions.https.HttpsError('failed-precondition', 'Teachers cannot join their own class as students.');
+    }
+    if ((classSnapshot.data().coTeacherIds || []).includes(context.auth.uid)) {
+      throw new functions.https.HttpsError('failed-precondition', 'Co-teachers cannot join their class as students.');
+    }
+    if (!memberSnapshot.exists) {
+      transaction.create(memberRef, {
+        studentId: context.auth.uid,
+        displayName: context.auth.token.name || context.auth.token.email || 'Student',
+        email: context.auth.token.email || '',
+        joinedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    className = classSnapshot.data().name;
+  });
+  return { ok: true, classId: classRef.id, className };
+});
+
+exports.setTeacherCoTeachers = functions.https.onCall(async (data, context) => {
+  requireTeacherOrAdmin(context);
+  const classId = String(data && data.classId || '').trim();
+  if (!isValidUserId(classId)) throw new functions.https.HttpsError('invalid-argument', 'Choose a valid class.');
+  let emails;
+  try {
+    emails = normalizeCoTeacherEmails(data && data.emails);
+  } catch (error) {
+    throw new functions.https.HttpsError('invalid-argument', error.message);
+  }
+
+  const classRef = admin.firestore().collection('classes').doc(classId);
+  const classSnapshot = await classRef.get();
+  if (!classSnapshot.exists) throw new functions.https.HttpsError('not-found', 'Class not found.');
+  if (!isSafeAiAdmin(context) && classSnapshot.data().teacherId !== context.auth.uid) {
+    throw new functions.https.HttpsError('permission-denied', 'Only the lead teacher can manage co-teachers.');
+  }
+  const coTeacherIds = [];
+  for (const email of emails) {
+    let user;
+    try {
+      user = await admin.auth().getUserByEmail(email);
+    } catch (_error) {
+      throw new functions.https.HttpsError('not-found', `No account exists for ${email}.`);
+    }
+    if (user.customClaims?.role !== 'teacher') {
+      throw new functions.https.HttpsError('failed-precondition', `${email} does not have approved teacher access.`);
+    }
+    coTeacherIds.push(user.uid);
+  }
+  await classRef.update({ coTeacherIds, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  return { ok: true, coTeacherIds };
+});
+
+exports.removeTeacherStudent = functions.https.onCall(async (data, context) => {
+  requireTeacherOrAdmin(context);
+  const classId = String(data && data.classId || '').trim();
+  const studentId = String(data && data.studentId || '').trim();
+  if (!isValidUserId(classId) || !isValidUserId(studentId)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Choose a valid class and student.');
+  }
+  const classRef = admin.firestore().collection('classes').doc(classId);
+  const classSnapshot = await classRef.get();
+  if (!classSnapshot.exists) throw new functions.https.HttpsError('not-found', 'Class not found.');
+  const classData = classSnapshot.data();
+  const isCoTeacher = Array.isArray(classData.coTeacherIds) && classData.coTeacherIds.includes(context.auth.uid);
+  if (!isSafeAiAdmin(context) && classData.teacherId !== context.auth.uid && !isCoTeacher) {
+    throw new functions.https.HttpsError('permission-denied', 'You do not teach this class.');
+  }
+  await classRef.collection('members').doc(studentId).delete();
+  return { ok: true };
+});
+
+exports.deleteTeacherAssignment = functions.https.onCall(async (data, context) => {
+  requireTeacherOrAdmin(context);
+  const assignmentId = String(data && data.assignmentId || '').trim();
+  if (!isValidUserId(assignmentId)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Choose a valid assignment.');
+  }
+  const firestore = admin.firestore();
+  const assignmentRef = firestore.collection('assignments').doc(assignmentId);
+  const assignment = await assignmentRef.get();
+  if (!assignment.exists) throw new functions.https.HttpsError('not-found', 'Assignment not found.');
+  const classRef = firestore.collection('classes').doc(assignment.data().classId);
+  const classSnapshot = await classRef.get();
+  if (!classSnapshot.exists) throw new functions.https.HttpsError('not-found', 'Class not found.');
+  const classData = classSnapshot.data();
+  const isCoTeacher = Array.isArray(classData.coTeacherIds) && classData.coTeacherIds.includes(context.auth.uid);
+  if (!isSafeAiAdmin(context) && classData.teacherId !== context.auth.uid && !isCoTeacher) {
+    throw new functions.https.HttpsError('permission-denied', 'You do not teach this class.');
+  }
+
+  await assignmentRef.update({ status: 'draft', updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  const submissions = await assignmentRef.collection('submissions').get();
+  const writer = firestore.bulkWriter();
+  for (const submission of submissions.docs) writer.delete(submission.ref);
+  writer.delete(assignmentRef);
+  await writer.close();
+  return { ok: true };
+});
+
+async function deleteTeacherCollection(collectionRef) {
+  while (true) {
+    const snapshot = await collectionRef.limit(400).get();
+    if (snapshot.empty) return;
+    const batch = admin.firestore().batch();
+    snapshot.docs.forEach(document => batch.delete(document.ref));
+    await batch.commit();
+    if (snapshot.size < 400) return;
+  }
+}
+
+exports.deleteTeacherClass = functions.https.onCall(async (data, context) => {
+  requireTeacherOrAdmin(context);
+  const classId = String(data && data.classId || '').trim();
+  if (!isValidUserId(classId)) throw new functions.https.HttpsError('invalid-argument', 'Choose a valid class.');
+  const firestore = admin.firestore();
+  const classRef = firestore.collection('classes').doc(classId);
+  const classSnapshot = await classRef.get();
+  if (!classSnapshot.exists) throw new functions.https.HttpsError('not-found', 'Class not found.');
+  const classData = classSnapshot.data();
+  if (!isSafeAiAdmin(context) && classData.teacherId !== context.auth.uid) {
+    throw new functions.https.HttpsError('permission-denied', 'Only the lead teacher can permanently delete this class.');
+  }
+
+  await classRef.update({ archived: true, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  for (const name of ['members', 'announcements', 'materials', 'sessions']) {
+    await deleteTeacherCollection(classRef.collection(name));
+  }
+  const assignments = firestore.collection('assignments');
+  while (true) {
+    const snapshot = await assignments.where('classId', '==', classId).limit(400).get();
+    if (snapshot.empty) break;
+    for (const assignment of snapshot.docs) {
+      await deleteTeacherCollection(assignment.ref.collection('submissions'));
+    }
+    const batch = firestore.batch();
+    snapshot.docs.forEach(assignment => batch.delete(assignment.ref));
+    await batch.commit();
+    if (snapshot.size < 400) break;
+  }
+  await deleteTeacherCollection(firestore.collection('teacherClassInvites').where('classId', '==', classId));
+  await classRef.delete();
+  return { ok: true };
+});
+
 exports.assistant = functions.https.onRequest(async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.set(corsHeaders);
@@ -428,6 +735,10 @@ exports.assistant = functions.https.onRequest(async (req, res) => {
       `Subject: ${subject}`,
       `Page title: ${pageTitle}`,
       grade ? `Grade: ${grade}` : '',
+      responseLanguageInstruction(body.language),
+      body.tutorMode === true
+        ? 'Guided homework tutor mode is active. Ask what the student has tried when their work is unclear. Give one age-appropriate hint or step at a time instead of immediately completing the whole assignment. When the student shares work, identify the first incorrect step and explain how to repair it. Acknowledge correct reasoning and end with one focused check question.'
+        : '',
       'Answer clearly and helpfully with a brief explanation and one example when useful.'
     ].filter(Boolean).join('\n');
 
