@@ -185,10 +185,17 @@ def normalize_language(language: str = 'en') -> str:
     return value if value in {'en', 'es', 'tr', 'pt'} else 'en'
 
 
-def build_prompt(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', language: str = 'en', system_prompt: Optional[str] = None, source_urls: Optional[set[str]] = None) -> str:
+def build_prompt(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', language: str = 'en', system_prompt: Optional[str] = None, source_urls: Optional[set[str]] = None, tutor_mode: bool = False) -> str:
     cleaned_message = (user_message or '').strip()
     response_language = normalize_language(language)
     grade_part = f"Grade context: {grade}. " if grade else ''
+    tutor_guidance = (
+        'Guided homework tutor mode is active. Ask what the student has tried when their work is unclear. '
+        'Give one age-appropriate hint or step at a time instead of immediately completing the whole assignment. '
+        'When the student shares work, identify the first incorrect step and explain how to repair it. '
+        'Acknowledge correct reasoning and end with one focused check question.'
+        if tutor_mode else ''
+    )
     prompt = DEFAULT_SYSTEM_PROMPT
     sources = sorted(source_urls if source_urls is not None else get_sitemap_urls())
     source_part = 'Sitemap source URLs:\n' + ('\n'.join(sources) if sources else '(No sitemap URLs are available.)')
@@ -198,6 +205,7 @@ def build_prompt(user_message: str, subject: str = 'general', page_title: str = 
         f"Respond in {response_language} unless the student explicitly asks for a different language.\n\n"
         f"{knowledge_part}\n\n"
         f"{source_part}\n\n"
+        f"{tutor_guidance}\n\n"
         f"Student message: {cleaned_message}\n"
         f"Subject: {subject}\n"
         f"Page title: {page_title}\n"
@@ -265,11 +273,11 @@ def _call_gemini(prompt: str, config: Dict[str, str]) -> str:
     return sanitize_reply(payload['candidates'][0]['content']['parts'][0]['text'].strip())
 
 
-def generate_reply(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', language: str = 'en', system_prompt: Optional[str] = None) -> str:
+def generate_reply(user_message: str, subject: str = 'general', page_title: str = 'HouseLearning page', grade: str = '', language: str = 'en', system_prompt: Optional[str] = None, tutor_mode: bool = False) -> str:
     config = get_provider_config()
     provider = config.get('provider', 'openai')
     source_urls = get_sitemap_urls()
-    prompt = build_prompt(user_message, subject=subject, page_title=page_title, grade=grade, language=language, source_urls=source_urls)
+    prompt = build_prompt(user_message, subject=subject, page_title=page_title, grade=grade, language=language, source_urls=source_urls, tutor_mode=tutor_mode)
 
     if provider == 'mock':
         return sanitize_reply(

@@ -14,26 +14,49 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/cookbook_users/$(request.auth.uid));
     }
 
-    function cookbookRole() {
-      return cookbookUserDoc().exists() ? cookbookUserDoc().data.role : null;
-    }
-
     function isBanned() {
       return isAuthenticated() && cookbookUserDoc().exists() && cookbookUserDoc().data.banned == true;
     }
 
     function isTeacher() {
-      return isAuthenticated() && (
-        (request.auth.token.role != null && request.auth.token.role == 'teacher') ||
-        cookbookRole() == 'teacher'
-      );
+      return isAuthenticated() && request.auth.token.role == 'teacher';
     }
 
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.admin == true ||
-        cookbookRole() == 'admin'
+        request.auth.token.email == 'cajm23331@gmail.com' ||
+        request.auth.uid == '2nuzhsYAXiaMhm4RhRWksNLIBcJ3'
       );
+    }
+
+    function classExists(classId) {
+      return exists(/databases/$(database)/documents/classes/$(classId));
+    }
+
+    function classRecord(classId) {
+      return get(/databases/$(database)/documents/classes/$(classId)).data;
+    }
+
+    function isClassInstructor(classId) {
+      return isAdmin() || (isTeacher() && classExists(classId) && (
+        (!('archived' in classRecord(classId).keys()) || classRecord(classId).archived != true) && (
+          classRecord(classId).teacherId == request.auth.uid ||
+          ('coTeacherIds' in classRecord(classId).keys()
+          && request.auth.uid in classRecord(classId).coTeacherIds)
+        )
+      ));
+    }
+
+    function isClassMember(classId) {
+      return isAuthenticated() && classExists(classId) && (
+        isClassInstructor(classId) ||
+        exists(/databases/$(database)/documents/classes/$(classId)/members/$(request.auth.uid))
+      );
+    }
+
+    function assignmentRecord(assignmentId) {
+      return get(/databases/$(database)/documents/assignments/$(assignmentId)).data;
     }
 
     function canAccessDashboard() {
@@ -101,37 +124,125 @@ service cloud.firestore {
 
     match /cookbook_users/{userId} {
       allow read: if isOwner(userId);
-      allow create, update: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin() || (isOwner(userId)
+        && (!('role' in request.resource.data.keys()) || request.resource.data.role == 'student')
+        && (!('banned' in request.resource.data.keys()) || request.resource.data.banned == false));
+      allow update: if isAdmin() || (isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'banned']));
       allow delete: if isAdmin();
     }
 
     match /artifacts/{appId}/public/data/forum_posts/{postId} {
-      allow read, list: if true;
-      allow create: if isAuthenticated();
-      allow update, delete: if isOwner(resource.data.userId) || isTeacher();
+      allow get: if resource.data.moderationStatus == 'approved'
+        || isAdmin()
+        || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow list: if resource.data.moderationStatus == 'approved' || isAdmin();
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasOnly([
+          'title', 'content', 'tag', 'commentsDisabled', 'voteCount',
+          'timestamp', 'userId', 'userEmail', 'moderationStatus'
+        ])
+        && request.resource.data.keys().hasAll([
+          'title', 'content', 'tag', 'commentsDisabled', 'voteCount',
+          'timestamp', 'userId', 'moderationStatus'
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 50
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 500
+        && request.resource.data.tag in ['Q&A', 'Bug', 'New Feature', 'Docs Issue', 'Comment', 'General']
+        && request.resource.data.commentsDisabled == false
+        && request.resource.data.voteCount == 0
+        && request.resource.data.timestamp is timestamp
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.moderationStatus == 'pending'
+        && (!('userEmail' in request.resource.data.keys()) || request.resource.data.userEmail is string);
+      allow update: if (isOwner(resource.data.userId) || isTeacher())
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'title', 'content', 'tag', 'userId', 'userEmail', 'moderationStatus',
+          'moderationCategory', 'moderatedAt', 'moderationReviewedBy', 'moderationReviewedAt'
+        ]);
+      allow update: if isAdmin()
+        && resource.data.moderationStatus in ['pending', 'review']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'moderationStatus', 'moderationCategory', 'moderationReviewedBy', 'moderationReviewedAt'
+        ])
+        && request.resource.data.moderationStatus in ['approved', 'blocked']
+        && request.resource.data.moderationReviewedBy == request.auth.uid
+        && request.resource.data.moderationReviewedAt == request.time
+        && ((request.resource.data.moderationStatus == 'approved'
+          && request.resource.data.moderationCategory == 'safe')
+          || (request.resource.data.moderationStatus == 'blocked'
+            && request.resource.data.moderationCategory in [
+              'sexual-content', 'hate-or-harassment', 'dangerous-instructions', 'malicious-code'
+            ]));
+      allow delete: if isOwner(resource.data.userId) || isTeacher() || isAdmin();
 
       match /comments/{commentId} {
-        allow read, write: if isAuthenticated();
+        allow get: if resource.data.moderationStatus == 'approved'
+          || isAdmin()
+          || (isAuthenticated() && resource.data.userId == request.auth.uid);
+        allow list: if resource.data.moderationStatus == 'approved' || isAdmin();
+        allow create: if isAuthenticated()
+          && request.resource.data.keys().hasOnly([
+            'content', 'timestamp', 'userId', 'userEmail', 'moderationStatus'
+          ])
+          && request.resource.data.keys().hasAll(['content', 'timestamp', 'userId', 'moderationStatus'])
+          && request.resource.data.content is string
+          && request.resource.data.content.size() > 0
+          && request.resource.data.content.size() <= 500
+          && request.resource.data.timestamp is timestamp
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.moderationStatus == 'pending'
+          && (!('userEmail' in request.resource.data.keys()) || request.resource.data.userEmail is string);
+        allow update: if isAdmin()
+          && resource.data.moderationStatus in ['pending', 'review']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'moderationStatus', 'moderationCategory', 'moderationReviewedBy', 'moderationReviewedAt'
+          ])
+          && request.resource.data.moderationStatus in ['approved', 'blocked']
+          && request.resource.data.moderationReviewedBy == request.auth.uid
+          && request.resource.data.moderationReviewedAt == request.time
+          && ((request.resource.data.moderationStatus == 'approved'
+            && request.resource.data.moderationCategory == 'safe')
+            || (request.resource.data.moderationStatus == 'blocked'
+              && request.resource.data.moderationCategory in [
+                'sexual-content', 'hate-or-harassment', 'dangerous-instructions', 'malicious-code'
+              ]));
+        allow delete: if isOwner(resource.data.userId) || isAdmin();
       }
 
       match /votes/{userId} {
-        allow read: if true;
-        allow write: if isOwner(userId);
+        allow read: if get(/databases/$(database)/documents/artifacts/$(appId)/public/data/forum_posts/$(postId)).data.moderationStatus == 'approved'
+          || isAdmin()
+          || isOwner(get(/databases/$(database)/documents/artifacts/$(appId)/public/data/forum_posts/$(postId)).data.userId);
+        allow write: if isOwner(userId)
+          && get(/databases/$(database)/documents/artifacts/$(appId)/public/data/forum_posts/$(postId)).data.moderationStatus == 'approved';
       }
     }
 
     match /artifacts/{appId}/public/data/user_profiles/{userId} {
       allow read: if true;
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && (!('role' in request.resource.data.keys()) || request.resource.data.role == 'student')
+        && (!('admin' in request.resource.data.keys()) || request.resource.data.admin == false)
+        && (!('teacher' in request.resource.data.keys()) || request.resource.data.teacher == false);
       allow update: if isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['followersCount']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['followersCount', 'role', 'admin', 'teacher']);
       allow update: if isAuthenticated() && !isOwner(userId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']);
     }
 
     match /user_profiles/{userId} {
       allow read: if true;
-      allow create, update: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && (!('role' in request.resource.data.keys()) || request.resource.data.role == 'student')
+        && (!('admin' in request.resource.data.keys()) || request.resource.data.admin == false)
+        && (!('teacher' in request.resource.data.keys()) || request.resource.data.teacher == false);
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'admin', 'teacher', 'banned']);
 
       match /following/{targetUserId} {
         allow read: if true;
@@ -144,17 +255,238 @@ service cloud.firestore {
       }
     }
 
-    match /assignments/{assignmentId} {
-      allow get: if isAuthenticated()
-        && (resource.data.studentId == request.auth.uid || resource.data.teacherId == request.auth.uid);
-      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
-      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
-    }
+    match /teacherApplications/{userId} {
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isAdmin();
+        allow create: if isOwner(userId)
+          && request.auth.token.email_verified == true
+          && request.resource.data.keys().hasOnly([
+            'userId', 'email', 'displayName', 'school', 'experience', 'status', 'submittedAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'userId', 'email', 'displayName', 'school', 'experience', 'status', 'submittedAt'
+          ])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() > 0
+          && request.resource.data.displayName.size() <= 100
+          && request.resource.data.school is string
+          && request.resource.data.school.size() <= 160
+          && request.resource.data.experience is string
+          && request.resource.data.experience.size() <= 1200
+          && request.resource.data.status == 'pending'
+          && request.resource.data.submittedAt == request.time;
+        allow update: if (isAdmin()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'reviewedBy', 'reviewedAt', 'reviewNote'
+            ])
+            && request.resource.data.status in ['approved', 'rejected']
+            && request.resource.data.reviewedBy == request.auth.uid
+            && request.resource.data.reviewedAt == request.time)
+          || (isOwner(userId)
+            && resource.data.status == 'rejected'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'displayName', 'school', 'experience', 'status', 'submittedAt'
+            ])
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() > 0
+            && request.resource.data.displayName.size() <= 100
+            && request.resource.data.school is string
+            && request.resource.data.school.size() <= 160
+            && request.resource.data.experience is string
+            && request.resource.data.experience.size() <= 1200
+            && request.resource.data.status == 'pending'
+            && request.resource.data.submittedAt == request.time);
+        allow delete: if false;
+      }
 
-    match /classes/{classId} {
-      allow read, list: if isAuthenticated();
-      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
-      allow update, delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      match /teacherClassInvites/{code} {
+        allow read, write: if false;
+      }
+
+      match /classes/{classId} {
+        allow get: if isClassInstructor(classId)
+          || (isAuthenticated() && exists(/databases/$(database)/documents/classes/$(classId)/members/$(request.auth.uid)));
+        allow list: if isAdmin()
+          || (isTeacher() && (resource.data.teacherId == request.auth.uid
+            || ('coTeacherIds' in resource.data.keys() && request.auth.uid in resource.data.coTeacherIds)));
+        allow create, delete: if false;
+        allow update: if isClassInstructor(classId)
+          && resource.data.teacherId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'name', 'description', 'archived', 'updatedAt'
+          ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 3
+          && request.resource.data.name.size() <= 80
+          && request.resource.data.description is string
+          && request.resource.data.description.size() <= 1000
+          && request.resource.data.updatedAt == request.time;
+
+        match /members/{studentId} {
+          allow get: if isClassInstructor(classId) || isOwner(studentId);
+          allow list: if isClassInstructor(classId)
+            || (isAuthenticated() && resource.data.studentId == request.auth.uid);
+          allow create, update, delete: if false;
+        }
+
+        match /announcements/{announcementId} {
+          allow read: if isClassMember(classId);
+          allow create: if isClassInstructor(classId)
+            && request.resource.data.keys().hasOnly(['authorId', 'body', 'createdAt'])
+            && request.resource.data.keys().hasAll(['authorId', 'body', 'createdAt'])
+            && request.resource.data.authorId == request.auth.uid
+            && request.resource.data.body is string
+            && request.resource.data.body.size() > 0
+            && request.resource.data.body.size() <= 2000
+            && request.resource.data.createdAt == request.time;
+          allow update: if isClassInstructor(classId)
+            && (isAdmin() || resource.data.authorId == request.auth.uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['body'])
+            && request.resource.data.body is string
+            && request.resource.data.body.size() > 0
+            && request.resource.data.body.size() <= 2000;
+          allow delete: if isClassInstructor(classId)
+            && (isAdmin() || resource.data.authorId == request.auth.uid);
+        }
+
+        match /materials/{materialId} {
+          allow read: if isClassMember(classId);
+          allow create: if isClassInstructor(classId)
+            && request.resource.data.keys().hasOnly(['title', 'url', 'kind', 'createdBy', 'createdAt'])
+            && request.resource.data.keys().hasAll(['title', 'url', 'kind', 'createdBy', 'createdAt'])
+            && request.resource.data.title is string
+            && request.resource.data.title.size() > 0
+            && request.resource.data.title.size() <= 120
+            && request.resource.data.url is string
+            && request.resource.data.url.matches('https://[^\\s]+')
+            && request.resource.data.url.size() <= 2048
+            && request.resource.data.kind in ['reading', 'activity', 'resource']
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.createdAt == request.time;
+          allow update: if isClassInstructor(classId)
+            && (isAdmin() || resource.data.createdBy == request.auth.uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'url', 'kind'])
+            && request.resource.data.title is string
+            && request.resource.data.title.size() > 0
+            && request.resource.data.title.size() <= 120
+            && request.resource.data.url is string
+            && request.resource.data.url.matches('https://[^\\s]+')
+            && request.resource.data.url.size() <= 2048
+            && request.resource.data.kind in ['reading', 'activity', 'resource'];
+          allow delete: if isClassInstructor(classId)
+            && (isAdmin() || resource.data.createdBy == request.auth.uid);
+        }
+
+        match /sessions/{sessionId} {
+          allow read: if isClassMember(classId);
+          allow create: if isClassInstructor(classId)
+            && request.resource.data.keys().hasOnly(['title', 'startsAt', 'endsAt', 'location', 'createdBy', 'createdAt'])
+            && request.resource.data.keys().hasAll(['title', 'startsAt', 'endsAt', 'createdBy', 'createdAt'])
+            && request.resource.data.title is string
+            && request.resource.data.title.size() > 0
+            && request.resource.data.title.size() <= 120
+            && request.resource.data.startsAt is timestamp
+            && request.resource.data.endsAt is timestamp
+            && request.resource.data.endsAt > request.resource.data.startsAt
+            && (!('location' in request.resource.data.keys()) || request.resource.data.location is string)
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.createdAt == request.time;
+          allow update: if isClassInstructor(classId)
+            && (isAdmin() || resource.data.createdBy == request.auth.uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'startsAt', 'endsAt', 'location'])
+            && request.resource.data.title is string
+            && request.resource.data.title.size() > 0
+            && request.resource.data.title.size() <= 120
+            && request.resource.data.startsAt is timestamp
+            && request.resource.data.endsAt is timestamp
+            && request.resource.data.endsAt > request.resource.data.startsAt;
+          allow delete: if isClassInstructor(classId)
+            && (isAdmin() || resource.data.createdBy == request.auth.uid);
+        }
+      }
+
+    match /assignments/{assignmentId} {
+      allow get, list: if isAdmin() || isClassInstructor(resource.data.classId)
+        || (resource.data.status == 'published' && isClassMember(resource.data.classId));
+      allow create: if isClassInstructor(request.resource.data.classId)
+        && request.resource.data.keys().hasOnly([
+          'classId', 'teacherId', 'title', 'description', 'instructions', 'dueAt',
+          'points', 'status', 'attachmentUrls', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'classId', 'teacherId', 'title', 'description', 'instructions',
+          'points', 'status', 'attachmentUrls', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.teacherId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 3
+        && request.resource.data.title.size() <= 160
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.instructions is string
+        && request.resource.data.instructions.size() <= 5000
+        && request.resource.data.points is int
+        && request.resource.data.points >= 0
+        && request.resource.data.points <= 1000
+        && request.resource.data.status in ['draft', 'published']
+        && request.resource.data.attachmentUrls is list
+        && request.resource.data.attachmentUrls.size() <= 10
+        && (!('dueAt' in request.resource.data.keys()) || request.resource.data.dueAt == null || request.resource.data.dueAt is timestamp)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isClassInstructor(resource.data.classId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title', 'description', 'instructions', 'dueAt', 'points',
+          'status', 'attachmentUrls', 'updatedAt'
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 3
+        && request.resource.data.title.size() <= 160
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.instructions is string
+        && request.resource.data.instructions.size() <= 5000
+        && request.resource.data.points is int
+        && request.resource.data.points >= 0
+        && request.resource.data.points <= 1000
+        && request.resource.data.status in ['draft', 'published']
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isClassInstructor(resource.data.classId);
+
+      match /submissions/{studentId} {
+        allow get: if isClassInstructor(assignmentRecord(assignmentId).classId)
+          || (isOwner(studentId) && isClassMember(assignmentRecord(assignmentId).classId));
+        allow list: if isClassInstructor(assignmentRecord(assignmentId).classId);
+        allow create: if isOwner(studentId)
+          && !isClassInstructor(assignmentRecord(assignmentId).classId)
+          && isClassMember(assignmentRecord(assignmentId).classId)
+          && assignmentRecord(assignmentId).status == 'published'
+          && request.resource.data.keys().hasOnly(['studentId', 'response', 'attachmentUrls', 'submittedAt'])
+          && request.resource.data.keys().hasAll(['studentId', 'response', 'attachmentUrls', 'submittedAt'])
+          && request.resource.data.studentId == request.auth.uid
+          && request.resource.data.response is string
+          && request.resource.data.response.size() <= 10000
+          && request.resource.data.attachmentUrls is list
+          && request.resource.data.attachmentUrls.size() <= 10
+          && request.resource.data.submittedAt == request.time;
+        allow update: if (isOwner(studentId)
+            && isClassMember(assignmentRecord(assignmentId).classId)
+            && !('gradedAt' in resource.data.keys())
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['response', 'attachmentUrls', 'submittedAt'])
+            && request.resource.data.submittedAt == request.time)
+          || (isClassInstructor(assignmentRecord(assignmentId).classId)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['score', 'feedback', 'gradedBy', 'gradedAt'])
+            && request.resource.data.score is int
+            && request.resource.data.score >= 0
+            && request.resource.data.score <= assignmentRecord(assignmentId).points
+            && request.resource.data.feedback is string
+            && request.resource.data.feedback.size() <= 2000
+            && request.resource.data.gradedBy == request.auth.uid
+            && request.resource.data.gradedAt == request.time);
+        allow delete: if isAdmin();
+      }
     }
 
     match /notifications/{notificationId} {
@@ -258,28 +590,71 @@ service cloud.firestore {
     }
 
     match /blobs/{blobId} {
-      allow read: if resource.data.visibility == 'public'
-        || (isAuthenticated() && request.auth.uid == resource.data.ownerId);
+      allow read: if isAdmin()
+        || isOwner(resource.data.ownerId)
+        || (resource.data.visibility == 'public' && resource.data.moderationStatus == 'approved');
       allow create: if isAuthenticated()
+        && request.resource.data.keys().hasOnly([
+          'ownerId', 'ownerName', 'title', 'fileName', 'sizeBytes', 'mimeType',
+          'visibility', 'chunkCount', 'createdAt', 'lastAccessedAt', 'status',
+          'likes', 'views', 'forkedFrom', 'moderationStatus'
+        ])
         && request.resource.data.sizeBytes <= 15 * 1024 * 1024
         && request.resource.data.keys().hasAll([
           'ownerId', 'title', 'fileName', 'sizeBytes', 'visibility',
-          'createdAt', 'lastAccessedAt', 'status', 'chunkCount'
+          'createdAt', 'lastAccessedAt', 'status', 'chunkCount', 'moderationStatus'
         ])
         && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.visibility in ['public', 'private']
+        && request.resource.data.moderationStatus == (
+          request.resource.data.visibility == 'public' ? 'pending' : 'not-required'
+        )
         && get(/databases/$(database)/documents/blobUsers/$(request.auth.uid)).data.totalBytesUsed
           + request.resource.data.sizeBytes <= 45 * 1024 * 1024;
       allow update: if isAuthenticated()
         && request.auth.uid == resource.data.ownerId
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerId', 'sizeBytes']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'ownerId', 'sizeBytes', 'moderationCategory', 'moderatedAt',
+          'moderationReviewedBy', 'moderationReviewedAt'
+        ])
+        && (
+          request.resource.data.moderationStatus == resource.data.moderationStatus
+          || (resource.data.visibility == 'private'
+            && request.resource.data.visibility == 'public'
+            && request.resource.data.moderationStatus == 'pending')
+          || (resource.data.visibility == 'public'
+            && request.resource.data.visibility == 'private'
+            && request.resource.data.moderationStatus == 'not-required')
+          || (!('moderationStatus' in resource.data.keys())
+            && request.resource.data.moderationStatus == (
+              resource.data.visibility == 'public' ? 'pending' : 'not-required'
+            ))
+        );
+      allow update: if isAdmin()
+        && resource.data.visibility == 'public'
+        && resource.data.status == 'active'
+        && resource.data.moderationStatus in ['pending', 'review']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'moderationStatus', 'moderationCategory', 'moderationReviewedBy', 'moderationReviewedAt'
+        ])
+        && request.resource.data.moderationStatus in ['approved', 'blocked']
+        && request.resource.data.moderationReviewedBy == request.auth.uid
+        && request.resource.data.moderationReviewedAt == request.time
+        && ((request.resource.data.moderationStatus == 'approved'
+          && request.resource.data.moderationCategory == 'safe')
+          || (request.resource.data.moderationStatus == 'blocked'
+            && request.resource.data.moderationCategory in [
+              'sexual-content', 'hate-or-harassment', 'dangerous-instructions', 'malicious-code'
+            ]));
       allow delete: if isAuthenticated()
         && (request.auth.uid == resource.data.ownerId || isAdmin());
     }
 
     match /blobs/{blobId}/chunks/{chunkId} {
-      allow read: if get(/databases/$(database)/documents/blobs/$(blobId)).data.visibility == 'public'
-        || (isAuthenticated()
-          && request.auth.uid == get(/databases/$(database)/documents/blobs/$(blobId)).data.ownerId);
+      allow read: if isAdmin()
+        || isOwner(get(/databases/$(database)/documents/blobs/$(blobId)).data.ownerId)
+        || (get(/databases/$(database)/documents/blobs/$(blobId)).data.visibility == 'public'
+          && get(/databases/$(database)/documents/blobs/$(blobId)).data.moderationStatus == 'approved');
       allow create: if isAuthenticated()
         && request.auth.uid == get(/databases/$(database)/documents/blobs/$(blobId)).data.ownerId
         && request.resource.data.keys().hasAll(['index', 'dataBase64'])

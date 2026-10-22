@@ -1,6 +1,5 @@
-  document.body.innerHTML = `<nav><div class="nav-header"><strong style="font-size:18px;">SCIENCE LAB - ${gradeLabel}</strong><small id="science-percent">Syncing Progress...</small><div class="progress-track" aria-label="Lesson progress"><div id="science-progress-fill" class="progress-fill"></div></div><a class="lesson-catalog-link" href="/home/science-page.html">All Science Lessons</a></div><div class="nav-container" id="science-nav"></div></nav><main><div id="science-content" class="content-card"></div></main>`;
 (function () {
-  const ensureSharedLessonScripts = () => {
+  const ensureSharedLessonScripts = async () => {
     const scripts = [
       'https://houselearning.org/cookiebanner.js',
       '/feedback.js',
@@ -9,15 +8,20 @@
       'https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js',
       'https://houselearning.org/home/main.js'
     ];
-    scripts.forEach(src => {
-      if (document.querySelector(`script[src="${src}"]`)) return;
+    for (const src of scripts) {
+      if (document.querySelector(`script[src="${src}"]`)) continue;
       const scriptTag = document.createElement('script');
       scriptTag.src = src;
-      document.head.appendChild(scriptTag);
-    });
+      scriptTag.async = false;
+      await new Promise((resolve, reject) => {
+        scriptTag.addEventListener('load', resolve, { once: true });
+        scriptTag.addEventListener('error', reject, { once: true });
+        document.head.appendChild(scriptTag);
+      });
+    }
   };
 
-  ensureSharedLessonScripts();
+  const sharedScriptsReady = ensureSharedLessonScripts();
   const script = document.currentScript;
   const parts = location.pathname.split('/');
   const level = parts[parts.length - 2];
@@ -51,6 +55,8 @@
   const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('science-shell.css', script.src).href; document.head.appendChild(link);
   if (!document.body) document.documentElement.appendChild(document.createElement('body'));
   document.body.innerHTML = `<nav><div class="nav-header"><strong style="font-size:18px;">SCIENCE LAB - ${gradeLabel}</strong><small id="science-percent">Syncing Progress...</small><div class="progress-track"><div id="science-progress-fill" class="progress-fill"></div></div></div><div class="nav-container" id="science-nav"></div></nav><main><div id="science-content" class="content-card"></div></main>`;
+  import(new URL('../learning-engine-ui.mjs', script.src).href)
+    .catch(error => console.error('Science engine could not load:', error));
   const info = (heading, body) => `<h1>${heading}</h1>${body}<div class="standard-box"><strong>NGSS alignment:</strong> ${standard}</div><div style="text-align:center;"><button class="btn" onclick="scienceSimple()">Continue to Investigation</button></div>`;
   const practice = (heading, body, setKey, count = 5) => `<h1>${heading}</h1>${body}<div class="practice-set">${Array.from({ length: count }, (_, i) => `<div class="practice-item"><strong>${i + 1}. Apply the key idea of ${safeTitle} to a new observation or evidence claim.</strong><div><input type="text" id="science-${setKey}-${i}" class="math-input" placeholder="Answer"><button class="btn" onclick="sciencePractice('${setKey}',${i})">Check</button></div><div id="science-feedback-${setKey}-${i}" class="practice-feedback"></div></div>`).join('')}</div><div id="science-summary-${setKey}" class="feedback-text">Complete all ${count} investigations.</div>`;
   const lessonData = [
@@ -73,6 +79,6 @@
   const results = {}; window.sciencePractice = (setKey, index) => { if (!results[setKey]) results[setKey] = {}; results[setKey][index] = document.getElementById(`science-${setKey}-${index}`).value.trim() !== ''; document.getElementById(`science-feedback-${setKey}-${index}`).innerHTML = results[setKey][index] ? '<span style="color:var(--success);">Response recorded. Connect it to evidence.</span>' : '<span style="color:var(--error);">Enter an observation, claim, or explanation.</span>'; const total = document.querySelectorAll('.practice-item').length; const correct = Object.values(results[setKey]).filter(Boolean).length; const summary = document.getElementById(`science-summary-${setKey}`); if (correct === total) { summary.innerHTML = '<span style="color:var(--success);">✅ Investigation complete! Moving on...</span>'; setTimeout(() => save(current, current + 1), 700); } else summary.textContent = `${correct} of ${total} responses recorded. Complete every prompt to continue.`; };
   function initVideo() { const status = document.getElementById('science-video-status'); const button = document.getElementById('science-video-continue'); if (!status || !button) return; window.onYouTubeIframeAPIReady = () => { new YT.Player('science-lesson-video', { videoId: scienceVideoId, playerVars: { rel: 0, modestbranding: 1 }, events: { onStateChange: e => { if (e.data === YT.PlayerState.ENDED) { videoWatched = true; status.textContent = 'Video complete. You may continue.'; button.disabled = false; button.textContent = 'Continue to the next part'; } }, onError: () => { status.textContent = 'Embedded playback is unavailable here. Open the video on YouTube, watch it, then confirm.'; } } }); }; if (window.YT) window.onYouTubeIframeAPIReady(); else { const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); } }
   function load(src) { return new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = reject; document.head.appendChild(s); }); }
-  async function boot() { if (!window.firebase) await load('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js'); if (!window.firebase.auth) await load('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js'); if (!window.firebase.firestore) await load('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js'); if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); await load('../../math/lesson-auth-popup.js'); const auth = firebase.auth(); auth.onAuthStateChanged(async user => { currentUser = user; if (user) { const doc = await firebase.firestore().collection('UserLessonProgress').doc(user.uid).collection('lessons').doc(lessonID).get(); steps = doc.exists ? doc.data().steps || {} : {}; initNav(); render(current, true); } else { initNav(); render(0, true); } }); }
+  async function boot() { await sharedScriptsReady; if (!window.firebase) await load('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js'); if (!window.firebase.auth) await load('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js'); if (!window.firebase.firestore) await load('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js'); if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); await load('../../math/lesson-auth-popup.js'); const auth = firebase.auth(); auth.onAuthStateChanged(async user => { currentUser = user; if (user) { const doc = await firebase.firestore().collection('UserLessonProgress').doc(user.uid).collection('lessons').doc(lessonID).get(); steps = doc.exists ? doc.data().steps || {} : {}; initNav(); render(current, true); } else { initNav(); render(0, true); } }); }
   initNav(); render(0, true); boot();
 })();

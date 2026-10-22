@@ -1,0 +1,133 @@
+.hl-engine-panel {
+  position: fixed;
+  inset: 0 auto 0 auto;
+  right: -100%;
+  z-index: 1800;
+  width: min(480px, calc(100vw - 40px));
+  overflow-y: auto;
+  border-left: 1px solid #bfd1ce;
+  background: #fff;
+  color: #17324d;
+  box-shadow: -12px 0 32px rgb(18 42 52 / 22%);
+  overscroll-behavior: contain;
+}
+
+.hl-engine-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 58px 12px 18px;
+  background: #e5f4f2;
+  color: #17324d;
+  border-bottom: 1px solid #bfd1ce;
+}
+
+.hl-engine-title { margin: 0; font-size: 18px; line-height: 1.3; }
+
+.hl-engine-close,
+.hl-engine-toggle {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #086d67;
+  border-radius: 6px;
+  background: #086d67;
+  color: #fff;
+  cursor: pointer;
+  font: 700 13px 'DM Sans', sans-serif;
+}
+
+.hl-engine-close { flex: 0 0 auto; background: transparent; color: #086d67; }
+
+.hl-engine-toggle {
+  position: fixed;
+  right: 52px;
+  bottom: 18px;
+  z-index: 1901;
+  max-width: min(250px, calc(100vw - 90px));
+  box-shadow: 0 3px 12px rgb(17 39 52 / 20%);
+}
+
+.hl-engine-slide-label {
+  position: fixed;
+  top: 50%;
+  right: 8px;
+  z-index: 1902;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 160px;
+  transform: translateY(-50%);
+  border: 1px solid #bfd1ce;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(17 39 52 / 18%);
+  overflow: hidden;
+  color: transparent;
+  font-size: 0;
+}
+
+.hl-engine-slide {
+  width: 140px;
+  height: 28px;
+  margin: 0;
+  transform: rotate(-90deg);
+  accent-color: #086d67;
+  cursor: ew-resize;
+}
+
+.hl-engine-slide-value {
+  position: fixed;
+  top: calc(50% + 92px);
+  right: 6px;
+  z-index: 1903;
+  min-width: 38px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  background: #172a35;
+  color: #fff;
+  font: 600 11px 'DM Sans', sans-serif;
+  text-align: center;
+}
+
+.hl-engine-close:focus-visible,
+.hl-engine-toggle:focus-visible,
+.hl-engine-slide:focus-visible,
+.hl-engine-control:focus-visible,
+.hl-engine-button:focus-visible {
+  outline: 3px solid #e8b638;
+  outline-offset: 2px;
+}
+
+.hl-engine-content { display: grid; gap: 12px; padding: 16px 58px 20px 16px; }
+.hl-engine-form { display: flex; flex-wrap: wrap; gap: 12px; }
+.hl-engine-label { display: grid; flex: 1 1 180px; gap: 5px; color: #526670; font-size: 13px; font-weight: 700; }
+.hl-engine-control { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #aebfbd; border-radius: 5px; background: #fff; color: #172a35; font: 15px 'DM Sans', sans-serif; }
+.hl-engine-inputs { display: flex; flex: 1 1 100%; flex-wrap: wrap; gap: 12px; }
+.hl-engine-button { justify-self: start; min-height: 40px; padding: 8px 16px; border: 0; border-radius: 5px; background: #086d67; color: #fff; cursor: pointer; font-weight: 700; }
+.hl-engine-button:hover { background: #064f4b; }
+.hl-engine-output { min-height: 24px; margin: 0; color: #17324d; font-weight: 600; overflow-wrap: anywhere; }
+
+body[data-hl-theme='dark'] .hl-engine-panel { background: #24363d; color: #edf3f1; border-color: #66817f; }
+body[data-hl-theme='dark'] .hl-engine-header { background: #183f3e; color: #edf3f1; border-color: #66817f; }
+body[data-hl-theme='dark'] .hl-engine-label,
+body[data-hl-theme='dark'] .hl-engine-output { color: #edf3f1; }
+body[data-hl-theme='dark'] .hl-engine-control { background: #18262c; color: #edf3f1; border-color: #66817f; }
+body[data-hl-theme='dark'] .hl-engine-close { color: #edf3f1; border-color: #66817f; }
+body[data-hl-theme='dark'] .hl-engine-slide-label { background: #24363d; border-color: #66817f; }
+
+@media (max-width: 760px) {
+  .hl-engine-panel { width: min(430px, calc(100vw - 28px)); }
+  .hl-engine-toggle { right: 50px; bottom: 14px; }
+  .hl-engine-slide-label { right: 4px; width: 30px; height: 140px; }
+  .hl-engine-content { padding-right: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl-engine-panel { scroll-behavior: auto; }
+}

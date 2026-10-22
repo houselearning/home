@@ -20,6 +20,8 @@ import {
   push
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
+import "./calendar-theme.mjs";
+
 /* ==============================
    🔥 FALLBACK FIREBASE CONFIG
    ============================== */

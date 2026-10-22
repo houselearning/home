@@ -14,9 +14,9 @@ const firebaseConfig = {
 let auth;
 let db = null;
 try {
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.firestore();
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+    auth = app.auth();
+    db = app.firestore();
 } catch (error) {
     console.error("Firebase initialization failed:", error);
 }
@@ -246,7 +246,7 @@ function renderNotifications(docs) {
 
         if (Array.isArray(n.images)) {
             n.images.forEach((image, imageIndex) => {
-                if (!image || typeof image.storagePath !== 'string') return;
+                if (!image || typeof image.fileName !== 'string') return;
 
                 const img = document.createElement('img');
                 img.alt = typeof image.fileName === 'string' ? image.fileName : 'Notification image';
@@ -301,8 +301,6 @@ function renderNotifications(docs) {
         list.appendChild(li);
     });
 }
-
-window.markAsRead = (id) => db.collection('notifications').doc(id).update({ read: true });
 
 function checkReminder(notifications) {
     const unread = notifications.filter(n => !n.read);
