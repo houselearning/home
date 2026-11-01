@@ -6,7 +6,7 @@
       'https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js',
       'https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js',
       'https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js',
-      'https://houselearning.org/home/main.js'
+      'https://houselearning.org/home/main.js?v=sitewide-consent-v1'
     ];
     for (const src of scripts) {
       if (document.querySelector(`script[src="${src}"]`)) continue;
