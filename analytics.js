@@ -7,27 +7,14 @@
     if (localPreview) return;
 
     var state = window.HouseLearningAnalytics || {};
-    if (state.version === 'sitewide-consent-v1') return;
-    state.version = 'sitewide-consent-v1';
+    if (state.version === 'sitewide-consent-v2') return;
+    state.version = 'sitewide-consent-v2';
     state.initialized = true;
     state.configuredIds = state.configuredIds || {};
     state.pageViewsSent = state.pageViewsSent || {};
     state.lastTrackedUrl = state.lastTrackedUrl || null;
     state.lastTrackedTitle = state.lastTrackedTitle || null;
     window.HouseLearningAnalytics = state;
-
-    function consentAllowed() {
-        try {
-            return !!(
-                window.cookieConsent &&
-                typeof window.cookieConsent.isAllowed === 'function' &&
-                window.cookieConsent.isAllowed('analytics')
-            );
-        } catch (error) {
-            console.warn('HouseLearning Analytics could not read analytics consent.', error);
-            return false;
-        }
-    }
 
     function ensureDataLayer() {
         if (window.dataLayer === undefined) {
@@ -42,22 +29,17 @@
                 window.dataLayer.push(arguments);
             };
         }
-        return true;
-    }
-
-    function getPreviouslyConfiguredIds() {
-        var configured = {};
-        (window.dataLayer || []).forEach(function (command) {
-            if (!command || command[0] !== 'config' || !command[1]) return;
-            var options = command[2] || {};
-            configured[command[1]] = {
-                pageViewSent: options.send_page_view !== false
-            };
-        });
-        if (window._gaLoaded) {
-            configured['G-P42LD5XN48'] = { pageViewSent: true };
+        if (!window._hlConsentDefaultsSet) {
+            window.gtag('consent', 'default', {
+                analytics_storage: 'denied',
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                wait_for_update: 500
+            });
+            window._hlConsentDefaultsSet = true;
         }
-        return configured;
+        return true;
     }
 
     function ensureGtagScript() {
@@ -67,94 +49,107 @@
             script.async = true;
             script.src = 'https://www.googletagmanager.com/gtag/js?id=G-P42LD5XN48';
             script.setAttribute('data-houselearning-analytics', 'true');
+            script.onerror = function () {
+                console.error('HouseLearning Analytics could not load the Google tag.');
+            };
             (document.head || document.documentElement).appendChild(script);
             return true;
         } catch (error) {
-            console.warn('HouseLearning Analytics could not insert the Google tag script.', error);
+            console.error('HouseLearning Analytics could not insert the Google tag script.', error);
             return false;
         }
     }
 
-    function sendPageView(url, title, referrer) {
-        if (!consentAllowed() || typeof window.gtag !== 'function') return;
-
-        var pageLocation = url || window.location.href;
-        var pageTitle = title || document.title || 'HouseLearning';
-        var pageReferrer = referrer || state.lastTrackedUrl || document.referrer || undefined;
-        var pageKey = pageLocation + '\n' + pageTitle;
-        if (state.lastTrackedUrl !== pageLocation || state.lastTrackedTitle !== pageTitle) {
-            state.lastTrackedUrl = pageLocation;
-            state.lastTrackedTitle = pageTitle;
+    function safePageUrl(value) {
+        try {
+            var url = new URL(value, window.location.href);
+            return url.origin + url.pathname;
+        } catch (error) {
+            return '';
         }
+    }
+
+    function sendPageView(url, title, referrer) {
+        if (typeof window.gtag !== 'function') return;
+
+        var pageLocation = safePageUrl(url || window.location.href);
+        if (!pageLocation) {
+            console.error('HouseLearning Analytics could not create a safe page location.');
+            return;
+        }
+        var pageTitle = title || document.title || 'HouseLearning';
+        var pageReferrer = safePageUrl(referrer || state.lastTrackedUrl || document.referrer);
+        var pageKey = pageLocation + '\n' + pageTitle;
+        state.lastTrackedUrl = pageLocation;
+        state.lastTrackedTitle = pageTitle;
+        window._hlGaPageViewsSent = window._hlGaPageViewsSent || {};
 
         measurementIds.forEach(function (measurementId) {
             if (state.pageViewsSent[measurementId] === pageKey) return;
+            if (window._hlGaPageViewsSent[measurementId] === pageKey) {
+                state.pageViewsSent[measurementId] = pageKey;
+                return;
+            }
             try {
                 window.gtag('event', 'page_view', {
                     send_to: measurementId,
                     page_location: pageLocation,
                     page_title: pageTitle,
-                    page_referrer: pageReferrer
+                    page_referrer: pageReferrer || undefined
                 });
                 state.pageViewsSent[measurementId] = pageKey;
+                window._hlGaPageViewsSent[measurementId] = pageKey;
             } catch (error) {
-                console.warn('HouseLearning Analytics could not queue a page view.', error);
+                console.error('HouseLearning Analytics could not queue a page view.', error);
             }
         });
     }
 
-    function activate() {
-        if (!consentAllowed() || !ensureDataLayer()) return;
+    function initializeAnalytics() {
+        if (!ensureDataLayer()) return false;
 
-        var existingConfigs = getPreviouslyConfiguredIds();
-        if (!state.gtagInitialized && !window._gaLoaded) {
+        if (!window._hlGtagInitialized) {
             window.gtag('js', new Date());
-            state.gtagInitialized = true;
+            window._hlGtagInitialized = true;
         }
 
         try {
-            window.gtag('consent', 'update', {
-                analytics_storage: 'granted',
-                ad_storage: 'denied',
-                ad_user_data: 'denied',
-                ad_personalization: 'denied'
-            });
-            if (!ensureGtagScript()) return;
-            window._gaLoaded = true;
-
             measurementIds.forEach(function (measurementId) {
                 if (state.configuredIds[measurementId]) return;
-                if (!existingConfigs[measurementId]) {
-                    window.gtag('config', measurementId, { send_page_view: false });
+
+                var existingConfig = window.dataLayer.some(function (command) {
+                    return command && command[0] === 'config' && command[1] === measurementId;
+                });
+                if (!existingConfig) {
+                    window.gtag('config', measurementId, {
+                        send_page_view: false,
+                        allow_google_signals: false,
+                        allow_ad_personalization_signals: false
+                    });
                 }
                 state.configuredIds[measurementId] = true;
-                if (existingConfigs[measurementId] && existingConfigs[measurementId].pageViewSent) {
-                    state.pageViewsSent[measurementId] =
-                        window.location.href + '\n' + (document.title || 'HouseLearning');
-                }
             });
         } catch (error) {
-            console.warn('HouseLearning Analytics could not initialize Google Analytics.', error);
-            return;
+            console.error('HouseLearning Analytics could not configure Google Analytics.', error);
+            return false;
         }
 
+        if (!ensureGtagScript()) return false;
+        window._gaLoaded = true;
         sendPageView();
+        return true;
     }
 
     function handleConsentChange(consent) {
-        if (consent && consent.analytics) {
-            activate();
-            return;
-        }
-        if (typeof window.gtag === 'function') {
-            window.gtag('consent', 'update', {
-                analytics_storage: 'denied',
-                ad_storage: 'denied',
-                ad_user_data: 'denied',
-                ad_personalization: 'denied'
-            });
-        }
-        state.pageViewsSent = {};
+        if (!ensureDataLayer()) return;
+        consent = consent || {};
+        window.gtag('consent', 'update', {
+            analytics_storage: consent.analytics ? 'granted' : 'denied',
+            ad_storage: consent.marketing ? 'granted' : 'denied',
+            ad_user_data: consent.marketing ? 'granted' : 'denied',
+            ad_personalization: consent.marketing ? 'granted' : 'denied'
+        });
+        initializeAnalytics();
     }
 
     function bindConsentApi() {
@@ -165,7 +160,6 @@
             window.cookieConsent.onChange(handleConsentChange);
             state.consentListenerBound = true;
         }
-        if (consentAllowed()) activate();
         return true;
     }
 
@@ -174,23 +168,20 @@
         try {
             var script = document.createElement('script');
             script.async = true;
-            script.src = 'https://www.houselearning.org/cookiebanner.js?v=consent-choice-v3';
+            script.src = 'https://www.houselearning.org/cookiebanner.js?v=consent-choice-v4';
             script.setAttribute('data-houselearning-consent', 'true');
             script.onload = bindConsentApi;
             script.onerror = function () {
-                console.warn('HouseLearning Analytics could not load the existing cookie consent script.');
+                console.error('HouseLearning Analytics could not load the cookie consent script.');
             };
             (document.head || document.documentElement).appendChild(script);
         } catch (error) {
-            console.warn('HouseLearning Analytics could not load the existing cookie consent script.', error);
+            console.error('HouseLearning Analytics could not load the cookie consent script.', error);
         }
     }
 
     function onNavigation() {
-        if (consentAllowed()) {
-            activate();
-            sendPageView();
-        }
+        initializeAnalytics();
     }
 
     function installNavigationTracking() {
@@ -209,31 +200,16 @@
         state.navigationInitialized = true;
     }
 
-    state.init = activate;
+    state.initializeAnalytics = initializeAnalytics;
+    state.init = initializeAnalytics;
     state.trackVirtualPage = function (url, title, referrer) {
-        var normalizedUrl;
-        try {
-            normalizedUrl = new URL(url, window.location.href).href;
-        } catch (error) {
-            console.warn('HouseLearning Analytics ignored an invalid virtual page URL.', error);
-            return;
-        }
-        activate();
-        sendPageView(normalizedUrl, title, referrer);
+        initializeAnalytics();
+        sendPageView(url, title, referrer);
     };
+    window.initializeAnalytics = initializeAnalytics;
 
     installNavigationTracking();
-    if (!bindConsentApi()) {
-        ensureConsentScript();
-        var attempts = 0;
-        var poller = window.setInterval(function () {
-            attempts += 1;
-            if (bindConsentApi()) {
-                window.clearInterval(poller);
-            } else if (attempts >= 120) {
-                window.clearInterval(poller);
-                console.warn('HouseLearning Analytics did not find the cookie consent API; tracking remains disabled.');
-            }
-        }, 250);
-    }
+    bindConsentApi();
+    ensureConsentScript();
+    initializeAnalytics();
 })();
