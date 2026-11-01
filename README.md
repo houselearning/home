@@ -3,6 +3,8 @@
 Welcome to **HouseLearning Lessons Page** — a fun and interactive learning website designed to make education engaging through browser-based mini-games and activities. The platform offers a collection of educational games that help users practice and reinforce their skills while having fun.
 <br>
 <a href="https://github.com/houselearning/docs/blob/main/roadmap/roadmap-2026.md">Curious to see our plans? Check the roadmap.</a>
+
+See [STUDENT_LEARNING.md](STUDENT_LEARNING.md) for the student learning foundation, Firestore access model, deployment notes, and remaining platform phases.
 ## Features
 
 - 🌟 **Interactive educational games**  

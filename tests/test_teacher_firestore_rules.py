@@ -34,6 +34,50 @@ class TeacherFirestoreRulesTests(unittest.TestCase):
         self.assertIn('isClassInstructor(classId)', classes)
         self.assertIn('isOwner(studentId)', classes)
 
+    def test_collection_group_membership_listing_is_owner_only(self):
+        membership = rule_block(
+            self.source,
+            'match /{path=**}/members/{studentId}',
+            'match /teacherApplications/{userId}'
+        )
+        self.assertIn('allow list: if isAuthenticated()', membership)
+        self.assertIn('resource.data.studentId == request.auth.uid', membership)
+        self.assertNotIn('allow get:', membership)
+
+    def test_archived_classes_are_restorable_only_by_the_lead_teacher(self):
+        helpers = rule_block(self.source, 'function isActiveClass(classId)', 'function assignmentRecord(assignmentId)')
+        classes = rule_block(self.source, 'match /classes/{classId}', 'match /assignments/{assignmentId}')
+        self.assertIn('function isClassLeadTeacher(classId)', helpers)
+        self.assertIn('allow get: if isClassInstructor(classId) || isClassLeadTeacher(classId)', classes)
+        self.assertIn('allow update: if isClassLeadTeacher(classId)', classes)
+        self.assertIn('isActiveClass(classId)', helpers)
+
+    def test_archived_class_content_is_not_available_to_members(self):
+        helpers = rule_block(self.source, 'function isClassMember(classId)', 'function assignmentRecord(assignmentId)')
+        self.assertIn('isAuthenticated() && isActiveClass(classId)', helpers)
+
+    def test_skill_mastery_is_private_and_server_written(self):
+        mastery = rule_block(
+            self.source,
+            'match /studentSkillMastery/{userId}/skills/{skillId}',
+            'match /dashboard/{docId}'
+        )
+        self.assertIn('allow read: if isOwner(userId)', mastery)
+        self.assertIn('allow create, update, delete: if false;', mastery)
+
+    def test_weekly_learning_goals_are_owner_scoped_and_bounded(self):
+        goals = rule_block(
+            self.source,
+            'match /studentGoals/{userId}',
+            'match /dashboard/{docId}'
+        )
+        self.assertIn('allow read: if isOwner(userId)', goals)
+        self.assertIn('allow create, update: if isOwner(userId)', goals)
+        self.assertIn('request.resource.data.weeklyLessonTarget >= 1', goals)
+        self.assertIn('request.resource.data.weeklyLessonTarget <= 7', goals)
+        self.assertIn('request.resource.data.updatedAt == request.time', goals)
+        self.assertIn('allow delete: if isOwner(userId)', goals)
+
     def test_assignments_and_grades_are_scoped_to_class_membership(self):
         assignments = rule_block(self.source, 'match /assignments/{assignmentId}', 'match /notifications/{notificationId}')
         self.assertIn("resource.data.status == 'published'", assignments)

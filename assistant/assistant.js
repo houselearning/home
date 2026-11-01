@@ -22,6 +22,9 @@
   }
 
   function scriptBaseUrl() {
+    if (window.HL_ASSISTANT_BASE_URL) {
+      return String(window.HL_ASSISTANT_BASE_URL).replace(/\/$/, '');
+    }
     const origin = new URL(window.location.href).origin;
     const path = new URL(window.location.href).pathname.toLowerCase();
     return path.includes('/home') ? `${origin}/home/assistant` : `${origin}/assistant`;

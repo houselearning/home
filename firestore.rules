@@ -38,18 +38,26 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/classes/$(classId)).data;
     }
 
+    function isActiveClass(classId) {
+      return classExists(classId)
+        && (!('archived' in classRecord(classId).keys()) || classRecord(classId).archived != true);
+    }
+
+    function isClassLeadTeacher(classId) {
+      return isTeacher() && classExists(classId)
+        && classRecord(classId).teacherId == request.auth.uid;
+    }
+
     function isClassInstructor(classId) {
-      return isAdmin() || (isTeacher() && classExists(classId) && (
-        (!('archived' in classRecord(classId).keys()) || classRecord(classId).archived != true) && (
+      return isAdmin() || (isTeacher() && isActiveClass(classId) && (
           classRecord(classId).teacherId == request.auth.uid ||
           ('coTeacherIds' in classRecord(classId).keys()
           && request.auth.uid in classRecord(classId).coTeacherIds)
-        )
       ));
     }
 
     function isClassMember(classId) {
-      return isAuthenticated() && classExists(classId) && (
+      return isAuthenticated() && isActiveClass(classId) && (
         isClassInstructor(classId) ||
         exists(/databases/$(database)/documents/classes/$(classId)/members/$(request.auth.uid))
       );
@@ -255,6 +263,10 @@ service cloud.firestore {
       }
     }
 
+    match /{path=**}/members/{studentId} {
+      allow list: if isAuthenticated() && resource.data.studentId == request.auth.uid;
+    }
+
     match /teacherApplications/{userId} {
         allow get: if isOwner(userId) || isAdmin();
         allow list: if isAdmin();
@@ -306,13 +318,13 @@ service cloud.firestore {
       }
 
       match /classes/{classId} {
-        allow get: if isClassInstructor(classId)
+        allow get: if isClassInstructor(classId) || isClassLeadTeacher(classId)
           || (isAuthenticated() && exists(/databases/$(database)/documents/classes/$(classId)/members/$(request.auth.uid)));
         allow list: if isAdmin()
           || (isTeacher() && (resource.data.teacherId == request.auth.uid
             || ('coTeacherIds' in resource.data.keys() && request.auth.uid in resource.data.coTeacherIds)));
         allow create, delete: if false;
-        allow update: if isClassInstructor(classId)
+        allow update: if isClassLeadTeacher(classId)
           && resource.data.teacherId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'name', 'description', 'archived', 'updatedAt'
@@ -713,6 +725,23 @@ service cloud.firestore {
           allow update, delete: if false;
         }
       }
+    }
+
+    match /studentSkillMastery/{userId}/skills/{skillId} {
+      allow read: if isOwner(userId);
+      allow create, update, delete: if false;
+    }
+
+    match /studentGoals/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['weeklyLessonTarget', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['weeklyLessonTarget', 'updatedAt'])
+        && request.resource.data.weeklyLessonTarget is int
+        && request.resource.data.weeklyLessonTarget >= 1
+        && request.resource.data.weeklyLessonTarget <= 7
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isOwner(userId);
     }
 
     match /dashboard/{docId} {

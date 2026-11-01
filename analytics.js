@@ -4,6 +4,18 @@
     var measurementIds = ['G-8YSM87GDVW', 'G-P42LD5XN48'];
     var localPreview = window.location.protocol === 'file:' ||
         /^(localhost|127\.0\.0\.1|::1)$/.test(window.location.hostname);
+    var bootstrapScript = document.currentScript;
+
+    function loadSiteRuntime() {
+        if (!bootstrapScript || document.querySelector('script[data-houselearning-runtime="true"]')) return;
+        var script = document.createElement('script');
+        script.src = new URL('site-runtime.js', bootstrapScript.src).href;
+        script.defer = true;
+        script.setAttribute('data-houselearning-runtime', 'true');
+        (document.head || document.documentElement).appendChild(script);
+    }
+
+    loadSiteRuntime();
     if (localPreview) return;
 
     var state = window.HouseLearningAnalytics || {};
