@@ -1,7 +1,7 @@
 (function () {
   const ensureSharedLessonScripts = async () => {
     const scripts = [
-      'https://houselearning.org/cookiebanner.js',
+      'https://www.houselearning.org/cookiebanner.js?v=consent-choice-v2',
       '/feedback.js',
       'https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js',
       'https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js',

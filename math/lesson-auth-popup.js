@@ -172,7 +172,7 @@
     [
       ['script', 'https://www.houselearning.org/feedback.js'],
       ['script', 'https://www.houselearning.org/home/also.js', 'module'],
-      ['script', '/cookiebanner.js']
+      ['script', 'https://www.houselearning.org/cookiebanner.js?v=consent-choice-v2']
     ].forEach(([tagName, src, type]) => {
       if (document.querySelector(`script[src="${src}"]`)) return;
       const script = document.createElement(tagName);

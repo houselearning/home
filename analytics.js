@@ -174,7 +174,7 @@
         try {
             var script = document.createElement('script');
             script.async = true;
-            script.src = new URL('/cookiebanner.js', window.location.href).href;
+            script.src = 'https://www.houselearning.org/cookiebanner.js?v=consent-choice-v2';
             script.setAttribute('data-houselearning-consent', 'true');
             script.onload = bindConsentApi;
             script.onerror = function () {
