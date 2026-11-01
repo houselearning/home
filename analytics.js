@@ -17,11 +17,16 @@
     window.HouseLearningAnalytics = state;
 
     function consentAllowed() {
-        return !!(
-            window.cookieConsent &&
-            typeof window.cookieConsent.isAllowed === 'function' &&
-            window.cookieConsent.isAllowed('analytics')
-        );
+        try {
+            return !!(
+                window.cookieConsent &&
+                typeof window.cookieConsent.isAllowed === 'function' &&
+                window.cookieConsent.isAllowed('analytics')
+            );
+        } catch (error) {
+            console.warn('HouseLearning Analytics could not read analytics consent.', error);
+            return false;
+        }
     }
 
     function ensureDataLayer() {
@@ -56,15 +61,21 @@
     }
 
     function ensureGtagScript() {
-        if (document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) return;
-        var script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-P42LD5XN48';
-        script.setAttribute('data-houselearning-analytics', 'true');
-        (document.head || document.documentElement).appendChild(script);
+        if (document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) return true;
+        try {
+            var script = document.createElement('script');
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=G-P42LD5XN48';
+            script.setAttribute('data-houselearning-analytics', 'true');
+            (document.head || document.documentElement).appendChild(script);
+            return true;
+        } catch (error) {
+            console.warn('HouseLearning Analytics could not insert the Google tag script.', error);
+            return false;
+        }
     }
 
-    function sendPageView(url, title, referrer, onlyIds) {
+    function sendPageView(url, title, referrer) {
         if (!consentAllowed() || typeof window.gtag !== 'function') return;
 
         var pageLocation = url || window.location.href;
@@ -76,7 +87,7 @@
             state.lastTrackedTitle = pageTitle;
         }
 
-        (onlyIds || measurementIds).forEach(function (measurementId) {
+        measurementIds.forEach(function (measurementId) {
             if (state.pageViewsSent[measurementId] === pageKey) return;
             try {
                 window.gtag('event', 'page_view', {
@@ -101,26 +112,31 @@
             state.gtagInitialized = true;
         }
 
-        window._gaLoaded = true;
-        window.gtag('consent', 'update', {
-            analytics_storage: 'granted',
-            ad_storage: 'denied',
-            ad_user_data: 'denied',
-            ad_personalization: 'denied'
-        });
-        ensureGtagScript();
+        try {
+            window.gtag('consent', 'update', {
+                analytics_storage: 'granted',
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied'
+            });
+            if (!ensureGtagScript()) return;
+            window._gaLoaded = true;
 
-        measurementIds.forEach(function (measurementId) {
-            if (state.configuredIds[measurementId]) return;
-            if (!existingConfigs[measurementId]) {
-                window.gtag('config', measurementId, { send_page_view: false });
-            }
-            state.configuredIds[measurementId] = true;
-            if (existingConfigs[measurementId] && existingConfigs[measurementId].pageViewSent) {
-                state.pageViewsSent[measurementId] =
-                    window.location.href + '\n' + (document.title || 'HouseLearning');
-            }
-        });
+            measurementIds.forEach(function (measurementId) {
+                if (state.configuredIds[measurementId]) return;
+                if (!existingConfigs[measurementId]) {
+                    window.gtag('config', measurementId, { send_page_view: false });
+                }
+                state.configuredIds[measurementId] = true;
+                if (existingConfigs[measurementId] && existingConfigs[measurementId].pageViewSent) {
+                    state.pageViewsSent[measurementId] =
+                        window.location.href + '\n' + (document.title || 'HouseLearning');
+                }
+            });
+        } catch (error) {
+            console.warn('HouseLearning Analytics could not initialize Google Analytics.', error);
+            return;
+        }
 
         sendPageView();
     }
@@ -155,14 +171,19 @@
 
     function ensureConsentScript() {
         if (document.querySelector('script[src*="cookiebanner.js"]')) return;
-        var script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://houselearning.org/cookiebanner.js';
-        script.setAttribute('data-houselearning-consent', 'true');
-        script.onerror = function () {
-            console.warn('HouseLearning Analytics could not load the existing cookie consent script.');
-        };
-        (document.head || document.documentElement).appendChild(script);
+        try {
+            var script = document.createElement('script');
+            script.async = true;
+            script.src = new URL('/cookiebanner.js', window.location.href).href;
+            script.setAttribute('data-houselearning-consent', 'true');
+            script.onload = bindConsentApi;
+            script.onerror = function () {
+                console.warn('HouseLearning Analytics could not load the existing cookie consent script.');
+            };
+            (document.head || document.documentElement).appendChild(script);
+        } catch (error) {
+            console.warn('HouseLearning Analytics could not load the existing cookie consent script.', error);
+        }
     }
 
     function onNavigation() {
