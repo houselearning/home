@@ -8,6 +8,8 @@
     : new URL('/home/', window.location.origin);
   const localPreview = window.location.protocol === 'file:'
     || /^(localhost|127\.0\.0\.1|::1)$/.test(window.location.hostname);
+  const gamesPage = window.location.pathname === '/home/games.html'
+    || window.location.pathname.startsWith('/home/games/');
   const safeLibraryPage = window.location.pathname.startsWith('/safe-library/');
   const hasExistingAssistant = safeLibraryPage || window.HL_SAFEAI_BOOTSTRAPPED
     || Boolean(document.querySelector('.hl-assistant'))
@@ -23,5 +25,5 @@
   }
 
   loadScript('site-navigation.js', 'navigation');
-  if (!localPreview && !hasExistingAssistant) loadScript('assistant/assistant-loader.js', 'safeai');
+  if (!localPreview && !gamesPage && !hasExistingAssistant) loadScript('assistant/assistant-loader.js', 'safeai');
 })();
