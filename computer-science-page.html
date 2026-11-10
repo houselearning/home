@@ -39,18 +39,20 @@
     
     /* Navbar */
     .navbar {
-      background-color: #20232a;
+      background-color: #172a35;
       display: flex;
+      align-items: center;
+      gap: 4px;
       overflow-x: auto;
       white-space: nowrap;
-      padding: 12px 20px;
+      padding: 5px 78px 5px 12px;
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
       scrollbar-width: thin;
-      scrollbar-color: #61dafb transparent;
+      scrollbar-color: #e8b638 transparent;
       transition: background-color 0.3s, box-shadow 0.3s;
     }
     body.dark-mode .navbar {
-      background-color: #1e1e1e;
+      background-color: #172a35;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
     .navbar::-webkit-scrollbar {
@@ -60,25 +62,58 @@
       background: transparent;
     }
     .navbar::-webkit-scrollbar-thumb {
-      background-color: #61dafb;
+      background-color: #e8b638;
       border-radius: 3px;
     }
 
     .navbar a {
-      color: #61dafb;
+      color: #dbe9e7;
       text-decoration: none;
-      padding: 10px 18px;
+      padding: 7px 10px;
       font-weight: 600;
-      font-size: 14px;
-      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.2;
+      border-radius: 5px;
       flex-shrink: 0;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .navbar a:hover,
     .navbar a:focus {
-      background-color: #61dafb;
-      color: #20232a;
+      background-color: #e8b638;
+      color: #172a35;
       outline: none;
+    }
+
+    .navbar[aria-label="Programming languages"] {
+      min-height: 40px;
+      padding: 3px 12px;
+      background: #203944;
+      box-shadow: none;
+      border-top: 1px solid rgba(219, 233, 231, 0.14);
+    }
+    .navbar[aria-label="Programming languages"] a {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+    .navbar .hl-sitemap-search {
+      grid-template-columns: minmax(100px, 170px) auto;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+    .navbar .hl-sitemap-search input,
+    .navbar .hl-search-submit {
+      height: 36px;
+      min-height: 36px;
+    }
+    .navbar .hl-sitemap-search input {
+      min-width: 0;
+      padding: 5px 9px;
+      font-size: 14px;
+    }
+    .navbar .hl-search-submit {
+      padding: 5px 10px;
+      font-size: 13px;
     }
 
     /* Container & sections */
@@ -431,7 +466,24 @@ body.dark-mode #output-container h3 {
   border-radius: 4px;
 }
 @media (max-width: 900px) {
-  .navbar { justify-content: flex-start; padding: 8px 12px; }
+  .navbar { justify-content: flex-start; padding: 6px 78px 6px 12px; }
+  .navbar[aria-label="Primary"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .navbar[aria-label="Primary"] .hl-global-nav-links {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .navbar[aria-label="Primary"] .hl-sitemap-search {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .navbar[aria-label="Programming languages"] { padding: 3px 12px; }
   .navbar a { flex-shrink: 0; }
   .container { display: grid; grid-template-columns: minmax(0, 1fr); margin: 12px auto; }
   .section { min-width: 0; max-height: none; overflow: visible; }
@@ -444,13 +496,15 @@ body.dark-mode #output-container h3 {
 <body>
 
   <nav class="navbar" aria-label="Primary">
-    <a href="/home/" data-site-i18n="nav.home">Home</a>
-    <a href="/home/math-page.html" data-site-i18n="nav.math">Math Lessons</a>
-    <a href="/home/science-page.html" data-site-i18n="nav.science">Science Lessons</a>
-    <a href="/home/computer-science-page.html" aria-current="page" data-site-i18n="nav.computing">Coding Lessons</a>
-    <a href="/home/games.html" data-site-i18n="nav.games">Learning Games</a>
-    <a href="/home/blog.html" data-site-i18n="nav.blog">Blog</a>
-    <a href="/home/about.html" data-site-i18n="nav.aboutHouseLearning">About HouseLearning</a>
+    <div class="hl-global-nav-links" aria-label="HouseLearning main pages">
+      <a href="/home/" data-site-i18n="nav.home">Home</a>
+      <a href="/home/math-page.html" data-site-i18n="nav.math">Math Lessons</a>
+      <a href="/home/science-page.html" data-site-i18n="nav.science">Science Lessons</a>
+      <a href="/home/computer-science-page.html" aria-current="page" data-site-i18n="nav.computing">Coding Lessons</a>
+      <a href="/home/games.html" data-site-i18n="nav.games">Learning Games</a>
+      <a href="/home/blog.html" data-site-i18n="nav.blog">Blog</a>
+      <a href="/home/about.html" data-site-i18n="nav.aboutHouseLearning">About HouseLearning</a>
+    </div>
   </nav>
   <nav class="navbar" aria-label="Programming languages">
     <a href="https://houselearning.org/home/computerscience/vbnet/">VB.NET</a>
