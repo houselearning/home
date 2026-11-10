@@ -1,4 +1,5 @@
 
+(function () {
 const firebaseConfig = {
     apiKey: "AIzaSyDoXSwni65CuY1_32ZE8B1nwfQO_3VNpTw",
     authDomain: "contract-center-llc-10.firebaseapp.com",
@@ -12,7 +13,7 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-const auth = firebase.auth();
+const auth = window.HouseLearningAuth || firebase.auth();
 
 // Elements
 const memberGamesContainer = document.getElementById('memberGames');
@@ -26,8 +27,10 @@ auth.onAuthStateChanged((user) => {
         console.log('User is signed in:', user.uid);
         // 1. Enable member games
         memberGamesContainer.classList.add('active');
+        memberGamesContainer.setAttribute('aria-disabled', 'false');
         // 2. Hide the lock overlay
         loginOverlay.style.display = 'none';
+        loginOverlay.setAttribute('aria-hidden', 'true');
         // 3. Re-enable clicks on individual game cards
         memberGameCards.forEach(card => {
             card.classList.remove('disabled-game');
@@ -37,11 +40,14 @@ auth.onAuthStateChanged((user) => {
         console.log('User is signed out.');
         // 1. Keep member games disabled (done via CSS classes by default)
         memberGamesContainer.classList.remove('active');
+        memberGamesContainer.setAttribute('aria-disabled', 'true');
         // 2. Show the lock overlay
         loginOverlay.style.display = 'flex';
+        loginOverlay.setAttribute('aria-hidden', 'false');
         // 3. Disable clicks on individual game cards
         memberGameCards.forEach(card => {
             card.classList.add('disabled-game');
         });
     }
 });
+})();

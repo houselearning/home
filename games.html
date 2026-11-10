@@ -4,7 +4,6 @@
   <script src="/home/analytics.js?v=sitewide-consent-v2" defer></script>
   <script type="module" src="site-i18n.mjs"></script>
   <script src="https://www.houselearning.org/cookiebanner.js?v=consent-choice-v4"></script>
-  <script src="https://houselearning.org/home/main.js?v=sitewide-consent-v1"></script>
   <script src="/feedback.js"></script>
 <script type="module" src="also.js"></script>
 
@@ -13,28 +12,39 @@
   <title data-site-i18n-title="page.games.title">Free Learning Games | HouseLearning</title>
   <meta name="description" content="Play free browser-based learning games from HouseLearning, with activities for math, science, coding, and more.">
   <link rel="canonical" href="https://www.houselearning.org/home/games.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --site-ink: #172a35;
+      --site-muted: #526670;
+      --site-paper: #fbfaf6;
+      --site-line: #d8e1df;
+      --site-teal: #086d67;
+      --site-yellow: #e8b638;
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9f9f9;
-      color: #333;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--site-paper);
+      color: var(--site-ink);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
     header {
-      background: #20232a;
-      color: #61dafb;
-      padding: 20px;
-      font-size: 28px;
+      background: var(--site-ink);
+      color: #fff;
+      padding: 16px 24px;
+      font-size: 24px;
       text-align: center;
       font-weight: bold;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .navbar {
-      background-color: #20232a;
+      background-color: var(--site-ink);
       padding: 12px 20px;
       display: flex;
       justify-content: center;
@@ -43,7 +53,7 @@
       white-space: nowrap;
     }
     .navbar a {
-      color: #61dafb;
+      color: #dbe9e7;
       text-decoration: none;
       padding: 10px 18px;
       font-weight: 600;
@@ -52,8 +62,8 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .navbar a:hover {
-      background-color: #61dafb;
-      color: #20232a;
+      background-color: var(--site-yellow);
+      color: var(--site-ink);
     }
     
     /* ADDED STYLES FOR SEARCH BAR AND CONTAINER PADDING */
@@ -68,16 +78,16 @@
       width: 100%;
       padding: 10px 15px;
       margin-bottom: 20px;
-      border: 2px solid #61dafb;
-      border-radius: 8px;
+      border: 1px solid var(--site-line);
+      border-radius: 6px;
       font-size: 16px;
       outline: none;
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
     
     .search-bar:focus {
-      border-color: #20232a;
-      box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.5);
+      border-color: var(--site-teal);
+      box-shadow: 0 0 0 3px rgba(8, 109, 103, 0.18);
     }
     /* END ADDED STYLES */
     
@@ -110,21 +120,21 @@
     }
     .game-card p {
       margin-top: 10px;
-      color: #20232a;
+      color: var(--site-ink);
       font-weight: 600;
       font-size: 16px;
     }
     .game-card a {
       text-decoration: none;
-      color: #61dafb;
+      color: #fff;
       font-weight: 600;
       padding: 8px 12px;
       border-radius: 6px;
-      background: #20232a;
+      background: var(--site-teal);
       display: inline-block;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
-    .game-card a:hover { background: #61dafb; color: #20232a; }
+    .game-card a:hover { background: var(--site-yellow); color: var(--site-ink); }
 
     /* New/Modified Styles */
     .disabled-game {
@@ -143,20 +153,20 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(249, 249, 249, 0.95); /* Light, slightly opaque overlay */
+      background-color: rgba(251, 250, 246, 0.96);
       border-radius: 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 10;
-      color: #333;
+      color: var(--site-ink);
       padding: 20px;
     }
     .member-games-overlay h4 {
       margin: 5px 0;
       font-size: 20px;
-      color: #20232a;
+      color: var(--site-ink);
     }
     .member-games-overlay p {
       margin-top: 5px;
@@ -164,7 +174,7 @@
       text-align: center;
     }
     .member-games-overlay a {
-      color: #61dafb;
+      color: var(--site-teal);
       text-decoration: none;
       font-weight: bold;
       margin-top: 10px;
@@ -176,7 +186,7 @@
     .member-games-svg {
         width: 60px;
         height: 60px;
-        fill: #20232a;
+        fill: var(--site-teal);
         margin-bottom: 10px;
     }
     #memberGames {
@@ -206,6 +216,8 @@
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://houselearning.org/home/main.js?v=sitewide-consent-v1"></script>
 </head>
 <body>
 <header data-site-i18n="games.heading">HouseLearning Learning Games</header>
@@ -438,10 +450,7 @@
 
     // Existing script (auth.js content should be here or linked)
 </script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="games/auth.js"></script>
-  <script src="https://houselearning.org/home/main.js?v=sitewide-consent-v1"></script>
 
 </body>
 </html>

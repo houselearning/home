@@ -16,6 +16,7 @@ let db = null;
 try {
     const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
     auth = app.auth();
+    window.HouseLearningAuth = auth;
     db = app.firestore();
 } catch (error) {
     console.error("Firebase initialization failed:", error);
