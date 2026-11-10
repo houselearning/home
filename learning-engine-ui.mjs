@@ -69,9 +69,8 @@ function mountLearningEngine() {
     sliderValue.textContent = `${progress}%`;
     panel.setAttribute('aria-hidden', String(progress === 0));
     panel.inert = progress === 0;
-    panel.style.right = `${-panel.offsetWidth * (1 - progress / 100)}px`;
-    panel.style.transform = 'none';
-    panel.style.visibility = 'visible';
+    panel.style.transform = `translateX(${100 - progress}%)`;
+    panel.style.visibility = progress === 0 ? 'hidden' : 'visible';
     panel.style.pointerEvents = progress === 0 ? 'none' : 'auto';
     toggleButton.setAttribute('aria-expanded', String(progress > 0));
     toggleButton.textContent = progress > 0 ? 'Close Math and Physics Engine' : 'Open Math and Physics Engine';

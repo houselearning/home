@@ -14,7 +14,6 @@ function timestampValue(value) {
 
 function isSavedActivity(record) {
   return Boolean(record && (
-    Object.values(record.steps || {}).some(Boolean)
     || Object.keys(record.lessonTools || {}).length
     || Object.keys(record).some(key => ['ivl', 'quiz', 'unitTest'].includes(key))
     || (Array.isArray(record.attempts) && record.attempts.length)
