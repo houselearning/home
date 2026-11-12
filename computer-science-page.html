@@ -116,6 +116,65 @@
       font-size: 13px;
     }
 
+    .cs-layout {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+      align-items: stretch;
+    }
+    .language-sidebar {
+      flex: 0 0 210px;
+      width: 210px;
+      background: #203944;
+      border-right: 1px solid #d8e1df;
+    }
+    .language-sidebar-title {
+      padding: 13px 15px 8px;
+      color: #a9c1bd;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .navbar[aria-label="Programming languages"] {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      width: 100%;
+      max-height: calc(100vh - 44px);
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 4px 9px 12px;
+      background: transparent;
+      box-shadow: none;
+      white-space: normal;
+    }
+    .navbar[aria-label="Programming languages"] a {
+      display: block;
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+    .cs-content {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-content .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 12px auto;
+    }
+    .cs-content .games {
+      width: min(100% - 24px, 1160px);
+      margin: 16px auto 28px;
+    }
+
     /* Container & sections */
     .container {
       flex-grow: 1;
@@ -466,6 +525,32 @@ body.dark-mode #output-container h3 {
   border-radius: 4px;
 }
 @media (max-width: 900px) {
+  .cs-layout { display: block; min-height: 0; }
+  .language-sidebar {
+    display: block;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid #d8e1df;
+  }
+  .language-sidebar-title { padding: 8px 12px 4px; }
+  .navbar[aria-label="Programming languages"] {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 3px 12px;
+    white-space: nowrap;
+  }
+  .navbar[aria-label="Programming languages"] a {
+    display: inline-flex;
+    min-height: 30px;
+    white-space: nowrap;
+  }
+  .cs-content { width: 100%; min-width: 0; }
   .navbar { justify-content: flex-start; padding: 6px 78px 6px 12px; }
   .navbar[aria-label="Primary"] {
     display: grid;
@@ -506,7 +591,10 @@ body.dark-mode #output-container h3 {
       <a href="/home/about.html" data-site-i18n="nav.aboutHouseLearning">About HouseLearning</a>
     </div>
   </nav>
-  <nav class="navbar" aria-label="Programming languages">
+  <div class="cs-layout">
+    <aside class="language-sidebar" aria-label="Coding lesson topics">
+      <div class="language-sidebar-title">Coding Lessons</div>
+      <nav class="navbar" aria-label="Programming languages">
     <a href="https://houselearning.org/home/computerscience/vbnet/">VB.NET</a>
     <a href="https://houselearning.org/home/computerscience/github/">GitHub</a>
     <a href="#games">Games</a>
@@ -538,8 +626,10 @@ body.dark-mode #output-container h3 {
     <a href="https://houselearning.org/home/computerscience/tailwind/index.html" target="_blank" rel="noopener noreferrer">Tailwind CSS</a>
     <a href="https://houselearning.org/home/computerscience/tonejs/index.html" target="_blank" rel="noopener noreferrer">Tone.js</a>
     <a href="https://houselearning.org/home/computerscience/threejs/index.html" target="_blank" rel="noopener noreferrer">THREE.js</a>
-  </nav>
+      </nav>
+    </aside>
 
+    <div class="cs-content">
   <main class="container">
     <section class="section lesson-panel" id="lesson-of-the-day" tabindex="0" aria-label="Lesson of the Day">
       <h2 data-site-i18n="cs.lessonOfDay">Lesson of the Day</h2>
@@ -616,6 +706,9 @@ body.dark-mode #output-container h3 {
          title="Click to upload a game to coolmathtime, (Rules & Restrictions apply)" 
          tabindex="0">Upload a game</a> and we will debate on adding it.
     </b>
+  </div>
+
+    </div>
   </div>
 
   <div class="theme-switch-wrapper">

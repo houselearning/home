@@ -74,6 +74,8 @@ def map_internal_target(url):
         return None
 
     path = parsed.path or '/'
+    if host in {'houselearning.org', 'www.houselearning.org'} and path.rstrip('/') == '/apply':
+        return None
     for prefix, root in PREFIX_ROOTS:
         if path == prefix or path.startswith(prefix + '/'):
             relative = path.removeprefix(prefix).lstrip('/')
