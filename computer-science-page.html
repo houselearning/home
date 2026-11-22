@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://houselearning.org/cookiebanner.js"></script>
-  <script src="https://houselearning.org/home/computerscience/index-script.js"></script>
+  <script src="/home/analytics.js?v=sitewide-consent-v2" defer></script>
+  <script type="module" src="site-i18n.mjs"></script>
+  <script src="https://www.houselearning.org/cookiebanner.js?v=consent-choice-v4"></script>
+  <script src="computerscience/index-script.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://houselearning.org/home/main.js"></script>
+  <script src="https://houselearning.org/home/main.js?v=sitewide-consent-v1"></script>
   <script src="/feedback.js"></script>
 <script type="module" src="also.js"></script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Computer Science | CoolMathTime</title>
+  <title data-site-i18n-title="page.computing.title">Coding Lessons | HouseLearning</title>
+  <meta name="description" content="Learn programming with free HouseLearning tutorials, examples, and coding challenges across popular languages and web technologies.">
+  <link rel="canonical" href="https://www.houselearning.org/home/computer-science-page.html">
   <style>
     /* Reset & base */
     * {
@@ -35,18 +39,20 @@
     
     /* Navbar */
     .navbar {
-      background-color: #20232a;
+      background-color: #172a35;
       display: flex;
+      align-items: center;
+      gap: 4px;
       overflow-x: auto;
       white-space: nowrap;
-      padding: 12px 20px;
+      padding: 5px 78px 5px 12px;
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
       scrollbar-width: thin;
-      scrollbar-color: #61dafb transparent;
+      scrollbar-color: #e8b638 transparent;
       transition: background-color 0.3s, box-shadow 0.3s;
     }
     body.dark-mode .navbar {
-      background-color: #1e1e1e;
+      background-color: #172a35;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
     .navbar::-webkit-scrollbar {
@@ -56,25 +62,117 @@
       background: transparent;
     }
     .navbar::-webkit-scrollbar-thumb {
-      background-color: #61dafb;
+      background-color: #e8b638;
       border-radius: 3px;
     }
 
     .navbar a {
-      color: #61dafb;
+      color: #dbe9e7;
       text-decoration: none;
-      padding: 10px 18px;
+      padding: 7px 10px;
       font-weight: 600;
-      font-size: 14px;
-      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.2;
+      border-radius: 5px;
       flex-shrink: 0;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .navbar a:hover,
     .navbar a:focus {
-      background-color: #61dafb;
-      color: #20232a;
+      background-color: #e8b638;
+      color: #172a35;
       outline: none;
+    }
+
+    .navbar[aria-label="Programming languages"] {
+      min-height: 40px;
+      padding: 3px 12px;
+      background: #203944;
+      box-shadow: none;
+      border-top: 1px solid rgba(219, 233, 231, 0.14);
+    }
+    .navbar[aria-label="Programming languages"] a {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+    .navbar .hl-sitemap-search {
+      grid-template-columns: minmax(100px, 170px) auto;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+    .navbar .hl-sitemap-search input,
+    .navbar .hl-search-submit {
+      height: 36px;
+      min-height: 36px;
+    }
+    .navbar .hl-sitemap-search input {
+      min-width: 0;
+      padding: 5px 9px;
+      font-size: 14px;
+    }
+    .navbar .hl-search-submit {
+      padding: 5px 10px;
+      font-size: 13px;
+    }
+
+    .cs-layout {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+      align-items: stretch;
+    }
+    .language-sidebar {
+      flex: 0 0 210px;
+      width: 210px;
+      background: #203944;
+      border-right: 1px solid #d8e1df;
+    }
+    .language-sidebar-title {
+      padding: 13px 15px 8px;
+      color: #a9c1bd;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .navbar[aria-label="Programming languages"] {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      width: 100%;
+      max-height: calc(100vh - 44px);
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 4px 9px 12px;
+      background: transparent;
+      box-shadow: none;
+      white-space: normal;
+    }
+    .navbar[aria-label="Programming languages"] a {
+      display: block;
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+    .cs-content {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-content .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 12px auto;
+    }
+    .cs-content .games {
+      width: min(100% - 24px, 1160px);
+      margin: 16px auto 28px;
     }
 
     /* Container & sections */
@@ -426,11 +524,77 @@ body.dark-mode #output-container h3 {
   margin-bottom: 10px;
   border-radius: 4px;
 }
+@media (max-width: 900px) {
+  .cs-layout { display: block; min-height: 0; }
+  .language-sidebar {
+    display: block;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid #d8e1df;
+  }
+  .language-sidebar-title { padding: 8px 12px 4px; }
+  .navbar[aria-label="Programming languages"] {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 3px 12px;
+    white-space: nowrap;
+  }
+  .navbar[aria-label="Programming languages"] a {
+    display: inline-flex;
+    min-height: 30px;
+    white-space: nowrap;
+  }
+  .cs-content { width: 100%; min-width: 0; }
+  .navbar { justify-content: flex-start; padding: 6px 78px 6px 12px; }
+  .navbar[aria-label="Primary"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .navbar[aria-label="Primary"] .hl-global-nav-links {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .navbar[aria-label="Primary"] .hl-sitemap-search {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .navbar[aria-label="Programming languages"] { padding: 3px 12px; }
+  .navbar a { flex-shrink: 0; }
+  .container { display: grid; grid-template-columns: minmax(0, 1fr); margin: 12px auto; }
+  .section { min-width: 0; max-height: none; overflow: visible; }
+  .lesson-panel { min-width: 0; }
+  .lesson-iframe { height: min(70vh, 620px); }
+  .games { width: calc(100% - 24px); margin: 16px auto 28px; padding: 18px; }
+}
   </style>
 </head>
 <body>
 
-  <nav class="navbar" role="navigation" aria-label="Primary">
+  <nav class="navbar" aria-label="Primary">
+    <div class="hl-global-nav-links" aria-label="HouseLearning main pages">
+      <a href="/home/" data-site-i18n="nav.home">Home</a>
+      <a href="/home/math-page.html" data-site-i18n="nav.math">Math Lessons</a>
+      <a href="/home/science-page.html" data-site-i18n="nav.science">Science Lessons</a>
+      <a href="/home/computer-science-page.html" aria-current="page" data-site-i18n="nav.computing">Coding Lessons</a>
+      <a href="/home/games.html" data-site-i18n="nav.games">Learning Games</a>
+      <a href="/home/blog.html" data-site-i18n="nav.blog">Blog</a>
+      <a href="/home/about.html" data-site-i18n="nav.aboutHouseLearning">About HouseLearning</a>
+    </div>
+  </nav>
+  <div class="cs-layout">
+    <aside class="language-sidebar" aria-label="Coding lesson topics">
+      <div class="language-sidebar-title">Coding Lessons</div>
+      <nav class="navbar" aria-label="Programming languages">
     <a href="https://houselearning.org/home/computerscience/vbnet/">VB.NET</a>
     <a href="https://houselearning.org/home/computerscience/github/">GitHub</a>
     <a href="#games">Games</a>
@@ -462,32 +626,34 @@ body.dark-mode #output-container h3 {
     <a href="https://houselearning.org/home/computerscience/tailwind/index.html" target="_blank" rel="noopener noreferrer">Tailwind CSS</a>
     <a href="https://houselearning.org/home/computerscience/tonejs/index.html" target="_blank" rel="noopener noreferrer">Tone.js</a>
     <a href="https://houselearning.org/home/computerscience/threejs/index.html" target="_blank" rel="noopener noreferrer">THREE.js</a>
-  </nav>
+      </nav>
+    </aside>
 
+    <div class="cs-content">
   <main class="container">
     <section class="section lesson-panel" id="lesson-of-the-day" tabindex="0" aria-label="Lesson of the Day">
-      <h2>Lesson of the Day</h2>
-      <p>A random lesson from our vast library. Refresh the page for a new one! ✨</p>
-      <a href="#" id="refresh-lesson-btn" title="Refresh Lesson of the Day" aria-label="Refresh Lesson of the Day">🔄 Refresh</a>
-      <a href="#" id="lesson-link" target="_blank" rel="noopener noreferrer">View Lesson in a new tab</a>
+      <h2 data-site-i18n="cs.lessonOfDay">Lesson of the Day</h2>
+      <p data-site-i18n="cs.lessonOfDayDescription">A random lesson from our vast library. Refresh the page for a new one! ✨</p>
+      <a href="#" id="refresh-lesson-btn" title="Refresh Lesson of the Day" aria-label="Refresh Lesson of the Day">🔄 <span data-site-i18n="cs.refresh">Refresh</span></a>
+      <a href="#" id="lesson-link" target="_blank" rel="noopener noreferrer" data-site-i18n="cs.viewLesson">View Lesson in a new tab</a>
       <iframe id="lesson-iframe" class="lesson-iframe" src="" title="Lesson of the Day"></iframe>
     </section>
 
 <section class="section" id="code-snippet-section" tabindex="0" aria-label="Code Snippet of the Day">
-  <h2>Code Snippet of the Day</h2>
+  <h2 data-site-i18n="cs.codeSnippetOfDay">Code Snippet of the Day</h2>
   <div id="code-container">
-    <p id="snippet-description">Generating a random code snippet...</p>
+    <p id="snippet-description" data-site-i18n="cs.generatingSnippet">Generating a random code snippet...</p>
     <div id="code-wrapper">
       <pre><code id="code-snippet" class="language-plaintext"></code></pre>
     </div>
     <div class="code-buttons">
-      <button id="copy-btn">Copy</button>
-      <button id="download-btn">Download</button>
-      <button id="run-btn">Run</button>
-    <button id="refresh-snippet-btn" title="Refresh Code Snippet" aria-label="Refresh Code Snippet">🔄 Refresh</button>
+      <button id="copy-btn" data-site-i18n="cs.copy">Copy</button>
+      <button id="download-btn" data-site-i18n="cs.download">Download</button>
+      <button id="run-btn" data-site-i18n="cs.run">Run</button>
+    <button id="refresh-snippet-btn" title="Refresh Code Snippet" aria-label="Refresh Code Snippet">🔄 <span data-site-i18n="cs.refresh">Refresh</span></button>
     </div>
     <div id="output-container" style="display: none;">
-      <h3>Output:</h3>
+      <h3 data-site-i18n="cs.output">Output:</h3>
       <div id="output-canvas"></div>
       <pre><code id="output-text" class="language-plaintext"></code></pre>
     </div>
@@ -540,6 +706,9 @@ body.dark-mode #output-container h3 {
          title="Click to upload a game to coolmathtime, (Rules & Restrictions apply)" 
          tabindex="0">Upload a game</a> and we will debate on adding it.
     </b>
+  </div>
+
+    </div>
   </div>
 
   <div class="theme-switch-wrapper">

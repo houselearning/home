@@ -451,7 +451,7 @@
       const existingLessonId = Array.from(document.scripts)
         .map(script => script.textContent.match(/\b(?:const|let|var)\s+lessonID\s*=\s*(['"])([^'"]+)\1/))
         .find(match => match);
-      if (existingLessonId) return existingLessonId[2];
+      return existingLessonId ? existingLessonId[2] : `${pageGrade}_${slug}_v3`;
     }
     if (pageSubject === 'cs') {
       const course = pageSections[0] || 'general';

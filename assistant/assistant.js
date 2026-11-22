@@ -22,6 +22,9 @@
   }
 
   function scriptBaseUrl() {
+    if (window.HL_ASSISTANT_BASE_URL) {
+      return String(window.HL_ASSISTANT_BASE_URL).replace(/\/$/, '');
+    }
     const origin = new URL(window.location.href).origin;
     const path = new URL(window.location.href).pathname.toLowerCase();
     return path.includes('/home') ? `${origin}/home/assistant` : `${origin}/assistant`;
@@ -790,6 +793,7 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
       subject,
       pageTitle: page.title || document.title || 'HouseLearning page',
       grade: session && session.grade ? session.grade : '',
+      tutorMode: Boolean(session && session.tutoringSession && session.tutoringSession.active),
       language: context.language || 'en',
       sourceUrls: sitemapEntries.slice(0, 500).map((entry) => entry.url),
       siteKnowledge: context.siteKnowledge || null,
@@ -1384,7 +1388,6 @@ You are SafeAI. You are an educational assistant. You provide safe, age-appropri
         if (state.session.tutoringSession?.active) {
           state.session.tutoringSession.step += 1;
           state.session.tutoringSession.attempts += 1;
-          responseText += '\n\nTutor check: Explain the main idea in your own words, then try one small example. What part should we work through next?';
         }
         renderAssistantMessage(responseText, 'assistant');
         if (window.HLAssistantSession) {

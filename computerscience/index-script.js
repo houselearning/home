@@ -37,40 +37,42 @@
 
   // Load theme preference on initial load
   const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'day') {
-    setPreference('day');
-    updateButtons(dayBtn);
-  } else if (savedTheme === 'night') {
-    setPreference('night');
-    updateButtons(nightBtn);
-  } else {
-    checkSystemPreference();
-    updateButtons(autoBtn);
-  }
-
-  dayBtn.addEventListener('click', () => {
-    setPreference('day');
-    updateButtons(dayBtn);
-  });
-  nightBtn.addEventListener('click', () => {
-    setPreference('night');
-    updateButtons(nightBtn);
-  });
-  autoBtn.addEventListener('click', () => {
-    setPreference('auto');
-    updateButtons(autoBtn);
-  });
-
-  // Listen for system theme changes in auto mode
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
-      if (e.matches) {
-        body.classList.add('dark-mode');
-      } else {
-        body.classList.remove('dark-mode');
-      }
+  if (dayBtn && nightBtn && autoBtn) {
+    if (savedTheme === 'day') {
+      setPreference('day');
+      updateButtons(dayBtn);
+    } else if (savedTheme === 'night') {
+      setPreference('night');
+      updateButtons(nightBtn);
+    } else {
+      checkSystemPreference();
+      updateButtons(autoBtn);
     }
-  });
+
+    dayBtn.addEventListener('click', () => {
+      setPreference('day');
+      updateButtons(dayBtn);
+    });
+    nightBtn.addEventListener('click', () => {
+      setPreference('night');
+      updateButtons(nightBtn);
+    });
+    autoBtn.addEventListener('click', () => {
+      setPreference('auto');
+      updateButtons(autoBtn);
+    });
+
+    // Listen for system theme changes in auto mode
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        if (e.matches) {
+          body.classList.add('dark-mode');
+        } else {
+          body.classList.remove('dark-mode');
+        }
+      }
+    });
+  }
   // --------------------------------------------------------
 
   // ----------------- Lesson of the Day Logic -----------------

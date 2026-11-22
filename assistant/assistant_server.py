@@ -50,9 +50,10 @@ class AssistantRequestHandler(BaseHTTPRequestHandler):
         page_title = str(payload.get('pageTitle') or payload.get('page_title') or 'HouseLearning page')
         grade = str(payload.get('grade') or '')
         language = str(payload.get('language') or 'en')
+        tutor_mode = payload.get('tutorMode') is True
 
         try:
-            reply = generate_reply(user_message, subject=subject, page_title=page_title, grade=grade, language=language)
+            reply = generate_reply(user_message, subject=subject, page_title=page_title, grade=grade, language=language, tutor_mode=tutor_mode)
             self._send_json({
                 'text': reply,
                 'suggestions': []

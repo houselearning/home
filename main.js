@@ -14,9 +14,10 @@ const firebaseConfig = {
 let auth;
 let db = null;
 try {
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.firestore();
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+    auth = app.auth();
+    window.HouseLearningAuth = auth;
+    db = app.firestore();
 } catch (error) {
     console.error("Firebase initialization failed:", error);
 }
@@ -25,7 +26,9 @@ try {
 let notificationsUnsubscribe = null;
 let latestNotifications = []; 
 let notifReminderTimer = null; 
+let notificationImageObjectUrls = [];
 const NOTIF_REMINDER_DISMISS_KEY = 'houselearning_notif_reminder_dismissed_at'; 
+const NOTIFICATION_IMAGE_FUNCTION_URL = 'https://us-central1-contract-center-llc-10.cloudfunctions.net/getNotificationImage';
 
 // Dynamic Element References
 let profileContainer = null;
@@ -223,6 +226,8 @@ function renderNotifications(docs) {
     const empty = document.querySelector('#no-notifs-msg');
     if (!list) return;
 
+    notificationImageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    notificationImageObjectUrls = [];
     list.innerHTML = '';
     if (docs.length === 0) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
@@ -230,19 +235,73 @@ function renderNotifications(docs) {
     docs.forEach(n => {
         const li = document.createElement('li');
         li.className = `notification-item ${n.read ? '' : 'unread'}`;
-        li.innerHTML = `
-            <div style="font-weight:bold;">${n.title}</div>
-            <div style="font-size:13px; color:#444;">${n.body}</div>
-            <div style="margin-top:8px; display:flex; gap:8px;">
-                ${!n.read ? `<button class="notif-small-btn" onclick="markAsRead('${n.id}')">Mark Read</button>` : ''}
-                ${n.url ? `<button class="notif-small-btn" onclick="window.open('${n.url}')">Open</button>` : ''}
-            </div>
-        `;
+        const title = document.createElement('div');
+        title.style.fontWeight = 'bold';
+        title.textContent = typeof n.title === 'string' ? n.title : '';
+        li.appendChild(title);
+
+        const body = document.createElement('div');
+        body.style.cssText = 'font-size:13px; color:#444; white-space:pre-wrap;';
+        body.textContent = typeof n.body === 'string' ? n.body : '';
+        li.appendChild(body);
+
+        if (Array.isArray(n.images)) {
+            n.images.forEach((image, imageIndex) => {
+                if (!image || typeof image.fileName !== 'string') return;
+
+                const img = document.createElement('img');
+                img.alt = typeof image.fileName === 'string' ? image.fileName : 'Notification image';
+                img.loading = 'lazy';
+                img.style.cssText = 'display:block; max-width:100%; max-height:320px; object-fit:contain; margin-top:8px;';
+                li.appendChild(img);
+
+                const currentUser = auth && auth.currentUser;
+                if (!currentUser) return;
+                currentUser.getIdToken().then(token => fetch(
+                    `${NOTIFICATION_IMAGE_FUNCTION_URL}?notificationId=${encodeURIComponent(n.id)}&imageIndex=${imageIndex}`,
+                    { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+                )).then(response => {
+                    if (!response.ok) throw new Error(`Image request failed (${response.status})`);
+                    return response.blob();
+                }).then(blob => {
+                    const objectUrl = URL.createObjectURL(blob);
+                    if (!img.isConnected) {
+                        URL.revokeObjectURL(objectUrl);
+                        return;
+                    }
+                    notificationImageObjectUrls.push(objectUrl);
+                    img.src = objectUrl;
+                }).catch(error => console.error('Notification image error:', error));
+            });
+        }
+
+        const actions = document.createElement('div');
+        actions.style.cssText = 'margin-top:8px; display:flex; gap:8px;';
+        if (!n.read) {
+            const markRead = document.createElement('button');
+            markRead.className = 'notif-small-btn';
+            markRead.textContent = 'Mark Read';
+            markRead.addEventListener('click', () => window.markAsRead(n.id));
+            actions.appendChild(markRead);
+        }
+        if (typeof n.url === 'string') {
+            try {
+                const notificationUrl = new URL(n.url);
+                if (notificationUrl.protocol === 'https:') {
+                    const open = document.createElement('button');
+                    open.className = 'notif-small-btn';
+                    open.textContent = 'Open';
+                    open.addEventListener('click', () => window.open(notificationUrl.href, '_blank', 'noopener'));
+                    actions.appendChild(open);
+                }
+            } catch (error) {
+                // Ignore malformed notification links.
+            }
+        }
+        if (actions.childElementCount) li.appendChild(actions);
         list.appendChild(li);
     });
 }
-
-window.markAsRead = (id) => db.collection('notifications').doc(id).update({ read: true });
 
 function checkReminder(notifications) {
     const unread = notifications.filter(n => !n.read);
