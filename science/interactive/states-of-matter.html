@@ -12,6 +12,7 @@
       --bg:#f4f7fb; --panel:#ffffff; --ink:#1d2a36; --muted:#546778; --primary:#2f6fed; --primary-soft:#eaf1ff; --accent:#16a085; --accent-soft:#eafaf6; --gold:#d4a017; --warning:#fff4d6; --line:#dfe8f3; --shadow: 0 12px 26px rgba(16,32,58,0.08);
     }
     * { box-sizing: border-box; }
+    html, body { max-width:100%; overflow-x:hidden; }
     body { margin:0; font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--ink); }
     .page { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
     .hero { background: linear-gradient(135deg, #2040a8, #3175d6 38%, #4db6ff); color:white; border-radius: 22px; padding: 30px 28px; box-shadow: var(--shadow); }
@@ -41,6 +42,7 @@
     .btn { display:inline-block; background: var(--primary); color:#fff; border:none; border-radius: 10px; font-size: 1rem; font-weight: 700; padding: 12px 18px; cursor:pointer; margin-top:10px; }
     .btn.secondary { background: var(--accent); }
     .result { margin-top:12px; font-weight:700; min-height: 24px; }
+    .answer-block input:focus-visible, .answer-block button:focus-visible { outline:3px solid #d68a00; outline-offset:3px; }
     @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } .page { padding: 18px 14px 60px; } }
   </style>
 </head>
@@ -58,7 +60,11 @@
     </header>
 
     <section class="panel">
-      <h2>Lesson objective</h2>
+      <h2>Learning objectives</h2>
+      <div class="bluebox"><p>By the end, you can compare particle arrangement and motion in states of matter and identify phase changes.</p></div>
+      <ul><li>Describe solids, liquids, and gases.</li><li>Explain melting, freezing, vaporization, condensation, and sublimation.</li><li>Relate temperature changes to particle motion.</li><li>Distinguish physical state from chemical change.</li></ul>
+      <h3>Key vocabulary</h3><p><strong>Melting:</strong> solid to liquid. <strong>Condensation:</strong> gas to liquid. <strong>Sublimation:</strong> solid directly to gas.</p>
+      <h3>Worked example</h3><div class="greenbox"><p>Ice warms to its melting point, becomes liquid water, then gains enough energy to vaporize. Heating changes state; the substance remains H2O.</p></div>
       <div class="bluebox">
         <p>Students will explain the key idea behind <strong>States of Matter</strong>, model the concept accurately, use the correct strategy or rule, and apply it to real-world and academic examples with confidence.</p>
       </div>
@@ -132,20 +138,15 @@
 
     <section class="panel">
       <h2>Guided practice</h2>
-      <div class="quiz">
-        <div class="answer-block">
-          <strong>Question 1.</strong>
-          <p>Describe the concept of <strong>States of Matter</strong> using your own words and connect it to one real-life example.</p>
-        </div>
-        <div class="answer-block">
-          <strong>Question 2.</strong>
-          <p>Show one example that demonstrates the concept clearly and explain each step in complete sentences.</p>
-        </div>
-        <div class="answer-block">
-          <strong>Question 3.</strong>
-          <p>What is one common error students make with this topic, and how can they check whether their answer is reasonable?</p>
-        </div>
+      <div class="quiz" aria-live="polite" aria-atomic="false">
+        <div class="answer-block" data-answer="melting"><strong>1.</strong><p>Solid changing to liquid is called?</p><input aria-label="Phase change"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="condensation"><strong>2.</strong><p>Gas changing to liquid is called?</p><input aria-label="Phase change"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="solid"><strong>3.</strong><p>State with fixed shape and fixed volume?</p><input aria-label="State of matter"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="gas"><strong>4.</strong><p>State that expands to fill a container?</p><input aria-label="State of matter"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="sublimation"><strong>5.</strong><p>Solid changing directly to gas is called?</p><input aria-label="Phase change"><button type="button">Check</button><p class="result"></p></div>
       </div>
+      <p><strong>Knowledge check:</strong> Heating generally increases particle motion, while cooling generally decreases it.</p><p><strong>Real-world application:</strong> Ice melting, water boiling, frost, and condensation describe phase changes.</p>
+      <p>Related: <a href="properties-of-matter.html">Properties of Matter</a> · <a href="water-cycle.html">Water Cycle</a> · <a href="../../science-page.html">All science lessons</a></p>
       <button class="btn secondary" type="button" onclick="showResult()">Complete check-in</button>
       <div id="result" class="result" aria-live="polite"></div>
     </section>
@@ -171,6 +172,8 @@
   </div>
 
   <script>
+    function normalizeText(raw){return String(raw||'').trim().toLowerCase().replace(/\s+/g,' ');}document.querySelectorAll('.answer-block input').forEach(input=>input.setAttribute('required',''));
+    document.querySelectorAll('.answer-block button').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.answer-block'),raw=normalizeText(card.querySelector('input').value),answer=normalizeText(card.dataset.answer),ok=raw===answer,fb=card.querySelector('.result');fb.textContent=ok?`Correct. The answer is ${answer}.`:`Not yet. The correct answer is ${answer}. Review the phase change or state.`;fb.setAttribute('role','status');fb.setAttribute('aria-live','polite');fb.style.color=ok?'#13795b':'#9a3412';}));
     function showResult() {
       const result = document.getElementById('result');
       result.textContent = 'Lesson checkpoint complete: the learner has reviewed the concept, the strategy, and the reasoning behind the answer.';

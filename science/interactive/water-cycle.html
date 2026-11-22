@@ -5,13 +5,14 @@
 <script src="../../offline-features.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Water Cycle | HouseLearning Interactive Video Lesson</title>
+  <title>Water Cycle: Evaporation, Condensation, and Precipitation | HouseLearning</title>
   <meta name="description" content="Detailed interactive video lesson for Water Cycle. Includes objectives, lesson script, guided practice, misconceptions, and a 30+ minute instructional flow." />
   <style>
     :root {
       --bg:#f4f7fb; --panel:#ffffff; --ink:#1d2a36; --muted:#546778; --primary:#2f6fed; --primary-soft:#eaf1ff; --accent:#16a085; --accent-soft:#eafaf6; --gold:#d4a017; --warning:#fff4d6; --line:#dfe8f3; --shadow: 0 12px 26px rgba(16,32,58,0.08);
     }
     * { box-sizing: border-box; }
+    html, body { max-width:100%; overflow-x:hidden; }
     body { margin:0; font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--ink); }
     .page { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
     .hero { background: linear-gradient(135deg, #2040a8, #3175d6 38%, #4db6ff); color:white; border-radius: 22px; padding: 30px 28px; box-shadow: var(--shadow); }
@@ -41,6 +42,7 @@
     .btn { display:inline-block; background: var(--primary); color:#fff; border:none; border-radius: 10px; font-size: 1rem; font-weight: 700; padding: 12px 18px; cursor:pointer; margin-top:10px; }
     .btn.secondary { background: var(--accent); }
     .result { margin-top:12px; font-weight:700; min-height: 24px; }
+    .answer-block input:focus-visible, .answer-block button:focus-visible { outline:3px solid #d68a00; outline-offset:3px; }
     @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } .page { padding: 18px 14px 60px; } }
   </style>
 </head>
@@ -49,6 +51,7 @@
     <header class="hero">
       <div class="tag">Science IVL</div>
       <h1>Water Cycle</h1>
+      <p class="subtitle">Trace water through evaporation, condensation, precipitation, runoff, and collection.</p>
       <p class="subtitle">This interactive video lesson is designed to help learners build conceptual understanding, mathematical reasoning, and confident application. The full lesson is structured for at least 30 minutes of guided instruction, examples, discussion, practice, and reflection.</p>
       <div class="meta-grid">
         <div class="meta"><strong>Duration</strong>32 minutes</div>
@@ -58,7 +61,11 @@
     </header>
 
     <section class="panel">
-      <h2>Lesson objective</h2>
+      <h2>Learning objectives</h2>
+      <div class="bluebox"><p>By the end, you can trace water through major cycle processes and explain their roles.</p></div>
+      <ul><li>Explain evaporation, condensation, precipitation, runoff, and collection.</li><li>Distinguish surface flow and infiltration.</li><li>Identify the Sun and gravity as major drivers.</li><li>Explain that water is recycled, not newly created.</li></ul>
+      <h3>Key vocabulary</h3><p><strong>Evaporation:</strong> liquid to vapor. <strong>Condensation:</strong> vapor to liquid. <strong>Precipitation:</strong> water falling from clouds.</p>
+      <h3>Worked example</h3><div class="greenbox"><p>Sunlight evaporates lake water. Vapor cools and condenses into clouds. Gravity returns water as rain, which flows to rivers or infiltrates soil.</p></div>
       <div class="bluebox">
         <p>Students will explain the key idea behind <strong>Water Cycle</strong>, model the concept accurately, use the correct strategy or rule, and apply it to real-world and academic examples with confidence.</p>
       </div>
@@ -132,20 +139,15 @@
 
     <section class="panel">
       <h2>Guided practice</h2>
-      <div class="quiz">
-        <div class="answer-block">
-          <strong>Question 1.</strong>
-          <p>Describe the concept of <strong>Water Cycle</strong> using your own words and connect it to one real-life example.</p>
-        </div>
-        <div class="answer-block">
-          <strong>Question 2.</strong>
-          <p>Show one example that demonstrates the concept clearly and explain each step in complete sentences.</p>
-        </div>
-        <div class="answer-block">
-          <strong>Question 3.</strong>
-          <p>What is one common error students make with this topic, and how can they check whether their answer is reasonable?</p>
-        </div>
+      <div class="quiz" aria-live="polite" aria-atomic="false">
+        <div class="answer-block" data-answer="evaporation"><strong>1.</strong><p>Liquid water becoming vapor?</p><input aria-label="Water cycle process"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="condensation"><strong>2.</strong><p>Water vapor becoming liquid cloud droplets?</p><input aria-label="Water cycle process"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="precipitation"><strong>3.</strong><p>Rain or snow falling from clouds?</p><input aria-label="Water cycle process"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="runoff"><strong>4.</strong><p>Water moving across land toward rivers or lakes?</p><input aria-label="Water cycle process"><button type="button">Check</button><p class="result"></p></div>
+        <div class="answer-block" data-answer="infiltration"><strong>5.</strong><p>Water soaking into soil or rock?</p><input aria-label="Water cycle process"><button type="button">Check</button><p class="result"></p></div>
       </div>
+      <p><strong>Knowledge check:</strong> The Sun supplies energy for evaporation, and gravity helps precipitation, runoff, and collection.</p><p><strong>Real-world application:</strong> The cycle connects weather, rivers, groundwater, farming, and drinking-water sources.</p>
+      <p>Related: <a href="states-of-matter.html">States of Matter</a> · <a href="hydrology-oceanography.html">Hydrology and Oceanography</a> · <a href="../../science-page.html">All science lessons</a></p>
       <button class="btn secondary" type="button" onclick="showResult()">Complete check-in</button>
       <div id="result" class="result" aria-live="polite"></div>
     </section>
@@ -171,6 +173,8 @@
   </div>
 
   <script>
+    function normalizeText(raw){return String(raw||'').trim().toLowerCase().replace(/\s+/g,' ');}document.querySelectorAll('.answer-block input').forEach(input=>input.setAttribute('required',''));
+    document.querySelectorAll('.answer-block button').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.answer-block'),raw=normalizeText(card.querySelector('input').value),answer=normalizeText(card.dataset.answer),ok=raw===answer,fb=card.querySelector('.result');fb.textContent=ok?`Correct. The answer is ${answer}.`:`Not yet. The correct answer is ${answer}. Review the water-cycle process.`;fb.setAttribute('role','status');fb.setAttribute('aria-live','polite');fb.style.color=ok?'#13795b':'#9a3412';}));
     function showResult() {
       const result = document.getElementById('result');
       result.textContent = 'Lesson checkpoint complete: the learner has reviewed the concept, the strategy, and the reasoning behind the answer.';
